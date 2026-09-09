@@ -1,85 +1,28 @@
-import type { Metadata } from "next";
-import { Roboto, Geist_Mono, Archivo_Black } from "next/font/google";
-import "./globals.css";
-import Image from "next/image";
-import Link from "next/link";
-import SessionProvider from "@/components/SessionProvider";
-import AuthButton from "@/components/AuthButton";
-import NavLink from "@/components/NavLink";
+import type { Metadata } from 'next';
+import { Inter_Tight } from 'next/font/google';
+import './globals.css';
 
-const roboto = Roboto({
-  weight: ["300", "400", "500", "700"],
-  variable: "--font-roboto",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
-
-const display = Archivo_Black({
-  weight: "400",
-  subsets: ["latin"],
-  variable: "--font-display",
+const interTight = Inter_Tight({
+  subsets: ['latin', 'latin-ext'],
+  weight: ['400', '500', '600', '700', '800'],
+  variable: '--font-inter-tight',
+  display: 'swap',
 });
 
 export const metadata: Metadata = {
-  title: "Training Lab",
-  description: "Your personal basketball training assistant",
+  title: 'bAIright | Nakupujte správně s AI • Osobní podiatrický nákupčí bot',
+  description: 'Inteligentní systém pro výběr správné obuvi s využitím AI agentů, biomechaniky došlapu a prevence kloubních potíží.',
 };
 
 export default function RootLayout({
   children,
-}: Readonly<{
+}: {
   children: React.ReactNode;
-}>) {
+}) {
   return (
-    <html lang="en">
-      <body
-        className={`${roboto.variable} ${geistMono.variable} ${display.variable} antialiased`}
-      >
-        <SessionProvider>
-          <header className="bg-[var(--surface)] shadow-1 border-b border-[var(--border)]">
-            <nav className="max-w-6xl mx-auto flex gap-8 p-6 items-center">
-              <Link href="/" className="flex items-center gap-3" aria-label="Training Lab Home">
-                <Image src="/traininglab.png" width={160} height={32} alt="Training Lab" priority />
-              </Link>
-              <div className="flex gap-2 ml-auto">
-                <NavLink href="/" icon={
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-                  </svg>
-                }>
-                  Home
-                </NavLink>
-                <NavLink href="/library" icon={
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-                  </svg>
-                }>
-                  Library
-                </NavLink>
-                <NavLink href="/content-management" icon={
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                  </svg>
-                }>
-                  Content
-                </NavLink>
-                <NavLink href="/plan-builder" icon={
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
-                  </svg>
-                }>
-                  Plans
-                </NavLink>
-                <AuthButton />
-              </div>
-            </nav>
-          </header>
-          <main className="max-w-6xl mx-auto px-4">{children}</main>
-        </SessionProvider>
+    <html lang="cs" className={`dark ${interTight.variable}`}>
+      <body className={`min-h-screen bg-[#070d18] text-slate-100 antialiased selection:bg-cyan-500 selection:text-slate-950 ${interTight.className}`}>
+        {children}
       </body>
     </html>
   );

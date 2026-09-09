@@ -1,236 +1,379 @@
-"use client";
+'use client';
 
-import { useState, useEffect } from "react";
-import Image from "next/image";
-import { loadVisibleResources } from "@/lib/resource-storage";
-import { Resource } from "@/types/resource";
+import React, { useState, useEffect, useRef } from 'react';
+import { 
+  BiomechanicalProfile, 
+  MandatoryCheckResult, 
+  AgentChatMessage 
+} from '@/lib/agent/types';
+import { INITIAL_BIOMECHANICAL_PROFILE, evaluateMandatoryBiomechanicalParameters } from '@/lib/agent/state-machine';
+import { BiomechanicalSidebar } from '@/components/BiomechanicalSidebar';
+import { ToolExecutionBadge } from '@/components/ToolExecutionBadge';
+import { ShoeRecommendationCard } from '@/components/ShoeRecommendationCard';
+import { IntakeWizard } from '@/components/IntakeWizard';
+import { 
+  Send, 
+  Sparkles, 
+  Footprints, 
+  RefreshCw, 
+  Stethoscope, 
+  Bot, 
+  User, 
+  ChevronRight,
+  ClipboardList,
+  MessageSquare
+} from 'lucide-react';
+
+const INITIAL_GREETING: AgentChatMessage = {
+  id: 'greeting-1',
+  role: 'assistant',
+  content: `### 🩺 Welcome to OrthoStride: Clinical Podiatrist & Shoe Shopper
+
+I am your clinical AI podiatrist and personal footwear concierge. Unlike generic shoe pickers, my recommendation engine is governed by **strict biomechanical safety guardrails**.
+
+To protect your kinetic chain and prevent worsening joint degeneration, I **cannot unlock external community searches or European retail scans** until we verify your **5 mandatory parameters**:
+1. **Body Weight** (for midsole foam density calibration)
+2. **Foot Width** (verifying standard D vs. **Wide 2E / Extra Wide 4E**)
+3. **Gait / Strike Pattern** (supination vs. neutral vs. overpronation)
+4. **Knee Joint Health** (specifically assessing for **Grade 3 Knee Osteoarthritis**)
+5. **Past Injuries** (plantar fasciitis, meniscus tears, etc.)
+
+How can I help you today? Feel free to describe your current running/walking routine and physical profile.`,
+  timestamp: new Date().toISOString(),
+};
+
+const SUGGESTED_PROMPTS = [
+  {
+    label: '⚡ Test Full Profile (Grade 3 Knee OA + 2E Wide)',
+    text: 'I weigh 86 kg, have wide 2E feet, a supinated heel strike, and was diagnosed with Grade 3 Knee Osteoarthritis. No other past injuries.',
+  },
+  {
+    label: '🔒 Test Gated Profile (Partial Info)',
+    text: 'I weigh 82 kg and run 5k three times a week on asphalt, but my shoes feel tight.',
+  },
+  {
+    label: '🦵 Ask About Knee Osteoarthritis 3',
+    text: 'Why do I need a rocker sole and 4mm drop for Grade 3 knee osteoarthritis?',
+  },
+];
 
 export default function Home() {
-  const [resources, setResources] = useState<Resource[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState<'wizard' | 'chat'>('wizard');
+  const [sessionId, setSessionId] = useState<string>('');
+  const [messages, setMessages] = useState<AgentChatMessage[]>([INITIAL_GREETING]);
+  const [inputValue, setInputValue] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [profile, setProfile] = useState<BiomechanicalProfile>(INITIAL_BIOMECHANICAL_PROFILE);
+  const [evalResult, setEvalResult] = useState<MandatoryCheckResult>(
+    evaluateMandatoryBiomechanicalParameters(INITIAL_BIOMECHANICAL_PROFILE)
+  );
 
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  // Initialize unique session ID
   useEffect(() => {
-    const loadResources = () => {
-      try {
-        const userResources = loadVisibleResources();
-        setResources(userResources);
-        setLoading(false);
-      } catch (error) {
-        console.error('Error loading resources:', error);
-        setResources([]);
-        setLoading(false);
-      }
-    };
-
-    // Small delay to ensure client-side
-    setTimeout(loadResources, 100);
+    const existing = localStorage.getItem('orthostride_session_id');
+    const sid = existing || `session-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;
+    if (!existing) {
+      localStorage.setItem('orthostride_session_id', sid);
+    }
+    setSessionId(sid);
   }, []);
 
-  // Get platform icon
-  function getPlatformIcon(platform: Resource['platform']) {
-    switch (platform) {
-      case "youtube":
-        return (
-          <svg className="w-6 h-6 text-white" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
-          </svg>
-        );
-      case "instagram":
-        return (
-          <svg className="w-6 h-6 text-white" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/>
-          </svg>
-        );
-      case "facebook":
-        return (
-          <svg className="w-6 h-6 text-white" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
-          </svg>
-        );
-      default:
-        return (
-          <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
-          </svg>
-        );
-    }
-  }
+  // Auto-scroll to bottom of chat
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages, isLoading]);
 
-  // Get platform color
-  function getPlatformColor(platform: Resource['platform']) {
-    switch (platform) {
-      case "youtube":
-        return "bg-red-500";
-      case "instagram":
-        return "bg-gradient-to-r from-purple-500 to-pink-500";
-      case "facebook":
-        return "bg-blue-600";
-      default:
-        return "bg-gray-500";
+  const handleSendMessage = async (textToSend?: string) => {
+    const message = textToSend || inputValue.trim();
+    if (!message || isLoading) return;
+
+    if (!textToSend) {
+      setInputValue('');
     }
-  }
+
+    const userMessage: AgentChatMessage = {
+      id: `user-${Date.now()}`,
+      role: 'user',
+      content: message,
+      timestamp: new Date().toISOString(),
+    };
+
+    setMessages((prev) => [...prev, userMessage]);
+    setIsLoading(true);
+
+    try {
+      const response = await fetch('/api/agent/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          sessionId: sessionId || 'default-session',
+          message,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+
+      setMessages((prev) => [...prev, data.message]);
+      if (data.updatedProfile) {
+        setProfile(data.updatedProfile);
+        setEvalResult(evaluateMandatoryBiomechanicalParameters(data.updatedProfile));
+      }
+    } catch (error) {
+      console.error('Error sending message:', error);
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: `error-${Date.now()}`,
+          role: 'assistant',
+          content: 'I apologize, but I encountered an issue connecting to the podiatry agent server. Please try again.',
+          timestamp: new Date().toISOString(),
+        },
+      ]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleReset = () => {
+    const newSid = `session-${Date.now()}`;
+    localStorage.setItem('orthostride_session_id', newSid);
+    setSessionId(newSid);
+    setProfile(INITIAL_BIOMECHANICAL_PROFILE);
+    setEvalResult(evaluateMandatoryBiomechanicalParameters(INITIAL_BIOMECHANICAL_PROFILE));
+    setMessages([INITIAL_GREETING]);
+  };
 
   return (
-    <div className="max-w-6xl mx-auto py-8 space-y-8">
-      {/* Hero Section */}
-      <div className="text-center space-y-6">
-        <p className="text-xl text-[var(--muted)] max-w-2xl mx-auto">
-          Build your personalized basketball training plans, video tutorials, and expert exercises.
-        </p>
-        <div className="flex gap-4 justify-center">
-          <a 
-            href="/library" 
-            className="px-6 py-3 rounded-lg bg-[var(--accent)] text-[var(--accent-contrast)] font-medium shadow-2 hover:shadow-3 transition-all duration-200"
-          >
-            Browse Library
-          </a>
-          <a 
-            href="/plan-builder" 
-            className="px-6 py-3 rounded-lg bg-[var(--surface)] text-[var(--foreground)] border border-[var(--border)] font-medium shadow-1 hover:shadow-2 transition-all duration-200"
-          >
-            Create Plan
-          </a>
-          <a 
-            href="/plans" 
-            className="px-6 py-3 rounded-lg bg-[var(--surface)] text-[var(--foreground)] border border-[var(--border)] font-medium shadow-1 hover:shadow-2 transition-all duration-200"
-          >
-            View Plans
-          </a>
-        </div>
-      </div>
-
-      {/* Resources Section */}
-      <section className="space-y-6">
-        <div className="flex items-center gap-3">
-          <svg className="w-6 h-6 text-[var(--accent)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
-          </svg>
-          <h2 className="text-3xl font-bold text-[var(--foreground)]">Resources</h2>
-        </div>
-
-        {loading ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {[...Array(6)].map((_, i) => (
-              <div key={i} className="bg-[var(--surface)] shadow-1 rounded-lg p-6 animate-pulse">
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="w-10 h-10 bg-gray-300 rounded-full"></div>
-                  <div className="flex-1">
-                    <div className="h-4 bg-gray-300 rounded mb-2"></div>
-                    <div className="h-3 bg-gray-300 rounded w-2/3"></div>
-                  </div>
-                </div>
-                <div className="h-3 bg-gray-300 rounded mb-2"></div>
-                <div className="h-3 bg-gray-300 rounded w-3/4"></div>
-              </div>
-            ))}
-          </div>
-        ) : resources.length === 0 ? (
-          <div className="text-center py-12">
-            <div className="w-16 h-16 bg-[var(--surface)] rounded-full flex items-center justify-center mx-auto mb-4">
-              <svg className="w-8 h-8 text-[var(--muted)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
-              </svg>
+    <div className="flex h-screen flex-col bg-[#070d18] text-slate-100 overflow-hidden font-sans bio-grid-pattern">
+      {/* Top Navbar: High-Tech Clinical Bio-Tech */}
+      <header className="h-16 border-b border-cyan-500/20 bg-[#070d18]/85 backdrop-blur-xl px-6 flex items-center justify-between shrink-0 z-20 shadow-[0_4px_25px_rgba(0,0,0,0.5)]">
+        <div className="flex items-center gap-3.5">
+          <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-cyan-500 via-teal-400 to-cyan-300 p-0.5 shadow-lg shadow-cyan-950/60 animate-pulse-glow">
+            <div className="w-full h-full bg-[#070d18] rounded-[10px] flex items-center justify-center">
+              <Footprints className="w-5 h-5 text-cyan-400" />
             </div>
-            <h3 className="text-lg font-semibold text-[var(--foreground)] mb-2">No Resources Yet</h3>
-            <p className="text-[var(--muted)] mb-4">Add YouTube channels, Instagram profiles, or Facebook pages to see them here.</p>
-            <a 
-              href="/content-management" 
-              className="inline-flex items-center gap-2 px-4 py-2 bg-[var(--accent)] text-[var(--accent-contrast)] font-medium rounded-lg hover:opacity-90 transition-opacity"
-            >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-              </svg>
-              Add Resources
-            </a>
           </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {resources.map((resource) => (
-              <div key={resource.id} className="bg-[var(--surface)] shadow-1 rounded-lg p-6 hover:shadow-2 transition-all duration-200">
-                <div className="flex items-center gap-3 mb-4">
-                  <div className={`w-10 h-10 ${getPlatformColor(resource.platform)} rounded-full flex items-center justify-center`}>
-                    {getPlatformIcon(resource.platform)}
-                  </div>
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2">
-                      <h3 className="font-semibold text-[var(--foreground)]">{resource.name}</h3>
-                      {resource.isVerified && (
-                        <svg className="w-4 h-4 text-blue-500" fill="currentColor" viewBox="0 0 24 24">
-                          <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                        </svg>
+          <div>
+            <div className="flex items-center gap-2.5">
+              <h1 className="text-lg font-extrabold text-white tracking-tight flex items-center gap-1.5">
+                <span>bAIright</span>
+                <span className="text-[10px] px-1.5 py-0.5 rounded bg-cyan-500/10 border border-cyan-400/30 text-cyan-300 font-mono font-semibold">BIO-TECH</span>
+              </h1>
+              <div className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-cyan-950/60 border border-cyan-500/30 text-[10px] font-mono text-cyan-300">
+                <span className="w-2 h-2 rounded-full bg-cyan-400 animate-ping" />
+                <span className="font-semibold uppercase tracking-wider">AI Core Online</span>
+              </div>
+            </div>
+            <p className="text-xs text-slate-400 hidden sm:block">Nakupujte správně s AI • Podiatrický nákupní asistent</p>
+          </div>
+        </div>
+
+        {/* Mode Switcher Tabs */}
+        <div className="flex items-center gap-1 bg-[#0b1628]/90 p-1 rounded-xl border border-cyan-500/20 shadow-inner">
+          <button
+            onClick={() => setActiveTab('wizard')}
+            className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+              activeTab === 'wizard'
+                ? 'bg-gradient-to-r from-cyan-500 to-teal-400 text-slate-950 shadow-[0_0_15px_rgba(6,182,212,0.4)]'
+                : 'text-slate-400 hover:text-cyan-300'
+            }`}
+          >
+            <ClipboardList className="w-3.5 h-3.5" />
+            <span>Průvodce výběrem (Formulář)</span>
+          </button>
+          <button
+            onClick={() => setActiveTab('chat')}
+            className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+              activeTab === 'chat'
+                ? 'bg-gradient-to-r from-cyan-500 to-teal-400 text-slate-950 shadow-[0_0_15px_rgba(6,182,212,0.4)]'
+                : 'text-slate-400 hover:text-cyan-300'
+            }`}
+          >
+            <MessageSquare className="w-3.5 h-3.5" />
+            <span>Podiatrický chat</span>
+          </button>
+        </div>
+
+        <div className="flex items-center gap-3">
+          <button
+            onClick={handleReset}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-cyan-500/20 hover:border-cyan-400/50 bg-[#0b1628] text-xs text-cyan-300/80 hover:text-cyan-200 transition-all shadow-sm"
+            title="Nové sezení"
+          >
+            <RefreshCw className="w-3.5 h-3.5" />
+            <span className="hidden sm:inline">Resetovat</span>
+          </button>
+        </div>
+      </header>
+
+      {/* Main Workspace: Wizard or Chat Feed */}
+      {activeTab === 'wizard' ? (
+        <div className="flex-1 overflow-y-auto bg-[#070d18]">
+          <IntakeWizard />
+        </div>
+      ) : (
+        <div className="flex flex-1 flex-col lg:flex-row overflow-hidden">
+          {/* Left: Interactive Biomechanical Profile Sidebar */}
+          <BiomechanicalSidebar profile={profile} evalResult={evalResult} />
+
+          {/* Right: Conversational Chat Stream */}
+          <main className="flex-1 flex flex-col justify-between overflow-hidden bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950">
+          {/* Message List */}
+          <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-6">
+            {messages.map((msg) => {
+              const isUser = msg.role === 'user';
+              return (
+                <div
+                  key={msg.id}
+                  className={`flex gap-3 max-w-4xl ${isUser ? 'ml-auto justify-end' : 'mr-auto justify-start'}`}
+                >
+                  {!isUser && (
+                    <div className="w-8 h-8 rounded-lg bg-emerald-950/80 border border-emerald-500/40 text-emerald-400 flex items-center justify-center shrink-0 mt-1">
+                      <Bot className="w-4 h-4" />
+                    </div>
+                  )}
+
+                  <div className={`flex flex-col ${isUser ? 'items-end' : 'items-start'} max-w-[85%]`}>
+                    <div
+                      className={`p-4 sm:p-5 rounded-2xl text-sm leading-relaxed ${
+                        isUser
+                          ? 'bg-emerald-600 text-white rounded-tr-none shadow-md shadow-emerald-950/40'
+                          : 'bg-slate-900/90 border border-slate-800 text-slate-200 rounded-tl-none shadow-sm'
+                      }`}
+                    >
+                      {/* Message Content rendered cleanly */}
+                      <div className="prose prose-invert prose-sm max-w-none space-y-3">
+                        {msg.content.split('\n\n').map((paragraph, idx) => {
+                          if (paragraph.startsWith('### ')) {
+                            return <h3 key={idx} className="text-base font-bold text-white mt-2 mb-1">{paragraph.replace('### ', '')}</h3>;
+                          }
+                          if (paragraph.startsWith('> ')) {
+                            return (
+                              <blockquote key={idx} className="p-3 my-2 border-l-4 border-amber-500 bg-amber-950/30 rounded text-amber-200 text-xs">
+                                {paragraph.replace('> ', '')}
+                              </blockquote>
+                            );
+                          }
+                          return <p key={idx} className="whitespace-pre-line">{paragraph}</p>;
+                        })}
+                      </div>
+
+                      {/* Tool Call Badges */}
+                      {msg.toolCalls && msg.toolCalls.length > 0 && (
+                        <div className="mt-4 pt-3 border-t border-slate-800 space-y-2">
+                          <span className="text-[10px] uppercase font-bold tracking-wider text-slate-400 block">
+                            Executed External Agent Tools
+                          </span>
+                          {msg.toolCalls.map((tc) => (
+                            <ToolExecutionBadge
+                              key={tc.id}
+                              toolName={tc.toolName}
+                              status={tc.status}
+                              args={tc.args}
+                            />
+                          ))}
+                        </div>
                       )}
                     </div>
-                    <p className="text-sm text-[var(--muted)] capitalize">{resource.platform}</p>
-                    {resource.followerCount && (
-                      <p className="text-xs text-[var(--muted)]">{resource.followerCount} followers</p>
+
+                    {/* Shoe Recommendation Cards Grid */}
+                    {msg.recommendations && msg.recommendations.length > 0 && (
+                      <div className="w-full mt-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        {msg.recommendations.map((shoe) => (
+                          <ShoeRecommendationCard key={shoe.id} shoe={shoe} />
+                        ))}
+                      </div>
                     )}
+
+                    <span className="text-[10px] text-slate-500 mt-1 px-1">
+                      {new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                    </span>
                   </div>
+
+                  {isUser && (
+                    <div className="w-8 h-8 rounded-lg bg-slate-800 border border-slate-700 text-slate-300 flex items-center justify-center shrink-0 mt-1">
+                      <User className="w-4 h-4" />
+                    </div>
+                  )}
                 </div>
+              );
+            })}
 
-                {resource.description && (
-                  <p className="text-sm text-[var(--muted)] mb-4 line-clamp-2">{resource.description}</p>
-                )}
-
-                {resource.thumbnailUrl && (
-                  <div className="mb-4">
-                    <Image 
-                      src={resource.thumbnailUrl} 
-                      alt={resource.name}
-                      width={400}
-                      height={128}
-                      className="w-full h-32 object-cover rounded-lg"
-                    />
-                  </div>
-                )}
-                
-                <a 
-                  href={resource.url} 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 text-[var(--accent)] hover:text-[var(--accent)]/80 text-sm font-medium transition-colors"
-                >
-                  {getPlatformIcon(resource.platform)}
-                  View {resource.platform === "youtube" ? "Channel" : resource.platform === "instagram" ? "Profile" : "Page"} →
-                </a>
+            {isLoading && (
+              <div className="flex gap-3 items-center text-xs text-slate-400">
+                <div className="w-8 h-8 rounded-lg bg-emerald-950/80 border border-emerald-500/40 text-emerald-400 flex items-center justify-center shrink-0">
+                  <Bot className="w-4 h-4 animate-pulse" />
+                </div>
+                <div className="flex items-center gap-2 p-3 bg-slate-900 border border-slate-800 rounded-xl">
+                  <div className="w-2 h-2 rounded-full bg-emerald-400 animate-bounce" style={{ animationDelay: '0ms' }} />
+                  <div className="w-2 h-2 rounded-full bg-emerald-400 animate-bounce" style={{ animationDelay: '150ms' }} />
+                  <div className="w-2 h-2 rounded-full bg-emerald-400 animate-bounce" style={{ animationDelay: '300ms' }} />
+                  <span className="ml-2 font-medium">OrthoStride is evaluating biomechanical profile...</span>
+                </div>
               </div>
-            ))}
-          </div>
-        )}
-      </section>
+            )}
 
-      {/* Quick Stats */}
-      <section className="bg-[var(--surface)] shadow-1 rounded-lg p-8">
-        <h3 className="text-2xl font-bold text-[var(--foreground)] mb-6 text-center">Get Started</h3>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="text-center space-y-2">
-            <div className="w-12 h-12 bg-[var(--accent)] rounded-full flex items-center justify-center mx-auto">
-              <svg className="w-6 h-6 text-[var(--accent-contrast)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-              </svg>
-            </div>
-            <h4 className="font-semibold text-[var(--foreground)]">Browse Library</h4>
-            <p className="text-sm text-[var(--muted)]">Access videos and exercises</p>
+            <div ref={messagesEndRef} />
           </div>
-          <div className="text-center space-y-2">
-            <div className="w-12 h-12 bg-[var(--accent)] rounded-full flex items-center justify-center mx-auto">
-              <svg className="w-6 h-6 text-[var(--accent-contrast)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-              </svg>
+
+          {/* Quick Prompts & Chat Input Form */}
+          <div className="p-4 sm:p-5 border-t border-slate-800 bg-slate-950/90 backdrop-blur-md">
+            {/* Quick Prompt Pills */}
+            <div className="flex items-center gap-2 overflow-x-auto pb-3 mb-2 no-scrollbar">
+              <span className="text-[11px] font-medium text-slate-400 shrink-0 flex items-center gap-1">
+                <Sparkles className="w-3.5 h-3.5 text-emerald-400" />
+                <span>Quick Prompts:</span>
+              </span>
+              {SUGGESTED_PROMPTS.map((prompt, idx) => (
+                <button
+                  key={idx}
+                  onClick={() => handleSendMessage(prompt.text)}
+                  disabled={isLoading}
+                  className="px-3 py-1.5 rounded-full text-xs font-medium bg-slate-900 hover:bg-slate-800 border border-slate-800 hover:border-slate-700 text-slate-300 hover:text-white transition-all shrink-0 disabled:opacity-50"
+                >
+                  {prompt.label}
+                </button>
+              ))}
             </div>
-            <h4 className="font-semibold text-[var(--foreground)]">Add Content</h4>
-            <p className="text-sm text-[var(--muted)]">Upload your own videos</p>
+
+            {/* Input Bar */}
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                handleSendMessage();
+              }}
+              className="flex items-center gap-2"
+            >
+              <input
+                type="text"
+                value={inputValue}
+                onChange={(e) => setInputValue(e.target.value)}
+                placeholder="Type your symptoms, shoe preferences, foot width, or joint conditions..."
+                disabled={isLoading}
+                className="flex-1 bg-slate-900 border border-slate-800 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 rounded-xl px-4 py-3 text-sm text-slate-100 placeholder:text-slate-500 outline-none transition-all"
+              />
+              <button
+                type="submit"
+                disabled={isLoading || !inputValue.trim()}
+                className="p-3 bg-emerald-500 hover:bg-emerald-400 disabled:bg-slate-800 text-slate-950 disabled:text-slate-500 font-semibold rounded-xl transition-all shadow-md shadow-emerald-950/50 disabled:shadow-none"
+              >
+                <Send className="w-4 h-4" />
+              </button>
+            </form>
+
+            <p className="text-[11px] text-center text-slate-400 mt-2">
+              bAIright aplikuje podiatrickou biomechaniku a ověřuje evropské 2E sklady. V případě akutních potíží vždy konzultujte lékaře.
+            </p>
           </div>
-          <div className="text-center space-y-2">
-            <div className="w-12 h-12 bg-[var(--accent)] rounded-full flex items-center justify-center mx-auto">
-              <svg className="w-6 h-6 text-[var(--accent-contrast)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
-              </svg>
-            </div>
-            <h4 className="font-semibold text-[var(--foreground)]">Create Plans</h4>
-            <p className="text-sm text-[var(--muted)]">Build training routines</p>
-          </div>
-        </div>
-      </section>
+        </main>
+      </div>
+      )}
     </div>
   );
 }
