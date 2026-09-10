@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { BiomechanicalProfile, MandatoryCheckResult } from '@/lib/agent/types';
+import { translations, SupportedLocale } from '@/lib/i18n/translations';
 import { 
   Activity, 
   ShieldAlert, 
@@ -18,12 +19,15 @@ import {
 interface BiomechanicalSidebarProps {
   profile: BiomechanicalProfile;
   evalResult: MandatoryCheckResult;
+  locale?: SupportedLocale;
 }
 
 export const BiomechanicalSidebar: React.FC<BiomechanicalSidebarProps> = ({
   profile,
   evalResult,
+  locale = 'cs',
 }) => {
+  const t = translations[locale].sidebar;
   const presentCount = evalResult.presentFields.length;
   const progressPercent = Math.round((presentCount / 5) * 100);
 
@@ -35,8 +39,8 @@ export const BiomechanicalSidebar: React.FC<BiomechanicalSidebarProps> = ({
           <Activity className="w-5 h-5" />
         </div>
         <div>
-          <h2 className="text-sm font-semibold text-white tracking-wide uppercase">Biomechanical Profile</h2>
-          <p className="text-xs text-slate-400">Clinical Podiatry Intake</p>
+          <h2 className="text-sm font-semibold text-white tracking-wide uppercase">{t.title}</h2>
+          <p className="text-xs text-slate-400">{t.subtitle}</p>
         </div>
       </div>
 
@@ -53,7 +57,7 @@ export const BiomechanicalSidebar: React.FC<BiomechanicalSidebarProps> = ({
             ) : (
               <Lock className="w-4 h-4 text-amber-400" />
             )}
-            <span>{evalResult.isReady ? 'Search Tools Unlocked' : 'Search Tools Gated'}</span>
+            <span>{evalResult.isReady ? t.unlocked : t.gated}</span>
           </div>
           <span className="text-xs font-mono font-bold px-2 py-0.5 rounded bg-black/40">
             {presentCount} / 5
@@ -71,15 +75,13 @@ export const BiomechanicalSidebar: React.FC<BiomechanicalSidebarProps> = ({
         </div>
 
         <p className="text-[11px] leading-relaxed text-slate-300">
-          {evalResult.isReady 
-            ? 'All 5 mandatory parameters collected. External forum queries & European 2E stock scans authorized.' 
-            : 'AI will autonomously query missing items before searching external inventories.'}
+          {evalResult.isReady ? t.unlockedDesc : t.gatedDesc}
         </p>
       </div>
 
       {/* Mandatory Parameters Checklist */}
       <div className="space-y-3 mb-6">
-        <h3 className="text-xs font-medium text-slate-400 uppercase tracking-wider">Mandatory Metrics</h3>
+        <h3 className="text-xs font-medium text-slate-400 uppercase tracking-wider">{t.metricsTitle}</h3>
 
         {/* 1. Body Weight */}
         <div className={`flex items-center justify-between p-3 rounded-lg border text-xs transition-colors ${
@@ -90,12 +92,12 @@ export const BiomechanicalSidebar: React.FC<BiomechanicalSidebarProps> = ({
           <div className="flex items-center gap-2.5">
             <Scale className="w-4 h-4 text-cyan-400 shrink-0" />
             <div>
-              <p className="font-medium text-slate-200">Body Weight</p>
-              <p className="text-[10px] text-slate-400">Foam density calibration</p>
+              <p className="font-medium text-slate-200">{t.weight.label}</p>
+              <p className="text-[10px] text-slate-400">{t.weight.desc}</p>
             </div>
           </div>
           <span className="font-mono font-semibold">
-            {profile.weight_kg ? `${profile.weight_kg} kg` : 'Missing'}
+            {profile.weight_kg ? `${profile.weight_kg} kg` : t.missing}
           </span>
         </div>
 
@@ -108,14 +110,14 @@ export const BiomechanicalSidebar: React.FC<BiomechanicalSidebarProps> = ({
           <div className="flex items-center gap-2.5">
             <Maximize2 className="w-4 h-4 text-purple-400 shrink-0" />
             <div>
-              <p className="font-medium text-slate-200">Foot Width</p>
-              <p className="text-[10px] text-slate-400">2E Wide verification</p>
+              <p className="font-medium text-slate-200">{t.width.label}</p>
+              <p className="text-[10px] text-slate-400">{t.width.desc}</p>
             </div>
           </div>
           <span className={`font-mono font-semibold px-2 py-0.5 rounded text-[11px] ${
             profile.foot_width === 'wide_2e' ? 'bg-purple-900/50 text-purple-200 border border-purple-500/40' : ''
           }`}>
-            {profile.foot_width ? profile.foot_width.replace('_', ' ').toUpperCase() : 'Missing'}
+            {profile.foot_width ? profile.foot_width.replace('_', ' ').toUpperCase() : t.missing}
           </span>
         </div>
 
@@ -128,12 +130,12 @@ export const BiomechanicalSidebar: React.FC<BiomechanicalSidebarProps> = ({
           <div className="flex items-center gap-2.5">
             <Footprints className="w-4 h-4 text-emerald-400 shrink-0" />
             <div>
-              <p className="font-medium text-slate-200">Gait & Strike</p>
-              <p className="text-[10px] text-slate-400">Lateral vs medial load</p>
+              <p className="font-medium text-slate-200">{t.strike.label}</p>
+              <p className="text-[10px] text-slate-400">{t.strike.desc}</p>
             </div>
           </div>
           <span className="font-mono font-semibold text-[11px]">
-            {profile.strike_type ? profile.strike_type.replace('_', ' ').toUpperCase() : 'Missing'}
+            {profile.strike_type ? profile.strike_type.replace('_', ' ').toUpperCase() : t.missing}
           </span>
         </div>
 
@@ -146,8 +148,8 @@ export const BiomechanicalSidebar: React.FC<BiomechanicalSidebarProps> = ({
           <div className="flex items-center gap-2.5">
             <HeartPulse className="w-4 h-4 text-rose-400 shrink-0" />
             <div>
-              <p className="font-medium text-slate-200">Knee Condition</p>
-              <p className="text-[10px] text-slate-400">Rocker geometry filter</p>
+              <p className="font-medium text-slate-200">{t.knee.label}</p>
+              <p className="text-[10px] text-slate-400">{t.knee.desc}</p>
             </div>
           </div>
           <span className={`font-mono font-semibold px-2 py-0.5 rounded text-[10px] ${
@@ -157,7 +159,7 @@ export const BiomechanicalSidebar: React.FC<BiomechanicalSidebarProps> = ({
           }`}>
             {profile.knee_condition 
               ? profile.knee_condition.replace(/_/g, ' ').toUpperCase() 
-              : 'Missing'}
+              : t.missing}
           </span>
         </div>
 
@@ -170,16 +172,16 @@ export const BiomechanicalSidebar: React.FC<BiomechanicalSidebarProps> = ({
           <div className="flex items-center gap-2.5">
             <AlertCircle className="w-4 h-4 text-amber-400 shrink-0" />
             <div>
-              <p className="font-medium text-slate-200">Past Injuries</p>
-              <p className="text-[10px] text-slate-400">Contraindications check</p>
+              <p className="font-medium text-slate-200">{t.injuries.label}</p>
+              <p className="text-[10px] text-slate-400">{t.injuries.desc}</p>
             </div>
           </div>
           <span className="font-mono font-semibold text-[11px]">
             {profile.past_injuries.length > 0 
               ? profile.past_injuries.join(', ') 
               : evalResult.presentFields.includes('past_injuries') 
-                ? 'None Reported' 
-                : 'Missing'}
+                ? t.noneReported 
+                : t.missing}
           </span>
         </div>
       </div>
@@ -189,10 +191,10 @@ export const BiomechanicalSidebar: React.FC<BiomechanicalSidebarProps> = ({
         <div className="p-3.5 rounded-xl bg-blue-950/20 border border-blue-800/30 text-xs">
           <div className="flex items-center gap-2 font-semibold text-blue-300 mb-1.5">
             <ShieldCheck className="w-4 h-4" />
-            <span>Grade 3 Knee OA Directive</span>
+            <span>{t.directiveTitle}</span>
           </div>
           <p className="text-[11px] leading-relaxed text-slate-300">
-            For Grade 3 Knee Osteoarthritis, shoes must feature an early-stage rocker sole, maximum compliant foam, a 4–8mm drop, and a genuine 2E wide platform to disperse axial impact and minimize patellofemoral torque.
+            {t.directiveText}
           </p>
         </div>
       </div>

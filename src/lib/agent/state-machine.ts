@@ -136,9 +136,9 @@ export function extractBiomechanicalProfileUpdates(
   }
 
   // 3. Strike Type / Supination / Pronation
-  if (text.includes('supinat') || text.includes('supinace') || text.includes('outer edge') || text.includes('vnější hran')) {
+  if (text.includes('supinat') || text.includes('supinac') || text.includes('outer edge') || text.includes('vnější hran')) {
     updated.strike_type = 'supination';
-  } else if (text.includes('overpronat') || text.includes('pronace') || text.includes('flat feet') || text.includes('vnitřní hran')) {
+  } else if (text.includes('overpronat') || text.includes('pronac') || text.includes('flat feet') || text.includes('vnitřní hran')) {
     updated.strike_type = 'mild_overpronation';
   } else if (text.includes('heel strike') || text.includes('došlap na patu') || text.includes('na patu')) {
     updated.strike_type = 'heel_strike';
@@ -182,9 +182,14 @@ export function extractBiomechanicalProfileUpdates(
     if (!injuriesFound.includes("Runner's Knee")) injuriesFound.push("Runner's Knee");
   }
   if (
-    /(?:no|never|zero|without|žádn|neměl|nemam|bez)\s+(?:\w+\s+)*(?:injur|zraněn)/i.test(text) ||
+    /(?:no|never|zero|without|žádn|neměl|nemam|nemám|bez)\s+(?:\w+\s+)*(?:injur|zraněn|operac)/i.test(text) ||
     text.includes('no injuries') ||
-    text.includes('none')
+    text.includes('none') ||
+    text.includes('žádná zranění') ||
+    text.includes('zadna zraneni') ||
+    text.includes('žádné operace') ||
+    text.includes('nemám operace') ||
+    text.includes('nemám zranění')
   ) {
     injuriesAcknowledged = true;
   }

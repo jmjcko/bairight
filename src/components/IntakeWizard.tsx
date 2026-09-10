@@ -1,10 +1,14 @@
 'use client';
 
 import React, { useState } from 'react';
+import Image from 'next/image';
 import { IntakeFormData, AgentPrescriptionResult } from '@/lib/agent/markdown-agent-loader';
 import { translations, SupportedLocale } from '@/lib/i18n/translations';
-import { ShoeRecommendationCard } from './ShoeRecommendationCard';
-import { BiomechanicalHUD } from './BiomechanicalHUD';
+import { VerifiedShoeCard } from './VerifiedShoeCard';
+import { ClinicalAssessmentModal } from './ClinicalAssessmentModal';
+import { AnalysisModal } from './AnalysisModal';
+import { AppointmentsModal } from './AppointmentsModal';
+import { RecommendationsModal } from './RecommendationsModal';
 import { 
   CheckCircle2, 
   ChevronRight, 
@@ -12,14 +16,22 @@ import {
   Sparkles, 
   ShieldAlert, 
   ShieldCheck, 
-  FileCode2, 
+  FileText, 
   Activity, 
   Ban, 
   HeartHandshake, 
   Footprints, 
   Layers, 
   RefreshCw,
-  Languages
+  Clock,
+  ExternalLink,
+  Info,
+  Calendar,
+  Layers3,
+  Stethoscope,
+  Sliders,
+  ArrowLeft,
+  RotateCcw
 } from 'lucide-react';
 
 const BRAND_OPTIONS = [
@@ -36,32 +48,128 @@ const BRAND_OPTIONS = [
   'Mizuno'
 ];
 
-export const IntakeWizard: React.FC = () => {
-  const [locale, setLocale] = useState<SupportedLocale>('cs');
+// Top 3 Verified Models (Clean data, zero fake pictures, zero fake discounts)
+const DEFAULT_TOP_3_MODELS = [
+  {
+    id: 'asics-gel-kayano-30',
+    brand: 'ASICS',
+    model: 'Gel-Kayano 30 (2E Wide Last)',
+    badgeLabel: 'Hlavní doporučení',
+    heel_drop_mm: 10,
+    cushion_level: 'Maximální plyšové',
+    width_fitting: 'Široké kopyto 2E',
+    rocker_geometry: true,
+    is_2e_available: true,
+    european_price_eur: 179.90,
+    matchScore: 98,
+    medical_rationale: 'Pěna FF BLAST™ PLUS a 4D GUIDANCE SYSTEM™ poskytují adaptivní tlumení, které efektivně absorbuje rázové zatížení chrupavky u artrózy kolene 3. stupně. Široké kopyto 2E zabraňuje tlaku na prsty.',
+  },
+  {
+    id: 'brooks-adrenaline-gts-23',
+    brand: 'Brooks',
+    model: 'Adrenaline GTS 23 (2E Wide)',
+    badgeLabel: 'Vhodné pro supinaci',
+    heel_drop_mm: 12,
+    cushion_level: 'Vyvážené stabilní',
+    width_fitting: '2E Wide Fit',
+    rocker_geometry: true,
+    is_2e_available: true,
+    european_price_eur: 149.95,
+    matchScore: 96,
+    medical_rationale: 'Holistická stabilita GuideRails® drží nadměrný pohyb v patě bez vnitřního pronačního klínu, což je zásadní pro ochranu supinujícího chodidla a kloubní štěrbiny kolene.',
+  },
+  {
+    id: 'hoka-bondi-8-wide',
+    brand: 'Hoka',
+    model: 'Bondi 8 Wide (2E Kopyto)',
+    badgeLabel: 'Maximální tlumení',
+    heel_drop_mm: 4,
+    cushion_level: 'Ultra-tlumení nárazů',
+    width_fitting: '2E Wide Fit',
+    rocker_geometry: true,
+    is_2e_available: true,
+    european_price_eur: 169.90,
+    matchScore: 95,
+    medical_rationale: 'Kolébková podrážka Meta-Rocker a nízký 4mm drop zkracují pákový ohyb v koleni při odrazu a eliminují rázové přetížení při chůzi i běhu.',
+  }
+];
+
+const DEFAULT_FORM_DATA: IntakeFormData = {
+  product_category: 'running_shoes',
+  foot_length_mm: 275,
+  foot_length_cm: 27.5,
+  foot_width_mm: 100,
+  eu_size: 43,
+  foot_width: 'standard_d',
+  strike_pattern: 'heel_strike',
+  foot_mechanics: 'neutral',
+  activity_type: ['road_running'],
+  weekly_volume: '15_to_35_km',
+  cushioning_preference: 'maximum',
+  preferred_brands: ['Asics', 'Brooks', 'Hoka'],
+  forbidden_brands: [],
+  joint_conditions: [],
+  foot_conditions: [],
+  past_surgeries: [],
+  budget_eur: 180,
+};
+
+interface IntakeWizardProps {
+  onOpenAnalysis?: () => void;
+  onOpenAppointments?: () => void;
+  onOpenRecommendations?: () => void;
+}
+
+export const IntakeWizard: React.FC<IntakeWizardProps> = ({
+  onOpenAnalysis,
+  onOpenAppointments,
+  onOpenRecommendations,
+}) => {
+  const [locale] = useState<SupportedLocale>('cs');
   const t = translations[locale].wizard;
 
   const [step, setStep] = useState<number>(1);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [result, setResult] = useState<AgentPrescriptionResult | null>(null);
+  const [kneePainLevel, setKneePainLevel] = useState<number>(3);
 
-  // Form State
-  const [formData, setFormData] = useState<IntakeFormData>({
-    product_category: 'running_shoes',
-    foot_length_cm: 28,
-    eu_size: 44,
-    foot_width: 'wide_2e',
-    strike_pattern: 'heel_strike',
-    foot_mechanics: 'supination',
-    activity_type: ['road_running', 'daily_walking'],
-    weekly_volume: '15_to_35_km',
-    cushioning_preference: 'maximum',
-    preferred_brands: ['Hoka', 'Brooks'],
-    forbidden_brands: ['Nike'],
-    joint_conditions: ['Knee Osteoarthritis Grade 3'],
-    foot_conditions: [],
-    past_surgeries: ['Meniscus Partial Resection'],
-    budget_eur: 190,
-  });
+  // Modals state
+  const [isClinicalAssessmentOpen, setIsClinicalAssessmentOpen] = useState<boolean>(false);
+  const [isAnalysisModalOpen, setIsAnalysisModalOpen] = useState<boolean>(false);
+  const [isAppointmentsModalOpen, setIsAppointmentsModalOpen] = useState<boolean>(false);
+  const [isRecommendationsModalOpen, setIsRecommendationsModalOpen] = useState<boolean>(false);
+
+  // Form State with precise length and width in mm
+  const [formData, setFormData] = useState<IntakeFormData>(DEFAULT_FORM_DATA);
+
+  const handleResetForm = () => {
+    setFormData(DEFAULT_FORM_DATA);
+    setStep(1);
+    setResult(null);
+    setKneePainLevel(3);
+  };
+
+  const handleLengthChange = (lengthMm: number) => {
+    setFormData((prev) => ({
+      ...prev,
+      foot_length_mm: lengthMm,
+      foot_length_cm: Number((lengthMm / 10).toFixed(1)),
+      eu_size: Math.round((lengthMm + 15) / 6.67),
+    }));
+  };
+
+  const handleWidthChange = (widthMm: number) => {
+    let calculatedWidth: IntakeFormData['foot_width'] = 'standard_d';
+    if (widthMm > 110) calculatedWidth = 'extra_wide_4e';
+    else if (widthMm >= 103) calculatedWidth = 'wide_2e';
+    else if (widthMm < 95) calculatedWidth = 'narrow_b';
+
+    setFormData((prev) => ({
+      ...prev,
+      foot_width_mm: widthMm,
+      foot_width: calculatedWidth,
+    }));
+  };
 
   const toggleArrayItem = (field: keyof IntakeFormData, value: string) => {
     setFormData((prev) => {
@@ -86,7 +194,6 @@ export const IntakeWizard: React.FC = () => {
       if (!res.ok) throw new Error('Failed to evaluate profile with agent');
       const data = await res.json();
       setResult(data);
-      setStep(7); // Results step
     } catch (err) {
       console.error('Error submitting wizard to agent:', err);
       alert('Chyba při komunikaci s vyhodnocovacím agentem.');
@@ -95,625 +202,606 @@ export const IntakeWizard: React.FC = () => {
     }
   };
 
-  return (
-    <div className="max-w-7xl mx-auto p-4 sm:p-6 my-4">
-      {/* Wizard Header */}
-      <div className="glass-panel rounded-2xl p-6 mb-6 shadow-2xl shadow-cyan-950/30 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 relative overflow-hidden">
-        {/* Subtle background glow */}
-        <div className="absolute -right-20 -top-20 w-60 h-60 bg-cyan-500/10 rounded-full blur-3xl pointer-events-none" />
+  const stepTitles = [
+    'Rozměry chodidla (mm)',
+    'Šířka kopyta & došlap',
+    'Aktivity a objem',
+    'Zdravotní anamnéza kloubů',
+    'Značky & rozpočet',
+  ];
 
-        <div>
-          <div className="flex items-center gap-2 mb-1.5">
-            <span className="text-[11px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-cyan-950/80 border border-cyan-500/40 text-cyan-300">
-              {t.badge}
-            </span>
-            <span className="flex items-center gap-1 text-xs text-slate-400 font-mono">
-              <FileCode2 className="w-3.5 h-3.5 text-teal-400" />
-              {t.agentSource}
-            </span>
+  const totalSteps = 5;
+  const progressPercent = Math.round((step / totalSteps) * 100);
+
+  // Derive Top 3 recommendations (from API evaluation result or clinical default models)
+  const displayModels = result?.recommendations?.length
+    ? result.recommendations.slice(0, 3).map((shoe, idx) => ({
+        ...shoe,
+        badgeLabel: idx === 0 ? 'Hlavní doporučení' : idx === 1 ? 'Alternativní model č. 2' : 'Doporučený model č. 3'
+      }))
+    : DEFAULT_TOP_3_MODELS;
+
+  // =========================================================================
+  // FÁZE 1: ZVÝRAZNĚNÝ, DOMINANTNÍ VSTUPNÍ DOTAZNÍK (dokud se nevygenerují návrhy)
+  // =========================================================================
+  if (!result) {
+    return (
+      <div className="w-full max-w-4xl mx-auto py-4">
+        {/* Dominant Centered Wizard Container */}
+        <div className="glass-panel rounded-3xl p-6 sm:p-10 border-2 border-cyan-500/40 shadow-[0_25px_80px_rgba(6,182,212,0.18)] relative overflow-hidden">
+          {/* Ambient Glows */}
+          <div className="absolute -top-32 -left-32 w-80 h-80 bg-cyan-500/15 rounded-full blur-3xl pointer-events-none" />
+          <div className="absolute -bottom-32 -right-32 w-80 h-80 bg-teal-500/15 rounded-full blur-3xl pointer-events-none" />
+
+          {/* Wizard Header */}
+          <div className="mb-8">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-cyan-500/20">
+              <div className="flex items-center gap-3.5">
+                <div className="w-12 h-12 rounded-2xl bg-cyan-950/90 border border-cyan-400/50 flex items-center justify-center text-cyan-400 shadow-[0_0_20px_rgba(6,182,212,0.3)]">
+                  <Footprints className="w-6 h-6" />
+                </div>
+                <div>
+                  <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
+                    Biometrický dotazník chodidla
+                  </h1>
+                  <p className="text-xs sm:text-sm text-cyan-300 font-mono mt-0.5">
+                    Krok {step} z {totalSteps}: {stepTitles[step - 1]}
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2.5 self-end sm:self-auto">
+                {/* Reset button available on EVERY step of the wizard */}
+                <button
+                  onClick={handleResetForm}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-slate-900/90 hover:bg-slate-800 text-slate-400 hover:text-slate-200 border border-slate-800 hover:border-slate-700 text-xs font-mono transition-colors cursor-pointer"
+                  title="Resetovat formulář na výchozí hodnoty"
+                >
+                  <RotateCcw className="w-3.5 h-3.5 text-slate-400" />
+                  <span>Reset formuláře</span>
+                </button>
+
+                <span className="text-xs font-mono px-3.5 py-1.5 rounded-full bg-cyan-950/90 border border-cyan-400/50 text-cyan-300 font-bold shadow-inner">
+                  {progressPercent}% DOKONČENO
+                </span>
+              </div>
+            </div>
+
+            {/* Progress Step Indicator */}
+            <div className="grid grid-cols-5 gap-2 mt-6">
+              {[1, 2, 3, 4, 5].map((s) => (
+                <button
+                  key={s}
+                  onClick={() => setStep(s)}
+                  className={`h-2 rounded-full transition-all cursor-pointer ${
+                    s === step
+                      ? 'bg-gradient-to-r from-cyan-400 to-teal-400 shadow-[0_0_12px_rgba(6,182,212,0.8)]'
+                      : s < step
+                      ? 'bg-cyan-600/70'
+                      : 'bg-slate-800'
+                  }`}
+                  title={`Přejít na krok ${s}`}
+                />
+              ))}
+            </div>
           </div>
-          <h2 className="text-2xl font-extrabold text-white tracking-tight">
-            {t.title}
-          </h2>
-          <p className="text-xs text-slate-400 mt-1">
-            {t.subtitle}
-          </p>
+
+          {/* Form Step Body */}
+          <div className="min-h-[380px] flex flex-col justify-between">
+            {/* KROK 1: PŘESNÉ ROZMĚRY V MM (POSUVNÍKY) */}
+            {step === 1 && (
+              <div className="space-y-6 animate-in fade-in duration-200">
+                <div className="p-4 rounded-2xl bg-[#070f1e] border border-cyan-500/20 text-xs text-slate-300 flex items-start gap-3">
+                  <Info className="w-5 h-5 text-cyan-400 shrink-0 mt-0.5" />
+                  <p>
+                    Zadejte přesnou délku a šířku vašeho chodidla v milimetrech (např. obkreslením na papír). 
+                    Systém automaticky vypočítá potřebnou šířku kopyta pro prevenci útlaku prstů.
+                  </p>
+                </div>
+
+                {/* Foot Length Slider */}
+                <div className="p-5 rounded-2xl bg-[#060c18] border border-slate-800/90 space-y-3">
+                  <div className="flex justify-between items-center">
+                    <label className="text-sm font-bold text-white flex items-center gap-2">
+                      <Footprints className="w-4 h-4 text-cyan-400" />
+                      <span>Délka chodidla:</span>
+                    </label>
+                    <div className="font-mono text-cyan-300 font-extrabold text-base bg-cyan-950/80 px-3 py-1 rounded-xl border border-cyan-500/30">
+                      {formData.foot_length_mm} mm{' '}
+                      <span className="text-xs text-slate-400 font-normal">({formData.foot_length_cm} cm)</span>
+                    </div>
+                  </div>
+                  <input
+                    type="range"
+                    min={220}
+                    max={330}
+                    step={1}
+                    value={formData.foot_length_mm}
+                    onChange={(e) => handleLengthChange(Number(e.target.value))}
+                    className="w-full accent-cyan-400 h-2.5 bg-slate-900 rounded-lg cursor-pointer"
+                  />
+                  <div className="flex justify-between text-[11px] font-mono text-slate-500">
+                    <span>220 mm (EU 35)</span>
+                    <span>280 mm (EU 44)</span>
+                    <span>330 mm (EU 51)</span>
+                  </div>
+                </div>
+
+                {/* Foot Width Slider */}
+                <div className="p-5 rounded-2xl bg-[#060c18] border border-slate-800/90 space-y-3">
+                  <div className="flex justify-between items-center">
+                    <label className="text-sm font-bold text-white flex items-center gap-2">
+                      <Sliders className="w-4 h-4 text-teal-400" />
+                      <span>Šířka v nejširším místě (klouby prstů):</span>
+                    </label>
+                    <div className="font-mono text-teal-300 font-extrabold text-base bg-cyan-950/80 px-3 py-1 rounded-xl border border-cyan-500/30">
+                      {formData.foot_width_mm} mm{' '}
+                      <span className="text-xs text-slate-400 font-normal">({formData.foot_width === 'wide_2e' ? 'Široké 2E' : formData.foot_width})</span>
+                    </div>
+                  </div>
+                  <input
+                    type="range"
+                    min={85}
+                    max={125}
+                    step={1}
+                    value={formData.foot_width_mm}
+                    onChange={(e) => handleWidthChange(Number(e.target.value))}
+                    className="w-full accent-teal-400 h-2.5 bg-slate-900 rounded-lg cursor-pointer"
+                  />
+                  <div className="flex justify-between text-[11px] font-mono text-slate-500">
+                    <span>85 mm (Úzké B)</span>
+                    <span>104 mm (Široké 2E)</span>
+                    <span>125 mm (Extra široké 4E)</span>
+                  </div>
+                </div>
+
+                {/* Calculated Shoe Last Preview */}
+                <div className="p-4 rounded-2xl bg-cyan-950/30 border border-cyan-500/30 flex items-center justify-between">
+                  <div>
+                    <span className="text-xs text-slate-400 block font-mono">Doporučená velikost & šířka kopyta:</span>
+                    <span className="text-base font-extrabold text-white">
+                      EU {formData.eu_size} • Kopyto {formData.foot_width === 'wide_2e' ? '2E (Wide Fit)' : formData.foot_width}
+                    </span>
+                  </div>
+                  <span className="text-xs font-mono text-cyan-300 font-bold px-3 py-1 rounded-lg bg-cyan-950/80 border border-cyan-500/30">
+                    Vypočtené kopyto
+                  </span>
+                </div>
+              </div>
+            )}
+
+            {/* KROK 2: ŠÍŘKA KOPYTA & DOŠLAP */}
+            {step === 2 && (
+              <div className="space-y-6 animate-in fade-in duration-200">
+                <div>
+                  <label className="block text-sm font-bold text-white mb-2">
+                    Kategorie šířky chodidla (kopyto):
+                  </label>
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                    {[
+                      { id: 'narrow_b', label: 'B (Úzké)', desc: '< 98 mm' },
+                      { id: 'standard_d', label: 'D (Standard)', desc: '98–102 mm' },
+                      { id: 'wide_2e', label: '2E (Široké)', desc: '103–110 mm' },
+                      { id: 'extra_wide_4e', label: '4E (Extra široké)', desc: '> 110 mm' },
+                    ].map((w) => {
+                      const active = formData.foot_width === w.id;
+                      return (
+                        <button
+                          key={w.id}
+                          onClick={() => setFormData((p) => ({ ...p, foot_width: w.id as any }))}
+                          className={`p-4 rounded-2xl border text-center transition-all cursor-pointer ${
+                            active
+                              ? 'bg-cyan-950/90 border-cyan-400 text-white shadow-[0_0_15px_rgba(6,182,212,0.3)] ring-1 ring-cyan-400'
+                              : 'bg-slate-900/60 border-slate-800 text-slate-400 hover:text-slate-200'
+                          }`}
+                        >
+                          <div className="font-bold text-sm">{w.label}</div>
+                          <div className="text-[11px] font-mono text-slate-400 mt-0.5">{w.desc}</div>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-bold text-white mb-2">
+                    Biomechanika došlapu (rotace kotníku):
+                  </label>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    {[
+                      { id: 'supination', label: 'Supinace (Vnější hrana)', desc: 'Chodidlo rotuje ven, zákaz pronačních klínů' },
+                      { id: 'neutral', label: 'Neutrální došlap', desc: 'Rovnoměrné rozložení tlaků' },
+                      { id: 'mild_overpronation', label: 'Pronace (Vnitřní sešlap)', desc: 'Kolaps klenby dovnitř' },
+                    ].map((m) => {
+                      const active = formData.foot_mechanics === m.id;
+                      return (
+                        <button
+                          key={m.id}
+                          onClick={() => setFormData((p) => ({ ...p, foot_mechanics: m.id as any }))}
+                          className={`p-4 rounded-2xl border text-left transition-all cursor-pointer ${
+                            active
+                              ? 'bg-cyan-950/90 border-cyan-400 text-white shadow-[0_0_15px_rgba(6,182,212,0.3)] ring-1 ring-cyan-400'
+                              : 'bg-slate-900/60 border-slate-800 text-slate-400 hover:text-slate-200'
+                          }`}
+                        >
+                          <div className="font-bold text-xs sm:text-sm">{m.label}</div>
+                          <div className="text-[11px] text-slate-400 mt-1">{m.desc}</div>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* KROK 3: AKTIVITY A OBJEM */}
+            {step === 3 && (
+              <div className="space-y-6 animate-in fade-in duration-200">
+                <div>
+                  <label className="block text-sm font-bold text-white mb-2">
+                    Kde a jak budete obuv používat:
+                  </label>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    {[
+                      { id: 'road_running', label: 'Běh po asfaltu a silnici', desc: 'Vyžaduje tlumení rázů pro kolena' },
+                      { id: 'daily_walking', label: 'Běžná chůze a celodenní stání', desc: 'Vyžaduje stabilitu a široké kopyto' },
+                      { id: 'trail_running', label: 'Běh v terénu a lesních cestách', desc: 'Grip a boční stabilita' },
+                      { id: 'gym_fitness', label: 'Fitness a posilovna', desc: 'Pevná platforma' },
+                    ].map((act) => {
+                      const active = formData.activity_type.includes(act.id);
+                      return (
+                        <button
+                          key={act.id}
+                          onClick={() => toggleArrayItem('activity_type', act.id)}
+                          className={`p-4 rounded-2xl border text-left transition-all cursor-pointer flex items-center justify-between ${
+                            active
+                              ? 'bg-cyan-950/90 border-cyan-400 text-white shadow-[0_0_15px_rgba(6,182,212,0.3)] ring-1 ring-cyan-400'
+                              : 'bg-slate-900/60 border-slate-800 text-slate-400 hover:text-slate-200'
+                          }`}
+                        >
+                          <div>
+                            <div className="font-bold text-xs sm:text-sm">{act.label}</div>
+                            <div className="text-[11px] text-slate-400 mt-0.5">{act.desc}</div>
+                          </div>
+                          {active ? <CheckCircle2 className="w-5 h-5 text-cyan-400 shrink-0 ml-2" /> : <div className="w-5 h-5 rounded-full border border-slate-700 shrink-0 ml-2" />}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-bold text-white mb-2">
+                    Týdenní objem kilometrů:
+                  </label>
+                  <div className="grid grid-cols-3 gap-3">
+                    {[
+                      { id: 'under_15_km', label: '< 15 km / týden' },
+                      { id: '15_to_35_km', label: '15–35 km / týden' },
+                      { id: 'over_35_km', label: '> 35 km / týden' },
+                    ].map((vol) => {
+                      const active = formData.weekly_volume === vol.id;
+                      return (
+                        <button
+                          key={vol.id}
+                          onClick={() => setFormData((p) => ({ ...p, weekly_volume: vol.id as any }))}
+                          className={`p-3.5 rounded-2xl border text-center transition-all cursor-pointer ${
+                            active
+                              ? 'bg-cyan-950/90 border-cyan-400 text-white shadow-sm ring-1 ring-cyan-400'
+                              : 'bg-slate-900/60 border-slate-800 text-slate-400 hover:text-slate-200'
+                          }`}
+                        >
+                          <div className="font-bold text-xs">{vol.label}</div>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* KROK 4: ZDRAVOTNÍ ANAMNÉZA KLOUBŮ */}
+            {step === 4 && (
+              <div className="space-y-6 animate-in fade-in duration-200">
+                <div className="p-5 rounded-2xl bg-[#060c18] border border-cyan-500/30 space-y-3">
+                  <div className="flex justify-between items-center">
+                    <label className="text-sm font-bold text-white flex items-center gap-2">
+                      <Activity className="w-4 h-4 text-amber-400" />
+                      <span>Intenzita bolesti kolene při zátěži (1–10):</span>
+                    </label>
+                    <span className="font-mono text-amber-300 font-extrabold text-base bg-amber-950/80 px-3 py-1 rounded-xl border border-amber-500/30">
+                      Stupeň {kneePainLevel} / 10
+                    </span>
+                  </div>
+                  <input
+                    type="range"
+                    min={1}
+                    max={10}
+                    value={kneePainLevel}
+                    onChange={(e) => setKneePainLevel(Number(e.target.value))}
+                    className="w-full accent-amber-400 h-2.5 bg-slate-900 rounded-lg cursor-pointer"
+                  />
+                  <div className="flex justify-between text-[11px] font-mono text-slate-500">
+                    <span>1 (Bez bolesti)</span>
+                    <span>5 (Mírná zátěž)</span>
+                    <span>10 (Akutní artróza 3. stupně)</span>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-bold text-white mb-2">
+                    Lékařské diagnózy kloubů a chodidel:
+                  </label>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    {[
+                      { id: 'Knee Osteoarthritis Grade 3', label: 'Artróza kolene 3. stupně (Gonartróza)' },
+                      { id: 'Plantar Fasciitis (Patní ostruha)', label: 'Plantární fasciitida (Patní ostruha)' },
+                      { id: 'Hallux Valgus (Vbočený palec)', label: 'Hallux Valgus (Vbočený palec)' },
+                      { id: 'Meniscus Partial Resection', label: 'Částečná resekce menisku' }
+                    ].map((cond) => {
+                      const active = formData.joint_conditions.includes(cond.id);
+                      return (
+                        <button
+                          key={cond.id}
+                          onClick={() => toggleArrayItem('joint_conditions', cond.id)}
+                          className={`p-4 rounded-2xl border text-left transition-all cursor-pointer flex items-center justify-between ${
+                            active
+                              ? 'bg-cyan-950/90 border-cyan-400 text-white shadow-[0_0_15px_rgba(6,182,212,0.3)] ring-1 ring-cyan-400'
+                              : 'bg-slate-900/60 border-slate-800 text-slate-400 hover:text-slate-200'
+                          }`}
+                        >
+                          <span className="text-xs font-semibold">{cond.label}</span>
+                          {active ? <CheckCircle2 className="w-5 h-5 text-cyan-400 shrink-0" /> : <div className="w-5 h-5 rounded-full border border-slate-700 shrink-0" />}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* KROK 5: ZNAČKY & ROZPOČET */}
+            {step === 5 && (
+              <div className="space-y-6 animate-in fade-in duration-200">
+                <div>
+                  <label className="block text-sm font-bold text-white mb-2">
+                    Preferovaní výrobci se širokým kopytem 2E:
+                  </label>
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+                    {BRAND_OPTIONS.map((brand) => {
+                      const active = formData.preferred_brands.includes(brand);
+                      return (
+                        <button
+                          key={brand}
+                          onClick={() => toggleArrayItem('preferred_brands', brand)}
+                          className={`p-3 rounded-xl border text-center transition-all cursor-pointer text-xs font-bold ${
+                            active
+                              ? 'bg-cyan-950/90 border-cyan-400 text-white shadow-sm ring-1 ring-cyan-400'
+                              : 'bg-slate-900/60 border-slate-800 text-slate-400 hover:text-slate-200'
+                          }`}
+                        >
+                          {brand}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                <div className="p-5 rounded-2xl bg-[#060c18] border border-slate-800 space-y-3">
+                  <div className="flex justify-between items-center">
+                    <label className="text-sm font-bold text-white">
+                      Orientační rozpočet na pár obuvi:
+                    </label>
+                    <span className="font-mono text-cyan-300 font-extrabold text-base bg-cyan-950/80 px-3 py-1 rounded-xl border border-cyan-500/30">
+                      do {Math.round((formData.budget_eur || 190) * 25.2).toLocaleString('cs-CZ')} Kč{' '}
+                      <span className="text-xs text-slate-400 font-normal">(€{formData.budget_eur || 190})</span>
+                    </span>
+                  </div>
+                  <input
+                    type="range"
+                    min={100}
+                    max={250}
+                    step={10}
+                    value={formData.budget_eur || 190}
+                    onChange={(e) => setFormData((p) => ({ ...p, budget_eur: Number(e.target.value) }))}
+                    className="w-full accent-cyan-400 h-2.5 bg-slate-900 rounded-lg cursor-pointer"
+                  />
+                </div>
+              </div>
+            )}
+
+            {/* Navigation Buttons with Reset on every step */}
+            <div className="pt-6 border-t border-cyan-500/20 flex items-center justify-between gap-3 mt-8">
+              <div className="flex items-center gap-2.5">
+                <button
+                  onClick={() => setStep((s) => Math.max(1, s - 1))}
+                  disabled={step === 1}
+                  className="flex items-center gap-2 px-5 py-3 rounded-2xl text-xs font-semibold bg-slate-900 border border-slate-800 text-slate-400 hover:text-white disabled:opacity-30 disabled:cursor-not-allowed transition-all cursor-pointer"
+                >
+                  <ChevronLeft className="w-4 h-4" />
+                  <span>Předchozí krok</span>
+                </button>
+
+                <button
+                  onClick={handleResetForm}
+                  className="flex items-center gap-1.5 px-3 py-2.5 rounded-xl text-xs text-slate-400 hover:text-rose-300 hover:bg-rose-950/30 border border-slate-800/80 hover:border-rose-500/30 transition-all cursor-pointer"
+                  title="Resetovat formulář na výchozí hodnoty"
+                >
+                  <RotateCcw className="w-3.5 h-3.5" />
+                  <span className="hidden sm:inline">Reset formuláře</span>
+                </button>
+              </div>
+
+              {step < 5 ? (
+                <button
+                  onClick={() => setStep((s) => Math.min(5, s + 1))}
+                  className="flex items-center gap-2 px-8 py-3.5 rounded-2xl text-xs font-bold bg-gradient-to-r from-cyan-500 to-teal-400 text-slate-950 shadow-[0_0_20px_rgba(6,182,212,0.4)] hover:brightness-110 transition-all cursor-pointer"
+                >
+                  <span>Pokračovat</span>
+                  <ChevronRight className="w-4 h-4" />
+                </button>
+              ) : (
+                <button
+                  onClick={handleSubmit}
+                  disabled={isSubmitting}
+                  className="flex items-center gap-2.5 px-9 py-4 rounded-2xl text-xs sm:text-sm font-extrabold bg-gradient-to-r from-cyan-400 via-teal-400 to-emerald-400 text-slate-950 shadow-[0_0_30px_rgba(6,182,212,0.8)] hover:scale-105 transition-all disabled:opacity-50 cursor-pointer"
+                >
+                  <Sparkles className="w-5 h-5 animate-pulse" />
+                  <span>{isSubmitting ? 'Vyhodnocuji profil...' : 'Vygenerovat návrhy obuvi'}</span>
+                </button>
+              )}
+            </div>
+          </div>
         </div>
+      </div>
+    );
+  }
 
-        {/* Locale toggle & Step indicator */}
-        <div className="flex items-center gap-3 shrink-0">
-          {/* Language Switcher */}
-          <div className="flex items-center gap-1 bg-slate-950/80 p-1 rounded-xl border border-slate-800 text-xs">
-            <Languages className="w-3.5 h-3.5 text-slate-400 ml-1.5 mr-0.5" />
-            <button
-              onClick={() => setLocale('cs')}
-              className={`px-2.5 py-1 rounded-lg font-bold transition-all ${
-                locale === 'cs' 
-                  ? 'bg-gradient-to-r from-cyan-500 to-teal-500 text-slate-950 shadow-sm' 
-                  : 'text-slate-400 hover:text-white'
-              }`}
-            >
-              CZ
-            </button>
-            <button
-              onClick={() => setLocale('en')}
-              className={`px-2.5 py-1 rounded-lg font-bold transition-all ${
-                locale === 'en' 
-                  ? 'bg-gradient-to-r from-cyan-500 to-teal-500 text-slate-950 shadow-sm' 
-                  : 'text-slate-400 hover:text-white'
-              }`}
-            >
-              EN
-            </button>
+  // =========================================================================
+  // FÁZE 2: "ROZSVÍCENÝ" VÝSLEDEK = VÝBĚR BOT S AKČNÍM TLAČÍTKEM POSUDKU
+  // =========================================================================
+  return (
+    <div className="w-full max-w-7xl mx-auto space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+      
+      {/* Top Banner: Clinical Prescription Header & Action Controls */}
+      <div className="glass-panel rounded-3xl p-6 sm:p-8 border-2 border-cyan-400/60 shadow-[0_20px_60px_rgba(6,182,212,0.25)] relative overflow-hidden">
+        {/* Glow */}
+        <div className="absolute -top-24 -right-24 w-80 h-80 bg-cyan-500/20 rounded-full blur-3xl pointer-events-none" />
+
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+          <div className="space-y-2">
+            <div className="flex items-center gap-2.5 flex-wrap">
+              <span className="text-xs font-mono font-bold uppercase tracking-wider px-3 py-1 rounded-full bg-cyan-950 text-cyan-300 border border-cyan-400/40 flex items-center gap-1.5 shadow-sm">
+                <Sparkles className="w-3.5 h-3.5 text-cyan-400" />
+                Biometrická analýza dokončena
+              </span>
+              <span className="text-xs font-mono text-slate-400">
+                Parametry: {formData.foot_length_mm} × {formData.foot_width_mm} mm • Kopyto 2E • Gonartróza 3. st.
+              </span>
+            </div>
+
+            <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
+              Doporučený výběr vhodné obuvi
+            </h1>
+            <p className="text-xs sm:text-sm text-slate-300 max-w-3xl leading-relaxed">
+              Na základě zadaných biometrických rozměrů a diagnózy vybral asistent 3 modely obuvi odpovídající zadaným biomechanickým parametrům (kolébková podrážka, odpovídající drop, kopyto 2E).
+            </p>
           </div>
 
-          <div className="flex items-center gap-2 bg-slate-950/80 px-4 py-2 rounded-xl border border-cyan-500/30 shrink-0 shadow-inner">
-            <span className="text-xs text-slate-400 font-medium">{t.stepIndicator}</span>
-            <span className="text-xs font-bold text-cyan-400 font-mono">
-              {step < 7 ? `${step} / 6` : t.prescriptionReady}
-            </span>
+          {/* Action Buttons: Medical Report Overlay, Consultation, Edit Inputs */}
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 shrink-0">
+            {/* Primary Action Button: Upravit zadání (Zvýrazněné dominantní tlačítko) */}
+            <button
+              onClick={() => setResult(null)}
+              className="flex items-center justify-center gap-2 px-6 py-3 rounded-2xl font-extrabold text-xs sm:text-sm bg-gradient-to-r from-cyan-500 to-teal-400 text-slate-950 shadow-[0_0_22px_rgba(6,182,212,0.45)] hover:brightness-110 transition-all cursor-pointer group"
+              title="Vrátit se a upravit zadaná biometrická data"
+            >
+              <ArrowLeft className="w-4 h-4 text-slate-950 group-hover:-translate-x-0.5 transition-transform" />
+              <span>Upravit zadání dotazníku</span>
+            </button>
+
+            {/* Subtle Action Button: Medical Report Overlay (Odvyrazněné vedlejší tlačítko) */}
+            <button
+              onClick={() => setIsClinicalAssessmentOpen(true)}
+              className="flex items-center justify-center gap-2 px-4 py-3 rounded-2xl font-medium text-xs bg-slate-900/80 hover:bg-slate-800 text-slate-300 hover:text-white border border-slate-700/80 hover:border-slate-600 transition-all cursor-pointer"
+            >
+              <FileText className="w-4 h-4 text-slate-400" />
+              <span>Biomechanický rozbor</span>
+            </button>
+
+            {/* Secondary Action: Appointments Modal */}
+            <button
+              onClick={() => {
+                if (onOpenAppointments) onOpenAppointments();
+                else setIsAppointmentsModalOpen(true);
+              }}
+              className="flex items-center justify-center gap-2 px-4 py-3 rounded-2xl font-medium text-xs bg-slate-900/80 hover:bg-cyan-950/60 text-cyan-300/80 hover:text-cyan-300 border border-slate-800 hover:border-cyan-500/30 transition-all cursor-pointer"
+            >
+              <Stethoscope className="w-4 h-4 text-cyan-400/80" />
+              <span>Konzultace s odborníkem</span>
+            </button>
           </div>
         </div>
       </div>
 
-      {/* Progress Tabs */}
-      {step < 7 && (
-        <div className="grid grid-cols-2 sm:grid-cols-6 gap-2 mb-8">
-          {[
-            t.steps.step1,
-            t.steps.step2,
-            t.steps.step3,
-            t.steps.step4,
-            t.steps.step5,
-            t.steps.step6,
-          ].map((title, i) => {
-            const stepNum = i + 1;
-            const isActive = step === stepNum;
-            const isDone = step > stepNum;
-            return (
-              <button
-                key={i}
-                onClick={() => setStep(stepNum)}
-                className={`text-left p-3 rounded-xl border transition-all duration-200 ${
-                  isActive
-                    ? 'glass-panel-active border-cyan-400 text-white shadow-lg shadow-cyan-950/40'
-                    : isDone
-                    ? 'glass-panel border-teal-500/40 text-slate-200 hover:border-teal-500/60'
-                    : 'bg-slate-950/50 border-slate-800/80 text-slate-500 hover:border-slate-700'
-                }`}
-              >
-                <div className="text-[11px] font-bold tracking-tight mb-0.5 flex items-center justify-between">
-                  <span>{title}</span>
-                  {isDone && <CheckCircle2 className="w-3.5 h-3.5 text-teal-400" />}
-                </div>
-              </button>
-            );
-          })}
+      {/* Top 3 Verified Shoes Listing (Zero fake info, real live search links) */}
+      <div>
+        <div className="flex items-center justify-between mb-4 px-2">
+          <div className="flex items-center gap-2 text-sm font-bold text-white uppercase tracking-wider font-mono">
+            <Footprints className="w-4 h-4 text-cyan-400" />
+            <span>Top 3 doporučené modely (Kopyto 2E)</span>
+          </div>
+
+          <button
+            onClick={() => {
+              if (onOpenRecommendations) onOpenRecommendations();
+              else setIsRecommendationsModalOpen(true);
+            }}
+            className="text-xs text-cyan-400 hover:text-cyan-300 flex items-center gap-1 font-mono underline transition-colors cursor-pointer"
+          >
+            <span>Zobrazit celou databázi 20+ modelů</span>
+            <ChevronRight className="w-3.5 h-3.5" />
+          </button>
         </div>
-      )}
 
-      {/* 2-Column Split Bio-Tech Dashboard (Steps 1 to 6) */}
-      {step < 7 ? (
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-          {/* Left Column: Step Forms & User Intake (Primary Interaction) */}
-          <div className="lg:col-span-8 flex flex-col justify-between space-y-6">
-            <div>
-              {/* STEP 1: Product Selection */}
-              {step === 1 && (
-                <div className="glass-panel rounded-2xl p-6 space-y-6">
-                  <h3 className="text-lg font-bold text-white flex items-center gap-2">
-                    <Footprints className="w-5 h-5 text-cyan-400" />
-                    {t.step1.title}
-                  </h3>
-          <p className="text-sm text-slate-400">
-            {t.step1.desc}
-          </p>
-
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2">
-            {[
-              {
-                id: 'running_shoes',
-                title: t.step1.runningTitle,
-                desc: t.step1.runningDesc,
-                active: formData.product_category === 'running_shoes',
-              },
-              {
-                id: 'walking_shoes',
-                title: t.step1.walkingTitle,
-                desc: t.step1.walkingDesc,
-                active: formData.product_category === 'walking_shoes',
-              },
-              {
-                id: 'orthotics_insoles',
-                title: t.step1.insolesTitle,
-                desc: t.step1.insolesDesc,
-                active: formData.product_category === 'orthotics_insoles',
-                disabled: true,
-              },
-            ].map((card) => (
-              <button
-                key={card.id}
-                disabled={card.disabled}
-                onClick={() => setFormData({ ...formData, product_category: card.id })}
-                className={`p-5 rounded-2xl text-left border transition-all ${
-                  card.active
-                    ? 'glass-panel-active border-cyan-400 text-white ring-1 ring-cyan-400/60 shadow-lg shadow-cyan-950/40'
-                    : card.disabled
-                    ? 'bg-slate-950/30 border-slate-800/50 text-slate-600 opacity-60 cursor-not-allowed'
-                    : 'glass-panel border-slate-800 hover:border-cyan-500/40 text-slate-300'
-                }`}
-              >
-                <div className="font-bold text-base mb-1">{card.title}</div>
-                <p className="text-xs text-slate-400 leading-relaxed">{card.desc}</p>
-              </button>
-            ))}
-          </div>
+        {/* 3 Dominant Shoe Cards */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
+          {displayModels.map((shoe, idx) => (
+            <VerifiedShoeCard
+              key={shoe.id}
+              rank={idx + 1}
+              badgeLabel={(shoe as any).badgeLabel}
+              shoe={shoe as any}
+            />
+          ))}
         </div>
-      )}
 
-      {/* STEP 2: Foot Sizing & Width */}
-      {step === 2 && (
-        <div className="glass-panel rounded-2xl p-6 space-y-6">
-          <h3 className="text-lg font-bold text-white flex items-center gap-2">
-            <Activity className="w-5 h-5 text-teal-400" />
-            {t.step2.title}
-          </h3>
-          <p className="text-sm text-slate-400">
-            {t.step2.desc}
-          </p>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-            <div>
-              <label className="block text-xs font-semibold text-slate-300 uppercase mb-2">
-                {t.step2.sizeLabel}
-              </label>
-              <select
-                value={formData.eu_size}
-                onChange={(e) => setFormData({ ...formData, eu_size: Number(e.target.value) })}
-                className="w-full bg-slate-950/80 border border-slate-800 focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 rounded-xl px-4 py-3 text-sm text-white focus:outline-none"
-              >
-                {[40, 41, 42, 43, 44, 45, 46, 47, 48].map((size) => (
-                  <option key={size} value={size}>
-                    EU {size}
-                  </option>
-                ))}
-              </select>
+        {/* Bottom Prompt Bar: Prominent Edit Inputs Action */}
+        <div className="p-5 rounded-2xl bg-gradient-to-r from-slate-900/90 via-[#071324] to-slate-900/90 border border-cyan-500/30 flex flex-col sm:flex-row items-center justify-between gap-4 mt-6 shadow-lg">
+          <div className="flex items-center gap-3 text-left">
+            <div className="w-10 h-10 rounded-xl bg-cyan-950 border border-cyan-400/40 flex items-center justify-center text-cyan-400 shrink-0 shadow-inner">
+              <Sliders className="w-5 h-5" />
             </div>
-
             <div>
-              <label className="block text-xs font-semibold text-slate-300 uppercase mb-2">
-                {t.step2.widthLabel}
-              </label>
-              <div className="grid grid-cols-2 gap-2">
-                {[
-                  { id: 'standard_d', label: t.step2.widths.standard.label, desc: t.step2.widths.standard.desc },
-                  { id: 'wide_2e', label: t.step2.widths.wide2e.label, desc: t.step2.widths.wide2e.desc },
-                  { id: 'extra_wide_4e', label: t.step2.widths.wide4e.label, desc: t.step2.widths.wide4e.desc },
-                  { id: 'narrow_b', label: t.step2.widths.narrow.label, desc: t.step2.widths.narrow.desc },
-                ].map((w) => (
-                  <button
-                    key={w.id}
-                    onClick={() => setFormData({ ...formData, foot_width: w.id as any })}
-                    className={`p-3 rounded-xl border text-left transition-all ${
-                      formData.foot_width === w.id
-                        ? 'bg-teal-950/70 border-teal-400 text-white ring-1 ring-teal-400/60 shadow-md shadow-teal-950/40'
-                        : 'bg-slate-950/60 border-slate-800 text-slate-300 hover:border-cyan-500/40'
-                    }`}
-                  >
-                    <div className="font-bold text-xs">{w.label}</div>
-                    <div className="text-[10px] text-slate-400">{w.desc}</div>
-                  </button>
-                ))}
-              </div>
+              <div className="font-bold text-white text-sm">Chcete změnit naměřené rozměry, značky nebo rozpočet?</div>
+              <div className="text-xs text-slate-400">Upravením biometrických dat agent okamžitě přepočítá vhodnost modelů.</div>
             </div>
           </div>
+          <button
+            onClick={() => setResult(null)}
+            className="px-6 py-3 rounded-xl font-extrabold text-xs sm:text-sm bg-gradient-to-r from-cyan-500 to-teal-400 text-slate-950 shadow-[0_0_20px_rgba(6,182,212,0.4)] hover:brightness-110 transition-all flex items-center gap-2 cursor-pointer shrink-0"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            <span>Upravit zadání dotazníku</span>
+          </button>
         </div>
-      )}
+      </div>
 
-      {/* STEP 3: Gait & Mechanics */}
-      {step === 3 && (
-        <div className="glass-panel rounded-2xl p-6 space-y-6">
-          <h3 className="text-lg font-bold text-white flex items-center gap-2">
-            <Footprints className="w-5 h-5 text-cyan-400" />
-            {t.step3.title}
-          </h3>
-          <p className="text-sm text-slate-400">
-            {t.step3.desc}
-          </p>
+      {/* Overlay Modals */}
+      <ClinicalAssessmentModal
+        isOpen={isClinicalAssessmentOpen}
+        onClose={() => setIsClinicalAssessmentOpen(false)}
+        result={result}
+        formData={formData}
+      />
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-            <div>
-              <label className="block text-xs font-semibold text-slate-300 uppercase mb-2">
-                {t.step3.strikeLabel}
-              </label>
-              <div className="space-y-2">
-                {[
-                  { id: 'heel_strike', label: t.step3.strikes.heel.label, desc: t.step3.strikes.heel.desc },
-                  { id: 'midfoot_strike', label: t.step3.strikes.midfoot.label, desc: t.step3.strikes.midfoot.desc },
-                  { id: 'forefoot_strike', label: t.step3.strikes.forefoot.label, desc: t.step3.strikes.forefoot.desc },
-                ].map((item) => (
-                  <button
-                    key={item.id}
-                    onClick={() => setFormData({ ...formData, strike_pattern: item.id as any })}
-                    className={`w-full p-3 rounded-xl border text-left transition-all ${
-                      formData.strike_pattern === item.id
-                        ? 'bg-cyan-950/60 border-cyan-400 text-white ring-1 ring-cyan-400/60 shadow-md shadow-cyan-950/40'
-                        : 'bg-slate-950/60 border-slate-800 text-slate-300 hover:border-cyan-500/40'
-                    }`}
-                  >
-                    <div className="font-bold text-xs">{item.label}</div>
-                    <div className="text-[11px] text-slate-400">{item.desc}</div>
-                  </button>
-                ))}
-              </div>
-            </div>
+      <AnalysisModal
+        isOpen={isAnalysisModalOpen}
+        onClose={() => setIsAnalysisModalOpen(false)}
+        footLengthMm={formData.foot_length_mm || 280}
+        footWidthMm={formData.foot_width_mm || 104}
+        kneeCondition={formData.joint_conditions[0] || 'Knee Osteoarthritis Grade 3'}
+      />
 
-            <div>
-              <label className="block text-xs font-semibold text-slate-300 uppercase mb-2">
-                {t.step3.rollLabel}
-              </label>
-              <div className="space-y-2">
-                {[
-                  { id: 'supination', label: t.step3.rolls.supination.label, desc: t.step3.rolls.supination.desc },
-                  { id: 'neutral', label: t.step3.rolls.neutral.label, desc: t.step3.rolls.neutral.desc },
-                  { id: 'mild_overpronation', label: t.step3.rolls.pronation.label, desc: t.step3.rolls.pronation.desc },
-                ].map((item) => (
-                  <button
-                    key={item.id}
-                    onClick={() => setFormData({ ...formData, foot_mechanics: item.id as any })}
-                    className={`w-full p-3 rounded-xl border text-left transition-all ${
-                      formData.foot_mechanics === item.id
-                        ? 'bg-cyan-950/60 border-cyan-400 text-white ring-1 ring-cyan-400/60 shadow-md shadow-cyan-950/40'
-                        : 'bg-slate-950/60 border-slate-800 text-slate-300 hover:border-cyan-500/40'
-                    }`}
-                  >
-                    <div className="font-bold text-xs">{item.label}</div>
-                    <div className="text-[11px] text-slate-400">{item.desc}</div>
-                  </button>
-                ))}
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+      <AppointmentsModal
+        isOpen={isAppointmentsModalOpen}
+        onClose={() => setIsAppointmentsModalOpen(false)}
+      />
 
-      {/* STEP 4: Activity & Volume */}
-      {step === 4 && (
-        <div className="glass-panel rounded-2xl p-6 space-y-6">
-          <h3 className="text-lg font-bold text-white flex items-center gap-2">
-            <Layers className="w-5 h-5 text-teal-400" />
-            {t.step4.title}
-          </h3>
-
-          <div className="space-y-4">
-            <div>
-              <label className="block text-xs font-semibold text-slate-300 uppercase mb-2">
-                {t.step4.activityLabel}
-              </label>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                {[
-                  { id: 'road_running', label: t.step4.activities.road },
-                  { id: 'trail_running', label: t.step4.activities.trail },
-                  { id: 'daily_walking', label: t.step4.activities.walking },
-                  { id: 'standing_work', label: t.step4.activities.standing },
-                ].map((act) => {
-                  const selected = formData.activity_type.includes(act.id);
-                  return (
-                    <button
-                      key={act.id}
-                      onClick={() => toggleArrayItem('activity_type', act.id)}
-                      className={`p-3 rounded-xl border text-center font-semibold text-xs transition-all ${
-                        selected
-                          ? 'bg-cyan-950/60 border-cyan-400 text-white ring-1 ring-cyan-400/60 shadow-md shadow-cyan-950/40'
-                          : 'bg-slate-950/60 border-slate-800 text-slate-400 hover:border-cyan-500/40'
-                      }`}
-                    >
-                      {act.label}
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-xs font-semibold text-slate-300 uppercase mb-2">
-                {t.step4.cushionLabel}
-              </label>
-              <div className="grid grid-cols-3 gap-3">
-                {[
-                  { id: 'maximum', title: t.step4.cushions.max.title, desc: t.step4.cushions.max.desc },
-                  { id: 'balanced', title: t.step4.cushions.balanced.title, desc: t.step4.cushions.balanced.desc },
-                  { id: 'firm', title: t.step4.cushions.firm.title, desc: t.step4.cushions.firm.desc },
-                ].map((c) => (
-                  <button
-                    key={c.id}
-                    onClick={() => setFormData({ ...formData, cushioning_preference: c.id as any })}
-                    className={`p-3 rounded-xl border text-left transition-all ${
-                      formData.cushioning_preference === c.id
-                        ? 'bg-cyan-950/60 border-cyan-400 text-white ring-1 ring-cyan-400/60 shadow-md shadow-cyan-950/40'
-                        : 'bg-slate-950/60 border-slate-800 text-slate-400 hover:border-cyan-500/40'
-                    }`}
-                  >
-                    <div className="font-bold text-xs">{c.title}</div>
-                    <div className="text-[10px] text-slate-400">{c.desc}</div>
-                  </button>
-                ))}
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* STEP 5: Brand Preferences & Forbidden Blacklist */}
-      {step === 5 && (
-        <div className="glass-panel rounded-2xl p-6 space-y-6">
-          <h3 className="text-lg font-bold text-white flex items-center gap-2">
-            <HeartHandshake className="w-5 h-5 text-teal-400" />
-            {t.step5.title}
-          </h3>
-          <p className="text-sm text-slate-400">
-            {t.step5.desc}
-          </p>
-
-          <div className="space-y-6">
-            {/* Preferred Brands */}
-            <div>
-              <div className="flex items-center gap-2 mb-2">
-                <span className="text-xs font-bold uppercase text-cyan-400">
-                  {t.step5.preferredLabel}
-                </span>
-              </div>
-              <div className="flex flex-wrap gap-2">
-                {BRAND_OPTIONS.map((brand) => {
-                  const isPref = formData.preferred_brands.includes(brand);
-                  const isForbid = formData.forbidden_brands.includes(brand);
-                  return (
-                    <button
-                      key={brand}
-                      disabled={isForbid}
-                      onClick={() => toggleArrayItem('preferred_brands', brand)}
-                      className={`px-3 py-1.5 rounded-xl border text-xs font-medium transition-all ${
-                        isPref
-                          ? 'bg-cyan-950/60 border-cyan-400 text-white ring-1 ring-cyan-400/60 shadow-md shadow-cyan-950/40'
-                          : isForbid
-                          ? 'opacity-30 border-slate-900 bg-slate-950 cursor-not-allowed text-slate-600'
-                          : 'bg-slate-950/60 border-slate-800 text-slate-300 hover:border-cyan-500/40'
-                      }`}
-                    >
-                      {brand}
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-
-            {/* Forbidden Brands Blacklist */}
-            <div className="p-4 rounded-xl bg-rose-950/20 border border-rose-900/30">
-              <div className="flex items-center gap-2 mb-1">
-                <Ban className="w-4 h-4 text-rose-400" />
-                <span className="text-xs font-bold uppercase text-rose-300">
-                  {t.step5.forbiddenLabel}
-                </span>
-              </div>
-              <p className="text-[11px] text-rose-300/70 mb-3">
-                {t.step5.forbiddenDesc}
-              </p>
-              <div className="flex flex-wrap gap-2">
-                {BRAND_OPTIONS.map((brand) => {
-                  const isForbid = formData.forbidden_brands.includes(brand);
-                  const isPref = formData.preferred_brands.includes(brand);
-                  return (
-                    <button
-                      key={brand}
-                      disabled={isPref}
-                      onClick={() => toggleArrayItem('forbidden_brands', brand)}
-                      className={`px-3 py-1.5 rounded-xl border text-xs font-medium transition-all ${
-                        isForbid
-                          ? 'bg-rose-950/80 border-rose-500 text-rose-200 ring-1 ring-rose-500'
-                          : isPref
-                          ? 'opacity-30 border-slate-900 bg-slate-950 cursor-not-allowed text-slate-600'
-                          : 'bg-slate-950/60 border-slate-800 text-slate-400 hover:border-slate-700'
-                      }`}
-                    >
-                      {isForbid ? `✕ ${brand}` : brand}
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* STEP 6: Health Conditions & Surgeries */}
-      {step === 6 && (
-        <div className="glass-panel rounded-2xl p-6 space-y-6">
-          <h3 className="text-lg font-bold text-white flex items-center gap-2">
-            <ShieldAlert className="w-5 h-5 text-amber-400" />
-            {t.step6.title}
-          </h3>
-          <p className="text-sm text-slate-400">
-            {t.step6.desc}
-          </p>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-            {/* Joint & Foot Conditions */}
-            <div>
-              <label className="block text-xs font-semibold text-slate-300 uppercase mb-2">
-                {t.step6.jointLabel}
-              </label>
-              <div className="space-y-2">
-                {Object.entries(t.step6.conditions).map(([condKey, condLabel]) => {
-                  const isSelected = formData.joint_conditions.includes(condKey);
-                  return (
-                    <button
-                      key={condKey}
-                      onClick={() => toggleArrayItem('joint_conditions', condKey)}
-                      className={`w-full p-2.5 rounded-xl border text-left text-xs font-medium transition-all ${
-                        isSelected
-                          ? 'bg-cyan-950/60 border-cyan-400 text-cyan-200 ring-1 ring-cyan-400/60 shadow-md shadow-cyan-950/40'
-                          : 'bg-slate-950/60 border-slate-800 text-slate-400 hover:border-cyan-500/40'
-                      }`}
-                    >
-                      {condLabel}
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-
-            {/* Surgical History */}
-            <div>
-              <label className="block text-xs font-semibold text-slate-300 uppercase mb-2">
-                {t.step6.surgeriesLabel}
-              </label>
-              <div className="space-y-2">
-                {Object.entries(t.step6.surgeries).map(([surgKey, surgLabel]) => {
-                  const isSelected = formData.past_surgeries.includes(surgKey);
-                  return (
-                    <button
-                      key={surgKey}
-                      onClick={() => toggleArrayItem('past_surgeries', surgKey)}
-                      className={`w-full p-2.5 rounded-xl border text-left text-xs font-medium transition-all ${
-                        isSelected
-                          ? 'bg-teal-950/60 border-teal-400 text-teal-200 ring-1 ring-teal-400/60 shadow-md shadow-teal-950/40'
-                          : 'bg-slate-950/60 border-slate-800 text-slate-400 hover:border-cyan-500/40'
-                      }`}
-                    >
-                      {surgLabel}
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
-
-    {/* Navigation Buttons */}
-    <div className="flex items-center justify-between pt-4 border-t border-cyan-500/20">
-      <button
-                  disabled={step === 1}
-                  onClick={() => setStep((s) => Math.max(s - 1, 1))}
-                  className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl border border-cyan-500/20 bg-[#0b1628]/80 hover:bg-[#0f2038] disabled:opacity-30 disabled:cursor-not-allowed text-xs text-slate-300 transition-colors"
-                >
-                  <ChevronLeft className="w-4 h-4 text-cyan-400" />
-                  <span>{t.buttons.previous}</span>
-                </button>
-
-                {step < 6 ? (
-                  <button
-                    onClick={() => setStep((s) => Math.min(s + 1, 6))}
-                    className="flex items-center gap-1.5 px-6 py-2.5 rounded-xl bg-gradient-to-r from-cyan-500 to-teal-400 hover:from-cyan-400 hover:to-teal-300 text-slate-950 font-extrabold text-xs transition-all shadow-lg shadow-cyan-950/60 hover:shadow-cyan-500/30"
-                  >
-                    <span>{t.buttons.continue}</span>
-                    <ChevronRight className="w-4 h-4" />
-                  </button>
-                ) : (
-                  <button
-                    disabled={isSubmitting}
-                    onClick={handleSubmit}
-                    className="flex items-center gap-2 px-7 py-3 rounded-xl bg-gradient-to-r from-cyan-500 via-teal-400 to-emerald-400 hover:from-cyan-400 hover:to-teal-300 text-slate-950 font-extrabold text-sm transition-all shadow-xl shadow-cyan-950/70 disabled:opacity-50"
-                  >
-                    {isSubmitting ? (
-                      <>
-                        <RefreshCw className="w-4 h-4 animate-spin" />
-                        <span>{t.buttons.evaluating}</span>
-                      </>
-                    ) : (
-                      <>
-                        <Sparkles className="w-4 h-4" />
-                        <span>{t.buttons.evaluate}</span>
-                      </>
-                    )}
-                  </button>
-                )}
-              </div>
-            </div>
-
-            {/* Right Column: Biomechanical HUD & Live Anatomical Scanner */}
-            <div className="lg:col-span-4 sticky top-6">
-              <BiomechanicalHUD formData={formData} locale={locale} currentStep={step} />
-            </div>
-          </div>
-      ) : (
-        /* STEP 7: Results View */
-        step === 7 && result && (
-          <div className="space-y-6 animate-in fade-in duration-300">
-            {/* Agent Header Prescription Banner */}
-            <div className="glass-panel border-cyan-500/40 rounded-2xl p-6 shadow-2xl shadow-cyan-950/30 relative overflow-hidden">
-              <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-cyan-500 via-teal-400 to-emerald-400" />
-
-              <div className="flex items-center justify-between gap-4 mb-4 pb-4 border-b border-cyan-500/20">
-                <div className="flex items-center gap-3">
-                  <div className="w-11 h-11 rounded-xl bg-cyan-500/10 border border-cyan-500/40 flex items-center justify-center text-cyan-400 shadow-inner">
-                    <ShieldCheck className="w-6 h-6" />
-                  </div>
-                  <div>
-                    <h3 className="text-xl font-extrabold text-white tracking-tight">
-                      {t.results.prescriptionTitle}
-                    </h3>
-                    <p className="text-xs text-slate-400 font-mono">
-                      {t.results.evaluatedBy} {result.agentName} (v{result.agentVersion})
-                    </p>
-                  </div>
-                </div>
-
-                <button
-                  onClick={() => setStep(1)}
-                  className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl border border-cyan-500/30 bg-[#0b1628] hover:bg-[#0f2038] text-xs text-cyan-300 font-semibold transition-all shadow-sm"
-                >
-                  <RefreshCw className="w-3.5 h-3.5" />
-                  <span>{t.buttons.editAndRetest}</span>
-                </button>
-              </div>
-
-              {/* Medical Findings Summary */}
-              <div className="bg-[#050c18]/90 p-5 rounded-xl border border-cyan-500/20 mb-4 text-xs leading-relaxed text-slate-200">
-                <div className="font-extrabold text-white mb-2 flex items-center gap-2 text-sm">
-                  <Sparkles className="w-4 h-4 text-cyan-400" />
-                  <span>{t.results.analysisTitle}</span>
-                </div>
-                <p className="whitespace-pre-line text-slate-300">{result.clinicalAssessment}</p>
-              </div>
-
-              {/* Contraindications Warning Box */}
-              {result.contraindications.length > 0 && (
-                <div className="p-4 rounded-xl bg-rose-950/25 border border-rose-500/40 text-xs">
-                  <div className="font-bold text-rose-300 flex items-center gap-2 mb-1.5">
-                    <ShieldAlert className="w-4 h-4 text-rose-400" />
-                    <span>{t.results.contraindicationsTitle}</span>
-                  </div>
-                  <ul className="list-disc list-inside space-y-1 text-slate-300">
-                    {result.contraindications.map((c, i) => (
-                      <li key={i}>{c}</li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-            </div>
-
-            {/* Recommended Shoes Grid */}
-            <div>
-              <div className="flex items-center justify-between mb-4">
-                <h4 className="text-base font-extrabold text-white flex items-center gap-2">
-                  <span>{t.results.matchesTitle}</span>
-                  <span className="text-xs font-mono font-bold px-2.5 py-0.5 rounded-full bg-cyan-950/80 text-cyan-300 border border-cyan-500/40">
-                    {result.recommendations.length} {t.results.shoesPassedBadge}
-                  </span>
-                </h4>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                {result.recommendations.map((shoe) => (
-                  <ShoeRecommendationCard key={shoe.id} shoe={shoe} />
-                ))}
-              </div>
-            </div>
-          </div>
-        )
-      )}
+      <RecommendationsModal
+        isOpen={isRecommendationsModalOpen}
+        onClose={() => setIsRecommendationsModalOpen(false)}
+      />
     </div>
   );
 };

@@ -70,6 +70,6 @@ export async function searchRunningForums(params: ForumSearchParams): Promise<{
     query: params.query,
     count: results.length,
     findings: results,
-    summary: 'Community consensus: Grade 3 Knee OA requires maximum cushioning, early-stage rocker geometry (4-8mm drop), and authentic 2E wide fit to prevent lateral roll-off and reduce knee joint impact loads.',
+    summary: 'Konzensus běžecké komunity a specialistů: Artróza kolene 3. stupně vyžaduje vysoké tlumení, kolébkovou geometrii (drop 4–8 mm) a široké kopyto 2E pro prevenci bočního přetížení a ochranu kolenního kloubu.',
   };
 }

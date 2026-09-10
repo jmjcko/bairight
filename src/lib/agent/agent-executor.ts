@@ -119,32 +119,32 @@ function generateClarifyingQuestions(
 ): string {
   const parts: string[] = [];
   
-  parts.push(`### 🩺 Podiatric Intake Assessment\n`);
-  parts.push(`Thank you for sharing your details. As an expert podiatrist, my priority is ensuring maximum joint preservation and injury prevention.\n`);
+  parts.push(`### 🩺 Biometrické vyhodnocení profilu\n`);
+  parts.push(`Děkuji za zadání vašich parametrů. Jako váš biomechanický nákupčí obuvi bAIright se zaměřuji na maximální šetření kloubů a prevenci přetížení.\n`);
 
   if (profile.knee_condition === 'osteoarthritis_grade_3') {
-    parts.push(`> ⚠️ **Clinical Alert:** I see you noted **Grade 3 Knee Osteoarthritis**. This is critical: in stage 3 OA, joint cartilage is severely worn, which makes high-impact shock absorption, rocker geometry, and strict medial-lateral stability non-negotiable.\n`);
+    parts.push(`> ⚠️ **Důležité upozornění:** Eviduji diagnózu **artrózy kolene 3. stupně**. V tomto stadiu je klíčové tlumení nárazů, kolébková geometrie podrážky (rocker) a neutrální široká základna.\n`);
   }
 
-  parts.push(`Before I can authorize scanning our European shoe inventory and clinical forums, I still require **${missing.length} mandatory biomechanical parameter${missing.length > 1 ? 's' : ''}**:\n`);
+  parts.push(`Než odemknu vyhledávání v evropských katalozích a běžeckých fórech, potřebuji ještě upřesnit **${missing.length} ${missing.length === 1 ? 'klíčový parametr' : missing.length < 5 ? 'klíčové parametry' : 'klíčových parametrů'}**:\n`);
 
   if (missing.includes('weight_kg')) {
-    parts.push(`1. **Body Weight (kg or lbs):** We need this to determine the appropriate foam density (durometer) so the midsole does not bottom out under your stride.`);
+    parts.push(`1. **Tělesná hmotnost (v kg):** Potřebujeme ji pro kalibraci hustoty mezipodešve, aby pěna pod vaší vahou neprošlápla.`);
   }
   if (missing.includes('foot_width')) {
-    parts.push(`2. **Foot Width:** Do you require standard D width, or **Wide 2E / Extra Wide 4E**? (A narrow shoe induces metatarsal compression, forcing compensatory knee torsion).`);
+    parts.push(`2. **Šířka chodidla:** Vyhovuje vám standardní šířka D, nebo potřebujete **široké kopyto 2E / extra široké 4E**? (Úzká bota stlačuje prsty a vede ke kompenzační rotaci v koleni).`);
   }
   if (missing.includes('strike_type')) {
-    parts.push(`3. **Strike Type / Gait:** Do you tend to land on your heel, midfoot, or forefoot? Do you supinate (wear down the outer edge of your shoes) or overpronate?`);
+    parts.push(`3. **Došlap a vedení chodidla:** Došlapujete na patu, střed nebo špičku? Máte supinaci (sešlapávání vnější hrany) nebo pronaci?`);
   }
   if (missing.includes('knee_condition')) {
-    parts.push(`4. **Knee Joint Status:** Could you confirm if you have **Grade 3 Knee Osteoarthritis**, meniscus issues, or other joint conditions?`);
+    parts.push(`4. **Stav kolenního kloubu:** Můžete potvrdit, zda máte **artrózu kolene 3. stupně**, potíže s meniskem či jiné diagnózy?`);
   }
   if (missing.includes('past_injuries')) {
-    parts.push(`5. **Past Injuries:** Have you experienced plantar fasciitis, Achilles tendonitis, or runner's knee? (If none, simply say "no injuries").`);
+    parts.push(`5. **Prodělaná zranění či operace:** Měli jste plantární fasciitidu, zánět Achillovy šlachy nebo operaci menisku/vazů? (Pokud ne, stačí uvést „žádná zranění“).`);
   }
 
-  parts.push(`\nPlease provide these details so I can unlock targeted European retailer searches for your exact joint profile.`);
+  parts.push(`\nDoplňte prosím tyto údaje a obratem vám zobrazím doporučené modely obuvi.`);
   return parts.join('\n');
 }
 
@@ -152,27 +152,39 @@ function formulatePodiatricPrescription(
   profile: BiomechanicalProfile,
   shoes: ShoeRecommendation[]
 ): string {
-  return `### 🩺 Podiatric Analysis & Prescription for Grade 3 Knee Osteoarthritis
+  const strikeCzech = profile.strike_type === 'supination' 
+    ? 'SUPINACE (VNĚJŠÍ HRANA)' 
+    : profile.strike_type === 'heel_strike' 
+    ? 'DOŠLAP NA PATU' 
+    : profile.strike_type?.toUpperCase() || 'DOŠLAP NA PATU';
 
-**Patient Biomechanical Profile:**
-- **Weight:** ${profile.weight_kg} kg (Requires high-density shock attenuation)
-- **Foot Width:** ${profile.foot_width?.toUpperCase() || 'WIDE 2E'} (Genuine wide last required to avoid lateral foot bulging)
-- **Gait / Strike:** ${profile.strike_type?.toUpperCase() || 'SUPINATED / HEEL STRIKE'} (Requires neutral wide platform; avoid rigid medial stability posts)
-- **Diagnosis:** **Knee Osteoarthritis (Grade 3 / Advanced)**
+  const widthCzech = profile.foot_width === 'wide_2e' 
+    ? 'ŠIROKÉ KOPYTO 2E' 
+    : profile.foot_width === 'extra_wide_4e' 
+    ? 'EXTRA ŠIROKÉ KOPYTO 4E' 
+    : 'STANDARDNÍ ŠÍŘKA D';
+
+  return `### 🩺 Biomechanický rozbor a doporučení obuvi
+
+**Vyhodnocený profil:**
+- **Hmotnost:** ${profile.weight_kg} kg (Vyžaduje vyšší absorpci rázů)
+- **Šířka chodidla:** ${widthCzech} (Anatomické kopyto pro volnost prstů)
+- **Mechanika došlapu:** ${strikeCzech} (Neutrální platforma bez tvrdého vnitřního klínu)
+- **Stav kloubů:** **Artróza kolene (3. stupeň / pokročilá zátěž)**
 
 ---
 
-#### 🔍 Clinical Biomechanics Summary:
-With advanced **Grade 3 Knee Osteoarthritis**, joint cartilage is significantly narrowed. Standard running shoes with high heel drops (10–12mm) increase the knee flexion moment and accelerate patellofemoral compressive force. 
+#### 🔍 Shrnutí biomechanických požadavků:
+Při **artróze kolene 3. stupně** dochází k úbytku kloubní chrupavky. Běžná obuv s vysokým dropem (10–12 mm) zvyšuje ohyb v koleni a stupňuje tlak na patelu.
 
-Based on our query across **r/RunningShoeGeeks**, **DoctorOfRunning**, and clinical peer data:
-1. **Rocker Sole Geometry:** A continuous curved rocker rolls the foot forward smoothly from initial contact to toe-off, reducing the work required from your knee extensors.
-2. **Moderate Drop (4–8mm):** Balances load between the knee and the calf/Achilles complex.
-3. **Genuine 2E Wide Last:** Prevents metatarsal nerve pinching and ensures the entire foot sits securely inside the sole bucket rather than spilling over the sidewalls.
+Na základě analýzy běžeckých komunit a biomechanických pravidel:
+1. **Kolébková geometrie (Rocker sole):** Plynulý oblouk podrážky přirozeně odvaluje chodidlo od paty k prstům a ulevuje kolenním extenzorům při odrazu.
+2. **Střední sklon (drop 4–8 mm):** Vyvažuje zátěž mezi kolenním kloubem a Achillovou šlachou.
+3. **Široké kopyto 2E:** Zabraňuje útlaku záprstních kůstek a zajišťuje, že chodidlo stabilně sedí na základně podešve.
 
 ---
 
-### 🇪🇺 European E-Shop Recommendations (2E Wide Fit in Stock):
-I have scanned authorized European retailers (Top4Running, RunningWarehouse Europe, 21run, Zalando EU) and selected the top 4 clinically indicated models below:
+### 🇪🇺 Doporučené modely obuvi skladem v Evropě (šířka 2E):
+Níže naleznete modely splňující zadaná kritéria pro váš profil:
 `.trim();
 }

@@ -2,20 +2,23 @@
 
 import React from 'react';
 import { Search, ShoppingBag, CheckCircle2, Loader2 } from 'lucide-react';
+import { translations, SupportedLocale } from '@/lib/i18n/translations';
 
 interface ToolExecutionBadgeProps {
   toolName: string;
   status: 'running' | 'completed' | 'failed';
   args?: Record<string, unknown>;
+  locale?: SupportedLocale;
 }
 
 export const ToolExecutionBadge: React.FC<ToolExecutionBadgeProps> = ({
   toolName,
   status,
   args,
+  locale = 'cs',
 }) => {
+  const t = translations[locale].tools;
   const isForum = toolName === 'searchRunningForums';
-  const isEshop = toolName === 'scanEuropeanEshops';
 
   return (
     <div className="my-2.5 p-3 rounded-xl bg-slate-900/90 border border-slate-700/80 text-xs shadow-sm">
@@ -31,16 +34,14 @@ export const ToolExecutionBadge: React.FC<ToolExecutionBadgeProps> = ({
           <div>
             <div className="flex items-center gap-2">
               <span className="font-semibold text-slate-200">
-                {isForum ? 'Running Community Consensus' : 'European E-Shop 2E Scanner'}
+                {isForum ? t.forumTitle : t.eshopTitle}
               </span>
               <span className="text-[10px] px-1.5 py-0.5 rounded font-mono bg-slate-800 text-slate-400">
                 {toolName}()
               </span>
             </div>
             <p className="text-[11px] text-slate-400">
-              {isForum 
-                ? 'Queried Reddit r/RunningShoeGeeks, RunRepeat & DoctorOfRunning' 
-                : 'Scanned Top4Running, RunningWarehouse EU, 21run & Zalando (Wide 2E)'}
+              {isForum ? t.forumDesc : t.eshopDesc}
             </p>
           </div>
         </div>
@@ -49,12 +50,12 @@ export const ToolExecutionBadge: React.FC<ToolExecutionBadgeProps> = ({
           {status === 'completed' ? (
             <span className="flex items-center gap-1 text-[11px] font-medium text-emerald-400 bg-emerald-950/50 px-2 py-0.5 rounded-full border border-emerald-500/30">
               <CheckCircle2 className="w-3 h-3" />
-              <span>Executed</span>
+              <span>{t.executed}</span>
             </span>
           ) : (
             <span className="flex items-center gap-1 text-[11px] font-medium text-amber-400 bg-amber-950/50 px-2 py-0.5 rounded-full border border-amber-500/30 animate-pulse">
               <Loader2 className="w-3 h-3 animate-spin" />
-              <span>Querying...</span>
+              <span>{t.querying}</span>
             </span>
           )}
         </div>

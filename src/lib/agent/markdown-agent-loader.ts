@@ -6,6 +6,8 @@ import { EUROPEAN_CATALOG_2E_MODELS } from './tools/scan-eshops';
 export interface IntakeFormData {
   product_category: string;
   foot_length_cm?: number;
+  foot_length_mm?: number;
+  foot_width_mm?: number;
   eu_size?: number;
   foot_width: 'standard_d' | 'wide_2e' | 'extra_wide_4e' | 'narrow_b';
   strike_pattern: 'heel_strike' | 'midfoot_strike' | 'forefoot_strike' | 'unknown';
@@ -48,7 +50,7 @@ export interface AgentPrescriptionResult {
 /**
  * Reads the agent markdown definition from agents/shoe-recommender-agent.md
  */
-export function loadAgentMarkdownDefinition(): { content: string; name: string; version: string } {
+export function loadAgentMarkdownDefinition(): { content: string; name: string; version: string; filePath: string } {
   const agentFilePath = path.join(process.cwd(), 'agents', 'shoe-recommender-agent.md');
   try {
     const content = fs.readFileSync(agentFilePath, 'utf-8');
@@ -56,17 +58,34 @@ export function loadAgentMarkdownDefinition(): { content: string; name: string; 
     const versionMatch = content.match(/version:\s*"([^"]+)"/);
     return {
       content,
-      name: nameMatch ? nameMatch[1] : 'OrthoStride Podiatrist Agent',
-      version: versionMatch ? versionMatch[1] : '1.0.0',
+      filePath: 'agents/shoe-recommender-agent.md',
+      name: nameMatch ? nameMatch[1] : 'bAIright Podiatrist & Footwear Shopper Agent',
+      version: versionMatch ? versionMatch[1] : '1.1.0',
     };
   } catch (err) {
     console.warn('Could not read agent file directly from disk, using fallback definition', err);
     return {
       content: 'Clinical Podiatrist Agent',
-      name: 'OrthoStride Podiatrist Agent',
-      version: '1.0.0',
+      filePath: 'agents/shoe-recommender-agent.md',
+      name: 'bAIright Podiatrist & Footwear Shopper Agent',
+      version: '1.1.0',
     };
   }
+}
+
+/**
+ * Saves updated markdown definition back to agents/shoe-recommender-agent.md
+ */
+export function saveAgentMarkdownDefinition(newContent: string): { success: boolean; name: string; version: string } {
+  const agentFilePath = path.join(process.cwd(), 'agents', 'shoe-recommender-agent.md');
+  fs.writeFileSync(agentFilePath, newContent, 'utf-8');
+  const nameMatch = newContent.match(/name:\s*"([^"]+)"/);
+  const versionMatch = newContent.match(/version:\s*"([^"]+)"/);
+  return {
+    success: true,
+    name: nameMatch ? nameMatch[1] : 'bAIright Podiatrist & Footwear Shopper Agent',
+    version: versionMatch ? versionMatch[1] : '1.1.0',
+  };
 }
 
 /**
@@ -109,7 +128,7 @@ export async function evaluateIntakeFormWithAgent(
     // Brand preference boost
     if (preferredLower.includes(shoe.brand.toLowerCase())) {
       score += 15;
-      matchReasons.push(`Ověřená značka z vašich oblíbených: ${shoe.brand}`);
+      matchReasons.push(`Oblíbená značka z vašeho výběru: ${shoe.brand}`);
     }
 
     // Knee OA & Rocker Sole matching
@@ -154,13 +173,13 @@ export async function evaluateIntakeFormWithAgent(
 
   // Compile clinical assessment summary in Czech
   const clinicalAssessment = `
-Vyhodnoceno agentem **${agentMeta.name} (v${agentMeta.version})** na základě lékařských pravidel z \`agents/shoe-recommender-agent.md\`.
+Vyhodnoceno systémem **${agentMeta.name} (v${agentMeta.version})** na základě biomechanických pravidel z \`agents/shoe-recommender-agent.md\`.
 
 ### Klíčová biomechanická zjištění:
-- **Zdraví kolenních kloubů:** ${hasKneeOA ? 'Vysoká priorita pro artrózu kolene 3. stupně. Předepsán nízký až střední drop (4–8 mm) a aktivní kolébková podrážka (rocker).' : 'Standardní zátěž kloubů bez hlášené artrózy.'}
-- **Anatomie chodidla:** ${isWideFoot ? 'Vyžadována certifikovaná šířka 2E/4E. Zákaz úzkých bot pro ochranu metatarzů a prstů.' : 'Standardní šířka kopyta.'}
-- **Mechanika došlapu:** ${isSupinator ? 'Došlap na vnější hranu (supinace). Jakékoli pronační stabilizační klíny jsou přísně kontraindikovány.' : 'Neutrální či rovnoměrný došlap.'}
-- **Pravidla pro značky:** ${forbiddenLower.length ? `Striktně na blacklistu: [${formData.forbidden_brands.join(', ')}].` : 'Bez zakázaných značek.'} ${preferredLower.length ? `Zvýhodněné preferované značky: [${formData.preferred_brands.join(', ')}].` : ''}
+- **Zdraví kolenních kloubů:** ${hasKneeOA ? 'Vysoká priorita pro zátěž kolene (artróza 3. stupně). Doporučen nízký až střední drop (4–8 mm) a aktivní kolébková podrážka (rocker).' : 'Standardní zátěž kloubů bez hlášené artrózy.'}
+- **Anatomie chodidla:** ${isWideFoot ? 'Doporučena široká obuv (kopyto 2E/4E) pro prevenci útlaku metatarzů a prstů.' : 'Standardní šířka kopyta.'}
+- **Mechanika došlapu:** ${isSupinator ? 'Došlap na vnější hranu (supinace). Vnitřní pronační stabilizační klíny jsou nevhodné.' : 'Neutrální či rovnoměrný došlap.'}
+- **Pravidla pro značky:** ${forbiddenLower.length ? `Vyloučeno z výběru: [${formData.forbidden_brands.join(', ')}].` : 'Bez zakázaných značek.'} ${preferredLower.length ? `Preferované značky: [${formData.preferred_brands.join(', ')}].` : ''}
 `.trim();
 
   const contraindications = [
@@ -185,8 +204,12 @@ Vyhodnoceno agentem **${agentMeta.name} (v${agentMeta.version})** na základě l
     evaluatedAt: new Date().toISOString(),
     profileSummary: {
       category: formData.product_category,
-      sizeDesc: formData.eu_size ? `EU ${formData.eu_size}` : `${formData.foot_length_cm} cm`,
-      widthDesc: formData.foot_width.toUpperCase().replace('_', ' '),
+      sizeDesc: formData.foot_length_mm 
+        ? `EU ${formData.eu_size || 'N/A'} (${formData.foot_length_mm} mm / ${(formData.foot_length_mm / 10).toFixed(1)} cm)`
+        : formData.eu_size ? `EU ${formData.eu_size}` : `${formData.foot_length_cm} cm`,
+      widthDesc: formData.foot_width_mm 
+        ? `${formData.foot_width.toUpperCase().replace('_', ' ')} (${formData.foot_width_mm} mm)`
+        : formData.foot_width.toUpperCase().replace('_', ' '),
       gaitDesc: `${formData.strike_pattern} / ${formData.foot_mechanics}`,
       medicalHighlights: [...(formData.joint_conditions || []), ...(formData.foot_conditions || [])],
       surgeryHighlights: formData.past_surgeries || [],
