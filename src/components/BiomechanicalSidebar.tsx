@@ -35,7 +35,7 @@ export const BiomechanicalSidebar: React.FC<BiomechanicalSidebarProps> = ({
     <aside className="w-full lg:w-96 flex flex-col bg-slate-900/80 backdrop-blur-md border-b lg:border-b-0 lg:border-r border-slate-800 p-5 shrink-0 overflow-y-auto">
       {/* Header */}
       <div className="flex items-center gap-3 mb-6 pb-4 border-b border-slate-800">
-        <div className="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400">
+        <div className="w-10 h-10 rounded-xl bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center text-cyan-400">
           <Activity className="w-5 h-5" />
         </div>
         <div>
@@ -47,13 +47,13 @@ export const BiomechanicalSidebar: React.FC<BiomechanicalSidebarProps> = ({
       {/* Gating Status Card */}
       <div className={`p-4 rounded-xl border mb-6 transition-all ${
         evalResult.isReady 
-          ? 'bg-emerald-950/40 border-emerald-500/40 text-emerald-200' 
+          ? 'bg-cyan-950/40 border-cyan-500/40 text-cyan-200' 
           : 'bg-amber-950/30 border-amber-500/30 text-amber-200'
       }`}>
         <div className="flex items-center justify-between mb-2">
           <div className="flex items-center gap-2 font-medium text-xs">
             {evalResult.isReady ? (
-              <Unlock className="w-4 h-4 text-emerald-400" />
+              <Unlock className="w-4 h-4 text-cyan-400" />
             ) : (
               <Lock className="w-4 h-4 text-amber-400" />
             )}
@@ -68,7 +68,7 @@ export const BiomechanicalSidebar: React.FC<BiomechanicalSidebarProps> = ({
         <div className="w-full bg-slate-950 rounded-full h-1.5 mb-2 overflow-hidden">
           <div 
             className={`h-full transition-all duration-500 rounded-full ${
-              evalResult.isReady ? 'bg-emerald-400' : 'bg-amber-400'
+              evalResult.isReady ? 'bg-gradient-to-r from-cyan-400 to-teal-400 shadow-[0_0_8px_rgba(34,211,238,0.8)]' : 'bg-amber-400'
             }`}
             style={{ width: `${progressPercent}%` }}
           />
@@ -128,7 +128,7 @@ export const BiomechanicalSidebar: React.FC<BiomechanicalSidebarProps> = ({
             : 'bg-slate-900/40 border-slate-800/80 text-slate-500'
         }`}>
           <div className="flex items-center gap-2.5">
-            <Footprints className="w-4 h-4 text-emerald-400 shrink-0" />
+            <Footprints className="w-4 h-4 text-teal-400 shrink-0" />
             <div>
               <p className="font-medium text-slate-200">{t.strike.label}</p>
               <p className="text-[10px] text-slate-400">{t.strike.desc}</p>

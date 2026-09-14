@@ -127,9 +127,9 @@ export const AnalysisModal: React.FC<AnalysisModalProps> = ({
               </div>
 
               <div className="flex gap-2.5 items-start">
-                <ShieldCheck className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
+                <ShieldCheck className="w-4 h-4 text-cyan-400 shrink-0 mt-0.5" />
                 <div>
-                  <strong className="text-emerald-300 block">Prostor pro kosti záprstí (2E Last):</strong>
+                  <strong className="text-cyan-300 block">Prostor pro kosti záprstí (2E Last):</strong>
                   Šířka {footWidthMm} mm zabraňuje stlačení cév a nervů (Mortonova neuralgie) i deformitě vbočeného palce.
                 </div>
               </div>

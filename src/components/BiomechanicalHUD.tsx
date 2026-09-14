@@ -93,7 +93,7 @@ export const BiomechanicalHUD: React.FC<BiomechanicalHUDProps> = ({
               <span className="text-teal-400 font-bold">8.5 / 10</span>
             </div>
             <div className="w-full h-1.5 rounded-full bg-[#050c18] overflow-hidden border border-cyan-500/20">
-              <div className="h-full w-[85%] bg-gradient-to-r from-teal-400 to-emerald-400 rounded-full shadow-[0_0_8px_#14b8a6]" />
+              <div className="h-full w-[85%] bg-gradient-to-r from-cyan-400 to-teal-400 rounded-full shadow-[0_0_8px_rgba(34,211,238,0.6)]" />
             </div>
           </div>
         </div>

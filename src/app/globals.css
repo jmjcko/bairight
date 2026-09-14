@@ -1,13 +1,166 @@
 @import "tailwindcss";
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400..800;1,9..40,400..800&family=Inter+Tight:ital,wght@0,400..800;1,400..800&family=Outfit:wght@400..800&family=Plus+Jakarta+Sans:ital,wght@0,400..800;1,400..800&family=Space+Grotesk:wght@400..700&display=swap');
 
-:root {
-  --background: #070d18;
-  --foreground: #f1f5f9;
-  --accent-cyan: #06b6d4;
-  --accent-teal: #14b8a6;
+/* Dynamic Typography Configurations - Default: Space Grotesk */
+:root, [data-font="space-grotesk"] {
+  --font-sans: 'Space Grotesk', var(--font-space-grotesk, monospace), sans-serif;
+  --font-heading: 'Space Grotesk', var(--font-space-grotesk, monospace), sans-serif;
+}
+
+[data-font="inter-tight"] {
+  --font-sans: 'Inter Tight', var(--font-inter-tight, sans-serif), -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-heading: 'Inter Tight', var(--font-inter-tight, sans-serif), -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+[data-font="jakarta"] {
+  --font-sans: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-heading: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+[data-font="outfit"] {
+  --font-sans: 'Outfit', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-heading: 'Outfit', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+[data-font="dm-sans"] {
+  --font-sans: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-heading: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+/* 1. Google Pixel Mint & Hazel Sage (Default Theme) */
+:root, [data-theme="pixel-mint"] {
+  --background: #060e0a;
+  --foreground: #f0fdf4;
+  --brand-cyan-electric: #4ade80;
+  --brand-cyan: #22c55e;
+  --brand-teal: #2dd4bf;
+  --brand-ocean: #16a34a;
+  --panel-bg: rgba(11, 28, 19, 0.94);
+  --panel-border: rgba(74, 222, 128, 0.35);
+}
+
+/* 2. Titanium Stealth & Slate */
+[data-theme="midnight-titanium"] {
+  --background: #090b10;
+  --foreground: #f8fafc;
+  --brand-cyan-electric: #f8fafc;
+  --brand-cyan: #e2e8f0;
+  --brand-teal: #94a3b8;
+  --brand-ocean: #64748b;
+  --panel-bg: rgba(15, 18, 28, 0.94);
+  --panel-border: rgba(71, 85, 105, 0.45);
+}
+
+/* 3. Google Pixel Bay & Google Sky */
+[data-theme="pixel-bay"] {
+  --background: #060b16;
+  --foreground: #f0f9ff;
+  --brand-cyan-electric: #38bdf8;
+  --brand-cyan: #0284c7;
+  --brand-teal: #818cf8;
+  --brand-ocean: #0369a1;
+  --panel-bg: rgba(12, 21, 39, 0.94);
+  --panel-border: rgba(56, 189, 248, 0.35);
+}
+
+/* 4. Google Pixel Coral & Sunset Clay */
+[data-theme="pixel-coral"] {
+  --background: #0f070a;
+  --foreground: #fff1f2;
+  --brand-cyan-electric: #fb7185;
+  --brand-cyan: #f43f5e;
+  --brand-teal: #f97316;
+  --brand-ocean: #e11d48;
+  --panel-bg: rgba(27, 13, 19, 0.94);
+  --panel-border: rgba(251, 113, 133, 0.35);
+}
+
+/* 5. Google Pixel Lemongrass & Solar Zest */
+[data-theme="pixel-lemongrass"] {
+  --background: #0a0e05;
+  --foreground: #f7fee7;
+  --brand-cyan-electric: #a3e635;
+  --brand-cyan: #84cc16;
+  --brand-teal: #facc15;
+  --brand-ocean: #65a30d;
+  --panel-bg: rgba(20, 29, 10, 0.94);
+  --panel-border: rgba(163, 230, 53, 0.35);
+}
+
+/* 6. Google Pixel Porcelain & Warm Sand */
+[data-theme="pixel-porcelain"] {
+  --background: #0c0b09;
+  --foreground: #fffbeb;
+  --brand-cyan-electric: #fcd34d;
+  --brand-cyan: #f59e0b;
+  --brand-teal: #fb923c;
+  --brand-ocean: #d97706;
+  --panel-bg: rgba(25, 23, 19, 0.94);
+  --panel-border: rgba(252, 211, 77, 0.35);
+}
+
+/* 7. Google Material You Iris & Lilac */
+[data-theme="material-iris"] {
+  --background: #0a0715;
+  --foreground: #faf5ff;
+  --brand-cyan-electric: #c084fc;
+  --brand-cyan: #a855f7;
+  --brand-teal: #f472b6;
+  --brand-ocean: #9333ea;
+  --panel-bg: rgba(20, 14, 43, 0.94);
+  --panel-border: rgba(192, 132, 252, 0.35);
+}
+
+/* 8. Cyber Cyan & Deep Abyss (bAIright Classic) */
+[data-theme="cyber-cyan"], [data-theme="obsidian"] {
+  --background: #040711;
+  --foreground: #f8fafc;
+  --brand-cyan-electric: #22d3ee;
+  --brand-cyan: #06b6d4;
+  --brand-teal: #14b8a6;
+  --brand-ocean: #0891b2;
+  --panel-bg: rgba(7, 14, 28, 0.92);
+  --panel-border: rgba(6, 182, 212, 0.26);
+}
+
+/* 9. Obsidian Emerald & Sage Tech */
+[data-theme="obsidian-emerald"], [data-theme="swiss-emerald"] {
+  --background: #050a08;
+  --foreground: #f0fdf4;
+  --brand-cyan-electric: #34d399;
+  --brand-cyan: #10b981;
+  --brand-teal: #059669;
+  --brand-ocean: #047857;
+  --panel-bg: rgba(9, 18, 14, 0.94);
+  --panel-border: rgba(16, 185, 129, 0.28);
+}
+
+/* 10. Nebula Violet & Iris Glow */
+[data-theme="nebula-violet"] {
+  --background: #080712;
+  --foreground: #fdf4ff;
+  --brand-cyan-electric: #c084fc;
+  --brand-cyan: #a855f7;
+  --brand-teal: #818cf8;
+  --brand-ocean: #7c3aed;
+  --panel-bg: rgba(17, 14, 34, 0.92);
+  --panel-border: rgba(168, 85, 247, 0.32);
+}
+
+/* 11. Monochrome Cold Aluminum */
+[data-theme="monochrome-aluminum"] {
+  --background: #060606;
+  --foreground: #ffffff;
+  --brand-cyan-electric: #ffffff;
+  --brand-cyan: #e4e4e7;
+  --brand-teal: #a1a1aa;
+  --brand-ocean: #71717a;
+  --panel-bg: rgba(18, 18, 18, 0.96);
+  --panel-border: rgba(255, 255, 255, 0.16);
 }
 
 body {
+  font-family: var(--font-sans);
   background-color: var(--background);
   color: var(--foreground);
   margin: 0;
@@ -15,39 +168,459 @@ body {
   overflow-x: hidden;
 }
 
-/* Subtle Bio-Tech Technical Grid */
-.bio-grid-pattern {
-  background-image: 
-    radial-gradient(circle at 50% 0%, rgba(6, 182, 212, 0.12) 0%, transparent 60%),
-    radial-gradient(circle at 100% 100%, rgba(20, 184, 166, 0.08) 0%, transparent 50%),
-    linear-gradient(to right, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
-  background-size: 100% 100%, 100% 100%, 48px 48px, 48px 48px;
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-heading);
 }
 
-/* Glassmorphism & Bio-Tech Glow */
+/* Dynamic Grid Patterns per Theme */
+.bio-grid-pattern {
+  background-image: 
+    radial-gradient(circle at 15% 10%, rgba(34, 211, 238, 0.14) 0%, transparent 45%),
+    radial-gradient(circle at 85% 90%, rgba(20, 184, 166, 0.12) 0%, transparent 50%),
+    radial-gradient(circle at 50% 50%, rgba(6, 182, 212, 0.06) 0%, transparent 60%),
+    linear-gradient(to right, rgba(255, 255, 255, 0.025) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.025) 1px, transparent 1px);
+  background-size: 100% 100%, 100% 100%, 100% 100%, 40px 40px, 40px 40px;
+}
+
+[data-theme="midnight-titanium"] .bio-grid-pattern {
+  background-image: 
+    radial-gradient(circle at 50% 10%, rgba(255, 255, 255, 0.04) 0%, transparent 50%),
+    linear-gradient(to right, rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+}
+
+[data-theme="pixel-bay"] .bio-grid-pattern {
+  background-image: 
+    radial-gradient(circle at 15% 10%, rgba(56, 189, 248, 0.16) 0%, transparent 45%),
+    radial-gradient(circle at 85% 90%, rgba(129, 140, 248, 0.14) 0%, transparent 50%),
+    radial-gradient(circle at 50% 50%, rgba(2, 132, 199, 0.08) 0%, transparent 60%),
+    linear-gradient(to right, rgba(255, 255, 255, 0.025) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.025) 1px, transparent 1px);
+}
+
+[data-theme="pixel-coral"] .bio-grid-pattern {
+  background-image: 
+    radial-gradient(circle at 15% 10%, rgba(251, 113, 133, 0.16) 0%, transparent 45%),
+    radial-gradient(circle at 85% 90%, rgba(249, 115, 22, 0.14) 0%, transparent 50%),
+    radial-gradient(circle at 50% 50%, rgba(244, 63, 94, 0.08) 0%, transparent 60%),
+    linear-gradient(to right, rgba(255, 255, 255, 0.025) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.025) 1px, transparent 1px);
+}
+
+[data-theme="pixel-mint"] .bio-grid-pattern {
+  background-image: 
+    radial-gradient(circle at 15% 10%, rgba(74, 222, 128, 0.16) 0%, transparent 45%),
+    radial-gradient(circle at 85% 90%, rgba(45, 212, 191, 0.14) 0%, transparent 50%),
+    radial-gradient(circle at 50% 50%, rgba(34, 197, 94, 0.08) 0%, transparent 60%),
+    linear-gradient(to right, rgba(255, 255, 255, 0.025) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.025) 1px, transparent 1px);
+}
+
+[data-theme="pixel-lemongrass"] .bio-grid-pattern {
+  background-image: 
+    radial-gradient(circle at 15% 10%, rgba(163, 230, 53, 0.16) 0%, transparent 45%),
+    radial-gradient(circle at 85% 90%, rgba(250, 204, 21, 0.14) 0%, transparent 50%),
+    radial-gradient(circle at 50% 50%, rgba(132, 204, 22, 0.08) 0%, transparent 60%),
+    linear-gradient(to right, rgba(255, 255, 255, 0.025) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.025) 1px, transparent 1px);
+}
+
+[data-theme="pixel-porcelain"] .bio-grid-pattern {
+  background-image: 
+    radial-gradient(circle at 15% 10%, rgba(252, 211, 77, 0.15) 0%, transparent 45%),
+    radial-gradient(circle at 85% 90%, rgba(251, 146, 60, 0.12) 0%, transparent 50%),
+    radial-gradient(circle at 50% 50%, rgba(245, 158, 11, 0.06) 0%, transparent 60%),
+    linear-gradient(to right, rgba(255, 255, 255, 0.025) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.025) 1px, transparent 1px);
+}
+
+[data-theme="material-iris"] .bio-grid-pattern {
+  background-image: 
+    radial-gradient(circle at 15% 10%, rgba(192, 132, 252, 0.16) 0%, transparent 45%),
+    radial-gradient(circle at 85% 90%, rgba(244, 114, 182, 0.14) 0%, transparent 50%),
+    radial-gradient(circle at 50% 50%, rgba(168, 85, 247, 0.08) 0%, transparent 60%),
+    linear-gradient(to right, rgba(255, 255, 255, 0.025) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.025) 1px, transparent 1px);
+}
+
+[data-theme="swiss-emerald"] .bio-grid-pattern {
+  background-image: 
+    radial-gradient(circle at 15% 10%, rgba(5, 150, 105, 0.07) 0%, transparent 45%),
+    radial-gradient(circle at 85% 90%, rgba(16, 185, 129, 0.05) 0%, transparent 50%),
+    linear-gradient(to right, rgba(6, 46, 36, 0.04) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(6, 46, 36, 0.04) 1px, transparent 1px);
+}
+
+[data-theme="volt-athletic"] .bio-grid-pattern {
+  background-image: 
+    radial-gradient(circle at 20% 15%, rgba(204, 255, 0, 0.09) 0%, transparent 45%),
+    radial-gradient(circle at 80% 85%, rgba(204, 255, 0, 0.06) 0%, transparent 50%),
+    linear-gradient(to right, rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+}
+
+[data-theme="nebula-violet"] .bio-grid-pattern {
+  background-image: 
+    radial-gradient(circle at 15% 10%, rgba(168, 85, 247, 0.16) 0%, transparent 45%),
+    radial-gradient(circle at 85% 90%, rgba(192, 132, 252, 0.12) 0%, transparent 50%),
+    linear-gradient(to right, rgba(255, 255, 255, 0.025) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.025) 1px, transparent 1px);
+}
+
+[data-theme="zen-sandstone"] .bio-grid-pattern {
+  background-image: 
+    radial-gradient(circle at 15% 10%, rgba(180, 83, 9, 0.05) 0%, transparent 45%),
+    linear-gradient(to right, rgba(28, 25, 23, 0.04) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(28, 25, 23, 0.04) 1px, transparent 1px);
+}
+
+[data-theme="nordic-light"] .bio-grid-pattern {
+  background-image: 
+    radial-gradient(circle at 15% 10%, rgba(2, 132, 199, 0.06) 0%, transparent 45%),
+    radial-gradient(circle at 85% 90%, rgba(15, 118, 110, 0.05) 0%, transparent 50%),
+    linear-gradient(to right, rgba(15, 23, 42, 0.04) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(15, 23, 42, 0.04) 1px, transparent 1px);
+}
+
+/* Glassmorphism & Panel Styling */
 .glass-panel {
-  background: rgba(11, 22, 40, 0.75);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border: 1px solid rgba(6, 182, 212, 0.16);
-  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.4);
+  background: var(--panel-bg);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid var(--panel-border);
+  box-shadow: 0 10px 35px -5px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+[data-theme="swiss-emerald"] .glass-panel,
+[data-theme="zen-sandstone"] .glass-panel,
+[data-theme="nordic-light"] .glass-panel {
+  box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.06), inset 0 1px 0 rgba(255, 255, 255, 0.9);
 }
 
 .glass-panel-active {
-  background: rgba(10, 36, 60, 0.85);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border: 1px solid rgba(6, 182, 212, 0.7);
-  box-shadow: 0 0 25px rgba(6, 182, 212, 0.25), inset 0 0 15px rgba(6, 182, 212, 0.1);
+  background: var(--panel-bg);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid var(--brand-cyan-electric);
+  box-shadow: 0 0 25px rgba(6, 182, 212, 0.25);
 }
 
+[data-theme="volt-athletic"] .glass-panel-active {
+  box-shadow: 0 0 25px rgba(204, 255, 0, 0.35);
+}
+
+[data-theme="nebula-violet"] .glass-panel-active {
+  box-shadow: 0 0 25px rgba(168, 85, 247, 0.35);
+}
+
+[data-theme="swiss-emerald"] .glass-panel-active {
+  box-shadow: 0 0 25px rgba(16, 185, 129, 0.2);
+}
+
+/* Light theme overrides for dark Tailwind utility classes */
+[data-theme="swiss-emerald"] .bg-\[\#070d18\],
+[data-theme="swiss-emerald"] .bg-\[\#050811\],
+[data-theme="swiss-emerald"] .bg-\[\#070f1e\],
+[data-theme="swiss-emerald"] .bg-\[\#06101e\],
+[data-theme="swiss-emerald"] .bg-\[\#08101e\],
+[data-theme="swiss-emerald"] .bg-\[\#0B121E\],
+[data-theme="swiss-emerald"] .bg-\[\#060c18\],
+[data-theme="zen-sandstone"] .bg-\[\#070d18\],
+[data-theme="zen-sandstone"] .bg-\[\#050811\],
+[data-theme="zen-sandstone"] .bg-\[\#070f1e\],
+[data-theme="zen-sandstone"] .bg-\[\#06101e\],
+[data-theme="zen-sandstone"] .bg-\[\#08101e\],
+[data-theme="zen-sandstone"] .bg-\[\#0B121E\],
+[data-theme="zen-sandstone"] .bg-\[\#060c18\],
+[data-theme="nordic-light"] .bg-\[\#070d18\],
+[data-theme="nordic-light"] .bg-\[\#050811\],
+[data-theme="nordic-light"] .bg-\[\#070f1e\],
+[data-theme="nordic-light"] .bg-\[\#06101e\],
+[data-theme="nordic-light"] .bg-\[\#08101e\],
+[data-theme="nordic-light"] .bg-\[\#0B121E\],
+[data-theme="nordic-light"] .bg-\[\#060c18\] {
+  background-color: #ffffff !important;
+}
+
+[data-theme="zen-sandstone"] .bg-\[\#070d18\],
+[data-theme="zen-sandstone"] .bg-\[\#050811\],
+[data-theme="zen-sandstone"] .bg-\[\#070f1e\],
+[data-theme="zen-sandstone"] .bg-\[\#06101e\],
+[data-theme="zen-sandstone"] .bg-\[\#08101e\],
+[data-theme="zen-sandstone"] .bg-\[\#0B121E\],
+[data-theme="zen-sandstone"] .bg-\[\#060c18\] {
+  background-color: #f7f5f0 !important;
+}
+
+[data-theme="swiss-emerald"] .border-cyan-500\/20,
+[data-theme="swiss-emerald"] .border-cyan-500\/25,
+[data-theme="swiss-emerald"] .border-cyan-500\/30,
+[data-theme="swiss-emerald"] .border-cyan-500\/40 {
+  border-color: #a7f3d0 !important;
+}
+
+[data-theme="zen-sandstone"] .border-cyan-500\/20,
+[data-theme="zen-sandstone"] .border-cyan-500\/25,
+[data-theme="zen-sandstone"] .border-cyan-500\/30,
+[data-theme="zen-sandstone"] .border-cyan-500\/40 {
+  border-color: #d8d2c5 !important;
+}
+
+[data-theme="nordic-light"] .border-cyan-500\/20,
+[data-theme="nordic-light"] .border-cyan-500\/25,
+[data-theme="nordic-light"] .border-cyan-500\/30,
+[data-theme="nordic-light"] .border-cyan-500\/40 {
+  border-color: #cbd5e1 !important;
+}
+
+[data-theme="swiss-emerald"] .text-slate-100,
+[data-theme="swiss-emerald"] .text-slate-200,
+[data-theme="swiss-emerald"] .text-white {
+  color: #062e24 !important;
+}
+
+[data-theme="swiss-emerald"] .text-slate-300,
+[data-theme="swiss-emerald"] .text-slate-400 {
+  color: #047857 !important;
+}
+
+[data-theme="zen-sandstone"] .text-slate-100,
+[data-theme="zen-sandstone"] .text-slate-200,
+[data-theme="zen-sandstone"] .text-white {
+  color: #1c1917 !important;
+}
+
+[data-theme="zen-sandstone"] .text-slate-300,
+[data-theme="zen-sandstone"] .text-slate-400 {
+  color: #574c35 !important;
+}
+
+[data-theme="nordic-light"] .text-slate-100,
+[data-theme="nordic-light"] .text-slate-200,
+[data-theme="nordic-light"] .text-white {
+  color: #0f172a !important;
+}
+
+[data-theme="nordic-light"] .text-slate-400 {
+  color: #64748b !important;
+}
+
+[data-theme="nordic-light"] .text-slate-300 {
+  color: #334155 !important;
+}
+
+/* Dark Theme Specific Accents */
+[data-theme="volt-athletic"] .text-cyan-300,
+[data-theme="volt-athletic"] .text-cyan-400 {
+  color: #ccff00 !important;
+}
+
+[data-theme="volt-athletic"] .border-cyan-500\/20,
+[data-theme="volt-athletic"] .border-cyan-500\/25,
+[data-theme="volt-athletic"] .border-cyan-500\/30,
+[data-theme="volt-athletic"] .border-cyan-500\/40 {
+  border-color: rgba(204, 255, 0, 0.3) !important;
+}
+
+/* Modern Sleek Theme Accents */
+/* 1. Midnight Titanium */
+[data-theme="midnight-titanium"] .text-cyan-300,
+[data-theme="midnight-titanium"] .text-cyan-400 {
+  color: #e2e8f0 !important;
+}
+[data-theme="midnight-titanium"] .border-cyan-500\/20,
+[data-theme="midnight-titanium"] .border-cyan-500\/25,
+[data-theme="midnight-titanium"] .border-cyan-500\/30,
+[data-theme="midnight-titanium"] .border-cyan-500\/40 {
+  border-color: rgba(71, 85, 105, 0.45) !important;
+}
+
+/* 2. Cyber Cyan & Deep Abyss */
+[data-theme="cyber-cyan"] .text-cyan-300,
+[data-theme="obsidian"] .text-cyan-300 {
+  color: #67e8f9 !important;
+}
+[data-theme="cyber-cyan"] .text-cyan-400,
+[data-theme="obsidian"] .text-cyan-400 {
+  color: #22d3ee !important;
+}
+[data-theme="cyber-cyan"] .border-cyan-500\/20,
+[data-theme="cyber-cyan"] .border-cyan-500\/25,
+[data-theme="cyber-cyan"] .border-cyan-500\/30,
+[data-theme="cyber-cyan"] .border-cyan-500\/40,
+[data-theme="obsidian"] .border-cyan-500\/20,
+[data-theme="obsidian"] .border-cyan-500\/25,
+[data-theme="obsidian"] .border-cyan-500\/30,
+[data-theme="obsidian"] .border-cyan-500\/40 {
+  border-color: rgba(6, 182, 212, 0.28) !important;
+}
+
+/* 3. Obsidian Emerald & Sage Tech */
+[data-theme="obsidian-emerald"] .text-cyan-300,
+[data-theme="swiss-emerald"] .text-cyan-300 {
+  color: #6ee7b7 !important;
+}
+[data-theme="obsidian-emerald"] .text-cyan-400,
+[data-theme="swiss-emerald"] .text-cyan-400 {
+  color: #34d399 !important;
+}
+[data-theme="obsidian-emerald"] .border-cyan-500\/20,
+[data-theme="obsidian-emerald"] .border-cyan-500\/25,
+[data-theme="obsidian-emerald"] .border-cyan-500\/30,
+[data-theme="obsidian-emerald"] .border-cyan-500\/40,
+[data-theme="swiss-emerald"] .border-cyan-500\/20,
+[data-theme="swiss-emerald"] .border-cyan-500\/25,
+[data-theme="swiss-emerald"] .border-cyan-500\/30,
+[data-theme="swiss-emerald"] .border-cyan-500\/40 {
+  border-color: rgba(16, 185, 129, 0.3) !important;
+}
+
+/* 4. Nebula Violet & Iris Glow */
+[data-theme="nebula-violet"] .text-cyan-300 {
+  color: #d8b4fe !important;
+}
+[data-theme="nebula-violet"] .text-cyan-400 {
+  color: #c084fc !important;
+}
+[data-theme="nebula-violet"] .border-cyan-500\/20,
+[data-theme="nebula-violet"] .border-cyan-500\/25,
+[data-theme="nebula-violet"] .border-cyan-500\/30,
+[data-theme="nebula-violet"] .border-cyan-500\/40 {
+  border-color: rgba(168, 85, 247, 0.35) !important;
+}
+
+/* 5. Monochrome Cold Aluminum */
+[data-theme="monochrome-aluminum"] .text-cyan-300,
+[data-theme="monochrome-aluminum"] .text-cyan-400 {
+  color: #f4f4f5 !important;
+}
+[data-theme="monochrome-aluminum"] .border-cyan-500\/20,
+[data-theme="monochrome-aluminum"] .border-cyan-500\/25,
+[data-theme="monochrome-aluminum"] .border-cyan-500\/30,
+[data-theme="monochrome-aluminum"] .border-cyan-500\/40 {
+  border-color: rgba(255, 255, 255, 0.18) !important;
+}
+
+/* ==========================================================================
+   GOOGLE PIXEL & MATERIAL YOU THEME ENGINE
+   ========================================================================== */
+
+/* 1. PIXEL BAY & GOOGLE SKY */
+[data-theme="pixel-bay"] .text-cyan-300 { color: #7dd3fc !important; }
+[data-theme="pixel-bay"] .text-cyan-400 { color: #38bdf8 !important; }
+[data-theme="pixel-bay"] .text-cyan-200 { color: #bae6fd !important; }
+[data-theme="pixel-bay"] [class*="border-cyan-"] { border-color: rgba(56, 189, 248, 0.35) !important; }
+[data-theme="pixel-bay"] .border-cyan-400 { border-color: #38bdf8 !important; }
+[data-theme="pixel-bay"] [class*="bg-cyan-950"] { background-color: rgba(8, 26, 51, 0.9) !important; }
+[data-theme="pixel-bay"] [class*="bg-cyan-500\/"] { background-color: rgba(56, 189, 248, 0.18) !important; }
+[data-theme="pixel-bay"] button.bg-gradient-to-r,
+[data-theme="pixel-bay"] .bg-gradient-to-r.from-cyan-400 {
+  background-image: linear-gradient(to right, #38bdf8, #60a5fa, #818cf8) !important;
+  color: #030712 !important;
+}
+[data-theme="pixel-bay"] input[type="range"]::-webkit-slider-thumb {
+  background: #38bdf8;
+  box-shadow: 0 0 14px #38bdf8;
+}
+
+/* 2. PIXEL CORAL & SUNSET CLAY */
+[data-theme="pixel-coral"] .text-cyan-300 { color: #fda4af !important; }
+[data-theme="pixel-coral"] .text-cyan-400 { color: #fb7185 !important; }
+[data-theme="pixel-coral"] .text-cyan-200 { color: #fecdd3 !important; }
+[data-theme="pixel-coral"] [class*="border-cyan-"] { border-color: rgba(251, 113, 133, 0.35) !important; }
+[data-theme="pixel-coral"] .border-cyan-400 { border-color: #fb7185 !important; }
+[data-theme="pixel-coral"] [class*="bg-cyan-950"] { background-color: rgba(43, 14, 21, 0.9) !important; }
+[data-theme="pixel-coral"] [class*="bg-cyan-500\/"] { background-color: rgba(251, 113, 133, 0.18) !important; }
+[data-theme="pixel-coral"] button.bg-gradient-to-r,
+[data-theme="pixel-coral"] .bg-gradient-to-r.from-cyan-400 {
+  background-image: linear-gradient(to right, #fb7185, #f97316, #fb923c) !important;
+  color: #1a0509 !important;
+}
+[data-theme="pixel-coral"] input[type="range"]::-webkit-slider-thumb {
+  background: #fb7185;
+  box-shadow: 0 0 14px #fb7185;
+}
+
+/* 3. PIXEL MINT & HAZEL SAGE */
+[data-theme="pixel-mint"] .text-cyan-300 { color: #86efac !important; }
+[data-theme="pixel-mint"] .text-cyan-400 { color: #4ade80 !important; }
+[data-theme="pixel-mint"] .text-cyan-200 { color: #bbf7d0 !important; }
+[data-theme="pixel-mint"] [class*="border-cyan-"] { border-color: rgba(74, 222, 128, 0.35) !important; }
+[data-theme="pixel-mint"] .border-cyan-400 { border-color: #4ade80 !important; }
+[data-theme="pixel-mint"] [class*="bg-cyan-950"] { background-color: rgba(10, 34, 21, 0.9) !important; }
+[data-theme="pixel-mint"] [class*="bg-cyan-500\/"] { background-color: rgba(74, 222, 128, 0.18) !important; }
+[data-theme="pixel-mint"] button.bg-gradient-to-r,
+[data-theme="pixel-mint"] .bg-gradient-to-r.from-cyan-400 {
+  background-image: linear-gradient(to right, #4ade80, #2dd4bf, #34d399) !important;
+  color: #041a0e !important;
+}
+[data-theme="pixel-mint"] input[type="range"]::-webkit-slider-thumb {
+  background: #4ade80;
+  box-shadow: 0 0 14px #4ade80;
+}
+
+/* 4. PIXEL LEMONGRASS & SOLAR ZEST */
+[data-theme="pixel-lemongrass"] .text-cyan-300 { color: #bef264 !important; }
+[data-theme="pixel-lemongrass"] .text-cyan-400 { color: #a3e635 !important; }
+[data-theme="pixel-lemongrass"] .text-cyan-200 { color: #d9f99d !important; }
+[data-theme="pixel-lemongrass"] [class*="border-cyan-"] { border-color: rgba(163, 230, 53, 0.35) !important; }
+[data-theme="pixel-lemongrass"] .border-cyan-400 { border-color: #a3e635 !important; }
+[data-theme="pixel-lemongrass"] [class*="bg-cyan-950"] { background-color: rgba(23, 35, 11, 0.9) !important; }
+[data-theme="pixel-lemongrass"] [class*="bg-cyan-500\/"] { background-color: rgba(163, 230, 53, 0.18) !important; }
+[data-theme="pixel-lemongrass"] button.bg-gradient-to-r,
+[data-theme="pixel-lemongrass"] .bg-gradient-to-r.from-cyan-400 {
+  background-image: linear-gradient(to right, #a3e635, #facc15, #84cc16) !important;
+  color: #131f03 !important;
+}
+[data-theme="pixel-lemongrass"] input[type="range"]::-webkit-slider-thumb {
+  background: #a3e635;
+  box-shadow: 0 0 14px #a3e635;
+}
+
+/* 5. PIXEL PORCELAIN & WARM SAND */
+[data-theme="pixel-porcelain"] .text-cyan-300 { color: #fde68a !important; }
+[data-theme="pixel-porcelain"] .text-cyan-400 { color: #fcd34d !important; }
+[data-theme="pixel-porcelain"] .text-cyan-200 { color: #fef3c7 !important; }
+[data-theme="pixel-porcelain"] [class*="border-cyan-"] { border-color: rgba(252, 211, 77, 0.35) !important; }
+[data-theme="pixel-porcelain"] .border-cyan-400 { border-color: #fcd34d !important; }
+[data-theme="pixel-porcelain"] [class*="bg-cyan-950"] { background-color: rgba(33, 28, 20, 0.9) !important; }
+[data-theme="pixel-porcelain"] [class*="bg-cyan-500\/"] { background-color: rgba(252, 211, 77, 0.18) !important; }
+[data-theme="pixel-porcelain"] button.bg-gradient-to-r,
+[data-theme="pixel-porcelain"] .bg-gradient-to-r.from-cyan-400 {
+  background-image: linear-gradient(to right, #fcd34d, #f59e0b, #fbbf24) !important;
+  color: #1c1402 !important;
+}
+[data-theme="pixel-porcelain"] input[type="range"]::-webkit-slider-thumb {
+  background: #fcd34d;
+  box-shadow: 0 0 14px #fcd34d;
+}
+
+/* 6. MATERIAL YOU IRIS & LILAC */
+[data-theme="material-iris"] .text-cyan-300 { color: #d8b4fe !important; }
+[data-theme="material-iris"] .text-cyan-400 { color: #c084fc !important; }
+[data-theme="material-iris"] .text-cyan-200 { color: #e9d5ff !important; }
+[data-theme="material-iris"] [class*="border-cyan-"] { border-color: rgba(192, 132, 252, 0.35) !important; }
+[data-theme="material-iris"] .border-cyan-400 { border-color: #c084fc !important; }
+[data-theme="material-iris"] [class*="bg-cyan-950"] { background-color: rgba(28, 17, 51, 0.9) !important; }
+[data-theme="material-iris"] [class*="bg-cyan-500\/"] { background-color: rgba(192, 132, 252, 0.18) !important; }
+[data-theme="material-iris"] button.bg-gradient-to-r,
+[data-theme="material-iris"] .bg-gradient-to-r.from-cyan-400 {
+  background-image: linear-gradient(to right, #c084fc, #f472b6, #a855f7) !important;
+  color: #150324 !important;
+}
+[data-theme="material-iris"] input[type="range"]::-webkit-slider-thumb {
+  background: #c084fc;
+  box-shadow: 0 0 14px #c084fc;
+}
+
+
 .glow-cyan {
-  box-shadow: 0 0 20px rgba(6, 182, 212, 0.35);
+  box-shadow: 0 0 24px rgba(34, 211, 238, 0.4);
 }
 
 .glow-teal {
-  box-shadow: 0 0 20px rgba(20, 184, 166, 0.35);
+  box-shadow: 0 0 24px rgba(20, 184, 166, 0.4);
 }
 
 /* Scanline and HUD animations */
@@ -112,6 +685,173 @@ input[type="range"]::-webkit-slider-thumb:hover {
 
 ::-webkit-scrollbar-thumb:hover {
   background: #06b6d4;
+}
+
+/* ==========================================================================
+   ARCHITECTURAL DESIGN SYSTEM REWORKS (3 DISTINCT DESIGN PARADIGMS)
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   1. PARADIGM: EXECUTIVE TECHNICAL (Linear / Raycast Pro)
+   -------------------------------------------------------------------------- */
+[data-design-system="executive-technical"] body {
+  background-color: #08090d !important;
+  color: #f8fafc !important;
+}
+
+[data-design-system="executive-technical"] .glass-panel,
+[data-design-system="executive-technical"] .mockup-dashboard-frame {
+  border-radius: 8px !important;
+  border: 1px solid rgba(148, 163, 184, 0.22) !important;
+  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.6) !important;
+  background: rgba(14, 17, 24, 0.94) !important;
+}
+
+[data-design-system="executive-technical"] header {
+  background: rgba(11, 14, 23, 0.96) !important;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.18) !important;
+  backdrop-filter: blur(16px) !important;
+}
+
+[data-design-system="executive-technical"] button {
+  border-radius: 6px !important;
+  letter-spacing: -0.01em !important;
+}
+
+[data-design-system="executive-technical"] input,
+[data-design-system="executive-technical"] select {
+  border-radius: 6px !important;
+  border: 1px solid rgba(148, 163, 184, 0.25) !important;
+}
+
+[data-design-system="executive-technical"] .text-cyan-300,
+[data-design-system="executive-technical"] .text-cyan-400 {
+  color: #38bdf8 !important;
+}
+
+/* --------------------------------------------------------------------------
+   2. PARADIGM: NEO-BRUTALIST ATHLETIC (Nike Lab / Off-White Streetwear)
+   -------------------------------------------------------------------------- */
+[data-design-system="neo-brutalist"] body {
+  background-color: #040404 !important;
+  color: #ffffff !important;
+}
+
+[data-design-system="neo-brutalist"] .glass-panel,
+[data-design-system="neo-brutalist"] .mockup-dashboard-frame {
+  border-radius: 2px !important;
+  border: 2.5px solid #ccff00 !important;
+  box-shadow: 6px 6px 0px #000000, 6px 6px 0px 2.5px #ccff00 !important;
+  background: #0d0d0d !important;
+  backdrop-filter: none !important;
+}
+
+[data-design-system="neo-brutalist"] header {
+  border-radius: 0px !important;
+  border-bottom: 3px solid #ccff00 !important;
+  background: #000000 !important;
+}
+
+[data-design-system="neo-brutalist"] button {
+  border-radius: 2px !important;
+  font-weight: 800 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.04em !important;
+  transition: transform 0.12s ease, box-shadow 0.12s ease !important;
+}
+
+[data-design-system="neo-brutalist"] button:hover {
+  transform: translate(-2px, -2px) !important;
+  box-shadow: 4px 4px 0px #ffffff !important;
+}
+
+[data-design-system="neo-brutalist"] input,
+[data-design-system="neo-brutalist"] select {
+  border-radius: 0px !important;
+  border: 2px solid #ccff00 !important;
+  background: #111111 !important;
+  color: #ffffff !important;
+  box-shadow: 3px 3px 0px #000000 !important;
+}
+
+[data-design-system="neo-brutalist"] .text-cyan-300,
+[data-design-system="neo-brutalist"] .text-cyan-400 {
+  color: #ccff00 !important;
+}
+
+[data-design-system="neo-brutalist"] .border-cyan-400,
+[data-design-system="neo-brutalist"] .border-cyan-500\/30 {
+  border-color: #ccff00 !important;
+}
+
+/* --------------------------------------------------------------------------
+   3. PARADIGM: ORGANIC NORDIC ZEN (Apple Vision / Aesop Calm)
+   -------------------------------------------------------------------------- */
+[data-design-system="organic-zen"] body {
+  background-color: #f6f3ee !important;
+  color: #2b2621 !important;
+}
+
+[data-design-system="organic-zen"] .glass-panel,
+[data-design-system="organic-zen"] .mockup-dashboard-frame {
+  border-radius: 32px !important;
+  border: 1px solid rgba(215, 207, 195, 0.85) !important;
+  box-shadow: 0 20px 50px -10px rgba(43, 38, 33, 0.08), 0 1px 3px rgba(0, 0, 0, 0.03) !important;
+  background: #ffffff !important;
+  backdrop-filter: blur(16px) !important;
+}
+
+[data-design-system="organic-zen"] header {
+  border-bottom: 1px solid rgba(215, 207, 195, 0.7) !important;
+  background: rgba(246, 243, 238, 0.96) !important;
+}
+
+[data-design-system="organic-zen"] button {
+  border-radius: 9999px !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.01em !important;
+  transition: all 0.2s ease !important;
+}
+
+[data-design-system="organic-zen"] input,
+[data-design-system="organic-zen"] select {
+  border-radius: 16px !important;
+  border: 1px solid rgba(215, 207, 195, 0.8) !important;
+  background: #faf8f5 !important;
+  color: #2b2621 !important;
+}
+
+[data-design-system="organic-zen"] .text-white,
+[data-design-system="organic-zen"] .text-slate-100,
+[data-design-system="organic-zen"] .text-slate-200 {
+  color: #2b2621 !important;
+}
+
+[data-design-system="organic-zen"] .text-slate-300,
+[data-design-system="organic-zen"] .text-slate-400 {
+  color: #6b5f50 !important;
+}
+
+[data-design-system="organic-zen"] .text-cyan-300,
+[data-design-system="organic-zen"] .text-cyan-400 {
+  color: #b45309 !important;
+}
+
+[data-design-system="organic-zen"] .border-cyan-400,
+[data-design-system="organic-zen"] .border-cyan-500\/20,
+[data-design-system="organic-zen"] .border-cyan-500\/25,
+[data-design-system="organic-zen"] .border-cyan-500\/30,
+[data-design-system="organic-zen"] .border-cyan-500\/40 {
+  border-color: rgba(215, 207, 195, 0.8) !important;
+}
+
+[data-design-system="organic-zen"] .bg-\[\#070d18\],
+[data-design-system="organic-zen"] .bg-\[\#0B121E\],
+[data-design-system="organic-zen"] .bg-\[\#06101e\],
+[data-design-system="organic-zen"] .bg-\[\#070f1e\],
+[data-design-system="organic-zen"] .bg-\[\#08101e\],
+[data-design-system="organic-zen"] .bg-\[\#060c18\] {
+  background-color: #fcfaf6 !important;
 }
 
 

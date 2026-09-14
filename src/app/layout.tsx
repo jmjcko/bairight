@@ -1,6 +1,13 @@
 import type { Metadata } from 'next';
-import { Inter_Tight } from 'next/font/google';
+import { Space_Grotesk, Inter_Tight } from 'next/font/google';
 import './globals.css';
+
+const spaceGrotesk = Space_Grotesk({
+  subsets: ['latin', 'latin-ext'],
+  weight: ['400', '500', '600', '700'],
+  variable: '--font-space-grotesk',
+  display: 'swap',
+});
 
 const interTight = Inter_Tight({
   subsets: ['latin', 'latin-ext'],
@@ -10,8 +17,8 @@ const interTight = Inter_Tight({
 });
 
 export const metadata: Metadata = {
-  title: 'bAIright | Nakupujte správně s AI • Osobní podiatrický nákupčí bot',
-  description: 'Inteligentní systém pro výběr správné obuvi s využitím AI agentů, biomechaniky došlapu a prevence kloubních potíží.',
+  title: 'bAIright | Univerzální AI nákupní poradce & prompt inženýr',
+  description: 'Nezávislý AI nákupní rádce, který vám pomůže vybrat ideální auto, boty, kávovar, kancelářskou židli nebo jakýkoliv produkt na míru vašim parametrům.',
 };
 
 export default function RootLayout({
@@ -20,8 +27,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="cs" className={`dark ${interTight.variable}`}>
-      <body className={`min-h-screen bg-[#070d18] text-slate-100 antialiased selection:bg-cyan-500 selection:text-slate-950 ${interTight.className}`}>
+    <html lang="cs" data-theme="pixel-mint" data-design-system="executive-technical" data-font="space-grotesk" className={`dark ${spaceGrotesk.variable} ${interTight.variable}`}>
+      <body className={`min-h-screen bg-[var(--background)] text-[var(--foreground)] antialiased selection:bg-emerald-900 selection:text-white ${spaceGrotesk.className}`}>
         {children}
       </body>
     </html>

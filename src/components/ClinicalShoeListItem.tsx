@@ -86,7 +86,7 @@ export const ClinicalShoeListItem: React.FC<ClinicalShoeListItemProps> = ({
         </div>
         <div className="p-2 rounded-xl bg-[#040812] border border-slate-800/80 text-center">
           <span className="text-[9px] font-mono uppercase text-slate-500 block">Koleno</span>
-          <span className="text-xs font-mono font-bold text-emerald-400">Bezpečné OA 3</span>
+          <span className="text-xs font-mono font-bold text-cyan-300">Bezpečné OA 3</span>
         </div>
       </div>
 

@@ -45,6 +45,9 @@ export interface AgentPrescriptionResult {
     matchScore: number;
     matchReasons: string[];
   })[];
+  providerUsed?: string;
+  isLiveAI?: boolean;
+  llmNotice?: string;
 }
 
 /**
@@ -107,10 +110,15 @@ export async function evaluateIntakeFormWithAgent(
   const isWideFoot = formData.foot_width === 'wide_2e' || formData.foot_width === 'extra_wide_4e';
   const hasSurgeries = (formData.past_surgeries || []).length > 0 && !formData.past_surgeries.includes('none');
 
-  // Filter catalog respecting STRICT FORBIDDEN BRANDS
+  // Filter catalog respecting STRICT FORBIDDEN BRANDS & PREFERRED BRANDS
   const candidateShoes = EUROPEAN_CATALOG_2E_MODELS.filter((shoe) => {
+    const brandLower = shoe.brand.toLowerCase();
     // RULE 1: Never recommend forbidden brands
-    if (forbiddenLower.includes(shoe.brand.toLowerCase())) {
+    if (forbiddenLower.includes(brandLower)) {
+      return false;
+    }
+    // RULE 1b: If user specified preferred brands, strictly restrict to those brands
+    if (preferredLower.length > 0 && !preferredLower.includes(brandLower)) {
       return false;
     }
     // RULE 2: If wide foot is required, must support wide

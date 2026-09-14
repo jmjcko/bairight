@@ -53,7 +53,7 @@ export const AppointmentsModal: React.FC<AppointmentsModalProps> = ({ isOpen, on
 
         {isBooked ? (
           <div className="py-12 text-center space-y-3">
-            <div className="w-14 h-14 rounded-full bg-emerald-950 border border-emerald-400/60 flex items-center justify-center text-emerald-400 mx-auto animate-bounce">
+            <div className="w-14 h-14 rounded-full bg-cyan-950 border border-cyan-400/60 flex items-center justify-center text-cyan-400 mx-auto animate-bounce">
               <CheckCircle2 className="w-8 h-8" />
             </div>
             <h3 className="text-xl font-bold text-white">Konzultace úspěšně rezervována!</h3>
@@ -78,7 +78,7 @@ export const AppointmentsModal: React.FC<AppointmentsModalProps> = ({ isOpen, on
                   Klinická podiatrie & Biomechanika • Centrum pohybové medicíny
                 </div>
                 <div className="flex items-center gap-2 mt-1 text-[10px] text-slate-400">
-                  <span className="flex items-center gap-1 text-emerald-400">
+                  <span className="flex items-center gap-1 text-cyan-400">
                     <Video className="w-3 h-3" /> Šifrovaný videohovor (30 min)
                   </span>
                   <span>•</span>
@@ -118,7 +118,7 @@ export const AppointmentsModal: React.FC<AppointmentsModalProps> = ({ isOpen, on
 
             {/* Note */}
             <div className="p-3 rounded-xl bg-cyan-950/30 border border-cyan-500/20 text-[11px] text-slate-300 leading-relaxed">
-              Lékař obdrží vaše zadané parametry (rozměry chodidla v mm, diagnostikovanou artrózu kolene a vyhodnocení bot od AI agenta) ještě před začátkem hovoru.
+              Specialista na biomechaniku obuvi obdrží vaše zadané parametry (rozměry chodidla v mm, citlivost kolenního kloubu a vyhodnocení bot od AI agenta) ještě před začátkem hovoru.
             </div>
 
             {/* Actions */}

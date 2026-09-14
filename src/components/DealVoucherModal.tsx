@@ -80,7 +80,7 @@ export const DealVoucherModal: React.FC<DealVoucherModalProps> = ({
                 <Tag className="w-3.5 h-3.5" />
                 Exkluzivní kupón bAIright (-10%):
               </span>
-              <span className="text-emerald-400 font-mono font-bold">Úspora ~{Math.round(czk * 0.1)} Kč</span>
+              <span className="text-cyan-300 font-mono font-bold">Úspora ~{Math.round(czk * 0.1)} Kč</span>
             </div>
 
             <div className="flex items-center justify-between bg-black/60 rounded-xl p-2 border border-cyan-500/30">

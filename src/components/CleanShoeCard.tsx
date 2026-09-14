@@ -85,7 +85,7 @@ export const CleanShoeCard: React.FC<CleanShoeCardProps> = ({ shoe, isTopPick = 
             </div>
             <div className="p-2 rounded-xl bg-[#060c18] border border-slate-800 text-center">
               <span className="text-[9px] font-mono uppercase text-slate-400 block">Ochrana kolene</span>
-              <span className="text-xs font-mono font-bold text-emerald-400">Bezpečné OA 3</span>
+              <span className="text-xs font-mono font-bold text-cyan-300">Bezpečné OA 3</span>
             </div>
           </div>
 

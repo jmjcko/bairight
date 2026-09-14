@@ -683,7 +683,7 @@ export const MockupClinicalDashboard: React.FC<MockupClinicalDashboardProps> = (
                     <span className="text-teal-400 font-bold">8.5 / 10</span>
                   </div>
                   <div className="w-full h-1.5 rounded-full bg-[#050c18] overflow-hidden border border-cyan-500/20">
-                    <div className="h-full w-[85%] bg-gradient-to-r from-teal-400 to-emerald-400 rounded-full shadow-[0_0_8px_#14b8a6]" />
+                    <div className="h-full w-[85%] bg-gradient-to-r from-cyan-400 to-teal-400 rounded-full shadow-[0_0_8px_rgba(34,211,238,0.6)]" />
                   </div>
                 </div>
               </div>
@@ -700,21 +700,21 @@ export const MockupClinicalDashboard: React.FC<MockupClinicalDashboardProps> = (
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-slate-400">{isCs ? 'Odlehčení chrupavky:' : 'Load Reduction:'}</span>
-                  <span className="font-mono font-bold text-emerald-400">+32% nižší tlak</span>
+                  <span className="font-mono font-bold text-cyan-300">+32% nižší tlak</span>
                 </div>
               </div>
             </div>
 
-            {/* Upcoming Appointment / AI Doctor Consultation Card (from Mockup B) */}
+            {/* Upcoming Appointment / Fitting Consultation Card */}
             <div className="p-4 rounded-xl bg-gradient-to-br from-cyan-950/60 to-[#060c18] border border-cyan-400/30 text-xs">
               <div className="flex items-center gap-2 mb-1 text-cyan-300 font-bold">
                 <Calendar className="w-3.5 h-3.5" />
-                <span>{isCs ? 'Online konzultace s AI lékařem' : 'Upcoming AI Consultation'}</span>
+                <span>{isCs ? 'Online konzultace s fitting specialistou' : 'Upcoming Fitting Consultation'}</span>
               </div>
               <p className="text-[11px] text-slate-300 mb-3">
                 {isCs 
-                  ? 'AI Podiatr je připraven probrat vaše konkrétní CT/RTG nálezy a zhodnotit došlap.'
-                  : 'AI Podiatrist is standing by to evaluate your kinetic chain and medical images.'}
+                  ? 'AI fitting specialista je připraven detailně probrat vaše preference a vyhodnotit došlap.'
+                  : 'AI fitting specialist is standing by to evaluate your kinetic preferences.'}
               </p>
 
               <button

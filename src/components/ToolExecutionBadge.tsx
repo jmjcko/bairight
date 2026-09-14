@@ -27,7 +27,7 @@ export const ToolExecutionBadge: React.FC<ToolExecutionBadgeProps> = ({
           <div className={`w-6 h-6 rounded-lg flex items-center justify-center ${
             isForum 
               ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20' 
-              : 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
+              : 'bg-cyan-500/10 text-cyan-400 border border-cyan-500/20'
           }`}>
             {isForum ? <Search className="w-3.5 h-3.5" /> : <ShoppingBag className="w-3.5 h-3.5" />}
           </div>
@@ -48,7 +48,7 @@ export const ToolExecutionBadge: React.FC<ToolExecutionBadgeProps> = ({
 
         <div className="flex items-center gap-1.5 shrink-0">
           {status === 'completed' ? (
-            <span className="flex items-center gap-1 text-[11px] font-medium text-emerald-400 bg-emerald-950/50 px-2 py-0.5 rounded-full border border-emerald-500/30">
+            <span className="flex items-center gap-1 text-[11px] font-medium text-cyan-400 bg-cyan-950/50 px-2 py-0.5 rounded-full border border-cyan-500/30">
               <CheckCircle2 className="w-3 h-3" />
               <span>{t.executed}</span>
             </span>

@@ -174,7 +174,7 @@ export const MovementAnalysisView: React.FC<MovementAnalysisViewProps> = ({
               </div>
               <div className="p-2.5 rounded-xl bg-[#070f1e] border border-slate-800">
                 <div className="text-[10px] font-mono text-slate-400 uppercase">Odraz špička</div>
-                <div className="text-sm font-mono font-bold text-emerald-300">20%</div>
+                <div className="text-sm font-mono font-bold text-cyan-300">20%</div>
                 <div className="text-[9px] text-slate-400 mt-0.5">Rocker profil</div>
               </div>
             </div>
@@ -184,7 +184,7 @@ export const MovementAnalysisView: React.FC<MovementAnalysisViewProps> = ({
           <div className="lg:col-span-6 rounded-3xl bg-[#0B121E] border border-cyan-500/25 p-6 flex flex-col justify-between space-y-5">
             <div>
               <div className="flex items-center gap-2.5 mb-4">
-                <div className="w-8 h-8 rounded-lg bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400">
+                <div className="w-8 h-8 rounded-lg bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center text-cyan-400">
                   <ShieldCheck className="w-4 h-4" />
                 </div>
                 <h3 className="text-base font-bold text-white">
@@ -217,11 +217,11 @@ export const MovementAnalysisView: React.FC<MovementAnalysisViewProps> = ({
                   </div>
                 </div>
 
-                <div className="p-3.5 rounded-2xl bg-[#070f1e] border border-emerald-500/20">
+                <div className="p-3.5 rounded-2xl bg-[#070f1e] border border-cyan-500/20">
                   <div className="flex gap-2.5 items-start">
-                    <ShieldCheck className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
+                    <ShieldCheck className="w-4 h-4 text-cyan-400 shrink-0 mt-0.5" />
                     <div>
-                      <strong className="text-emerald-300 block text-xs mb-0.5">
+                      <strong className="text-cyan-300 block text-xs mb-0.5">
                         {t.point3Title}
                       </strong>
                       <p className="text-[11px] text-slate-300">{t.point3Desc}</p>

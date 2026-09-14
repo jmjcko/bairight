@@ -147,7 +147,7 @@ export const ShoeCatalogView: React.FC<ShoeCatalogViewProps> = ({
           {/* Status line & Sub-filters */}
           <div className="flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-slate-800/80 text-xs">
             <div className="flex items-center gap-2 text-slate-400 font-mono text-[11px]">
-              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+              <span className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse" />
               <span>{t.itemCount.replace('{count}', filtered.length.toString())}</span>
             </div>
 
@@ -236,7 +236,7 @@ export const ShoeCatalogView: React.FC<ShoeCatalogViewProps> = ({
                     </div>
                     <div className="p-2 rounded-xl bg-[#070f1e] border border-slate-800">
                       <span className="text-slate-500 block">Ochrana</span>
-                      <span className="text-emerald-300 font-bold">Koleno OA 3</span>
+                      <span className="text-cyan-300 font-bold">Koleno OA 3</span>
                     </div>
                   </div>
                 </div>

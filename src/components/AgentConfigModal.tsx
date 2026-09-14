@@ -101,8 +101,8 @@ export const AgentConfigModal: React.FC<AgentConfigModalProps> = ({
                 <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-cyan-950 border border-cyan-500/30 text-cyan-300 font-semibold">
                   v{agentVersion}
                 </span>
-                <span className="flex items-center gap-1 text-[10px] font-mono px-2 py-0.5 rounded-full bg-emerald-950/80 border border-emerald-500/30 text-emerald-300">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                <span className="flex items-center gap-1 text-[10px] font-mono px-2 py-0.5 rounded-full bg-cyan-950/80 border border-cyan-500/30 text-cyan-300">
+                  <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse" />
                   Aktivní v produkci
                 </span>
               </div>
@@ -156,7 +156,7 @@ export const AgentConfigModal: React.FC<AgentConfigModalProps> = ({
 
           <div className="flex items-center gap-2">
             {saveStatus === 'success' && (
-              <span className="text-xs font-semibold text-emerald-400 flex items-center gap-1 animate-in fade-in">
+              <span className="text-xs font-semibold text-cyan-400 flex items-center gap-1 animate-in fade-in">
                 <CheckCircle2 className="w-4 h-4" />
                 Uloženo do souboru!
               </span>
@@ -195,7 +195,7 @@ export const AgentConfigModal: React.FC<AgentConfigModalProps> = ({
                     <span className="text-[10px] font-mono text-rose-400 bg-rose-950/80 px-1.5 py-0.5 rounded">Zákaz porušení</span>
                   </div>
                   <p className="text-slate-300 text-[11px] leading-relaxed">
-                    Agent <strong>NIKDY</strong> nenabídne značku uvedenou v <code className="text-rose-300 font-mono">forbidden_brands</code> (např. Nike), i kdyby byla klinicky vhodná. Prioritizuje <code className="text-emerald-300 font-mono">preferred_brands</code>.
+                    Agent <strong>NIKDY</strong> nenabídne značku uvedenou v <code className="text-rose-300 font-mono">forbidden_brands</code> (např. Nike), i kdyby byla klinicky vhodná. Prioritizuje <code className="text-cyan-300 font-mono">preferred_brands</code>.
                   </p>
                 </div>
 
@@ -218,7 +218,7 @@ export const AgentConfigModal: React.FC<AgentConfigModalProps> = ({
                     <span className="flex items-center gap-1.5 text-cyan-300">
                       <span>🦵 Ochrana kolene (Artróza 1–3 st.)</span>
                     </span>
-                    <span className="text-[10px] font-mono text-emerald-400 bg-emerald-950/80 px-1.5 py-0.5 rounded">Drop 4–8 mm</span>
+                    <span className="text-[10px] font-mono text-teal-300 bg-teal-950/80 px-1.5 py-0.5 rounded">Drop 4–8 mm</span>
                   </div>
                   <p className="text-slate-300 text-[11px] leading-relaxed">
                     Limit dropu striktně mezi <strong>4 mm a 8 mm</strong>. Vysoký drop 10–12 mm je zakázán (přetěžuje kolenní extenzory). Povinná rockerová kolébková geometrie podešve.

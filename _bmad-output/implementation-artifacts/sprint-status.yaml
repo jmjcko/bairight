@@ -53,4 +53,186 @@ stories:
       - "AC-1.5.4: Terminology Harmonization across all UI surfaces (PASSED)"
       - "AC-1.5.5: Internal Navigation Synergy from wizard to views (PASSED)"
 
+  - id: "STORY-1.6"
+    title: "bAIright 4C Chromatic Unification & Emerald-to-Cyan Palette Migration"
+    epic: "Epic 1"
+    assigned_to: "Amelia (Senior Software Engineer), Sally (UX Designer) & Quinn (QA)"
+    status: "completed"
+    acceptance_criteria:
+      - "AC-1.6.1: Formal Design Token Specification in DESIGN-SYSTEM-4C.md (PASSED)"
+      - "AC-1.6.2: Global CSS Variable Realignment in globals.css (PASSED)"
+      - "AC-1.6.3: Comprehensive Component Migration (eliminate legacy emerald) (PASSED)"
+      - "AC-1.6.4: Agent Chat & Interactive State Harmony (PASSED)"
+      - "AC-1.6.5: QA & Asset Integrity Gate via Quinn (PASSED)"
+
+  - id: "STORY-2.1"
+    title: "Multi-Domain Mission Switcher, User Auth State & BYOK AI Engine Studio"
+    epic: "Epic 2"
+    assigned_to: "Amelia (Senior Software Engineer), Sally (UX Designer), Winston (Architect) & Quinn (QA)"
+    status: "completed"
+    acceptance_criteria:
+      - "AC-2.1.1: Mission & Domain Switcher next to Logo 4C (PASSED)"
+      - "AC-2.1.2: User Profile & Freemium Quota Capsule in Header (PASSED)"
+      - "AC-2.1.3: BYOK AI Provider Modal (Claude, Gemini, GPT) (PASSED)"
+      - "AC-2.1.4: Persistent RAG Memory Inspector (Stored Anamnesis Facts) (PASSED)"
+      - "AC-2.1.5: Strict 4C Design & QA Gate via Quinn (PASSED)"
+
+  - id: "STORY-2.2"
+    title: "Live Assessment Persistence into RAG Knowledge Memory & System Prompt Injection"
+    epic: "Epic 2"
+    assigned_to: "Amelia (Senior Software Engineer), Sally (UX Designer) & Quinn (QA)"
+    status: "completed"
+    acceptance_criteria:
+      - "AC-2.2.1: Full Assessment Data Model with timestamp and clinical findings (PASSED)"
+      - "AC-2.2.2: Dual-Tab RAG Modal (Dokončená vyhodnocení vs Anamnestická fakta) (PASSED)"
+      - "AC-2.2.3: Live Evaluation Hook in IntakeWizard (PASSED)"
+      - "AC-2.2.4: LocalStorage Persistence across page refreshes (PASSED)"
+      - "AC-2.2.5: Mandatory QA Gate via Quinn (PASSED)"
+
+  - id: "STORY-2.3"
+    title: "Medical De-Risking, Product/UX Optimization & Interactive Assessment Feedback Loop into RAG DB"
+    epic: "Epic 2"
+    assigned_to: "Amelia (Senior Software Engineer), Sally (UX Designer), John (PM) & Quinn (QA)"
+    status: "completed"
+    acceptance_criteria:
+      - "AC-2.3.1: Complete Medical De-Risking Audit across UI & models (PASSED)"
+      - "AC-2.3.2: AssessmentFeedbackLoop component beneath recommendation cards (PASSED)"
+      - "AC-2.3.3: Immediate RAG DB persistence & real-time recalculation (PASSED)"
+      - "AC-2.3.4: Quick Size preset toggle in Step 1 & Comfort rephrasing in Step 4 (PASSED)"
+      - "AC-2.3.5: PM & UX Assessment Report by John and Sally (PASSED)"
+      - "AC-2.3.6: Quinn QA Gate: 0 tsc errors & HTTP 200 (PASSED)"
+
+  - id: "STORY-2.4"
+    title: "Wizard Step 4 Ultra-Clean Minimalist Layout & Clutter Elimination"
+    epic: "Epic 2"
+    assigned_to: "Amelia (Senior Software Engineer), Sally (UX Designer) & Quinn (QA)"
+    status: "completed"
+    acceptance_criteria:
+      - "AC-2.4.1: Complete eradication of (i) buttons, extra banners, and toggles (PASSED)"
+      - "AC-2.4.2: Eradication of '(Doporučeno)' and misplaced recommendation labels (PASSED)"
+      - "AC-2.4.3: 4 crystal-clear, ultra-compact runner situation cards (PASSED)"
+      - "AC-2.4.4: Elimination of all intermediate technical algorithm previews (PASSED)"
+      - "AC-2.4.5: Quinn QA Gate: tsc --noEmit 0 errors, HTTP 200 OK (PASSED)"
+
+  - id: "STORY-2.5"
+    title: "Full Wizard Automated Unit Test Suite (23 Tests) via Vitest & React Testing Library"
+    epic: "Epic 2"
+    assigned_to: "Quinn (QA Engineer) & Amelia (Senior Software Engineer)"
+    status: "completed"
+    acceptance_criteria:
+      - "AC-2.5.1: Vitest, jsdom, testing-library setup and npm test script (PASSED)"
+      - "AC-2.5.2: 23 unit tests covering Steps 1 through 5, navigation, reset, and submission (PASSED)"
+      - "AC-2.5.3: 100% test pass rate (23/23 tests passing) (PASSED)"
+      - "AC-2.5.4: Quinn QA Gate: tsc --noEmit 0 errors, HTTP 200 OK (PASSED)"
+
+  - id: "STORY-2.6"
+    title: "Real Multi-Provider LLM Integration for Intake Wizard (Gemini, OpenAI, Claude BYOK & Server Env)"
+    epic: "Epic 2"
+    assigned_to: "Winston (System Architect) & Amelia (Senior Software Engineer)"
+    status: "completed"
+    acceptance_criteria:
+      - "AC-2.6.1: Multi-provider real LLM service (Gemini 2.0/1.5, GPT-4o, Claude 3.5 Sonnet) with native fetch (PASSED)"
+      - "AC-2.6.2: Dynamic BYOK key injection from localStorage and server-side .env fallback (PASSED)"
+      - "AC-2.6.3: Smart provider auto-detection and data sanitization for recommendation cards (PASSED)"
+      - "AC-2.6.4: Transparent UI badge indicating live AI provider or local engine fallback (PASSED)"
+      - "AC-2.6.5: Quinn QA Gate: tsc --noEmit 0 errors, npm test 23/23 passing (PASSED)"
+
+  - id: "STORY-2.7"
+    title: "Gemini Model Auto-Discovery, Instant Key Tester, Regenerate Action & Polished Results UI"
+    epic: "Epic 2"
+    assigned_to: "Amelia (Senior Software Engineer), Sally (UX Designer) & Winston (System Architect)"
+    status: "completed"
+    acceptance_criteria:
+      - "AC-2.7.1: Fix Google Gemini 404 via dynamic ListModels discovery & JSON error clean-up (PASSED)"
+      - "AC-2.7.2: Dedicated /api/agent/test-key endpoint with instant UI tester in BYOK modal (PASSED)"
+      - "AC-2.7.3: Prominent 'Přegenerovat s AI' action button on Results stage without resetting inputs (PASSED)"
+      - "AC-2.7.4: Polished Results UI: shoe photographs, brand tags, organized top banner, zero raw JSON (PASSED)"
+      - "AC-2.7.5: Quinn QA Gate: tsc --noEmit 0 errors, 23/23 unit tests passing (PASSED)"
+
+  - id: "STORY-2.8"
+    title: "Strict Brand Isolation & Transparent Prompt Inspector Modal"
+    epic: "Epic 2"
+    assigned_to: "John (PM), Winston (Architect), Sally (UX), Amelia (Dev) & Quinn (QA)"
+    status: "completed"
+    acceptance_criteria:
+      - "AC-2.8.1: Strict Brand Exclusion Logic: Deselecting brands automatically populates forbidden_brands (PASSED)"
+      - "AC-2.8.2: Prompt Catalog Decontamination: Sample models in prompt context only include allowed brands (PASSED)"
+      - "AC-2.8.3: Runtime Brand Sanitizer: Fallback & post-processing purge forbidden brands (PASSED)"
+      - "AC-2.8.4: Prompt Inspector Modal: Pre-generation inspection of LLM prompt & JSON payload on Step 5 (PASSED)"
+      - "AC-2.8.5: Quinn QA Gate: tsc --noEmit 0 errors, 28/28 unit tests passing via Vitest (PASSED)"
+
+  - id: "STORY-3.1"
+    title: "Portable Agent Specification & Dynamic Schema Engine"
+    epic: "Epic 3"
+    assigned_to: "Winston (System Architect) & Amelia (Senior Software Engineer)"
+    status: "completed"
+    acceptance_criteria:
+      - "AC-3.1.1: TypeScript schema definition for UniversalAgentDefinition and WizardQuestion (PASSED)"
+      - "AC-3.1.2: Support for fixed component library: slider, chips (single/multi), dropdown (PASSED)"
+      - "AC-3.1.3: Bidirectional serialization: Markdown YAML frontmatter parser and generator (PASSED)"
+      - "AC-3.1.4: Preloaded default agents (Running Shoes, Ergonomic Chair, Coffee Machine) (PASSED)"
+
+  - id: "STORY-3.2"
+    title: "AI Dynamic Wizard Generator Endpoint (/api/agent/generate-wizard)"
+    epic: "Epic 3"
+    assigned_to: "Winston (System Architect) & Amelia (Senior Software Engineer)"
+    status: "completed"
+    acceptance_criteria:
+      - "AC-3.2.1: Analyze arbitrary free-text intent and generate structured UniversalAgentDefinition (PASSED)"
+      - "AC-3.2.2: Intelligent mapping to UI controls (sliders for numeric ranges, chips for options) (PASSED)"
+      - "AC-3.2.3: Integration with multi-provider BYOK (Gemini, GPT-4o, Claude) and fallback schema generator (PASSED)"
+
+  - id: "STORY-3.3"
+    title: "Universal Dynamic Wizard UI Component (DynamicAgentWizard.tsx)"
+    epic: "Epic 3"
+    assigned_to: "Sally (UX Designer) & Amelia (Senior Software Engineer)"
+    status: "completed"
+    acceptance_criteria:
+      - "AC-3.3.1: Step-by-step sequential wizard dynamically generated from any agent schema (PASSED)"
+      - "AC-3.3.2: Fixed component rendering: SliderControl, SelectChipsControl, DropdownControl (PASSED)"
+      - "AC-3.3.3: Invisible behind-the-scenes prompt forging (No-prompt-writing UX) (PASSED)"
+      - "AC-3.3.4: Pre-generation Prompt Inspector Modal integration (PASSED)"
+
+  - id: "STORY-3.4"
+    title: "Category Launcher & Agent Library Management (AgentCategoryLauncher.tsx)"
+    epic: "Epic 3"
+    assigned_to: "Sally (UX Designer), John (Product Manager) & Amelia (Senior Software Engineer)"
+    status: "completed"
+    acceptance_criteria:
+      - "AC-3.4.1: Free-text starting input ('I want to buy...') with instant AI wizard creation (PASSED)"
+      - "AC-3.4.2: Quick-start preset agent cards and user created agent library (PASSED)"
+      - "AC-3.4.3: LocalStorage persistence of custom created agents (PASSED)"
+
+  - id: "STORY-3.5"
+    title: "Grounded Text-Only Recommendation Output & RAG Loop (/api/agent/evaluate-universal-agent)"
+    epic: "Epic 3"
+    assigned_to: "Amelia (Senior Software Engineer) & Winston (System Architect)"
+    status: "completed"
+    acceptance_criteria:
+      - "AC-3.5.1: Real-time grounded product recommendations: Model, Brand, Reasoning, Pros, Cons (PASSED)"
+      - "AC-3.5.2: Strict adherence to v1 PRD scope (no fake links, no prices, no images) (PASSED)"
+      - "AC-3.5.3: Automatic RAG fact extraction and persistence into user profile memory (PASSED)"
+      - "AC-3.5.4: Conversational / chip-based refinement feedback loop (PASSED)"
+
+  - id: "STORY-3.6"
+    title: "Automated Test Suite & QA Gate for Universal Agent System"
+    epic: "Epic 3"
+    assigned_to: "Quinn (QA Engineer) & Amelia (Senior Software Engineer)"
+  - id: "STORY-3.7"
+    title: "On-Demand Parameter Research Agent & High-Precision Category Profiling"
+    epic: "Epic 3"
+    assigned_to: "Winston (System Architect), Sally (UX Designer), Amelia (Senior Software Engineer) & Quinn (QA Engineer)"
+    status: "completed"
+    acceptance_criteria:
+      - "AC-3.7.1: Decouple parameter discovery from synchronous keystrokes to on-demand trigger (PASSED)"
+      - "AC-3.7.2: Dedicated POST /api/agent/research-parameters endpoint with Gemini 2.0 Flash LLM research (PASSED)"
+      - "AC-3.7.3: Deep, real-world expert decision parameters for freestyle scooters and arbitrary queries (PASSED)"
+      - "AC-3.7.4: Research animation card with real-time feedback during agent research execution (PASSED)"
+      - "AC-3.7.5: 100% passing tests (65/65 tests across 9 suites) and 0 errors in tsc --noEmit (PASSED)"
+
+
+
+
+
+
 
