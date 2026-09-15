@@ -160,7 +160,7 @@ Tvým úkolem je na základě tohoto vstupu vygenerovat MINIMÁLNĚ 10 AŽ 14 NE
   "parameters": [
     {
       "id": "bike_type_category",
-      "name": "Typ kola & disciplína (Silniční vs. Gravel vs. Horské MTB vs. Městské vs. E-bike)",
+      "name": "Typ kola a disciplína",
       "category": "Kategorie & Disciplína",
       "importance": "mandatory",
       "rationale": "Výběr špatného typu kola je nejčastější chybou – horské kolo na asfaltu drhne a bere energii, silniční neprojede lesem a gravel vyžaduje specifický posed. Otázka pro vás: Po jakém povrchu a v jakém terénu budete reálně jezdit nejčastěji?",
@@ -282,7 +282,7 @@ Tvým úkolem je na základě tohoto vstupu vygenerovat MINIMÁLNĚ 10 AŽ 14 NE
     },
     {
       "id": "bike_service_warranty",
-      "name": "Dostupnost servisu & doživotní záruka na rám",
+      "name": "Záruka a servis",
       "category": "Záruka & Podpora",
       "importance": "preference",
       "rationale": "Značky jako Trek či Specialized nabízejí prvnímu majiteli doživotní záruku na rám.",
@@ -325,6 +325,11 @@ Tvým úkolem je na základě tohoto vstupu vygenerovat MINIMÁLNĚ 10 AŽ 14 NE
   ],
   "systemPrompt": "Expertní nezávislý nákupní poradce pro jízdní kola. Doporučuje přesně 3 konkrétní modely dle disciplíny, biometrie a rozpočtu."
 }
+
+## PRAVIDLA PRO VÝSTUP (MANDATORY):
+1. 📛 KRÁTKÉ NÁZVY PARAMETRŮ: Pole "name" u každého parametru MUSÍ BÝT MAXIMÁLNĚ 4 SLOVA. Žádné závorky, žádné technické zkratky v závorce, žádné spojky "vs." nebo "&". Správně: "Typ kola", "Materiál rámu", "Záruka a servis". Špatně: "Typ kola & disciplína (Silniční vs. Gravel vs. Horské MTB)".
+2. 📋 BOHATÉ MOŽNOSTI: Pole "suggestedValues" musí mít MINIMÁLNĚ 3 A MAXIMÁLNĚ 5 konkrétních, dobře popsaných možností. Každá možnost může obsahovat krátký popis v závorce pro kontext. Nikdy méně než 3 možnosti.
+3. ✅ Výstup musí být STRIKTNĚ validní JSON bez jakéhokoliv markdownu nebo komentářů.
 
 Nyní zpracuj uživatelský dotaz: "${categoryQuery}".
 Vygeneruj MINIMÁLNĚ 10 AŽ 14 takových špičkových parametrů seřazených od tržního zařazení přes biometrii až po technické detaily + 3 až 5 alternativních do poolu návrhů.

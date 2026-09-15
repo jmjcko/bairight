@@ -211,7 +211,7 @@ describe('Domain Parameter Discovery & Prompt Synthesizer Test Suite', () => {
 
     // Parametr č. 1 MUSÍ BÝT typ kola na trhu, nikoliv vidlice nebo materiál rámu
     expect(analysis.parameters[0].id).toBe('bike_type_category');
-    expect(analysis.parameters[0].name).toContain('Typ kola & disciplína');
+    expect(analysis.parameters[0].name).toMatch(/Typ kola/);
     expect(analysis.parameters[0].suggestedValues).toEqual(
       expect.arrayContaining([expect.stringContaining('Gravel'), expect.stringContaining('Horské kolo MTB')])
     );

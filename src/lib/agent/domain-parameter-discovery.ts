@@ -2158,7 +2158,7 @@ Doporuč přesně 3 konkrétní modely vysavačů dle zvoleného formátu, dispo
         name: 'Displej a zrak',
         category: 'Ergonomie & Zrak',
         importance: 'mandatory',
-        rationale: 'Mnoho moderních OLED displejů bliká na nízké frekvenci (PWM 240–480 Hz), což u citlivých uživatelů způsobuje pálení očí, únavu a migrény. Vysokofrekvenční PWM (nad 1920 Hz) chrání zrak. Otázka pro vás: Býváte citliví na bolesti očí při čtení z mobilu za šera?',
+        rationale: 'Mnoho moderních OLED displejů bliká na nízké frekvenci (PWM 240–480 Hz), což u citlivých uživatelů způsobuje pálení očí, únavu a migrény. Vysokofrekvenční PWM (nad 1920 Hz) chrání zrak. Telefony nad 220 g hmotnosti unavují malíček při dlouhém držení — důležité pro lidi s menšíma rukama. Otázka pro vás: Býváte citliví na bolesti očí nebo unavené ruce při čtení z mobilu za šera?',
         icon: '👁️',
         suggestedComponent: 'chips',
         suggestedValues: [

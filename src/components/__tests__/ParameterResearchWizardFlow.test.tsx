@@ -43,7 +43,7 @@ describe('Parameter Research Agent & 3-Phase Wizard Flow (Updated PRD)', () => {
     });
 
     // Klikneme na parametr 'Typ karoserie' pro odznačení
-    const paramTile = screen.getByText(/Typ karoserie & prostorové uspořádání/i);
+    const paramTile = screen.getByText(/Typ karoserie/i);
     fireEvent.click(paramTile);
 
     // Počet vybraných klesl

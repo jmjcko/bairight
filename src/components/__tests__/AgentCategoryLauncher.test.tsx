@@ -125,7 +125,7 @@ describe('AgentCategoryLauncher Unit Test Suite (PRD v1)', () => {
 
     // Check that cars parameters appear
     await waitFor(() => {
-      expect(screen.getByText(/Typ karoserie & prostorové uspořádání/i)).toBeInTheDocument();
+      expect(screen.getByText(/Typ karoserie/i)).toBeInTheDocument();
     });
 
     // Find the dismiss button for the first parameter
@@ -181,7 +181,7 @@ describe('AgentCategoryLauncher Unit Test Suite (PRD v1)', () => {
     fireEvent.click(gtxBtn);
 
     // Should now be rendered in active parameters grid
-    expect(screen.getByText(/Voděodolná membrána \(Gore-Tex \/ GTX\)/i)).toBeInTheDocument();
+    expect(screen.getByText(/Voděodolná membrána/i)).toBeInTheDocument();
   });
 
   it('7. Nezobrazuje žádné výchozí agenty a čistě spravuje pouze uživatelem vytvořené agenty', () => {
