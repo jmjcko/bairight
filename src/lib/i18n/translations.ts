@@ -188,6 +188,92 @@ export interface Translations {
     openChatBtn: string;
     backToWizard: string;
   };
+  header: {
+    wizardTab: string;
+    chatTab: string;
+    modelConnected: string;
+    modelDisconnected: string;
+    connectBtn: string;
+    settingsBtn: string;
+    modelConnectedDesc: string;
+    modelDisconnectedDesc: string;
+    ragMemory: string;
+    manageBtn: string;
+    ragFactsDesc: string;
+    openWizardBtn: string;
+    activeAgentTitle: string;
+    changeBtn: string;
+    storedAgentsTitle: string;
+    noStoredAgents: string;
+    createInWizardBtn: string;
+  };
+  launcher: {
+    badge: string;
+    heroTitle: string;
+    heroSubtitle: string;
+    searchPlaceholder: string;
+    btnStart: string;
+    btnResearching: string;
+    btnBuilding: string;
+    popularTitle: string;
+    researchedTitle: string;
+    researchedSubtitle: string;
+    selectedCount: string;
+    allSelectedHint: string;
+    btnCreateWizard: string;
+    addCustomPlaceholder: string;
+    btnAddCustom: string;
+    btnSuggestMore: string;
+    btnResetParams: string;
+    myAgentsTitle: string;
+    deleteAllAgents: string;
+    deleteAgentConfirm: string;
+    deleteAllAgentsConfirm: string;
+  };
+  brandSelector: {
+    preferredTitle: string;
+    forbiddenTitle: string;
+    preferredBadgeSelected: string;
+    preferredBadgeOpen: string;
+    forbiddenBadgeSelected: string;
+    forbiddenBadgeNone: string;
+    preferredPlaceholder: string;
+    forbiddenPlaceholder: string;
+    clearRestrictions: string;
+    openSelectionHint: string;
+    strictRulesHint: string;
+  };
+  dynamicWizard: {
+    stepIndicator: string;
+    btnPrevious: string;
+    btnContinue: string;
+    btnEvaluate: string;
+    btnEvaluating: string;
+    btnCancel: string;
+    btnEdit: string;
+    btnInspectPrompt: string;
+    btnDownloadMarkdown: string;
+    summaryTitle: string;
+    prosTitle: string;
+    consTitle: string;
+    reasoningTitle: string;
+    priceHint: string;
+    customChoiceTitle: string;
+    customChoicePlaceholder: string;
+    writeCustomOption: string;
+    resetProgressConfirm: string;
+  };
+  chatTab: {
+    byokBadge: string;
+    byokTitle: string;
+    byokDesc: string;
+    connectModelBtn: string;
+    inputPlaceholder: string;
+    sendBtn: string;
+    thinking: string;
+    chatError: string;
+    clearChat: string;
+  };
   disclaimer: string;
 }
 
@@ -394,6 +480,92 @@ export const translations: Record<SupportedLocale, Translations> = {
       openChatBtn: 'Otevřít Podiatrický chat',
       backToWizard: 'Zpět do výběru obuvi',
     },
+    header: {
+      wizardTab: 'Průvodce nákupem',
+      chatTab: 'Diskuse s agentem',
+      modelConnected: 'Model propojen',
+      modelDisconnected: 'Model nepropojen',
+      connectBtn: 'Propojit',
+      settingsBtn: 'Nastavení',
+      modelConnectedDesc: 'Aktivní: {provider}. Živá diskuse běží přes vaše předplatné.',
+      modelDisconnectedDesc: 'Pro diskusi je vyžadováno propojení s vaším modelem (BYOK).',
+      ragMemory: 'RAG paměť',
+      manageBtn: 'Spravovat',
+      ragFactsDesc: 'Zapojeno {count} preferenčních faktů do kontextu.',
+      openWizardBtn: 'Otevřít průvodce výběrem',
+      activeAgentTitle: 'Aktivní agent pro diskusi',
+      changeBtn: 'změnit',
+      storedAgentsTitle: 'Uložení agenti na vašem účtu:',
+      noStoredAgents: 'Na svém účtu zatím nemáte uloženého žádného nákupního agenta.',
+      createInWizardBtn: 'Vytvořit agenta v průvodci',
+    },
+    launcher: {
+      badge: 'Inteligentní nákupní rádce & průzkumník',
+      heroTitle: 'Co si dnes přejete koupit?',
+      heroSubtitle: 'Zadejte produkt a společně vytvoříme nákupního agenta na míru, který vás provede detailním výběrem.',
+      searchPlaceholder: 'např. Kancelářská ergonomická židle, freestyle koloběžka, espresso kávovar, běžecké boty...',
+      btnStart: 'Začít',
+      btnResearching: 'Zkoumám...',
+      btnBuilding: 'Stavím...',
+      popularTitle: 'Nebo vyberte z populárních nákupních agentů:',
+      researchedTitle: 'Agent Luke prozkoumal klíčové parametry pro:',
+      researchedSubtitle: 'Ověřeno přes komunitní fóra, teardowny a technické specifikace. Upravte si parametry na míru:',
+      selectedCount: 'Vybráno {selected} z {total} parametrů',
+      allSelectedHint: 'Všechny parametry jsou aktivní pro vytvoření wizardu.',
+      btnCreateWizard: 'Přejít k vytvoření průvodce ({count} parametrů)',
+      addCustomPlaceholder: 'Zadat vlastní parametr (např. Vhodnost pro alergiky, Hlučnost)...',
+      btnAddCustom: 'Přidat parametr',
+      btnSuggestMore: 'Navrhnout další parametry',
+      btnResetParams: 'Obnovit původní parametry',
+      myAgentsTitle: 'Moje vytvořené nákupní agenty',
+      deleteAllAgents: 'Smazat všechny agenty',
+      deleteAgentConfirm: 'Opravdu chcete smazat tohoto agenta z knihovny?',
+      deleteAllAgentsConfirm: 'Opravdu chcete smazat všechny uložené nákupní agenty?',
+    },
+    brandSelector: {
+      preferredTitle: 'Preferované značky (které chcete):',
+      forbiddenTitle: 'Zakázané a vyloučené značky (které nechcete):',
+      preferredBadgeSelected: '{count} vybráno',
+      preferredBadgeOpen: 'Otevřený výběr',
+      forbiddenBadgeSelected: '{count} zakázáno',
+      forbiddenBadgeNone: 'Bez zákazů',
+      preferredPlaceholder: 'Např. DeLonghi, Sage, Jura, Philips (napište a oddělte čárkou)...',
+      forbiddenPlaceholder: 'Např. Sencor, Silvercrest, neznačkové (napište a oddělte čárkou)...',
+      clearRestrictions: 'Vymazat omezení značek',
+      openSelectionHint: '💡 Nemáte zadaná omezení — asistent vybere nejlepší model napříč celým trhem.',
+      strictRulesHint: '🔒 Asistent bude striktně respektovat zadaná pravidla pro značky.',
+    },
+    dynamicWizard: {
+      stepIndicator: 'Krok {current} z {total}',
+      btnPrevious: 'Předchozí krok',
+      btnContinue: 'Pokračovat',
+      btnEvaluate: 'Vygenerovat doporučení',
+      btnEvaluating: 'Agent vyhodnocuje parametry...',
+      btnCancel: 'Zavřít / Zahodit progress',
+      btnEdit: 'Upravit wizard',
+      btnInspectPrompt: 'Zkontrolovat prompt pro AI',
+      btnDownloadMarkdown: 'Stáhnout agenta (.md)',
+      summaryTitle: 'Shrnutí & expertní hodnocení agenta',
+      prosTitle: 'Klíčové výhody & proč koupit',
+      consTitle: 'Na co si dát pozor & kompromisy',
+      reasoningTitle: 'Expertní odůvodnění výběru',
+      priceHint: 'Cena na trhu',
+      customChoiceTitle: 'Vlastní specifická volba:',
+      customChoicePlaceholder: 'Napište vlastní odpověď či specifické upřesnění...',
+      writeCustomOption: 'Napsat vlastní možnost (jiný specifický požadavek)...',
+      resetProgressConfirm: 'Opravdu chcete opustit průvodce a zahodit dosavadní postup?',
+    },
+    chatTab: {
+      byokBadge: 'Diskuse s agentem • Vyžaduje vlastní model (BYOK)',
+      byokTitle: 'Propojte své AI předplatné pro živou diskusi',
+      byokDesc: 'Abychom neplýtvali tokeny a mohli vést neomezenou hloubkovou diskusi nad vybraným produktem, zadejte svůj API klíč (Google Gemini, OpenAI, Anthropic).',
+      connectModelBtn: 'Zadat API klíč (BYOK)',
+      inputPlaceholder: 'Zeptejte se agenta na cokoliv ohledně parametrů a výběru...',
+      sendBtn: 'Odeslat',
+      thinking: 'Agent přemýšlí...',
+      chatError: 'Došlo k chybě při spojení s AI konzultantem.',
+      clearChat: 'Vyčistit historii konverzace',
+    },
     disclaimer: 'Veškerá doporučení a výpočty mají výhradně informativní a orientační charakter. Systém neprovádí lékařskou diagnostiku a nenahrazuje odborné vyšetření lékařem či ortopedem.',
   },
   en: {
@@ -597,6 +769,92 @@ export const translations: Record<SupportedLocale, Translations> = {
       consultInChat: 'Need tailored fitting advice?',
       openChatBtn: 'Open Podiatry Chat',
       backToWizard: 'Back to Footwear Selection',
+    },
+    header: {
+      wizardTab: 'Shopping Wizard',
+      chatTab: 'Agent Discussion',
+      modelConnected: 'Model Connected',
+      modelDisconnected: 'Model Not Connected',
+      connectBtn: 'Connect',
+      settingsBtn: 'Settings',
+      modelConnectedDesc: 'Active: {provider}. Live discussion runs via your subscription.',
+      modelDisconnectedDesc: 'Discussion requires connecting your AI model (BYOK).',
+      ragMemory: 'RAG Memory',
+      manageBtn: 'Manage',
+      ragFactsDesc: '{count} preference facts injected into system context.',
+      openWizardBtn: 'Open Shopping Wizard',
+      activeAgentTitle: 'Active Discussion Agent',
+      changeBtn: 'change',
+      storedAgentsTitle: 'Saved agents on your account:',
+      noStoredAgents: 'You do not have any shopping agents saved on your account yet.',
+      createInWizardBtn: 'Create an Agent in Wizard',
+    },
+    launcher: {
+      badge: 'Intelligent Shopping Advisor & Explorer',
+      heroTitle: 'What would you like to buy today?',
+      heroSubtitle: 'Enter any product and let\'s craft a tailored shopping agent together to guide your selection.',
+      searchPlaceholder: 'e.g. Ergonomic office chair, stunt scooter, espresso machine, running shoes...',
+      btnStart: 'Start',
+      btnResearching: 'Researching...',
+      btnBuilding: 'Building...',
+      popularTitle: 'Or choose from popular shopping agents:',
+      researchedTitle: 'Agent Luke researched key parameters for:',
+      researchedSubtitle: 'Grounded in enthusiast forums, teardowns, and engineering specs. Tailor your parameters:',
+      selectedCount: 'Selected {selected} of {total} parameters',
+      allSelectedHint: 'All parameters are active for wizard generation.',
+      btnCreateWizard: 'Proceed to Wizard Creation ({count} parameters)',
+      addCustomPlaceholder: 'Add custom parameter (e.g. Allergy friendly, Noise level)...',
+      btnAddCustom: 'Add Parameter',
+      btnSuggestMore: 'Suggest More Parameters',
+      btnResetParams: 'Reset Parameters',
+      myAgentsTitle: 'My Created & Tuned Shopping Agents',
+      deleteAllAgents: 'Delete All Agents',
+      deleteAgentConfirm: 'Are you sure you want to delete this agent from your library?',
+      deleteAllAgentsConfirm: 'Are you sure you want to delete all saved shopping agents?',
+    },
+    brandSelector: {
+      preferredTitle: 'Preferred brands (prioritized):',
+      forbiddenTitle: 'Forbidden / excluded brands (strictly avoid):',
+      preferredBadgeSelected: '{count} selected',
+      preferredBadgeOpen: 'Open Selection',
+      forbiddenBadgeSelected: '{count} excluded',
+      forbiddenBadgeNone: 'No Exclusions',
+      preferredPlaceholder: 'e.g. DeLonghi, Sage, Jura, Philips (type and separate with comma)...',
+      forbiddenPlaceholder: 'e.g. Sencor, Silvercrest, generic (type and separate with comma)...',
+      clearRestrictions: 'Clear Brand Restrictions',
+      openSelectionHint: '💡 No brand restrictions set — the assistant will evaluate all quality brands on the market.',
+      strictRulesHint: '🔒 The assistant will strictly enforce your brand preference rules.',
+    },
+    dynamicWizard: {
+      stepIndicator: 'Step {current} of {total}',
+      btnPrevious: 'Previous Step',
+      btnContinue: 'Continue',
+      btnEvaluate: 'Generate Agent Recommendations',
+      btnEvaluating: 'Agent is evaluating parameters...',
+      btnCancel: 'Cancel Wizard',
+      btnEdit: 'Edit Wizard',
+      btnInspectPrompt: 'Inspect Prompt',
+      btnDownloadMarkdown: 'Download Agent (.md)',
+      summaryTitle: 'Summary & Expert Assessment',
+      prosTitle: 'Key Advantages & Why Buy',
+      consTitle: 'Trade-offs & What to Watch Out For',
+      reasoningTitle: 'Expert Recommendation Rationale',
+      priceHint: 'Market Price',
+      customChoiceTitle: 'Custom Specific Choice:',
+      customChoicePlaceholder: 'Write your custom answer or specific clarification...',
+      writeCustomOption: 'Write a custom option (different specific requirement)...',
+      resetProgressConfirm: 'Are you sure you want to exit the wizard and discard your current progress?',
+    },
+    chatTab: {
+      byokBadge: 'Agent Discussion • Requires Your Own Model (BYOK)',
+      byokTitle: 'Connect your AI subscription for live discussion',
+      byokDesc: 'To avoid token waste and allow unlimited deep discussion about your chosen product, enter your API key (Google Gemini, OpenAI, Anthropic).',
+      connectModelBtn: 'Enter API Key (BYOK)',
+      inputPlaceholder: 'Ask the agent anything regarding specifications and recommendations...',
+      sendBtn: 'Send',
+      thinking: 'Agent is thinking...',
+      chatError: 'An error occurred while connecting to the AI consultant.',
+      clearChat: 'Clear Conversation History',
     },
     disclaimer: 'All recommendations and calculations are strictly for informational and guidance purposes. The system does not provide medical diagnosis and does not replace specialist medical examination.',
   },

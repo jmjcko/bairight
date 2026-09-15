@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { Space_Grotesk, Inter_Tight } from 'next/font/google';
 import './globals.css';
+import { I18nProvider } from '@/lib/i18n/I18nContext';
 
 const spaceGrotesk = Space_Grotesk({
   subsets: ['latin', 'latin-ext'],
@@ -29,7 +30,9 @@ export default function RootLayout({
   return (
     <html lang="cs" data-theme="pixel-mint" data-design-system="executive-technical" data-font="space-grotesk" className={`dark ${spaceGrotesk.variable} ${interTight.variable}`}>
       <body className={`min-h-screen bg-[var(--background)] text-[var(--foreground)] antialiased selection:bg-emerald-900 selection:text-white ${spaceGrotesk.className}`}>
-        {children}
+        <I18nProvider>
+          {children}
+        </I18nProvider>
       </body>
     </html>
   );

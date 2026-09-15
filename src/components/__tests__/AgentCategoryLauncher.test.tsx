@@ -239,7 +239,7 @@ describe('AgentCategoryLauncher Unit Test Suite (PRD v1)', () => {
     expect(screen.getByRole('button', { name: /Přidat parametr/i })).toBeInTheDocument();
   });
 
-  it('9. Pod vyhledávacím polem se nachází dropdown vytvořených agentů uživatele s historií a možností výběru', async () => {
+  it('9. Nezobrazuje duplicitní dropdown a spravuje agenty přímo v přehledné knihovně karet', async () => {
     AgentStorageService.resetToDefaults();
     AgentStorageService.saveAgent({
       id: 'custom_car_advisor',
@@ -256,22 +256,18 @@ describe('AgentCategoryLauncher Unit Test Suite (PRD v1)', () => {
 
     render(<AgentCategoryLauncher onSelectAgent={mockOnSelectAgent} userName="Jan Mynář" />);
 
-    // Zkontrolujeme přítomnost triggeru dropdownu pod search boxem
-    const dropdownTrigger = screen.getByTitle(/Zvolit historicky vytvořeného agenta vašeho účtu/i);
-    expect(dropdownTrigger).toBeInTheDocument();
-    expect(screen.getByText(/Vybrat z mých vytvořených agentů \(1\)/i)).toBeInTheDocument();
+    // Ověříme, že duplicitní dropdown "Vybrat z mých vytvořených agentů" byl zcela odstraněn
+    expect(screen.queryByTitle(/Zvolit historicky vytvořeného agenta vašeho účtu/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/Vybrat z mých vytvořených agentů/i)).not.toBeInTheDocument();
 
-    // Otevřeme dropdown
-    fireEvent.click(dropdownTrigger);
-
-    // Ověříme, že vidíme vytvořeného agenta uživatele a identifikátor účtu
-    expect(screen.getByText(/Moji vytvoření agenti \(1\)/i)).toBeInTheDocument();
-    expect(screen.getByText(/Účet: Jan Mynář/i)).toBeInTheDocument();
-    expect(screen.getAllByText(/Můj poradce pro elektromobily/i).length).toBeGreaterThanOrEqual(1);
-    expect(screen.getAllByText('v1.2.0').length).toBeGreaterThanOrEqual(1);
+    // Uživatel vidí svého agenta přímo v dedikované knihovně karet
+    expect(screen.getByText(/Moje vytvořené nákupní agenty/i)).toBeInTheDocument();
+    expect(screen.getByText(/Můj poradce pro elektromobily/i)).toBeInTheDocument();
+    expect(screen.getByText(/Automotive/i)).toBeInTheDocument();
+    expect(screen.getByText(/Spustit/i)).toBeInTheDocument();
 
     // Kliknutí na kartu vytvořeného agenta vybere daného agenta
-    const agentCard = screen.getAllByText(/Můj poradce pro elektromobily/i)[0];
+    const agentCard = screen.getByText(/Můj poradce pro elektromobily/i);
     fireEvent.click(agentCard);
 
     expect(mockOnSelectAgent).toHaveBeenCalledTimes(1);

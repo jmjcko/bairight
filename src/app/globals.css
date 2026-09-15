@@ -718,10 +718,21 @@ input[type="range"]::-webkit-slider-thumb:hover {
   letter-spacing: -0.01em !important;
 }
 
-[data-design-system="executive-technical"] input,
+[data-design-system="executive-technical"] input:not([type="checkbox"]):not([type="radio"]):not(.bg-transparent),
 [data-design-system="executive-technical"] select {
   border-radius: 6px !important;
   border: 1px solid rgba(148, 163, 184, 0.25) !important;
+}
+
+/* Universal rule to ensure transparent inputs inside composite search boxes never inherit forced borders */
+input.bg-transparent,
+.bg-transparent input,
+input[class*="border-none"],
+input[class*="border-0"] {
+  border: none !important;
+  border-width: 0 !important;
+  box-shadow: none !important;
+  outline: none !important;
 }
 
 [data-design-system="executive-technical"] .text-cyan-300,
@@ -765,7 +776,7 @@ input[type="range"]::-webkit-slider-thumb:hover {
   box-shadow: 4px 4px 0px #ffffff !important;
 }
 
-[data-design-system="neo-brutalist"] input,
+[data-design-system="neo-brutalist"] input:not([type="checkbox"]):not([type="radio"]):not(.bg-transparent),
 [data-design-system="neo-brutalist"] select {
   border-radius: 0px !important;
   border: 2px solid #ccff00 !important;
@@ -813,7 +824,7 @@ input[type="range"]::-webkit-slider-thumb:hover {
   transition: all 0.2s ease !important;
 }
 
-[data-design-system="organic-zen"] input,
+[data-design-system="organic-zen"] input:not([type="checkbox"]):not([type="radio"]):not(.bg-transparent),
 [data-design-system="organic-zen"] select {
   border-radius: 16px !important;
   border: 1px solid rgba(215, 207, 195, 0.8) !important;

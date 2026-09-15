@@ -538,7 +538,16 @@ export const UserRAGMemoryModal: React.FC<UserRAGMemoryModalProps> = ({
 
               {/* Facts list */}
               <div className="space-y-2">
-                {facts.map((fact) => {
+                {facts.length === 0 ? (
+                  <div className="py-8 text-center text-slate-400 space-y-2 border border-dashed border-slate-800 rounded-2xl p-6">
+                    <FileText className="w-8 h-8 text-slate-600 mx-auto" />
+                    <p className="text-xs font-medium text-slate-300">Zatím nemáte uložena žádná specifická fakta.</p>
+                    <p className="text-[11px] text-slate-500">
+                      Klikněte na „Přidat ergonomický fakt“ výše pro přidání vlastních kritérií, rozměrů či preferencí.
+                    </p>
+                  </div>
+                ) : (
+                  facts.map((fact) => {
                   const categoryBadge = 
                     fact.category === 'medical' ? { label: 'Ergonomie & komfort', color: 'border-teal-500/30 text-teal-300 bg-teal-950/40' } :
                     fact.category === 'biometrics' ? { label: 'Biometrie', color: 'border-purple-500/30 text-purple-300 bg-purple-950/40' } :
@@ -591,7 +600,8 @@ export const UserRAGMemoryModal: React.FC<UserRAGMemoryModalProps> = ({
                       </button>
                     </div>
                   );
-                })}
+                })
+              )}
               </div>
             </div>
           )}

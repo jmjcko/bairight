@@ -17,9 +17,24 @@ export interface ExtractedDomainParameter {
   importance: 'mandatory' | 'recommended' | 'preference';
   rationale: string;
   icon?: string;
-  suggestedComponent: 'chips' | 'slider' | 'dropdown';
+  suggestedComponent: 'chips' | 'slider' | 'dropdown' | 'brands';
   suggestedValues?: string[];
 }
+
+export const UNIVERSAL_BRAND_PARAMETER: ExtractedDomainParameter = {
+  id: 'brand_preferences',
+  name: 'Značka & Výrobci (Preferované vs. Zakázané)',
+  category: 'Výrobci & Značky',
+  importance: 'recommended',
+  rationale: 'Umožňuje uvést konkrétní preferované značky, kterým důvěřujete, a naopak striktně vyloučit výrobce, které nechcete.',
+  icon: '🏷️',
+  suggestedComponent: 'brands',
+  suggestedValues: [
+    'Všechny ověřené značky (otevřený výběr)',
+    'Mám konkrétní preferované značky',
+    'Chci vyloučit konkrétní výrobce',
+  ],
+};
 
 export interface DomainAnalysisResult {
   keyword: string;
@@ -1480,6 +1495,30 @@ export function discoverDomainParameters(query: string): DomainAnalysisResult {
       effectiveParameters = effectiveParameters.filter((p) => p.id !== 'transmission');
     }
 
+    // Ensure Luke ALWAYS offers brand/manufacturer preferences
+    const hasBrandParam = effectiveParameters.some(
+      (p) => p.id === 'brand_preferences' || p.id.includes('brand') || normalizeText(p.name).includes('znack') || normalizeText(p.name).includes('vyrobc')
+    );
+    if (!hasBrandParam) {
+      effectiveParameters.push(UNIVERSAL_BRAND_PARAMETER);
+    }
+
+    const hasBrandQuestion = effectiveQuestions.some(
+      (q) => q.id.includes('brand') || normalizeText(q.title).includes('znack') || normalizeText(q.title).includes('vyrobc')
+    );
+    if (!hasBrandQuestion) {
+      effectiveQuestions.push({
+        id: 'brand_preferences_q',
+        step: effectiveQuestions.length + 1,
+        title: 'Preferované a zakázané značky / výrobci',
+        subtitle: 'Uveďte značky, kterým důvěřujete a chcete je doporučit, a naopak ty, které si nepřejete.',
+        component: 'brands',
+        isMultiSelect: false,
+        defaultValue: { preferred: '', forbidden: '' },
+        promptForgeTemplate: '- **Pravidla pro výrobce & značky:** {value}',
+      });
+    }
+
     return {
       keyword: query,
       matchedDomain: key,
@@ -1520,6 +1559,22 @@ export function buildCustomAgentFromParameters(
   let stepIndex = 1;
 
   for (const param of activeParameters) {
+    const isBrandParam = param.id === 'brand_preferences' || param.id.includes('brand') || normalizeText(param.name).includes('znack') || normalizeText(param.name).includes('vyrobc');
+    if (isBrandParam) {
+      tunedQuestions.push({
+        id: param.id,
+        step: stepIndex,
+        title: param.name || 'Preferované a zakázané značky / výrobci',
+        subtitle: param.rationale || 'Napište výrobce, které preferujete, a značky, které chcete z výběru striktně vyloučit.',
+        component: 'brands',
+        isMultiSelect: false,
+        defaultValue: { preferred: '', forbidden: '' },
+        promptForgeTemplate: `- **Pravidla pro výrobce & značky:** {value}`,
+      });
+      stepIndex++;
+      continue;
+    }
+
     const existing = existingQuestionsMap.get(param.id);
     if (existing) {
       tunedQuestions.push({
@@ -1548,7 +1603,7 @@ export function buildCustomAgentFromParameters(
       ? param.suggestedValues.map((v) => ({
           label: v,
           value: v.toLowerCase().replace(/[^a-z0-9]+/g, '_'),
-          description: `Preference: ${v}`,
+          description: undefined,
         }))
       : [
           { label: 'Vysoká priorita (Požadováno)', value: 'required', description: 'Striktní podmínka výběru' },
@@ -1559,7 +1614,7 @@ export function buildCustomAgentFromParameters(
     tunedQuestions.push({
       id: param.id,
       step: stepIndex,
-      title: `Jaké jsou vaše požadavky na: ${param.name}?`,
+      title: param.name,
       subtitle: param.rationale || 'Vyberte variantu odpovídající vašim potřebám.',
       component: param.suggestedComponent || 'chips',
       isMultiSelect: false,
@@ -1740,6 +1795,7 @@ function synthesizeGenericDomainProfile(query: string): DomainAnalysisResult {
       suggestedComponent: 'slider',
       suggestedValues: ['Dle cenové hladiny'],
     },
+    UNIVERSAL_BRAND_PARAMETER,
   ];
 
   const questions: WizardQuestion[] = [
@@ -1775,8 +1831,18 @@ function synthesizeGenericDomainProfile(query: string): DomainAnalysisResult {
       promptForgeTemplate: '- **Klíčové priority:** {value}',
     },
     {
-      id: 'generic_budget',
+      id: 'generic_brands',
       step: 3,
+      title: 'Preferované a zakázané značky / výrobci',
+      subtitle: 'Napište výrobce, které preferujete (chcete doporučit), a naopak ty, které chcete z výběru striktně vyloučit.',
+      component: 'brands',
+      isMultiSelect: false,
+      defaultValue: { preferred: '', forbidden: '' },
+      promptForgeTemplate: '- **Pravidla pro výrobce & značky:** {value}',
+    },
+    {
+      id: 'generic_budget',
+      step: 4,
       title: 'Orientační rozpočet na nákup',
       subtitle: 'Cenová hladina v Kč pro výběr optimálního modelu.',
       component: 'slider',

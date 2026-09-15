@@ -12,7 +12,7 @@ import {
   buildCustomAgentFromParameters
 } from '@/lib/agent/domain-parameter-discovery';
 import { DomainLearningService } from '@/lib/agent/domain-learning-service';
-import { MissionSelector } from '@/components/MissionSelector';
+import { useI18n } from '@/lib/i18n/I18nContext';
 import { 
   Sparkles, 
   Search, 
@@ -36,7 +36,7 @@ import {
 } from 'lucide-react';
 
 interface AgentCategoryLauncherProps {
-  onSelectAgent: (agent: UniversalAgentDefinition) => void;
+  onSelectAgent: (agent: UniversalAgentDefinition, initialShowResult?: boolean) => void;
   currentAgent?: UniversalAgentDefinition | null;
   activeProviderId?: string;
   currentApiKeys?: Record<string, string>;
@@ -52,6 +52,7 @@ export const AgentCategoryLauncher: React.FC<AgentCategoryLauncherProps> = ({
   onOpenSubscriptionModal,
   userName = 'Jan Mynář',
 }) => {
+  const { t, locale } = useI18n();
   const [query, setQuery] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
   const [generationStep, setGenerationStep] = useState<string>('');
@@ -68,7 +69,7 @@ export const AgentCategoryLauncher: React.FC<AgentCategoryLauncherProps> = ({
   const focusCustomParamInput = () => {
     if (customInputRef.current) {
       customInputRef.current.focus();
-      customInputRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      customInputRef.current.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     }
   };
 
@@ -112,7 +113,7 @@ export const AgentCategoryLauncher: React.FC<AgentCategoryLauncherProps> = ({
       const res = await fetch('/api/agent/research-parameters', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ query: target, providerId, apiKey }),
+        body: JSON.stringify({ query: target, providerId, apiKey, locale }),
       });
 
       if (res.ok) {
@@ -293,6 +294,7 @@ export const AgentCategoryLauncher: React.FC<AgentCategoryLauncherProps> = ({
           customParameters: finalParamsToUse.length > 0 ? finalParamsToUse : undefined,
           providerId,
           apiKey,
+          locale,
         }),
       });
 
@@ -315,7 +317,7 @@ export const AgentCategoryLauncher: React.FC<AgentCategoryLauncherProps> = ({
         AgentStorageService.saveAgent(finalAgent);
         setAgents(AgentStorageService.getAllAgents());
         setQuery('');
-        onSelectAgent(finalAgent);
+        onSelectAgent(finalAgent, false);
       }
     } catch (err) {
       console.warn('Fallback to tuned agent generator:', err);
@@ -329,7 +331,7 @@ export const AgentCategoryLauncher: React.FC<AgentCategoryLauncherProps> = ({
         AgentStorageService.saveAgent(fallbackAgent);
         setAgents(AgentStorageService.getAllAgents());
         setQuery('');
-        onSelectAgent(fallbackAgent);
+        onSelectAgent(fallbackAgent, false);
       } else {
         alert('Chyba při generování nákupního průvodce. Zkontrolujte připojení k internetu nebo API klíč.');
       }
@@ -358,23 +360,25 @@ export const AgentCategoryLauncher: React.FC<AgentCategoryLauncherProps> = ({
   return (
     <div className="w-full max-w-5xl mx-auto space-y-10 py-6 animate-in fade-in duration-300">
       {/* Hero Search Box (PRD Step 1: User enters a free-text starting point) */}
-      <div className="rounded-3xl p-8 sm:p-12 border-2 border-cyan-500/40 bg-gradient-to-b from-[#091528]/95 via-[#050e1c]/95 to-[#020610]/95 shadow-[0_0_80px_rgba(6,182,212,0.18),0_30px_90px_rgba(0,0,0,0.7)] relative overflow-hidden text-center space-y-7 ring-1 ring-cyan-400/25">
-        {/* Ambient Top Spotlight illuminating the search box */}
-        <div className="absolute -top-28 left-1/2 -translate-x-1/2 w-[600px] h-[300px] bg-cyan-500/18 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute -bottom-36 -right-20 w-80 h-80 bg-teal-500/12 rounded-full blur-3xl pointer-events-none" />
+      <div className="rounded-3xl p-8 sm:p-12 border-2 border-cyan-500/40 bg-gradient-to-b from-[#091528]/95 via-[#050e1c]/95 to-[#020610]/95 shadow-[0_0_80px_rgba(6,182,212,0.18),0_30px_90px_rgba(0,0,0,0.7)] relative text-center space-y-7 ring-1 ring-cyan-400/25">
+        {/* Ambient Top Spotlight illuminating the search box - isolated in an overflow-hidden wrapper so hero content never gets scroll-clipped */}
+        <div className="absolute inset-0 rounded-3xl overflow-hidden pointer-events-none">
+          <div className="absolute -top-28 left-1/2 -translate-x-1/2 w-[600px] h-[300px] bg-cyan-500/18 rounded-full blur-3xl" />
+          <div className="absolute -bottom-36 -right-20 w-80 h-80 bg-teal-500/12 rounded-full blur-3xl" />
+        </div>
 
         <div className="max-w-2xl mx-auto space-y-3 relative z-10">
           <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-cyan-950/80 border border-cyan-400/40 text-cyan-300 text-xs font-mono font-bold shadow-[0_0_16px_rgba(6,182,212,0.25)]">
             <Sparkles className="w-3.5 h-3.5 text-cyan-400 animate-pulse" />
-            <span>Inteligentní nákupní rádce & průzkumník</span>
+            <span>{t.launcher.badge}</span>
           </div>
 
           <h1 className="text-3xl sm:text-5xl font-black text-white tracking-tight leading-tight drop-shadow-md">
-            Co si dnes přejete koupit?
+            {t.launcher.heroTitle}
           </h1>
 
           <p className="text-sm sm:text-base text-slate-300 max-w-xl mx-auto leading-relaxed">
-            Zadejte produkt a společně vytvoříme nákupního agenta na míru, který vás provede detailním výběrem.
+            {t.launcher.heroSubtitle}
           </p>
         </div>
 
@@ -394,7 +398,7 @@ export const AgentCategoryLauncher: React.FC<AgentCategoryLauncherProps> = ({
             {/* Luminous Animated Border Glow */}
             <div className="absolute -inset-1 bg-gradient-to-r from-cyan-500 via-teal-400 to-cyan-500 rounded-2xl blur-sm opacity-35 group-hover:opacity-65 group-focus-within:opacity-100 transition-all duration-300 pointer-events-none" />
 
-            <div className="relative flex items-center bg-slate-950/95 rounded-2xl border-2 border-cyan-500/50 shadow-[0_4px_30px_rgba(0,0,0,0.8)] overflow-hidden">
+            <div className="relative flex items-center h-14 sm:h-16 bg-slate-950/95 rounded-2xl border-2 border-cyan-500/50 shadow-[0_4px_30px_rgba(0,0,0,0.8)] overflow-hidden">
               <div className="pl-4 sm:pl-5 text-cyan-400 shrink-0">
                 <Search className="w-5 h-5 sm:w-6 sm:h-6" />
               </div>
@@ -414,8 +418,9 @@ export const AgentCategoryLauncher: React.FC<AgentCategoryLauncherProps> = ({
                   }
                 }}
                 disabled={isGenerating || isResearching}
-                placeholder="např. Kancelářská ergonomická židle, freestyle koloběžka, espresso kávovar, běžecké boty..."
-                className="w-full pl-3.5 pr-32 sm:pr-40 py-4 sm:py-5 bg-transparent text-white placeholder-slate-500 text-sm sm:text-base font-medium outline-none"
+                placeholder={t.launcher.searchPlaceholder}
+                className="w-full h-full pl-3.5 pr-32 sm:pr-40 bg-transparent text-white placeholder-slate-500 text-sm sm:text-base font-medium outline-none leading-normal caret-cyan-400 !border-none !border-0 !outline-none !shadow-none"
+                style={{ border: 'none', outline: 'none', boxShadow: 'none' }}
               />
 
               <button
@@ -427,17 +432,17 @@ export const AgentCategoryLauncher: React.FC<AgentCategoryLauncherProps> = ({
                 {isResearching ? (
                   <>
                     <Sparkles className="w-4 h-4 animate-spin" />
-                    <span>Zkoumám...</span>
+                    <span>{t.launcher.btnResearching}</span>
                   </>
                 ) : isGenerating ? (
                   <>
                     <Sparkles className="w-4 h-4 animate-spin" />
-                    <span>Stavím...</span>
+                    <span>{t.launcher.btnBuilding}</span>
                   </>
                 ) : (
                   <>
                     <Sparkles className="w-4 h-4 stroke-[2.5]" />
-                    <span>Začít</span>
+                    <span>{t.launcher.btnStart}</span>
                   </>
                 )}
               </button>
@@ -697,7 +702,11 @@ export const AgentCategoryLauncher: React.FC<AgentCategoryLauncherProps> = ({
               <div className="pt-3 border-t border-cyan-500/20 flex flex-col sm:flex-row items-center justify-between gap-3">
                 <div className="text-xs font-mono text-slate-400 flex items-center gap-2 whitespace-nowrap self-start sm:self-center">
                   <Sliders className="w-3.5 h-3.5 text-cyan-400 shrink-0" />
-                  <span className="text-cyan-300 font-bold">Vybráno {selectedParamIds.size} z {activeParameters.length} parametrů</span>
+                  <span className="text-cyan-300 font-bold">
+                    {locale === 'en' 
+                      ? `Selected ${selectedParamIds.size} of ${activeParameters.length} parameters`
+                      : `Vybráno ${selectedParamIds.size} z ${activeParameters.length} parametrů`}
+                  </span>
                 </div>
 
                 <button
@@ -731,32 +740,13 @@ export const AgentCategoryLauncher: React.FC<AgentCategoryLauncherProps> = ({
         </form>
       </div>
 
-      {/* User's Created Agents Selector Dropdown - positioned cleanly outside and below the hero box */}
-      <div className="-mt-6 max-w-md mx-auto relative z-30">
-        <MissionSelector
-          currentAgent={currentAgent || null}
-          variant="hero"
-          userName={userName}
-          userAgents={agents}
-          onSelectAgent={onSelectAgent}
-          onDeleteAgent={() => setAgents(AgentStorageService.getAllAgents())}
-          onCreateNewAgent={() => {
-            const input = document.querySelector('input[type="text"]') as HTMLInputElement;
-            if (input) {
-              input.focus();
-              input.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            }
-          }}
-        />
-      </div>
-
       {/* User Custom Agents Library Grid - Only rendered when user has created custom agents */}
       {agents.length > 0 && (
         <div className="space-y-4">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div>
               <h2 className="text-xl font-extrabold text-white tracking-tight flex items-center gap-2">
-                <span>Moje vytvořené nákupní agenty</span>
+                <span>{t.launcher.myAgentsTitle}</span>
                 <span className="text-xs font-mono font-normal px-2.5 py-0.5 rounded-full bg-slate-900 border border-slate-800 text-cyan-300">
                   {agents.length}
                 </span>
@@ -781,7 +771,7 @@ export const AgentCategoryLauncher: React.FC<AgentCategoryLauncherProps> = ({
             {agents.map((agent) => (
               <div
                 key={agent.id}
-                onClick={() => onSelectAgent(agent)}
+                onClick={() => onSelectAgent(agent, true)}
                 className="group p-5 rounded-3xl bg-[#060c18] border border-cyan-500/20 hover:border-cyan-400/80 shadow-md hover:shadow-cyan-950/40 transition-all cursor-pointer flex flex-col justify-between space-y-4 relative overflow-hidden"
               >
                 <div className="space-y-3">

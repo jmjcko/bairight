@@ -21,8 +21,12 @@ export const Logo: React.FC<LogoProps> = ({
   return (
     <div 
       onClick={onClick}
+      role={onClick ? 'button' : undefined}
+      tabIndex={onClick ? 0 : undefined}
+      onKeyDown={onClick ? (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onClick(); } } : undefined}
+      aria-label="bAIright — Návrat na hlavní stránku"
       className={`group relative flex items-center select-none transition-all duration-300 ${onClick ? 'cursor-pointer' : ''} ${className}`}
-      title="bAIright — Buy Right with AI"
+      title="bAIright — Návrat na hlavní stránku"
     >
       {/* Soft Ambient Neon Glow Behind the 3D AI Ribbon */}
       <div className="absolute inset-x-4 inset-y-1 bg-cyan-400/20 rounded-full blur-xl group-hover:bg-cyan-400/35 transition-all duration-500 pointer-events-none" />

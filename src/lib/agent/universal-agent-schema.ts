@@ -3,7 +3,7 @@
  * Implements PRD Section 6.1 (Dynamic Wizard Generation) & 6.3 (Agent Persistence in Portable Markdown/YAML)
  */
 
-export type WizardComponentType = 'chips' | 'slider' | 'dropdown';
+export type WizardComponentType = 'chips' | 'slider' | 'dropdown' | 'brands';
 
 export interface WizardQuestionOption {
   label: string;
@@ -181,7 +181,13 @@ export function forgeAgentPrompt(
     const val = answers[q.id];
     if (val !== undefined && val !== null && val !== '') {
       let formattedVal = val;
-      if (Array.isArray(val)) {
+      if (typeof val === 'object' && val !== null && !Array.isArray(val) && ('preferred' in val || 'forbidden' in val)) {
+        const pref = Array.isArray(val.preferred) ? val.preferred.join(', ') : (typeof val.preferred === 'string' ? val.preferred.trim() : '');
+        const forb = Array.isArray(val.forbidden) ? val.forbidden.join(', ') : (typeof val.forbidden === 'string' ? val.forbidden.trim() : '');
+        const prefText = pref ? `Preferované značky: [${pref}]` : 'Bez omezení značek (otevřený výběr)';
+        const forbText = forb ? `Striktně zakázané značky (NIKDY nedoporučovat): [${forb}]` : 'Žádné zakázané značky';
+        formattedVal = `${prefText}; ${forbText}`;
+      } else if (Array.isArray(val)) {
         formattedVal = val.length > 0 ? val.join(', ') : 'Žádná specifická volba';
       }
       if (q.sliderConfig) {

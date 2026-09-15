@@ -8,11 +8,11 @@ import {
 
 export async function POST(req: NextRequest) {
   try {
-    const { prompt, providerId, apiKey, customParameters } = await req.json();
+    const { prompt, providerId, apiKey, customParameters, locale = 'cs' } = await req.json();
 
     if (!prompt || typeof prompt !== 'string' || prompt.trim().length === 0) {
       return NextResponse.json(
-        { error: 'Zadejte prosím popis produktu nebo kategorii, kterou chcete vybrat.' },
+        { error: locale === 'en' ? 'Please enter a product description or category.' : 'Zadejte prosím popis produktu nebo kategorii, kterou chcete vybrat.' },
         { status: 400 }
       );
     }
@@ -37,7 +37,7 @@ export async function POST(req: NextRequest) {
         const effectiveAnalysis = (customParameters && customParameters.length > 0)
           ? { ...domainAnalysis, parameters: customParameters }
           : domainAnalysis;
-        generatedAgent = await generateAgentWithLLM(trimmedPrompt, effectiveAnalysis, effectiveKey, providerId);
+        generatedAgent = await generateAgentWithLLM(trimmedPrompt, effectiveAnalysis, effectiveKey, providerId, locale);
       } catch (llmErr) {
         console.warn('Dynamic LLM wizard generation failed, using domain discovery heuristics:', llmErr);
       }
@@ -77,13 +77,21 @@ async function generateAgentWithLLM(
   userIntent: string,
   domainAnalysis: DomainAnalysisResult,
   apiKey: string,
-  providerId?: string
+  providerId?: string,
+  locale: string = 'cs'
 ): Promise<UniversalAgentDefinition> {
+  const isEn = locale === 'en';
+  const languageInstruction = isEn
+    ? `IMPORTANT: The user interface is in English. You MUST generate the agent name, category, description, systemPrompt, question titles, subtitles, options, and promptForgeTemplates in fluent English.`
+    : `DŮLEŽITÉ: Veškeré texty (název agenta, popis, otázky, možnosti, systémový prompt) musí být v přirozené češtině.`;
+
   const paramsSummary = domainAnalysis.parameters
     .map((p) => `- **${p.name}** (${p.importance}): ${p.rationale}`)
     .join('\n');
 
   const metaPrompt = `
+${languageInstruction}
+
 Jsi špičkový AI Product Strategist a doménový nákupní expert v systému bAIright.
 Uživatel chce koupit produkt a zadal klíčové slovo / záměr: "${userIntent}".
 
@@ -102,12 +110,12 @@ Odpověz STRIKTNĚ jako validní JSON bez jakéhokoliv markdownového obalu (\`\
 Struktura JSON:
 {
   "id": "kratky-unikatni-slug",
-  "name": "Výstižný název agenta (česky)",
+  "name": "${isEn ? 'Clear Agent Name in English' : 'Výstižný název agenta (česky)'}",
   "category": "${domainAnalysis.categoryName}",
   "icon": "${domainAnalysis.icon}",
   "version": "1.0.0",
-  "description": "Jednovětý popis toho, jak agent pomáhá vybrat nejlepší model.",
-  "systemPrompt": "Detailní expertní systémová instrukce s pravidly pro vyhodnocení, kontraindikacemi a doporučením 3 konkrétních reálných modelů z trhu.",
+  "description": "${isEn ? 'One-sentence description of how this agent helps choose the best product.' : 'Jednovětý popis toho, jak agent pomáhá vybrat nejlepší model.'}",
+  "systemPrompt": "${isEn ? 'Detailed expert system instruction in English with evaluation criteria, contraindications and recommendations of 3 real market models.' : 'Detailní expertní systémová instrukce s pravidly pro vyhodnocení, kontraindikacemi a doporučením 3 konkrétních reálných modelů z trhu.'}",
   "questions": [
     {
       "id": "identifikator_otazky",

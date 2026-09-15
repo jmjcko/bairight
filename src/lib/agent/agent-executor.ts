@@ -40,7 +40,30 @@ export async function processAgentConversation(
   // 2. Evaluate mandatory biomechanical guardrails
   const evalResult = evaluateMandatoryBiomechanicalParameters(updatedProfile, injuriesAcknowledged);
 
-  // 3. Branching based on State Machine
+  // 3. Branching based on State Machine or explicit user intent
+  const isAsking10 = 
+    /(?:10|deset)\s*(?:parametr|krit[eé]r|bod|v[eě]c)|(?:chci|dej|uka[zž]|napi[sš])\s*(?:jich\s*)?10/i.test(userText) ||
+    userText.trim() === '10' ||
+    (userText.toLowerCase().includes('10') && (userText.toLowerCase().includes('parametr') || userText.toLowerCase().includes('chci') || userText.toLowerCase().includes('rekl')));
+
+  if (isAsking10) {
+    const assistantContent = generate10ParametersShoeGuide(updatedProfile);
+    const assistantMsg: AgentChatMessage = {
+      id: `asst-${Date.now()}`,
+      role: 'assistant',
+      content: assistantContent,
+      timestamp: new Date().toISOString(),
+    };
+    ProfileStorageManager.addMessage(sessionId, assistantMsg);
+
+    return {
+      message: assistantMsg,
+      updatedProfile,
+      isReady: false,
+      missingFields: evalResult.missingFields,
+    };
+  }
+
   if (!evalResult.isReady) {
     // Search tools remain strictly locked
     const assistantContent = generateClarifyingQuestions(evalResult.missingFields, updatedProfile);
@@ -187,4 +210,28 @@ Na základě analýzy běžeckých komunit a biomechanických pravidel:
 ### 🇪🇺 Doporučené modely obuvi skladem v Evropě (šířka 2E):
 Níže naleznete modely splňující zadaná kritéria pro váš profil:
 `.trim();
+}
+
+function generate10ParametersShoeGuide(profile: BiomechanicalProfile): string {
+  const parts: string[] = [];
+  parts.push(`### 👟 10 klíčových parametrů pro výběr správné obuvi\n`);
+  
+  if (profile.knee_condition === 'osteoarthritis_grade_3') {
+    parts.push(`> ⚠️ **Zohlednění diagnózy:** Eviduji artrózu kolene 3. stupně. U parametrů kladu prioritní důraz na odlehčení kloubních chrupavek a plynulé odvalení kroku.\n`);
+  }
+
+  parts.push(`Tady je přehled 10 nejdůležitějších parametrů, které při výběru bot rozhodují o pohodlí, biomechanice a zdraví kloubů:\n`);
+  parts.push(`1. **Šířka kopyta (Toebox & Width):** Standardní D, široké 2E nebo extra široké 4E pro volnost prstů a prevenci otlaků.`);
+  parts.push(`2. **Úroveň a typ tlumení (Stack Height):** Výška a hustota mezipodešve pro absorpci nárazových sil při došlapu.`);
+  parts.push(`3. **Drop (sklon pata–špička):** Rozdíl výšky mezi patou a špičkou v mm (nižší 4–6 mm šetří kolena, vyšší 8–12 mm šetří Achillovku).`);
+  parts.push(`4. **Typ došlapu a podpora klenby:** Supinace (vnější hrana), pronace (vnitřní vtáčení) nebo neutrální vedení chodidla.`);
+  parts.push(`5. **Kolébková geometrie (Rocker Sole):** Plynulý oblouk mezipodešve pro odvalení kroku bez nadměrného namáhání kolene.`);
+  parts.push(`6. **Torzní tuhost a stabilita základny:** Šířka platformy a stabilita v krutu pro jistý krok bez vyvracení kotníku.`);
+  parts.push(`7. **Hmotnost obuvi vs. tělesná hmotnost:** Kalibrace hustoty pěny podle hmotnosti běžce, aby pěna neprošlápla.`);
+  parts.push(`8. **Trakce a vzorek podešve:** Hladká přilnavá pryž pro silnici vs. hluboký vícesměrný vzorek pro trail.`);
+  parts.push(`9. **Svršek a fixace paty (Heel Counter):** Bezešvá prodyšná síťovina a pevné uzamčení paty proti vyzouvání a puchýřům.`);
+  parts.push(`10. **Zdravotní kompatibilita & ortopedické vložky:** Dostatečná vnitřní hloubka a vyjímatelná stélka pro individuální vložky.\n`);
+  parts.push(`Můžete si z nich vybrat ty, které jsou pro vás prioritní, nebo mi napište svůj rozpočet a typ aktivity a doporučím vám konkrétní modely!`);
+
+  return parts.join('\n');
 }

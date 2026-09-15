@@ -152,4 +152,23 @@ describe('Domain Parameter Discovery & Prompt Synthesizer Test Suite', () => {
     expect(questionIds).toContain('ev_range_preference');
     expect(questionIds).toContain('ev_charging_situation');
   });
+
+  it('8. Luke VŽDY nabízí "značku" jako parametr napříč všemi kategoriemi a generuje pro ni otázku s pravidly pro preferované a zakázané značky', () => {
+    // Ověříme několik různých kategorií včetně neznámé generické
+    const categories = ['auto', 'kávovar', 'kancelářská židle', 'běžecké boty', 'sekačka na trávu'];
+
+    for (const cat of categories) {
+      const analysis = discoverDomainParameters(cat);
+      const hasBrandParam = analysis.parameters.some(
+        (p) => p.id === 'brand_preferences' || p.id.includes('brand') || p.name.toLowerCase().includes('značk') || p.name.toLowerCase().includes('výrobc')
+      );
+      expect(hasBrandParam, `Kategorie "${cat}" musí obsahovat parametr pro značky`).toBe(true);
+
+      const agent = buildAgentFromDomainAnalysis(analysis);
+      const hasBrandQuestion = agent.questions.some(
+        (q) => q.component === 'brands' || q.id.includes('brand') || q.title.toLowerCase().includes('značk')
+      );
+      expect(hasBrandQuestion, `Agent pro kategorii "${cat}" musí obsahovat otázku pro značky`).toBe(true);
+    }
+  });
 });

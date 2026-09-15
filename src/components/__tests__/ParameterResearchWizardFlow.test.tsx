@@ -47,11 +47,11 @@ describe('Parameter Research Agent & 3-Phase Wizard Flow (Updated PRD)', () => {
     fireEvent.click(paramTile);
 
     // Počet vybraných klesl
-    expect(screen.getByText(/Vybráno 9 z 10 parametrů/i)).toBeInTheDocument();
+    expect(screen.getByText(/Vybráno 10 z 11 parametrů/i)).toBeInTheDocument();
 
     // Klikneme znovu pro opětovné zaškrtnutí
     fireEvent.click(paramTile);
-    expect(screen.getByText(/Vybráno 10 z 10 parametrů/i)).toBeInTheDocument();
+    expect(screen.getByText(/Vybráno 11 z 11 parametrů/i)).toBeInTheDocument();
   });
 
   it('3. Tlačítko pro postup do wizardu nese přesný text dle PRD a generuje agenta pro vybrané parametry', async () => {
@@ -96,14 +96,14 @@ describe('Parameter Research Agent & 3-Phase Wizard Flow (Updated PRD)', () => {
     expect(restoredAgent.selectedParameters).toHaveLength(5);
   });
 
-  it('5. DynamicAgentWizard zobrazuje fázi nastavení cílových hodnot a krok vybraných parametrů', () => {
+  it('5. DynamicAgentWizard zobrazuje přehledné záhlaví a krok vybraných parametrů', () => {
     const analysis = discoverDomainParameters('kancelářská židle');
     const testAgent = buildCustomAgentFromParameters(analysis, analysis.parameters.slice(0, 3));
 
     render(<DynamicAgentWizard agent={testAgent} />);
 
-    // Zkontrolujeme zobrazení Fáze 2 v záhlaví
-    expect(screen.getByText(/Fáze 2: Nastavení cílových hodnot/i)).toBeInTheDocument();
+    // Zkontrolujeme zobrazení názvu a kroků v čistém záhlaví
+    expect(screen.getByText(testAgent.name)).toBeInTheDocument();
     expect(screen.getAllByText(/Krok 1 z 3/i).length).toBeGreaterThanOrEqual(1);
   });
 });

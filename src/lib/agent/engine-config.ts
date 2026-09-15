@@ -126,44 +126,7 @@ export interface PersistentMemoryFact {
   isEnriched: boolean;
 }
 
-export const INITIAL_USER_FACTS: PersistentMemoryFact[] = [
-  {
-    id: 'fact-1',
-    category: 'preference',
-    label: 'Záruční servis v ČR',
-    value: 'Požadavek na dostupnost autorizovaného servisu a náhradních dílů v České republice',
-    source: 'Uživatelská volba',
-    updatedAt: '11. 9. 2026 10:00',
-    isEnriched: true,
-  },
-  {
-    id: 'fact-2',
-    category: 'biometrics',
-    label: 'Ergonomie zad & sezení',
-    value: 'Bolesti bederní páteře při sezení nad 6 hodin (doporučena aktivní bederní opora a synchronní mechanika)',
-    source: 'Ergonomický dotazník',
-    updatedAt: '11. 9. 2026 10:15',
-    isEnriched: true,
-  },
-  {
-    id: 'fact-3',
-    category: 'preference',
-    label: 'Poměr cena / výkon',
-    value: 'Preference zlatého středu a spolehlivosti před ryze předraženými luxusními značkami',
-    source: 'Nákupní profil',
-    updatedAt: '11. 9. 2026 11:30',
-    isEnriched: true,
-  },
-  {
-    id: 'fact-4',
-    category: 'biometrics',
-    label: 'Anatomie chodidla (pro obuv)',
-    value: 'Širší chodidlo (vyžaduje prostornější anatomický toe-box či šířku 2E)',
-    source: 'Profil obuvi',
-    updatedAt: '11. 9. 2026 12:00',
-    isEnriched: true,
-  },
-];
+export const INITIAL_USER_FACTS: PersistentMemoryFact[] = [];
 
 export interface CompletedAssessmentRecord {
   id: string;
@@ -195,62 +158,6 @@ export interface CompletedAssessmentRecord {
   completedPrompt?: string;
 }
 
-export const INITIAL_ASSESSMENT_RECORDS: CompletedAssessmentRecord[] = [
-  {
-    id: 'assessment-rec-1',
-    missionId: 'running_shoes',
-    missionName: 'Běžecká & ortopedická obuv',
-    dateFormatted: '10. 9. 2026, 14:15',
-    timestamp: '2026-09-10T14:15:00.000Z',
-    doctorAgentName: 'Biomechanický Fitting Agent v1.1',
-    diagnosisSummary: 'Citlivost levého kolenního kloubu + Široké metatarzy (Kopyto 2E)',
-    keyParameters: {
-      weight: '86 kg',
-      width: '104 mm (Kopyto 2E Wide)',
-      knee: 'Citlivost kolene / Artróza',
-      strike: 'Supinace / Vnější hrana',
-      dropLimit: '4–8 mm (kolébková geometrie)',
-    },
-    recommendedModels: [
-      {
-        id: 'asics-gel-kayano-30',
-        brand: 'ASICS',
-        model: 'Gel-Kayano 30 (2E Wide Last)',
-        badge: 'Hlavní doporučení',
-        matchScore: 98,
-        priceCzk: 4530,
-        rationale: 'Pěna FF BLAST™ PLUS a 4D GUIDANCE SYSTEM™ poskytují adaptivní absorpci nárazů pro odlehčení zátěže kolene.',
-      },
-      {
-        id: 'brooks-adrenaline-gts-23',
-        brand: 'Brooks',
-        model: 'Adrenaline GTS 23 (2E Wide)',
-        badge: 'Vhodné pro supinaci',
-        matchScore: 96,
-        priceCzk: 3779,
-        rationale: 'GuideRails® fixují laterální deviaci bez vnitřního pronačního klínu, což odlehčuje kloubní štěrbinu.',
-      },
-      {
-        id: 'hoka-bondi-8-wide',
-        brand: 'Hoka',
-        model: 'Bondi 8 Wide (2E Kopyto)',
-        badge: 'Maximální tlumení',
-        matchScore: 94,
-        priceCzk: 4280,
-        rationale: 'Masivní rocker mezipodešev s nízkým dropem 4 mm eliminuje rázy při došlapu na patu.',
-      },
-    ],
-    clinicalReport: 'Biomechanické vyhodnocení: U běžce se zvýšenou citlivostí kolene a hmotností 86 kg je doporučeno vyhnout se standardní úzké šířce D (riziko otlačení metatarzů) a botám s vysokým dropem nad 10 mm bez kolébkové geometrie. Vybrány modely splňující specifikaci 2E Last s biomechanickým odlehčením.',
-    status: 'active_prescription',
-    completedPrompt: `Jsi přední biomechanický expert a klinický nákupčí obuvi v systému bAIright.
-Analyzuj následující biomechanická data uživatele po dokončení fitting dotazníku:
-- Velikost nohy: EU 43 (275 mm)
-- Anatomická šířka: 2E Wide (104 mm)
-- Hmotnost: 86 kg
-- Došlap: Supinace / Vnější hrana
-- Zdravotní specifika: Citlivost kolenního kloubu (Artróza 3. st.)
-- Požadované tlumení: Maximální (kolébka rocker)
-- Povolení výrobci: ASICS, Brooks, Hoka`,
-  },
-];
+export const INITIAL_ASSESSMENT_RECORDS: CompletedAssessmentRecord[] = [];
+
 

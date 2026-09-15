@@ -2,16 +2,17 @@ import { NextRequest, NextResponse } from 'next/server';
 import { 
   discoverDomainParameters, 
   DomainAnalysisResult,
-  ExtractedDomainParameter 
+  ExtractedDomainParameter,
+  UNIVERSAL_BRAND_PARAMETER 
 } from '@/lib/agent/domain-parameter-discovery';
 
 export async function POST(req: NextRequest) {
   try {
-    const { query, providerId, apiKey } = await req.json();
+    const { query, providerId, apiKey, locale = 'cs' } = await req.json();
 
     if (!query || typeof query !== 'string' || query.trim().length === 0) {
       return NextResponse.json(
-        { error: 'Zadejte prosím název produktu nebo kategorii pro analýzu parametrů.' },
+        { error: locale === 'en' ? 'Please enter a product name or category for parameter analysis.' : 'Zadejte prosím název produktu nebo kategorii pro analýzu parametrů.' },
         { status: 400 }
       );
     }
@@ -29,8 +30,35 @@ export async function POST(req: NextRequest) {
     // 2. ALWAYS invoke Agent Luke (Parameter Research Agent) when an API key is available
     if (effectiveKey) {
       try {
-        const lukeResearched = await researchParametersWithLuke(trimmedQuery, effectiveKey, providerId);
+        const lukeResearched = await researchParametersWithLuke(trimmedQuery, effectiveKey, providerId, locale);
         if (lukeResearched && lukeResearched.parameters && lukeResearched.parameters.length >= 4) {
+          const hasBrand = lukeResearched.parameters.some(
+            (p: ExtractedDomainParameter) => 
+              p.id === 'brand_preferences' || 
+              p.id.includes('brand') || 
+              p.name.toLowerCase().includes('značk') || 
+              p.name.toLowerCase().includes('výrobc') ||
+              p.name.toLowerCase().includes('brand') ||
+              p.name.toLowerCase().includes('manufacturer')
+          );
+          if (!hasBrand) {
+            const localizedBrandParam: ExtractedDomainParameter = locale === 'en' ? {
+              id: 'brand_preferences',
+              name: 'Brand & Manufacturers (Preferred vs. Forbidden)',
+              category: 'Brands & Manufacturers',
+              importance: 'recommended',
+              rationale: 'Allows you to specify preferred brands you trust, or strictly exclude brands you do not want to be recommended.',
+              icon: '🏷️',
+              suggestedComponent: 'brands',
+              suggestedValues: [
+                'All verified brands (open selection)',
+                'I have specific preferred brands',
+                'I want to exclude specific manufacturers',
+              ],
+            } : UNIVERSAL_BRAND_PARAMETER;
+
+            lukeResearched.parameters.push(localizedBrandParam);
+          }
           return NextResponse.json({
             success: true,
             analysis: lukeResearched,
@@ -66,9 +94,21 @@ export async function POST(req: NextRequest) {
 async function researchParametersWithLuke(
   categoryQuery: string,
   apiKey: string,
-  providerId?: string
+  providerId?: string,
+  locale: string = 'cs'
 ): Promise<DomainAnalysisResult | null> {
+  const isEn = locale === 'en';
+  const languageInstruction = isEn
+    ? `IMPORTANT: The user interface is in English. You MUST generate all output fields in fluent, natural English. This includes categoryName, agentName, description, parameter names, categories, rationales, suggested values, alternative parameters, questions, and systemPrompt.`
+    : `Jazyk výstupu: Čeština. Všechny texty a parametry vygeneruj v přirozené češtině.`;
+
+  const brandParamInstruction = isEn
+    ? `MANDATORY PARAMETER: You MUST ALWAYS INCLUDE a brand preferences parameter ("Brand & Manufacturers (Preferred vs. Forbidden)", id: "brand_preferences", suggestedComponent: "brands"). This parameter enables the user to explicitly specify which brands they want (preferred) and which they reject (forbidden).`
+    : `POVINNÝ PARAMETR VŽDY: Mezi vygenerovanými parametry MUSÍŠ VŽDY ZAHRNOUT parametr pro značky a výrobce ("Značka & Výrobci (Preferované vs. Zakázané)", id: "brand_preferences", suggestedComponent: "brands"). Tento parametr slouží k tomu, aby si uživatel mohl explicitně napsat, které konkrétní značky chce (preferuje) a které nechce (zakazuje doporučit).`;
+
   const metaPrompt = `
+${languageInstruction}
+
 Jsi špičkový produktový analytik, nákupčí a reverzní inženýr nákupního rozhodování v expertním systému bAIright.
 Znáš psychologii nákupu, víš, jaká úskalí skrývají marketingové materiály výrobců, a přesně víš, na co se zákazníka zeptat, aby zúžil výběr na ten nejvhodnější produkt. Nemáš žádný zájem na prodeji konkrétní značky nebo modelu. Tvojí jedinou misí je ochránit uživatele před nevhodným nákupem, dodat mu maximální jistotu a ušetřit mu hodiny složité rešerše.
 
@@ -88,10 +128,11 @@ Při sestavování parametrů nesmíš vycházet jen ze suchých produktových l
 - Absolutní absence nátlaku: Žádné prodejní fráze, žádné umělé FOMO. Jen fakta a uživatelský kontext.
 
 ## STRIKTNÍ PRAVIDLA PRO KVALITU PARAMETRŮ:
-- STRIKTNÍ ZÁKAZ VÁGNÍCH KLIŠÉ: Žádná "Cena", "Barva", "Vzhled", "Kvalita zpracování", "Značka", "Spolehlivost", "Ergonomie", "Technologický standard", "Základní výbava".
+- STRIKTNÍ ZÁKAZ VÁGNÍCH KLIŠÉ: Žádná "Cena", "Barva", "Vzhled", "Kvalita zpracování", "Spolehlivost", "Ergonomie", "Technologický standard", "Základní výbava".
+- ${brandParamInstruction}
 - KAŽDÝ PARAMETR MUSÍ MÍT V "rationale" DVĚ SLOŽKY:
   1. Insight z fór a testů (proč na tom záleží a jaké je riziko špatné volby).
-  2. Konkrétní návodnou otázku pro uživatele (např. Otázka pro vás: Jakou vzdálenost průměrně ujedete za den a jak často jezdíte trasy nad 250 km v kuse?).
+  2. Konkrétní návodnou otázku pro uživatele.
 
 ## FEW-SHOT REFERENČNÍ VZOR (Příklad správné hloubky na dotaz "Elektro auto"):
 {
