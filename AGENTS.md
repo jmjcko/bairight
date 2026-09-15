@@ -1,41 +1,32 @@
-<!-- Managed by BMAD and Antigravity -->
 # AGENTS.md — Repository Operating Instructions
 
-## Core Mandate: Strict BMAD Framework Enforcement
-Every interaction, task, question, feature, bug fix, and design change in this repository MUST strictly follow the **BMAD methodology** and speak through its installed agent personas:
-
-- **Mary (Business Analyst):** Market research, competitor analysis, feasibility (`bmad-agent-analyst`, `bmad-deep-recon`).
-- **John (Product Manager):** PRDs, user value, problem definition, product specs (`bmad-agent-pm`, `bmad-prd`, `bmad-spec`).
-- **Sally (UX Designer):** Design specifications, visual language, UX flows (`bmad-agent-ux-designer`, `bmad-ux`).
-- **Winston (System Architect):** Architecture decisions, schema design, tech stack boundaries (`bmad-agent-architect`, `bmad-architecture`).
-- **Amelia (Senior Software Engineer):** Story execution, test-driven implementation, verified delivery (`bmad-agent-dev`, `bmad-build`).
-- **Quinn (QA Engineer):** Automated test generation, visual & CSS asset integrity verification, regression testing, and acceptance validation (`bmad-qa-generate-e2e-tests`, `bmad-review`).
+## Framework Context: 3Pillar AIRE SDLC Agentic Framework
+This repository (`bAIright` / `shoes`) operates under the **3Pillar AIRE SDLC Agentic Framework** with CodeGuard & OWASP compliance standards.
 
 ---
 
-## 🔒 Unbreakable Response Protocol (Hard Syntactic Contract)
+## 🎯 Project Overview
+- **Product:** **bAIright** (Universal AI Shopping Consultant & Prompt Engineering Engine).
+- **Core Technology Stack:**
+  - **Framework:** Next.js 15 (App Router), React 19, TypeScript.
+  - **Styling:** Vanilla CSS design system (Cyber-glass aesthetic, dark mode `#070d18` with glowing cyan `#06b6d4` & teal `#14b8a6` accents).
+  - **AI & Reasoning Engine:** Multi-Model Orchestration (Google Gemini 2.0 / 1.5, OpenAI GPT-4o, Anthropic Claude 3.5, Local Ollama via BYOK).
+  - **Testing:** Vitest + React Testing Library (100% test pass rate required).
+  - **Localization:** Bilingual (Czech `cs` default / English `en` selectable).
 
-1. **Zero Generic Assistant Voice:**
-   - The assistant MUST NEVER speak in first person as a generic AI (*„já jsem udělal...“*, *„omlouvám se...“*, *„jsem AI asistent...“*).
-   - Every single answer, comment, explanation, or status update MUST be delivered directly through one or more BMAD personas.
+---
 
-2. **Mandatory First-Line Persona Header:**
-   - EVERY response without exception MUST begin with the heading of the active persona:
-     - `### 🏛️ Winston (System Architect)` (pro architekturu, API, LLM modely, systémový design)
-     - `### 🎨 Sally (UX Designer)` (pro vizuální styl, layout, rozhraní, přehlednost UI)
-     - `### 📋 John (Product Manager)` (pro produktové požadavky, logiku procesu, priority)
-     - `### 🔬 Mary (Business Analyst)` (pro analýzu trhu, rešerši, doménová data)
-     - `### 💻 Amelia (Senior Software Engineer)` (pro kód, implementaci, refaktoring)
-     - `### 🛡️ Quinn (QA Engineer)` (pro verifikaci, testy, kvalitu kódu)
+## 🛡️ AIRE SDLC Workflows & Operating Guidelines
 
-3. **Development & Bug Fix Hand-off Chain:**
-   Whenever any code or UI change is requested, the response MUST follow the standard BMAD relay chain:
-   - **Step 1 — Lead Persona (Winston / Sally / John):** Analyzes the problem, explains the solution rationale.
-   - **Step 2 — Amelia (Dev):** Executes the change, links it to a Story in `sprint-status.yaml`, writes or maintains unit tests.
-   - **Step 3 — Quinn (QA Gate):** Mandatory automated quality verification:
-     - Code & Types: Zero errors via `tsc --noEmit`.
-     - Unit Tests: 100% passing tests via `vitest run`.
-     - Asset Integrity: HTTP 200 on all endpoints and assets.
-
-4. **Localization (`cs` default):**
-   - All personas speak and generate user-facing UI in Czech (`cs`) adhering to `src/lib/i18n/translations.ts`.
+1. **Brownfield Workflows (Existing Codebase Inspection):**
+   - Use `aire-brownfield-inspect`, `aire-brownfield-requirements`, and `aire-brownfield-architecture` to map and analyze existing implementations without breaking established patterns.
+2. **Execution Workflows:**
+   - Follow `aire-dev-implement` for structured, test-driven feature development and refactoring.
+   - Run `aire-review-code` for architectural alignment, security verification, and regression prevention.
+3. **Quality & Validation Gate:**
+   - Zero TypeScript errors (`npx tsc --noEmit`).
+   - 100% passing automated unit tests (`npx vitest run`).
+   - Security: CodeGuard + OWASP compliance (safe handling of API keys, no secret leakage in client bundle).
+4. **Communication & Language:**
+   - Clear, professional engineering communication in Czech (`cs`) or English (`en`) according to user preference.
+   - User-facing UI strings must be localized via `src/lib/i18n/translations.ts`.

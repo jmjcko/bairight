@@ -31,7 +31,7 @@ export async function POST(req: NextRequest) {
     if (effectiveKey) {
       try {
         const lukeResearched = await researchParametersWithLuke(trimmedQuery, effectiveKey, providerId, locale);
-        if (lukeResearched && lukeResearched.parameters && lukeResearched.parameters.length >= 4) {
+        if (lukeResearched && lukeResearched.parameters && lukeResearched.parameters.length >= 8) {
           const hasBrand = lukeResearched.parameters.some(
             (p: ExtractedDomainParameter) => 
               p.id === 'brand_preferences' || 
@@ -103,141 +103,231 @@ async function researchParametersWithLuke(
     : `Jazyk výstupu: Čeština. Všechny texty a parametry vygeneruj v přirozené češtině.`;
 
   const brandParamInstruction = isEn
-    ? `MANDATORY PARAMETER: You MUST ALWAYS INCLUDE a brand preferences parameter ("Brand & Manufacturers (Preferred vs. Forbidden)", id: "brand_preferences", suggestedComponent: "brands"). This parameter enables the user to explicitly specify which brands they want (preferred) and which they reject (forbidden).`
-    : `POVINNÝ PARAMETR VŽDY: Mezi vygenerovanými parametry MUSÍŠ VŽDY ZAHRNOUT parametr pro značky a výrobce ("Značka & Výrobci (Preferované vs. Zakázané)", id: "brand_preferences", suggestedComponent: "brands"). Tento parametr slouží k tomu, aby si uživatel mohl explicitně napsat, které konkrétní značky chce (preferuje) a které nechce (zakazuje doporučit).`;
+    ? `MANDATORY BRAND GOVERNANCE: You MUST ALWAYS INCLUDE a brand preferences parameter ("Brand & Manufacturers (Preferred vs. Forbidden)", id: "brand_preferences", suggestedComponent: "brands"). This parameter enables the user to explicitly specify which brands they want (preferred) and which they reject (forbidden).`
+    : `POVINNÁ IZOLACE ZNAČEK: Mezi vygenerovanými parametry MUSÍŠ VŽDY ZAHRNOUT parametr pro značky a výrobce ("Značka & Výrobci (Preferované vs. Zakázané)", id: "brand_preferences", suggestedComponent: "brands"). Tento parametr slouží k tomu, aby si uživatel mohl explicitně napsat, které konkrétní značky chce (preferuje) a které nechce (zakazuje doporučit).`;
 
   const metaPrompt = `
 ${languageInstruction}
 
-Jsi špičkový produktový analytik, nákupčí a reverzní inženýr nákupního rozhodování v expertním systému bAIright.
+Jsi Luke, špičkový produktový analytik, nezávislý nákupčí a reverzní inženýr nákupního rozhodování v expertním systému bAIright.
 Znáš psychologii nákupu, víš, jaká úskalí skrývají marketingové materiály výrobců, a přesně víš, na co se zákazníka zeptat, aby zúžil výběr na ten nejvhodnější produkt. Nemáš žádný zájem na prodeji konkrétní značky nebo modelu. Tvojí jedinou misí je ochránit uživatele před nevhodným nákupem, dodat mu maximální jistotu a ušetřit mu hodiny složité rešerše.
 
 Uživatel chce koupit: "${categoryQuery}".
 
-Tvým úkolem je na základě tohoto vstupu vygenerovat 8 až 12 nejdůležitějších parametrů a rozhodovacích kritérií + 3 až 5 alternativních do poolu návrhů. Tyto parametry poslouží jako základ pro Intake Wizard, který uživateli pomůže sestavit detailní a přesný nákupní prompt.
+Tvým úkolem je na základě tohoto vstupu vygenerovat MINIMÁLNĚ 10 AŽ 14 NEJDŮLEŽITĚJŠÍCH PARAMETRŮ a rozhodovacích kritérií + 3 až 5 alternativních do poolu návrhů. Tyto parametry poslouží jako základ pro Intake Wizard, který uživateli pomůže sestavit detailní a přesný nákupní prompt.
 
-## METODOLOGIE A ZDROJE (SIMULOVANÁ HLOUBKOVÁ SYNTÉZA)
-Při sestavování parametrů nesmíš vycházet jen ze suchých produktových letáků. Musíš syntetizovat poznatky z reálného světa:
-1. YouTube recenze a dlouhodobé testy po 1 roce používání (kanály jako Project Farm, RTINGS, specialisté na jednotlivé obory): Zaměř se na to, co testeři nejčastěji kritizují (tzv. dealbreakery) a co se projeví až časem.
-2. Diskusní fóra a komunity nadšenců (Reddit r/BuyItForLife, oborové subreddity): Zohledni reálné problémy dlouhodobých uživatelů (např. degradace materiálů, softwarové chyby, servisní pasti, ergonomické nedostatky).
-3. Technické specifikace a normy výrobců: Převeď technická data do řeči reálného užitku (např. místo suchého čísla výkonu vysvětli, zda to zvládne plné naložení na dálnici).
+## TŘI ZLATÁ PRAVIDLA NÁKUPNÍHO MYŠLENÍ AGENTA LUKEA (MANDATORY):
 
-## TÓN KOMUNIKACE
-- Profesionální, návodný a empatický: Pokládáš chytré otázky, které laika navedou.
-- Srozumitelný pro laiky: Cílovým uživatelem je člověk bez hlubokého technického vzdělání. Vše vysvětluj lidsky a prakticky.
-- Absolutní absence nátlaku: Žádné prodejní fráze, žádné umělé FOMO. Jen fakta a uživatelský kontext.
+1. 🚲 ELEMENTÁRNÍ ROZDĚLENÍ TRHU VŽDY JAKO PARAMETR Č. 1 (PRIMARY MARKET SEGMENTATION FIRST):
+   - Pokud uživatel zadá obecnější produkt nebo kategorii (např. "jízdní kolo", "lyže", "kávovar", "vysavač", "sekačka", "kočárek", "televize", "chytrý telefon"):
+   - ÚPLNĚ PRVNÍM PARAMETREM V POŘADÍ (Parametr č. 1) MUSÍ BÝT elementární zařazení na trhu, typový segment a disciplína!
+   - NIKDY se neptej na dílčí součástky (odpružená vidlice, sada řazení, materiál mezipodešve, typ bojleru) dříve, než je určen základní typ na trhu.
+   - Příklad: U jízdního kola je Parametr 1: "Typ kola & disciplína (Silniční vs. Gravel vs. Horská MTB XC/Trail vs. Městské/Trekking vs. Elektrokolo)".
 
-## STRIKTNÍ PRAVIDLA PRO KVALITU PARAMETRŮ:
-- STRIKTNÍ ZÁKAZ VÁGNÍCH KLIŠÉ: Žádná "Cena", "Barva", "Vzhled", "Kvalita zpracování", "Spolehlivost", "Ergonomie", "Technologický standard", "Základní výbava".
-- ${brandParamInstruction}
-- KAŽDÝ PARAMETR MUSÍ MÍT V "rationale" DVĚ SLOŽKY:
+2. 🧬 POVINNÉ TĚLESNÉ BIOMETRICKÉ A ZDRAVOTNÍ PARAMETRY U PRODUKTŮ VÁZANÝCH NA TĚLO (BIOMETRICS & MEDICAL PROFILE):
+   - U všech produktů, které přicházejí do přímého kontaktu s tělem, nesou váhu uživatele nebo ovlivňují pohybový aparát (jízdní kola, běžecká i treková obuv, lyže a lyžáky, kancelářské židle, matrace, batohy, helmy, oblečení, sportovní pomůcky):
+   - VŽDY MUSÍŠ ZAHRNOUT JAKO SAMOSTATNÝ POVINNÝ PARAMETR (např. Parametr č. 2) OSOBNÍ BIOMETRICKÉ A ZDRAVOTNÍ PARAMETRY UŽIVATELE:
+     a) Přesná výška postavy (cm) a tělesná hmotnost (kg) – kritické pro velikost rámu, flex index lyží, tuhost matrace, dimenzování pístu židle, drop a tlumení bot.
+     b) Specifické anatomické rozměry – šířka nohy/chodidla (standard vs. široké 2E/4E, úzká pata), vnitřní délka nohou (inseam), obvod hlavy / hrudníku / pasu.
+     c) Zdravotní anamnéza a prodělané operace – operace kolenních vazů a menisků, operace páteře (výhřez plotének), skolióza, chronické bolesti beder a krku, vbočený palec (hallux valgus). Tyto zdravotní faktory mají absolutní přednost před designem!
+
+3. 🔟 GARANCE MINIMÁLNĚ 10 STRUKTUROVANÝCH PARAMETRŮ:
+   - Výstup musí obsahovat minimálně 10 parametrů (ideálně 10 až 14) pokrývajících:
+     1. Primární tržní segment / typologie
+     2. Uživatelská biometrie / tělesná & zdravotní kritéria (pokud je produkt tělesně vázán)
+     3. Klíčové technologické jádro / motor / pohon
+     4. Materiálové složení a konstrukční odolnost
+     5. Ergonomie, rozměry a montážní/prostorové limity
+     6. Bezpečnostní prvky a certifikace
+     7. Servisovatelnost, rozebíratelnost a dostupnost náhradních dílů v ČR
+     8. Provozní náklady, energetická náročnost a údržba
+     9. Akustický komfort / hlučnost / reálný dojezd či výdrž
+     10. ${brandParamInstruction}
+
+## STRIKTNÍ ZÁKAZ VÁGNÍCH KLIŠÉ:
+- Žádná "Cena", "Barva", "Vzhled", "Kvalita zpracování", "Spolehlivost", "Ergonomie", "Technologický standard", "Základní výbava".
+- Každý parametr musí mít v "rationale" dvě složky:
   1. Insight z fór a testů (proč na tom záleží a jaké je riziko špatné volby).
   2. Konkrétní návodnou otázku pro uživatele.
 
-## FEW-SHOT REFERENČNÍ VZOR (Příklad správné hloubky na dotaz "Elektro auto"):
+## FEW-SHOT REFERENČNÍ VZOR (Příklad správné hloubky a hierarchie na dotaz "Jízdní kolo"):
 {
-  "keyword": "Elektro auto",
-  "matchedDomain": "electric_cars",
-  "categoryName": "Elektromobily & Elektrická Vozidla (EV)",
-  "agentName": "Specialista na Elektromobilitu & EV",
-  "icon": "⚡",
-  "description": "Nezávislý nákupní poradce pro výběr elektromobilu na základě dálničního dojezdu, nabíjecí křivky, tepelného čerpadla a baterie.",
+  "keyword": "Jízdní kolo",
+  "matchedDomain": "bicycles",
+  "categoryName": "Jízdní Kola & Elektromobilita",
+  "agentName": "Luke: Specialista na Jízdní Kola & E-biky",
+  "description": "Nezávislý nákupní analytik pro jízdní kola. Analyzuje disciplínu, biometrii jezdce, geometrii rámu, sady řazení, odpružení a servisovatelnost.",
   "parameters": [
     {
-      "id": "ev_range_wltp",
-      "name": "Reálný dojezd vs. WLTP",
-      "category": "Baterie & Dojezd",
+      "id": "bike_type_category",
+      "name": "Typ kola & disciplína (Silniční vs. Gravel vs. Horské MTB vs. Městské vs. E-bike)",
+      "category": "Kategorie & Disciplína",
       "importance": "mandatory",
-      "rationale": "Papírový dojezd se často liší od reality, zejména v zimních měsících a při dálničních rychlostech (pokles o 30–40 %), což je na fórech nejčastější zklamání. Otázka pro vás: Jakou vzdálenost průměrně ujedete za den a jak často jezdíte trasy nad 250 km v kuse?",
-      "icon": "🔋",
+      "rationale": "Výběr špatného typu kola je nejčastější chybou – horské kolo na asfaltu drhne a bere energii, silniční neprojede lesem a gravel vyžaduje specifický posed. Otázka pro vás: Po jakém povrchu a v jakém terénu budete reálně jezdit nejčastěji?",
+      "icon": "🚲",
       "suggestedComponent": "chips",
-      "suggestedValues": ["Do 250 km (převážně město/okresky)", "250–400 km (kombinovaný provoz)", "400+ km v kuse (časté dálnice)"]
+      "suggestedValues": ["Gravel (univerzální na silnici, cyklostezky i šotolinu)", "Horské kolo MTB (kořeny, kameny a lesní traily)", "Silniční kolo (maximální rychlost na hladkém asfaltu)", "Městské / Trekingové (vzpřímený posed a nosiče)", "Elektrokolo E-bike (středový motor do kopců)"]
     },
     {
-      "id": "ev_charging_speed",
-      "name": "Možnosti a rychlost nabíjení (Architektura 800V vs 400V)",
-      "category": "Nabíjení",
+      "id": "bike_rider_biometrics",
+      "name": "Biometrie jezdce & zdravotní profil (Výška, váha, délka nohou, operace páteře/kolen)",
+      "category": "Biometrie & Zdraví",
       "importance": "mandatory",
-      "rationale": "Maximální výkon nestačí, klíčová je doba udržení nabíjecí křivky a dostupnost wallboxu. Otázka pro vás: Máte možnost instalovat domácí nabíjení, nebo budete závislí výhradně na veřejných stanicích?",
+      "rationale": "Výška a délka nohou určují přesnou velikost rámu (S/M/L/XL), váha jezdce je nutná pro nastavení tlaku vzduchové vidlice. Lidé po operaci kolenních vazů nebo s výhřezem ploténky potřebují vzpřímenější geometrii a celoodpružený rám. Otázka pro vás: Jaká je vaše výška, váha a máte potíže s koleny či zády?",
+      "icon": "🧬",
+      "suggestedComponent": "chips",
+      "suggestedValues": ["Výška do 175 cm / Váha do 75 kg", "Výška 175–185 cm / Váha 75–90 kg", "Výška 185+ cm / Váha 90+ kg", "Po operaci zad/kolen (požadavek na vzpřímený posed a tlumení rázu)"]
+    },
+    {
+      "id": "bike_frame_material",
+      "name": "Materiál rámu (Karbon s absorpcí mikrovibrací vs. Odolný hydroformovaný hliník AL 6061)",
+      "category": "Rám & Konstrukce",
+      "importance": "mandatory",
+      "rationale": "Hliník je odolný a levnější, ale přenáší mikrovibrace do zápěstí a krku. Karbon je lehčí, tužší v záběru a přirozeně tlumí vibrace terénu. Otázka pro vás: Hledáte maximální lehkost a komfort tlumení, nebo preferujete odolnost hliníku při pádech?",
+      "icon": "📐",
+      "suggestedComponent": "chips",
+      "suggestedValues": ["Karbonový rám (nízká váha a filtrace vibrací)", "Hydroformovaný hliník AL 6061/7005 (odolný a cenově dostupný)"]
+    },
+    {
+      "id": "bike_suspension_system",
+      "name": "Systém odpružení (Pevný rám vs. Vzduchová vidlice s lockoutem vs. Full-suspension)",
+      "category": "Odpružení",
+      "importance": "mandatory",
+      "rationale": "Levné pružinové vidlice v zimě tuhnou a nelze je nastavit na váhu jezdce. Vzduchovou vidlici natlakujete přesně na své tělo a celoodpružený rám šetří bederní páteř. Otázka pro vás: Vyžadujete žehlení nerovností a možnost zamknutí do kopce?",
+      "icon": "🚵",
+      "suggestedComponent": "chips",
+      "suggestedValues": ["Pevná vidlice (gravel a silnice pro maximální přenos síly)", "Přední vzduchová vidlice (Hardtail s lockoutem na řídítkách)", "Celoodpružený rám (Full-suspension pro šetření zad v terénu)"]
+    },
+    {
+      "id": "bike_drivetrain_groupset",
+      "name": "Sada řazení & převodový poměr (Jednopřevodník 1x12 Shimano XT/Deore/SRAM vs. 2x11)",
+      "category": "Pohon & Řazení",
+      "importance": "mandatory",
+      "rationale": "Jednopřevodník 1x12 eliminuje padání řetězu v terénu a usnadňuje ovládání, zatímco 2x11 nabízí jemnější silniční odstupňování. Otázka pro vás: Jezdíte kopcovitý terén a traily, nebo dlouhé silniční rovinky?",
+      "icon": "⚙️",
+      "suggestedComponent": "chips",
+      "suggestedValues": ["1x12 s kazetou 10–51T (jednoduchost v terénu)", "2x11 / 2x12 (jemné odstupňování na silnici a asfalt)"]
+    },
+    {
+      "id": "bike_brakes_hydraulic",
+      "name": "Brzdový systém (Hydraulické kotoučové 2/4pístkové brzdy vs. mechanické lankové)",
+      "category": "Bezpečnost",
+      "importance": "mandatory",
+      "rationale": "Mechanická lanka v dlouhých sjezdech vadnou a unavují prsty. Hydraulické kotouče zastaví kolo bezpečně jedním prstem i za deště a bláta. Otázka pro vás: Sjíždíte prudké kopce a požadujete okamžitý brzdný účinek?",
+      "icon": "🛑",
+      "suggestedComponent": "chips",
+      "suggestedValues": ["Hydraulické kotoučové brzdy Shimano/SRAM (vysoký brzdný účinek)", "4pístkové hydraulické brzdy (pro těžší jezdce, sjezdy a e-biky)"]
+    },
+    {
+      "id": "bike_wheel_tire_size",
+      "name": "Průměr kol a šířka plášťů (29" vs. 27.5" vs. Gravel 40–45 mm Tubeless Ready)",
+      "category": "Kola & Trakce",
+      "importance": "recommended",
+      "rationale": "Kola 29" lépe překonávají překážky a drží setrvačnost, 27.5" jsou hravější v zatáčkách. Bezdušové pláště (tubeless) eliminují defekty o trny. Otázka pro vás: Preferujete rychlost a stabilitu na nerovnostech, nebo obratnost?",
+      "icon": "🛞",
+      "suggestedComponent": "chips",
+      "suggestedValues": ["29" kola (skvělé převalování překážek a setrvačnost)", "Gravel pláště 40–45 mm s bezdušovým tmelem", "27.5" kola pro menší postavu a hravost"]
+    },
+    {
+      "id": "bike_ebike_motor_battery",
+      "name": "Středový motor s torzním snímačem (Bosch/Shimano 85 Nm) & baterie 600–750 Wh",
+      "category": "Elektropohon",
+      "importance": "recommended",
+      "rationale": "Levné motory v náboji trhají a ztrácí trakci. Středový motor s torzním snímačem dávkuje přípomoc plynule podle síly vašeho šlápnutí. Otázka pro vás: Požadujete asistenci do prudkých kopců a dojezd 80+ km?",
       "icon": "⚡",
       "suggestedComponent": "chips",
-      "suggestedValues": ["Mám/plánuji domácí wallbox (AC 11 kW)", "Výhradně veřejné rychlonabíječky (DC)", "Kombinace domov + veřejné sítě"]
+      "suggestedValues": ["Středový motor Bosch CX / Shimano EP8 (85 Nm) + 700+ Wh baterie", "Lehký pohon SL (50–60 Nm, 400 Wh) pro přirozený pocit z jízdy", "Klasické kolo bez motoru"]
     },
     {
-      "id": "ev_heat_pump",
-      "name": "Tepelné čerpadlo pro zimní provoz",
-      "category": "Klimatizace & Efektivita",
+      "id": "bike_cockpit_ergonomics",
+      "name": "Ergonomie kokpitu & sedlo (Šířka řídítek, sklon představce, ergonomické gripy)",
+      "category": "Ergonomie & Pohodlí",
       "importance": "recommended",
-      "rationale": "Uživatelé EV fór se shodují, že tento prvek je v ČR zásadní pro udržení rozumného dojezdu při vytápění kabiny pod 0 °C. Otázka pro vás: Bude vůz parkovat venku a jezdit pravidelně v mrazech?",
-      "icon": "❄️",
+      "rationale": "Špatná šířka řídítek způsobuje brnění prstů (útlak ulnárního nervu) a bolesti trapézů. Ergonomické gripy a správná šířka sedla dle sedacích kostí jsou klíčem k jízdě bez bolesti. Otázka pro vás: Míváte při delší jízdě problémy s brněním rukou nebo otlaky?",
+      "icon": "🖐️",
       "suggestedComponent": "chips",
-      "suggestedValues": ["Nutné tepelné čerpadlo (časté zimní jízdy)", "Garážované stání / běžný zimní dojezd postačí"]
+      "suggestedValues": ["Ergonomické gripy s opěrkou dlaně + sedlo s anatomickým výřezem", "Standardní sportovní kokpit"]
     },
     {
-      "id": "ev_battery_chem",
-      "name": "Chemie baterie (LFP vs. NMC) a degradace",
-      "category": "Baterie",
+      "id": "bike_weight_capacity",
+      "name": "Celková nosnost systému a příprava na brašny (Bikepacking / Nosiče)",
+      "category": "Praktičnost & Nosnost",
       "importance": "recommended",
-      "rationale": "LFP baterie lze bez obav denně nabíjet do 100 % a mají delší životnost, NMC mají vyšší hustotu a lepší výkon v mrazu. Otázka pro vás: Plánujete auto vlastnit dlouhodobě (5+ let), nebo jde o operativní leasing?",
-      "icon": "🔬",
+      "rationale": "Běžná kola mají celkovou nosnost rámu 110–120 kg včetně kola. Pro těžší jezdce nebo vícedenní výpravy s brašnami je nutné kolo s certifikovanou nosností 135–150 kg.",
+      "icon": "🎒",
       "suggestedComponent": "chips",
-      "suggestedValues": ["Dlouhodobé vlastnictví (důraz na životnost)", "Operativní leasing / 3–4 roky (maximální dojezd)"]
+      "suggestedValues": ["Zvýšená nosnost 130–150 kg (těžší jezdec / brašny)", "Příprava rámu na montáž blatníků a expedičních nosičů", "Běžná sportovní nosnost do 115 kg"]
     },
     {
-      "id": "ev_software_ota",
-      "name": "Softwarový ekosystém, plánování tras & OTA aktualizace",
-      "category": "Konektivita",
+      "id": "brand_preferences",
+      "name": "Značka & Výrobci (Preferované vs. Zakázané)",
+      "category": "Značky & Výrobci",
       "importance": "recommended",
-      "rationale": "Pomalý infotainment a chybějící předehřev baterie před nabíjením dokáže zkazit celou dálkovou cestu. Otázka pro vás: Vyžadujete špičkový nativní systém s automatickým plánováním nabíječek, nebo preferujete CarPlay/Android Auto?",
-      "icon": "📱",
-      "suggestedComponent": "chips",
-      "suggestedValues": ["Nativní EV plánování s předehřevem (Tesla/Google)", "Bezdrátový Apple CarPlay / Android Auto"]
+      "rationale": "Umožňuje vám preferovat prověřené výrobce s dostupným servisem a zárukou (např. Trek, Specialized, Canyon, Scott, Ghost) a naopak striktně zakázat nespolehlivé značky. Otázka pro vás: Máte oblíbené značky, nebo chcete nějaké vyloučit?",
+      "icon": "🏷️",
+      "suggestedComponent": "brands",
+      "suggestedValues": ["Otevřený výběr ze všech ověřených značek", "Preferuji specifické značky", "Chci vyloučit určité výrobce"]
     }
   ],
   "suggestedAlternatives": [
     {
-      "id": "ev_tow_hitch",
-      "name": "Tažné zařízení & svislé zatížení na nosič kol",
-      "category": "Praktičnost",
+      "id": "bike_dropper_post",
+      "name": "Teleskopická sedlovka ovládaná z řídítek",
+      "category": "Komfort & Bezpečnost v terénu",
       "importance": "preference",
-      "rationale": "U řady EV nelze tažné zařízení dodělat dodatečně a vertikální zatížení bývá u elektroaut omezené. Otázka pro vás: Plánujete vozit elektrokola nebo přívěsný vozík?",
-      "icon": "🚲",
+      "rationale": "Umožňuje snížit sedlo za jízdy před prudkým sjezdem, což radikálně snižuje riziko pádu přes řídítka.",
+      "icon": "📏",
       "suggestedComponent": "chips",
-      "suggestedValues": ["Nosič na 2–4 (elektro)kola (min. 75 kg na kouli)", "Tahání přívěsu / karavanu (min. 1 500 kg)", "Nepotřebuji tažné"]
+      "suggestedValues": ["Požaduji teleskopickou sedlovku (pro jistotu ve sjezdech)", "Pevná klasická sedlovka"]
     },
     {
-      "id": "ev_service_warranty",
-      "name": "Záruka na trakční baterii & dostupnost servisu v ČR",
-      "category": "Záruka & Servis",
+      "id": "bike_service_warranty",
+      "name": "Dostupnost servisu & doživotní záruka na rám",
+      "category": "Záruka & Podpora",
       "importance": "preference",
-      "rationale": "Dostupnost certifikovaného servisu pro vysokonapěťové systémy ve vašem regionu a garance kapacity baterie (např. 70 % po 8 letech / 160 000 km).",
+      "rationale": "Značky jako Trek či Specialized nabízejí prvnímu majiteli doživotní záruku na rám.",
       "icon": "🛡️",
       "suggestedComponent": "chips",
-      "suggestedValues": ["Minimálně 8 let / 160 000 km záruka", "Autorizovaný servis v dojezdu do 30 minut"]
+      "suggestedValues": ["Doživotní záruka na rám od výrobce", "Běžná 2-3letá záruka"]
     }
   ],
   "questions": [
     {
-      "id": "ev_q_range",
+      "id": "bike_q_type",
       "step": 1,
-      "title": "Jaký dálniční dojezd bez nutnosti nabíjení reálně potřebujete?",
-      "subtitle": "Počítejte s rezervou pro zimní provoz při rychlosti 130 km/h.",
+      "title": "V jakém terénu a na jakých površích budete na kole jezdit?",
+      "subtitle": "Klíčové elementární rozdělení určující celou geometrii a typ rámu.",
       "component": "chips",
       "isMultiSelect": false,
       "options": [
-        { "label": "Do 250 km", "value": "do 250 km", "description": "Běžné příměstské a denní dojíždění" },
-        { "label": "250 až 380 km", "value": "250-380 km", "description": "Jedna rychlá 20min zastávka na 600 km cestě" },
-        { "label": "400+ km", "value": "400+ km", "description": "Dálkové dálniční trasy s minimem zastávek" }
+        { "label": "Gravel / Šotolina, cyklostezky a asfalt", "value": "gravel", "description": "Berany řídítka, rychlost na asfaltu i polních cestách." },
+        { "label": "Horské kolo (MTB) / Lesní cesty, kameny a traily", "value": "mtb", "description": "Široká řídítka, odpružená vidlice, maximální jistota v terénu." },
+        { "label": "Elektrokolo (E-bike) / Pomoc do kopců", "value": "ebike", "description": "Středový motor pro zdolání prudkých stoupání bez vyčerpání." }
       ],
-      "defaultValue": "250-380 km",
-      "promptForgeTemplate": "- **Požadovaný reálný dálniční dojezd:** {value}"
+      "defaultValue": "gravel",
+      "promptForgeTemplate": "- **Typ kola a povrch jízdy:** {value}"
+    },
+    {
+      "id": "bike_q_biometrics",
+      "step": 2,
+      "title": "Jaká je vaše výška, váha a máte zdravotní omezení?",
+      "subtitle": "Určuje přesnou velikost rámu, dimenzování odpružení a ergonomii posedu.",
+      "component": "chips",
+      "isMultiSelect": false,
+      "options": [
+        { "label": "Standardní postava bez omezení", "value": "standard", "description": "Sportovní posed a běžné nastavení odpružení." },
+        { "label": "Vyšší hmotnost (90+ kg) / Vyšší postava", "value": "heavy", "description": "Požadavek na vyšší tuhost rámu, vzduchovou vidlici a silné brzdy." },
+        { "label": "Zdravotní limity (bolavá záda / kolena po operaci)", "value": "orthopedic", "description": "Požadavek na vzpřímenější geometrii a šetrné odpružení pro páteř." }
+      ],
+      "defaultValue": "standard",
+      "promptForgeTemplate": "- **Biometrie a zdravotní profil jezdce:** {value}"
     }
   ],
-  "systemPrompt": "Expertní systémový prompt pro doporučení přesně 3 konkrétních reálných modelů na trhu."
+  "systemPrompt": "Expertní nezávislý nákupní poradce pro jízdní kola. Doporučuje přesně 3 konkrétní modely dle disciplíny, biometrie a rozpočtu."
 }
 
 Nyní zpracuj uživatelský dotaz: "${categoryQuery}".
-Vygeneruj 8 až 12 takových špičkových parametrů a 3 až 5 alternativních do poolu návrhů.
+Vygeneruj MINIMÁLNĚ 10 AŽ 14 takových špičkových parametrů seřazených od tržního zařazení přes biometrii až po technické detaily + 3 až 5 alternativních do poolu návrhů.
 Odpověz STRIKTNĚ jako validní JSON podle výše uvedené struktury, bez jakéhokoliv doplňkového markdownového textu.
 `.trim();
 
@@ -255,7 +345,7 @@ Odpověz STRIKTNĚ jako validní JSON podle výše uvedené struktury, bez jaké
           messages: [
             {
               role: 'system',
-              content: 'Jsi elitní Parameter Research Agent pro hloubkovou analýzu nákupních rozhodnutí, recenzí a odborných fór. Odpovídáš výhradně validním JSONem.',
+              content: 'Jsi Luke – elitní Parameter Research Agent pro hloubkovou analýzu nákupních rozhodnutí, recenzí a odborných fór. Vždy dodržuješ elementární tržní segmentaci jako 1. parametr, biometrii uživatele a minimálně 10 parametrů. Odpovídáš výhradně validním JSONem.',
             },
             { role: 'user', content: metaPrompt },
           ],
@@ -276,55 +366,41 @@ Odpověz STRIKTNĚ jako validní JSON podle výše uvedené struktury, bez jaké
     }
   }
 
-  // Default to Google Gemini API
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
-  const response = await fetch(url, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      contents: [{ role: 'user', parts: [{ text: metaPrompt }] }],
-      generationConfig: {
-        temperature: 0.2,
-        maxOutputTokens: 3500,
-        responseMimeType: 'application/json',
-      },
-    }),
-  });
+  // Default to Google Gemini API with model cascading (gemini-3.6-flash, 2.5-flash, 2.0-flash, 1.5-flash)
+  const candidateModels = ['gemini-3.6-flash', 'gemini-2.5-flash', 'gemini-2.0-flash', 'gemini-1.5-flash'];
+  let lastError: Error | null = null;
 
-  if (!response.ok) {
-    // Fallback to gemini-1.5-flash if 2.0-flash not available
-    const fallbackUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
-    const fallbackRes = await fetch(fallbackUrl, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        contents: [{ role: 'user', parts: [{ text: metaPrompt }] }],
-        generationConfig: {
-          temperature: 0.2,
-          maxOutputTokens: 3500,
-          responseMimeType: 'application/json',
-        },
-      }),
-    });
+  for (const model of candidateModels) {
+    try {
+      const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{ role: 'user', parts: [{ text: metaPrompt }] }],
+          generationConfig: {
+            temperature: 0.2,
+            maxOutputTokens: 5000,
+            responseMimeType: 'application/json',
+          },
+        }),
+      });
 
-    if (!fallbackRes.ok) {
-      throw new Error(`Gemini API error ${response.status}: ${await response.text()}`);
+      if (response.ok) {
+        const data = await response.json();
+        const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+        if (text) {
+          const cleanJson = text.replace(/```json/gi, '').replace(/```/g, '').trim();
+          return JSON.parse(cleanJson) as DomainAnalysisResult;
+        }
+      } else {
+        lastError = new Error(`Gemini API error for model ${model}: ${response.status}`);
+      }
+    } catch (err: any) {
+      lastError = err;
     }
-
-    const fbData = await fallbackRes.json();
-    const fbText = fbData?.candidates?.[0]?.content?.parts?.[0]?.text;
-    if (!fbText) return null;
-    const cleanJson = fbText.replace(/```json/gi, '').replace(/```/g, '').trim();
-    return JSON.parse(cleanJson) as DomainAnalysisResult;
   }
 
-  const data = await response.json();
-  const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
-  if (!text) return null;
-
-  const cleanJson = text.replace(/```json/gi, '').replace(/```/g, '').trim();
-  const parsed = JSON.parse(cleanJson);
-
-  return parsed as DomainAnalysisResult;
+  if (lastError) throw lastError;
+  return null;
 }
-

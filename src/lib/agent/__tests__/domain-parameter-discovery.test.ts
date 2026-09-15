@@ -101,12 +101,12 @@ describe('Domain Parameter Discovery & Prompt Synthesizer Test Suite', () => {
   });
 
   it('6. Zvládne neznámé klíčové slovo a syntetizuje minimálně 10 univerzálních produktových parametrů a prompt', () => {
-    const analysis = discoverDomainParameters('elektrická sekačka na trávu');
+    const analysis = discoverDomainParameters('akvarijní set s LED osvětlením');
 
     expect(analysis.matchedDomain).toBe('generic');
     expect(analysis.parameters.length).toBeGreaterThanOrEqual(10);
     expect(analysis.questions.length).toBeGreaterThanOrEqual(3);
-    expect(analysis.systemPrompt).toContain('elektrická sekačka na trávu');
+    expect(analysis.systemPrompt).toContain('akvarijní set s LED osvětlením');
 
     const paramIds = analysis.parameters.map((p) => p.id);
     expect(paramIds).toContain('primary_purpose');
@@ -169,6 +169,114 @@ describe('Domain Parameter Discovery & Prompt Synthesizer Test Suite', () => {
         (q) => q.component === 'brands' || q.id.includes('brand') || q.title.toLowerCase().includes('značk')
       );
       expect(hasBrandQuestion, `Agent pro kategorii "${cat}" musí obsahovat otázku pro značky`).toBe(true);
+    }
+  });
+  it('9. Detekuje kategorii "chytrý telefon / mobil" a odvodí OIS, PWM a délku podpory', () => {
+    const analysis = discoverDomainParameters('mobilní telefon smartphone');
+    expect(analysis.matchedDomain).toBe('smartphones');
+    expect(analysis.parameters.some((p) => p.id === 'phone_camera_sensor')).toBe(true);
+    expect(analysis.parameters.some((p) => p.id === 'phone_display_pwm')).toBe(true);
+    expect(analysis.parameters.some((p) => p.id === 'phone_os_support')).toBe(true);
+    expect(analysis.parameters.some((p) => p.id === 'phone_battery_charging')).toBe(true);
+  });
+
+  it('10. Detekuje kategorii "pračka" a odvodí DirectDrive motor a rozebíratelnou vanu', () => {
+    const analysis = discoverDomainParameters('automatická pračka');
+    expect(analysis.matchedDomain).toBe('washing_machines');
+    expect(analysis.parameters.some((p) => p.id === 'washer_motor_type')).toBe(true);
+    expect(analysis.parameters.some((p) => p.id === 'washer_drum_bearings')).toBe(true);
+    expect(analysis.parameters.some((p) => p.id === 'washer_steam_allergy')).toBe(true);
+  });
+
+  it('11. Detekuje kategorii "televize" a odvodí OLED/MiniLED a 120Hz bez záměny za EV', () => {
+    const analysis = discoverDomainParameters('chytrá televize do obýváku');
+    expect(analysis.matchedDomain).toBe('tv');
+    expect(analysis.categoryName).toContain('Televize');
+    expect(analysis.parameters.some((p) => p.id === 'tv_display_technology')).toBe(true);
+    expect(analysis.parameters.some((p) => p.id === 'tv_refresh_rate_gaming')).toBe(true);
+  });
+
+  it('12. Detekuje kategorii "sekačka" jako lawnmowers s RTK navigací a variabilním pojezdem', () => {
+    const analysis = discoverDomainParameters('robotická sekačka na trávu');
+    expect(analysis.matchedDomain).toBe('lawnmowers');
+    expect(analysis.parameters.some((p) => p.id === 'mower_nav_wirefree')).toBe(true);
+    expect(analysis.parameters.some((p) => p.id === 'mower_drive_speed')).toBe(true);
+  });
+
+  it('13. Jízdní kolo má VŽDY jako 1. parametr elementární tržní segment (Silniční vs. Gravel vs. MTB vs. E-bike) a jako 2. parametr biometrii jezdce a operace zad/kolen s celkem min. 10 parametry', () => {
+    const analysis = discoverDomainParameters('chci nové jízdní kolo');
+
+    expect(analysis.matchedDomain).toBe('bicycles');
+    expect(analysis.parameters.length).toBeGreaterThanOrEqual(10);
+
+    // Parametr č. 1 MUSÍ BÝT typ kola na trhu, nikoliv vidlice nebo materiál rámu
+    expect(analysis.parameters[0].id).toBe('bike_type_category');
+    expect(analysis.parameters[0].name).toContain('Typ kola & disciplína');
+    expect(analysis.parameters[0].suggestedValues).toEqual(
+      expect.arrayContaining([expect.stringContaining('Gravel'), expect.stringContaining('Horské kolo MTB')])
+    );
+
+    // Parametr č. 2 MUSÍ BÝT biometrie a zdravotní profil jezdce
+    expect(analysis.parameters[1].id).toBe('bike_rider_biometrics');
+    expect(analysis.parameters[1].name).toContain('Biometrie jezdce');
+    expect(analysis.parameters[1].rationale).toMatch(/výška|hmotnost|operac|záda|kolen/i);
+
+    // Otázky musí respektovat tuto hierarchii
+    expect(analysis.questions[0].id).toBe('bike_q_type');
+    expect(analysis.questions[1].id).toBe('bike_q_biometrics');
+  });
+
+  it('14. Tělesně vázané produkty (lyže, židle, matrace, boty) VŽDY obsahují parametr pro tělesné rozměry a zdravotní profil (výška, váha, operace páteře/kolen)', () => {
+    // Lyže
+    const skiAnalysis = discoverDomainParameters('sjezdové lyže');
+    expect(skiAnalysis.parameters[0].id).toBe('skis_terrain_purpose');
+    expect(skiAnalysis.parameters.some((p) => p.id === 'skier_biometrics_health')).toBe(true);
+
+    // Kancelářská židle
+    const chairAnalysis = discoverDomainParameters('ergonomická kancelářská židle');
+    expect(chairAnalysis.parameters[0].id).toBe('chair_category_type');
+    expect(chairAnalysis.parameters.some((p) => p.id === 'user_body_dimensions_spine')).toBe(true);
+
+    // Matrace
+    const mattressAnalysis = discoverDomainParameters('zdravotní ortopedická matrace');
+    expect(mattressAnalysis.parameters[0].id).toBe('mattress_user_biometrics_health');
+    expect(mattressAnalysis.parameters.some((p) => p.id === 'mattress_core_technology')).toBe(true);
+
+    // Běžecké boty
+    const shoeAnalysis = discoverDomainParameters('běžecké boty na maraton');
+    expect(shoeAnalysis.parameters.some((p) => p.id === 'runner_weight' || p.id === 'foot_biometrics_anatomy' || p.id === 'foot_width')).toBe(true);
+  });
+
+  it('15. Luke VŽDY navrhne minimálně 10 parametrů pro KAŽDOU zkoumanou kategorii (napříč všemi 18 doménami i neznámým vstupem)', () => {
+    const testQueries = [
+      'elektroauto',
+      'rodinné auto kombi',
+      'běžecké boty',
+      'pákový kávovar',
+      'kancelářská židle',
+      'herní notebook',
+      'freestyle koloběžka',
+      'sjezdové lyže',
+      'chytrá televize oled',
+      'robotický vysavač',
+      'mobilní telefon smartphone',
+      'automatická pračka',
+      'sportovní hodinky garmin',
+      'zdravotní matrace',
+      'tepelné čerpadlo monoblok',
+      'jízdní kolo',
+      'kombinovaný kočárek',
+      'robotická sekačka',
+      'sportovní batoh s bederním pásem', // neznámá tělesná kategorie
+      'vrtačka s příklepem' // neznámá technická kategorie
+    ];
+
+    for (const query of testQueries) {
+      const result = discoverDomainParameters(query);
+      expect(
+        result.parameters.length,
+        `Dotaz "${query}" musí mít minimálně 10 parametrů (má ${result.parameters.length})`
+      ).toBeGreaterThanOrEqual(10);
     }
   });
 });

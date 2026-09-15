@@ -57,7 +57,7 @@ export async function POST(req: NextRequest) {
         categoryName: domainAnalysis.categoryName,
         agentName: domainAnalysis.agentName,
         description: domainAnalysis.description,
-        parameters: domainAnalysis.parameters,
+        parameters: customParameters && customParameters.length > 0 ? customParameters : domainAnalysis.parameters,
       },
     });
   } catch (error: any) {
@@ -134,35 +134,45 @@ Struktura JSON:
 }
 `.trim();
 
-  // Call Google Gemini API
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key=${apiKey}`;
-  const response = await fetch(url, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      contents: [{ role: 'user', parts: [{ text: metaPrompt }] }],
-      generationConfig: {
-        temperature: 0.2,
-        maxOutputTokens: 2048,
-        responseMimeType: 'application/json',
-      },
-    }),
-  });
+  // Call Google Gemini API with candidate models (gemini-3.6-flash, 2.5-flash, 2.0-flash, 1.5-flash)
+  const candidateModels = ['gemini-3.6-flash', 'gemini-2.5-flash', 'gemini-2.0-flash', 'gemini-1.5-flash'];
+  let lastErr: Error | null = null;
 
-  if (!response.ok) {
-    throw new Error(`Gemini API error ${response.status}: ${await response.text()}`);
+  for (const model of candidateModels) {
+    try {
+      const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{ role: 'user', parts: [{ text: metaPrompt }] }],
+          generationConfig: {
+            temperature: 0.2,
+            maxOutputTokens: 2048,
+            responseMimeType: 'application/json',
+          },
+        }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+        if (text) {
+          const cleanJson = text.replace(/```json/gi, '').replace(/```/g, '').trim();
+          const parsed = JSON.parse(cleanJson);
+          return {
+            ...parsed,
+            createdAt: new Date().toISOString(),
+            isCustom: true,
+          };
+        }
+      } else {
+        lastErr = new Error(`Gemini API error for model ${model}: ${response.status}`);
+      }
+    } catch (err: any) {
+      lastErr = err;
+    }
   }
 
-  const data = await response.json();
-  const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
-  if (!text) throw new Error('Empty response from LLM');
-
-  const cleanJson = text.replace(/```json/gi, '').replace(/```/g, '').trim();
-  const parsed = JSON.parse(cleanJson);
-
-  return {
-    ...parsed,
-    createdAt: new Date().toISOString(),
-    isCustom: true,
-  };
+  throw lastErr || new Error('Empty response from LLM');
 }

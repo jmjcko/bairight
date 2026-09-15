@@ -19,7 +19,7 @@ export const SUPPORTED_AI_PROVIDERS: AIProviderConfig[] = [
   {
     id: 'bairight_core',
     name: 'bAIright Core Engine',
-    modelName: 'Gemini 2.0 Flash (Managed)',
+    modelName: 'Gemini 3.6 Flash (Managed)',
     provider: 'bAIright Managed',
     tag: 'Freemium Demo',
     description: 'Optimalizovaný základní model pro okamžité demo. Běží na náš účet s limitem 3 bezplatných vyhodnocení.',
@@ -44,8 +44,8 @@ export const SUPPORTED_AI_PROVIDERS: AIProviderConfig[] = [
   },
   {
     id: 'google_gemini',
-    name: 'Google Gemini 2.0 Flash / Pro',
-    modelName: 'gemini-2.0-flash-exp',
+    name: 'Google Gemini 3.6 Flash / Pro',
+    modelName: 'gemini-3.6-flash',
     provider: 'Google AI',
     tag: 'Blesková rychlost & Obří paměť',
     description: 'Extrémně rychlý reasoning s obří kontextovou pamětí. V Google AI Studio je k dispozici velkorysý tier zdarma.',

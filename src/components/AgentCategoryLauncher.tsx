@@ -86,7 +86,7 @@ export const AgentCategoryLauncher: React.FC<AgentCategoryLauncherProps> = ({
 
     setIsResearching(true);
     setLearnedNotice(null);
-    setResearchNotice(`Parameter Research Agent zkoumá trh a specifikace pro: "${target}"...`);
+    setResearchNotice(locale === 'en' ? `Agent Luke is analyzing market teardowns and failure points for: "${target}"...` : `Agent Luke zkoumá trh a odhaluje skrytá kritéria pro: "${target}"...`);
 
     try {
       let providerId = activeProviderId || 'bairight_core';
@@ -476,9 +476,14 @@ export const AgentCategoryLauncher: React.FC<AgentCategoryLauncherProps> = ({
                     {researchedAnalysis.icon}
                   </div>
                   <div className="min-w-0">
-                    <h4 className="text-base sm:text-lg font-bold text-white tracking-tight">
-                      {researchedAnalysis.categoryName}
-                    </h4>
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <h4 className="text-base sm:text-lg font-bold text-white tracking-tight">
+                        {researchedAnalysis.categoryName}
+                      </h4>
+                      <span className="text-[10px] font-mono font-semibold px-2 py-0.5 rounded-full bg-cyan-950/80 border border-cyan-500/40 text-cyan-300">
+                        🔍 Agent Luke
+                      </span>
+                    </div>
                     <p className="text-xs text-slate-400 mt-0.5 leading-normal">
                       Vyberte parametry pro dotazník, nepotřebné odeberte křížkem (X).
                     </p>

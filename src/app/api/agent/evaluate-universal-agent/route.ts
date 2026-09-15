@@ -72,30 +72,41 @@ export async function POST(req: NextRequest) {
  * Executes evaluation with live Gemini 2.0 API with JSON mode
  */
 async function executeLiveLLMEvaluation(prompt: string, apiKey: string, providerId?: string): Promise<any> {
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key=${apiKey}`;
-  const response = await fetch(url, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      contents: [{ role: 'user', parts: [{ text: prompt }] }],
-      generationConfig: {
-        temperature: 0.25,
-        maxOutputTokens: 2500,
-        responseMimeType: 'application/json',
-      },
-    }),
-  });
+  const candidateModels = ['gemini-3.6-flash', 'gemini-2.5-flash', 'gemini-2.0-flash', 'gemini-1.5-flash'];
+  let lastError: Error | null = null;
 
-  if (!response.ok) {
-    throw new Error(`Gemini API error: ${response.status}`);
+  for (const model of candidateModels) {
+    try {
+      const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{ role: 'user', parts: [{ text: prompt }] }],
+          generationConfig: {
+            temperature: 0.25,
+            maxOutputTokens: 2500,
+            responseMimeType: 'application/json',
+          },
+        }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+        if (text) {
+          const cleanJson = text.replace(/```json/gi, '').replace(/```/g, '').trim();
+          return JSON.parse(cleanJson);
+        }
+      } else {
+        lastError = new Error(`Gemini API error for model ${model}: ${response.status}`);
+      }
+    } catch (err: any) {
+      lastError = err;
+    }
   }
 
-  const data = await response.json();
-  const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
-  if (!text) throw new Error('No text returned from Gemini');
-
-  const cleanJson = text.replace(/```json/gi, '').replace(/```/g, '').trim();
-  return JSON.parse(cleanJson);
+  throw lastError || new Error('No response returned from Gemini');
 }
 
 /**
