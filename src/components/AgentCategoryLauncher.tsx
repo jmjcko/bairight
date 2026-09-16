@@ -77,6 +77,8 @@ export const AgentCategoryLauncher: React.FC<AgentCategoryLauncherProps> = ({
   const [researchedAnalysis, setResearchedAnalysis] = useState<DomainAnalysisResult | null>(null);
   const [isResearching, setIsResearching] = useState(false);
   const [researchNotice, setResearchNotice] = useState<string | null>(null);
+  const [researchError, setResearchError] = useState<string | null>(null);
+  const [lastFailedQuery, setLastFailedQuery] = useState<string | null>(null);
 
   // Trigger Parameter Research Agent on-demand for a target keyword
   const handleResearchParameters = async (targetKeyword?: string) => {
@@ -89,36 +91,17 @@ export const AgentCategoryLauncher: React.FC<AgentCategoryLauncherProps> = ({
     setResearchNotice(locale === 'en' ? `Agent Luke is analyzing market teardowns and failure points for: "${target}"...` : `Agent Luke zkoumá trh a odhaluje skrytá kritéria pro: "${target}"...`);
 
     try {
-      let providerId = activeProviderId || 'bairight_core';
-      let apiKey: string | undefined = undefined;
-
-      if (typeof window !== 'undefined') {
-        const storedProvider = localStorage.getItem('bairight_active_provider');
-        const storedKeys = localStorage.getItem('bairight_api_keys');
-        if (storedProvider) providerId = storedProvider;
-        if (storedKeys) {
-          try {
-            const parsed = JSON.parse(storedKeys);
-            if (providerId && parsed[providerId]) {
-              apiKey = parsed[providerId];
-            }
-          } catch {}
-        }
-      }
-
-      if (currentApiKeys && providerId && currentApiKeys[providerId]) {
-        apiKey = currentApiKeys[providerId];
-      }
-
       const res = await fetch('/api/agent/research-parameters', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ query: target, providerId, apiKey, locale }),
+        body: JSON.stringify({ query: target, locale }),
       });
 
       if (res.ok) {
         const data = await res.json();
         if (data.analysis) {
+          setResearchError(null);
+          setLastFailedQuery(null);
           setResearchedAnalysis(data.analysis);
           setActiveParameters(data.analysis.parameters || []);
           setSelectedParamIds(new Set((data.analysis.parameters || []).map((p: ExtractedDomainParameter) => p.id)));
@@ -126,14 +109,21 @@ export const AgentCategoryLauncher: React.FC<AgentCategoryLauncherProps> = ({
           return;
         }
       }
-      throw new Error('Research response not OK');
-    } catch (err) {
-      console.warn('Fallback to local domain parameter heuristics:', err);
-      const fallback = discoverDomainParameters(target);
-      setResearchedAnalysis(fallback);
-      setActiveParameters(fallback.parameters);
-      setSelectedParamIds(new Set(fallback.parameters.map((p) => p.id)));
-      setSuggestedPool(fallback.suggestedAlternatives || []);
+
+      // Non-OK response — show retryable error, NO generic fallback
+      let errorMsg: string;
+      try {
+        const errData = await res.json();
+        errorMsg = errData?.error || 'Analýza parametrů selhala.';
+      } catch {
+        errorMsg = 'Analýza parametrů selhala. Zkuste to prosím znovu.';
+      }
+      throw new Error(errorMsg);
+    } catch (err: any) {
+      const msg = err?.message || 'Analýza parametrů selhala. Zkuste to prosím znovu.';
+      console.error('[Luke] Research failed:', msg);
+      setResearchError(msg);
+      setLastFailedQuery(target);
     } finally {
       setIsResearching(false);
       setResearchNotice(null);
@@ -253,7 +243,8 @@ export const AgentCategoryLauncher: React.FC<AgentCategoryLauncherProps> = ({
     setIsGenerating(true);
     setGenerationStep('Analyzuji kategorii produktu...');
 
-    // If parameters haven't been researched yet, fallback to heuristic discovery
+    // If parameters haven't been researched yet (edge case: user skipped research step),
+    // use curated offline knowledge base for known domains as last resort in generate flow only.
     const currentAnalysis = researchedAnalysis || discoverDomainParameters(query.trim());
     if (!researchedAnalysis) {
       setResearchedAnalysis(currentAnalysis);
@@ -464,6 +455,33 @@ export const AgentCategoryLauncher: React.FC<AgentCategoryLauncherProps> = ({
                   Procházím odborné recenze, komunitní fóra a technické specifikace výrobců pro nalezení skutečných rozhodovacích parametrů...
                 </p>
               </div>
+            </div>
+          )}
+
+          {/* Luke Research Error Card — no generic fallback, user must retry */}
+          {researchError && !isResearching && (
+            <div className="rounded-2xl bg-[#0d0a0a] border border-red-500/40 p-6 text-center space-y-4 shadow-2xl">
+              <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-red-950/80 border border-red-500/50 text-red-400 mx-auto">
+                <span className="text-2xl">⚠️</span>
+              </div>
+              <div>
+                <h4 className="text-sm font-bold text-red-300 font-mono">
+                  Výzkum parametrů selhal
+                </h4>
+                <p className="text-xs text-slate-400 mt-2 max-w-sm mx-auto leading-relaxed">
+                  {researchError}
+                </p>
+              </div>
+              <button
+                onClick={() => {
+                  setResearchError(null);
+                  if (lastFailedQuery) handleResearchParameters(lastFailedQuery);
+                }}
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-red-950/60 border border-red-500/40 text-red-300 text-xs font-mono font-semibold hover:bg-red-900/60 hover:border-red-400/60 transition-all"
+              >
+                <span>🔄</span>
+                <span>Zkusit znovu</span>
+              </button>
             </div>
           )}
 

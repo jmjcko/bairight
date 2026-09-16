@@ -1,81 +1,132 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { 
-  discoverDomainParameters, 
   DomainAnalysisResult,
   ExtractedDomainParameter,
   UNIVERSAL_BRAND_PARAMETER 
 } from '@/lib/agent/domain-parameter-discovery';
+import {
+  getCachedAnalysis,
+  setCachedAnalysis,
+} from '@/lib/agent/parameter-cache-service';
 
+// ————————————————————————————————————————————————
+// Ensure brand parameter is present in the analysis
+// ————————————————————————————————————————————————
+function ensureBrandParameter(params: ExtractedDomainParameter[], locale: string): ExtractedDomainParameter[] {
+  const hasBrand = params.some(
+    (p) =>
+      p.id === 'brand_preferences' ||
+      p.id.includes('brand') ||
+      p.name.toLowerCase().includes('značk') ||
+      p.name.toLowerCase().includes('výrobc') ||
+      p.name.toLowerCase().includes('brand') ||
+      p.name.toLowerCase().includes('manufacturer')
+  );
+  if (!hasBrand) {
+    const brandParam: ExtractedDomainParameter = locale === 'en'
+      ? {
+          id: 'brand_preferences',
+          name: 'Brand & Manufacturers',
+          category: 'Brands & Manufacturers',
+          importance: 'recommended',
+          rationale: 'Specify preferred brands you trust and exclude brands you do not want recommended.',
+          icon: '🏷️',
+          suggestedComponent: 'brands',
+          suggestedValues: [
+            'All verified brands (open selection)',
+            'I have specific preferred brands',
+            'I want to exclude specific manufacturers',
+          ],
+        }
+      : UNIVERSAL_BRAND_PARAMETER;
+    return [...params, brandParam];
+  }
+  return params;
+}
+
+// ————————————————————————————————————————————————
+// POST /api/agent/research-parameters
+// Always-On Luke Research with Cache Layer
+// ————————————————————————————————————————————————
 export async function POST(req: NextRequest) {
   try {
-    const { query, providerId, apiKey, locale = 'cs' } = await req.json();
+    const { query, locale = 'cs' } = await req.json();
 
     if (!query || typeof query !== 'string' || query.trim().length === 0) {
       return NextResponse.json(
-        { error: locale === 'en' ? 'Please enter a product name or category for parameter analysis.' : 'Zadejte prosím název produktu nebo kategorii pro analýzu parametrů.' },
+        {
+          error:
+            locale === 'en'
+              ? 'Please enter a product name or category for parameter analysis.'
+              : 'Zadejte prosím název produktu nebo kategorii pro analýzu parametrů.',
+        },
         { status: 400 }
       );
     }
 
     const trimmedQuery = query.trim();
 
-    // 1. Check for LLM API keys (client BYOK or environment)
-    const effectiveKey = apiKey || (
-      providerId === 'google_gemini' ? process.env.GOOGLE_GEMINI_API_KEY :
-      providerId === 'openai_gpt4o' ? process.env.OPENAI_API_KEY :
-      providerId === 'anthropic_claude' ? process.env.ANTHROPIC_API_KEY :
-      process.env.GOOGLE_GEMINI_API_KEY || process.env.OPENAI_API_KEY
-    );
-
-    // 2. ALWAYS invoke Agent Luke (Parameter Research Agent) when an API key is available
-    if (effectiveKey) {
-      try {
-        const lukeResearched = await researchParametersWithLuke(trimmedQuery, effectiveKey, providerId, locale);
-        if (lukeResearched && lukeResearched.parameters && lukeResearched.parameters.length >= 8) {
-          const hasBrand = lukeResearched.parameters.some(
-            (p: ExtractedDomainParameter) => 
-              p.id === 'brand_preferences' || 
-              p.id.includes('brand') || 
-              p.name.toLowerCase().includes('značk') || 
-              p.name.toLowerCase().includes('výrobc') ||
-              p.name.toLowerCase().includes('brand') ||
-              p.name.toLowerCase().includes('manufacturer')
-          );
-          if (!hasBrand) {
-            const localizedBrandParam: ExtractedDomainParameter = locale === 'en' ? {
-              id: 'brand_preferences',
-              name: 'Brand & Manufacturers (Preferred vs. Forbidden)',
-              category: 'Brands & Manufacturers',
-              importance: 'recommended',
-              rationale: 'Allows you to specify preferred brands you trust, or strictly exclude brands you do not want to be recommended.',
-              icon: '🏷️',
-              suggestedComponent: 'brands',
-              suggestedValues: [
-                'All verified brands (open selection)',
-                'I have specific preferred brands',
-                'I want to exclude specific manufacturers',
-              ],
-            } : UNIVERSAL_BRAND_PARAMETER;
-
-            lukeResearched.parameters.push(localizedBrandParam);
-          }
-          return NextResponse.json({
-            success: true,
-            analysis: lukeResearched,
-            source: 'agent_luke_deep_research',
-          });
-        }
-      } catch (llmErr) {
-        console.warn('Agent Luke LLM call failed, falling back to enriched domain knowledge:', llmErr);
-      }
+    // ——— STEP 1: Cache lookup ———
+    const cached = await getCachedAnalysis(trimmedQuery, locale);
+    if (cached) {
+      console.log(`[Luke] Cache HIT (${cached.source}): "${trimmedQuery}"`);
+      return NextResponse.json({
+        success: true,
+        analysis: cached.analysis,
+        source: cached.source,
+      });
     }
 
-    // 3. Fallback: High-quality curated domain intelligence synthesized by Luke's offline engine
-    const localAnalysis = discoverDomainParameters(trimmedQuery);
+    // ——— STEP 2: Require server-side API key ———
+    const serverKey = process.env.GOOGLE_GEMINI_API_KEY;
+    if (!serverKey) {
+      console.error('[Luke] GOOGLE_GEMINI_API_KEY not configured in environment');
+      return NextResponse.json(
+        {
+          error:
+            locale === 'en'
+              ? 'AI research service is not configured. Please contact support.'
+              : 'Výzkumná služba AI není nakonfigurována. Kontaktujte prosím podporu.',
+        },
+        { status: 503 }
+      );
+    }
+
+    // ——— STEP 3: Always call Gemini Flash ———
+    console.log(`[Luke] Cache MISS — calling Gemini Flash for: "${trimmedQuery}"`);
+    let analysis: DomainAnalysisResult | null = null;
+
+    try {
+      analysis = await researchParametersWithLuke(trimmedQuery, serverKey, 'google_gemini', locale);
+    } catch (llmErr) {
+      console.error('[Luke] LLM call failed:', llmErr);
+    }
+
+    if (!analysis || !analysis.parameters || analysis.parameters.length < 8) {
+      return NextResponse.json(
+        {
+          error:
+            locale === 'en'
+              ? 'Parameter analysis failed. Please try again.'
+              : 'Analýza parametrů selhala. Zkuste to prosím znovu.',
+          retryable: true,
+        },
+        { status: 502 }
+      );
+    }
+
+    // ——— STEP 4: Ensure brand parameter exists ———
+    analysis.parameters = ensureBrandParameter(analysis.parameters, locale);
+
+    // ——— STEP 5: Cache the result ———
+    setCachedAnalysis(trimmedQuery, analysis, locale).catch((err) =>
+      console.warn('[Luke] Cache write failed (non-critical):', err)
+    );
+
     return NextResponse.json({
       success: true,
-      analysis: localAnalysis,
-      source: localAnalysis.matchedDomain !== 'generic' ? 'agent_luke_curated_intelligence' : 'agent_luke_offline_synthesizer',
+      analysis,
+      source: 'luke_gemini_flash',
     });
   } catch (error: any) {
     console.error('Error in research-parameters endpoint:', error);
@@ -86,11 +137,7 @@ export async function POST(req: NextRequest) {
   }
 }
 
-/**
- * Invokes LLM as Agent Luke (Deep Product Research Specialist).
- * Synthesizes insights grounded in YouTube teardowns, community enthusiast forums (Reddit etc.),
- * and manufacturer engineering datasheets.
- */
+
 async function researchParametersWithLuke(
   categoryQuery: string,
   apiKey: string,

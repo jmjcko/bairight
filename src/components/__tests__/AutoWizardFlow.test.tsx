@@ -1,9 +1,28 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import React from 'react';
 import Home from '@/app/page';
 
 describe('Auto Category Custom Wizard Flow', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+
+    // Mock fetch for research-parameters API (no server in test env)
+    global.fetch = vi.fn(async (url: string, opts?: any) => {
+      if (typeof url === 'string' && url.includes('/api/agent/research-parameters')) {
+        const body = JSON.parse((opts as any)?.body || '{}');
+        const query = body.query || 'auto';
+        const { discoverDomainParameters } = await import('@/lib/agent/domain-parameter-discovery');
+        const analysis = discoverDomainParameters(query);
+        return {
+          ok: true,
+          json: async () => ({ success: true, analysis, source: 'test_mock' }),
+        } as unknown as Response;
+      }
+      return { ok: false, json: async () => ({ error: 'Not found' }) } as unknown as Response;
+    });
+  });
+
   it('1. Entering a custom category launches wizard at Step 1 and does not skip to results', async () => {
     render(<Home />);
 
