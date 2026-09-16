@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
-import { X, LogIn } from "lucide-react";
+import { X, LogIn, Sparkles, Database, Shield } from "lucide-react";
 import { useAuth } from "@/lib/auth/AuthContext";
 
 interface GoogleLoginModalProps {
@@ -64,7 +64,7 @@ export const GoogleLoginModal: React.FC<GoogleLoginModalProps> = ({ isOpen, onCl
       onClick={onClose}
     >
       <div 
-        className="relative w-full max-w-sm max-h-[90vh] overflow-y-auto my-auto p-6 sm:p-8 rounded-2xl bg-[#09111e]/95 border border-cyan-500/40 shadow-[0_0_50px_rgba(6,182,212,0.25)] text-slate-100 space-y-6 text-center"
+        className="relative w-full max-w-md max-h-[90vh] overflow-y-auto my-auto p-6 sm:p-8 rounded-2xl bg-[#09111e]/95 border border-cyan-500/40 shadow-[0_0_50px_rgba(6,182,212,0.25)] text-slate-100 space-y-5"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Close Button */}
@@ -76,8 +76,8 @@ export const GoogleLoginModal: React.FC<GoogleLoginModalProps> = ({ isOpen, onCl
           <X className="w-5 h-5" />
         </button>
 
-        {/* Minimal Header */}
-        <div className="space-y-2 pt-2">
+        {/* Header */}
+        <div className="text-center space-y-1.5 pt-1">
           <div className="mx-auto w-12 h-12 rounded-xl bg-gradient-to-tr from-cyan-600/30 to-teal-500/30 border border-cyan-400/40 flex items-center justify-center text-cyan-300 shadow-md">
             <LogIn className="w-6 h-6 text-cyan-400" />
           </div>
@@ -85,19 +85,44 @@ export const GoogleLoginModal: React.FC<GoogleLoginModalProps> = ({ isOpen, onCl
             Přihlášení do bAIright
           </h2>
           <p className="text-xs text-slate-400 font-mono">
-            Pokračujte pomocí vašeho Google účtu
+            Odemkněte plný potenciál AI nákupního poradce
           </p>
         </div>
 
-        {/* Clean Single Google Sign-In Container */}
-        <div className="py-2 flex flex-col items-center justify-center min-h-[50px]">
+        {/* Benefits Info Section */}
+        <div className="space-y-3 bg-[#060c18] p-4 rounded-xl border border-slate-800/80 text-xs">
+          <div className="flex items-start gap-2.5">
+            <Sparkles className="w-4 h-4 text-cyan-400 shrink-0 mt-0.5" />
+            <div>
+              <span className="font-semibold text-slate-200">Persistovaný výzkum Luke</span>
+              <p className="text-slate-400 text-[11px]">Ukládejte si nalezené parametry a vygenerované prompty do svého profilu.</p>
+            </div>
+          </div>
+          <div className="flex items-start gap-2.5">
+            <Database className="w-4 h-4 text-teal-400 shrink-0 mt-0.5" />
+            <div>
+              <span className="font-semibold text-slate-200">Osobní RAG Paměť</span>
+              <p className="text-slate-400 text-[11px]">Synchronizujte své preference, velikosti a biomechanická data.</p>
+            </div>
+          </div>
+          <div className="flex items-start gap-2.5">
+            <Shield className="w-4 h-4 text-cyan-400 shrink-0 mt-0.5" />
+            <div>
+              <span className="font-semibold text-slate-200">Ochrana soukromí & BYOK</span>
+              <p className="text-slate-400 text-[11px]">Klíče API jsou bezpečně uchovávány a nikdy neuniknou do bundle.</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Strictly 1 Single Google Sign-In Container */}
+        <div className="py-1 flex flex-col items-center justify-center min-h-[50px]">
           {/* Native Google GIS Button Container */}
           <div 
             ref={gisButtonRef} 
             className={`flex justify-center w-full min-h-[44px] ${hasRenderedGis ? "block" : "hidden"}`}
           ></div>
 
-          {/* Fallback button rendered ONLY if native GIS button hasn't rendered */}
+          {/* Custom Button rendered ONLY if native GIS button hasn't rendered */}
           {!hasRenderedGis && (
             <button
               onClick={() => loginWithGoogle()}
@@ -116,7 +141,7 @@ export const GoogleLoginModal: React.FC<GoogleLoginModalProps> = ({ isOpen, onCl
         </div>
 
         {/* Footer info */}
-        <p className="text-[11px] text-slate-500 pt-2">
+        <p className="text-center text-[11px] text-slate-500 pt-1">
           Přihlášením souhlasíte s podmínkami použití bAIright a zásadami ochrany osobních údajů.
         </p>
       </div>
