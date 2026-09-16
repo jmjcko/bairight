@@ -39,7 +39,7 @@ describe("GoogleLoginModal", () => {
     );
 
     expect(screen.getByText("Přihlášení do bAIright")).toBeInTheDocument();
-    expect(screen.getByText("Pokračovat přes Google")).toBeInTheDocument();
+    expect(screen.getByText(/Nastavit Google Client ID|Spustit Google Sign-In/)).toBeInTheDocument();
   });
 
   it("calls onClose when close button is clicked", () => {

@@ -1,7 +1,7 @@
 import React from "react";
 import { render, screen, act, fireEvent } from "@testing-library/react";
 import { describe, it, expect, beforeEach, vi } from "vitest";
-import { AuthProvider, useAuth } from "../AuthContext";
+import { AuthProvider, useAuth, decodeGoogleJwt } from "../AuthContext";
 
 vi.mock("@/lib/supabase", () => ({
   supabase: {
@@ -15,20 +15,37 @@ vi.mock("@/lib/supabase", () => ({
 }));
 
 const TestComponent = () => {
-  const { user, loginWithGoogle, logout, loginDemoUser } = useAuth();
+  const { user, handleGoogleCredentialResponse, logout, setGoogleClientId } = useAuth();
 
   return (
     <div>
       <div data-testid="user-status">{user ? user.name : "Logged out"}</div>
       <div data-testid="user-email">{user ? user.email : ""}</div>
-      <button onClick={() => loginWithGoogle()}>Google Login</button>
-      <button onClick={() => loginDemoUser("Test User", "test@example.com")}>Demo Login</button>
+      <button onClick={() => setGoogleClientId("test-client-id.apps.googleusercontent.com")}>Set Client ID</button>
+      <button
+        onClick={() => {
+          // Simulate real Google JWT response
+          const fakeHeader = btoa(JSON.stringify({ alg: "HS256", typ: "JWT" }));
+          const fakePayload = btoa(
+            JSON.stringify({
+              sub: "usr_real_g_123",
+              email: "real.user@gmail.com",
+              name: "Real Google User",
+              picture: "https://lh3.googleusercontent.com/avatar.jpg",
+            })
+          );
+          const fakeToken = `${fakeHeader}.${fakePayload}.fakesig`;
+          handleGoogleCredentialResponse(fakeToken);
+        }}
+      >
+        Simulate Google Credential
+      </button>
       <button onClick={() => logout()}>Logout</button>
     </div>
   );
 };
 
-describe("AuthContext", () => {
+describe("AuthContext with Real Google GIS", () => {
   beforeEach(() => {
     localStorage.clear();
     vi.clearAllMocks();
@@ -44,22 +61,17 @@ describe("AuthContext", () => {
     expect(screen.getByTestId("user-status")).toHaveTextContent("Logged out");
   });
 
-  it("logs in user via Google login trigger", async () => {
-    render(
-      <AuthProvider>
-        <TestComponent />
-      </AuthProvider>
-    );
+  it("decodes Google JWT correctly", () => {
+    const fakeHeader = btoa(JSON.stringify({ alg: "HS256", typ: "JWT" }));
+    const fakePayload = btoa(unescape(encodeURIComponent(JSON.stringify({ sub: "usr_123", email: "jan.mynar@gmail.com", name: "Jan Mynář" }))));
+    const fakeToken = `${fakeHeader}.${fakePayload}.fakesig`;
 
-    await act(async () => {
-      fireEvent.click(screen.getByText("Google Login"));
-    });
-
-    expect(screen.getByTestId("user-status")).toHaveTextContent("Jan Mynář");
-    expect(screen.getByTestId("user-email")).toHaveTextContent("jan.mynar@gmail.com");
+    const decoded = decodeGoogleJwt(fakeToken);
+    expect(decoded?.email).toBe("jan.mynar@gmail.com");
+    expect(decoded?.name).toBe("Jan Mynář");
   });
 
-  it("logs in demo user and persists to localStorage", async () => {
+  it("logs in real Google user when valid Google credential token is received", async () => {
     render(
       <AuthProvider>
         <TestComponent />
@@ -67,11 +79,11 @@ describe("AuthContext", () => {
     );
 
     await act(async () => {
-      fireEvent.click(screen.getByText("Demo Login"));
+      fireEvent.click(screen.getByText("Simulate Google Credential"));
     });
 
-    expect(screen.getByTestId("user-status")).toHaveTextContent("Test User");
-    expect(localStorage.getItem("bairight_user_session")).toContain("test@example.com");
+    expect(screen.getByTestId("user-status")).toHaveTextContent("Real Google User");
+    expect(screen.getByTestId("user-email")).toHaveTextContent("real.user@gmail.com");
   });
 
   it("logs out user successfully", async () => {
@@ -82,10 +94,10 @@ describe("AuthContext", () => {
     );
 
     await act(async () => {
-      fireEvent.click(screen.getByText("Demo Login"));
+      fireEvent.click(screen.getByText("Simulate Google Credential"));
     });
 
-    expect(screen.getByTestId("user-status")).toHaveTextContent("Test User");
+    expect(screen.getByTestId("user-status")).toHaveTextContent("Real Google User");
 
     await act(async () => {
       fireEvent.click(screen.getByText("Logout"));

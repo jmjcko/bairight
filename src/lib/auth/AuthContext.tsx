@@ -8,138 +8,160 @@ export interface UserProfile {
   email: string;
   name: string;
   avatarUrl?: string;
-  provider: "google" | "demo";
+  provider: "google" | "supabase";
 }
 
 interface AuthContextType {
   user: UserProfile | null;
   isLoading: boolean;
+  googleClientId: string;
+  setGoogleClientId: (clientId: string) => void;
   loginWithGoogle: () => Promise<void>;
-  loginDemoUser: (customName?: string, customEmail?: string) => void;
   logout: () => Promise<void>;
   isLoginModalOpen: boolean;
   setIsLoginModalOpen: (open: boolean) => void;
+  isClientIdModalOpen: boolean;
+  setIsClientIdModalOpen: (open: boolean) => void;
+  handleGoogleCredentialResponse: (credentialToken: string) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 const LOCAL_STORAGE_KEY = "bairight_user_session";
+const CLIENT_ID_KEY = "bairight_google_client_id";
+
+// Helper to decode JWT token payload from Google GIS
+export function decodeGoogleJwt(token: string): { email?: string; name?: string; picture?: string; sub?: string } | null {
+  try {
+    const base64Url = token.split(".")[1];
+    const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
+    const jsonPayload = decodeURIComponent(
+      atob(base64)
+        .split("")
+        .map((c) => "%" + ("00" + c.charCodeAt(0).toString(16)).slice(-2))
+        .join("")
+    );
+    return JSON.parse(jsonPayload);
+  } catch (err) {
+    console.error("Failed to decode Google JWT token:", err);
+    return null;
+  }
+}
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<UserProfile | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
+  const [isClientIdModalOpen, setIsClientIdModalOpen] = useState(false);
+  const [googleClientId, setGoogleClientIdState] = useState<string>("");
 
   useEffect(() => {
     let isMounted = true;
+
+    // 1. Load user session from localStorage
     try {
       const savedSession = localStorage.getItem(LOCAL_STORAGE_KEY);
       if (savedSession) {
         setUser(JSON.parse(savedSession));
       }
     } catch {
-      // Ignore JSON parse errors
+      // Ignore
     }
 
-    const initSupabaseAuth = async () => {
-      try {
-        if (supabase) {
-          const { data } = await supabase.auth.getSession();
-          if (isMounted && data?.session?.user) {
-            const supaUser = data.session.user;
-            const profile: UserProfile = {
-              id: supaUser.id,
-              email: supaUser.email || "user@google.com",
-              name: supaUser.user_metadata?.full_name || supaUser.email?.split("@")[0] || "Uživatel",
-              avatarUrl: supaUser.user_metadata?.avatar_url,
-              provider: "google",
-            };
-            setUser(profile);
-            localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(profile));
-          }
-        }
-      } catch {
-        // Fall back gracefully
-      }
-    };
+    // 2. Load Google Client ID from env or localStorage
+    const envClientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || "";
+    const storedClientId = typeof window !== "undefined" ? localStorage.getItem(CLIENT_ID_KEY) || "" : "";
+    const activeClientId = envClientId || storedClientId;
+    if (activeClientId) {
+      setGoogleClientIdState(activeClientId);
+    }
 
-    initSupabaseAuth();
-
-    let authListener: any = null;
-    if (supabase) {
-      const { data } = supabase.auth.onAuthStateChange((_event, session) => {
-        if (!isMounted) return;
-        if (session?.user) {
-          const supaUser = session.user;
-          const profile: UserProfile = {
-            id: supaUser.id,
-            email: supaUser.email || "user@google.com",
-            name: supaUser.user_metadata?.full_name || supaUser.email?.split("@")[0] || "Uživatel",
-            avatarUrl: supaUser.user_metadata?.avatar_url,
-            provider: "google",
-          };
-          setUser(profile);
-          localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(profile));
-        } else if (_event === "SIGNED_OUT") {
-          setUser(null);
-          localStorage.removeItem(LOCAL_STORAGE_KEY);
-        }
-      });
-      authListener = data?.subscription;
+    // 3. Load GIS Script dynamically
+    if (typeof window !== "undefined" && !document.getElementById("google-gis-script")) {
+      const script = document.createElement("script");
+      script.id = "google-gis-script";
+      script.src = "https://accounts.google.com/gsi/client";
+      script.async = true;
+      script.defer = true;
+      document.head.appendChild(script);
     }
 
     return () => {
       isMounted = false;
-      authListener?.unsubscribe();
     };
   }, []);
+
+  const setGoogleClientId = (clientId: string) => {
+    const trimmed = clientId.trim();
+    setGoogleClientIdState(trimmed);
+    if (typeof window !== "undefined") {
+      localStorage.setItem(CLIENT_ID_KEY, trimmed);
+    }
+  };
+
+  const handleGoogleCredentialResponse = (credentialToken: string) => {
+    const payload = decodeGoogleJwt(credentialToken);
+    if (!payload || !payload.email) {
+      console.error("Invalid Google credential token payload");
+      return;
+    }
+
+    const realGoogleProfile: UserProfile = {
+      id: payload.sub || `usr_g_${Date.now()}`,
+      email: payload.email,
+      name: payload.name || payload.email.split("@")[0],
+      avatarUrl: payload.picture,
+      provider: "google",
+    };
+
+    setUser(realGoogleProfile);
+    if (typeof window !== "undefined") {
+      localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(realGoogleProfile));
+    }
+    setIsLoginModalOpen(false);
+  };
 
   const loginWithGoogle = async () => {
     setIsLoading(true);
     try {
-      if (
-        process.env.NEXT_PUBLIC_SUPABASE_URL &&
-        process.env.NEXT_PUBLIC_SUPABASE_URL !== "https://db.tydjbkdzghkbyeidyoxw.supabase.co"
-      ) {
-        const { error } = await supabase.auth.signInWithOAuth({
-          provider: "google",
-          options: {
-            redirectTo: `${window.location.origin}/`,
-          },
-        });
-        if (error) throw error;
+      const clientIdToUse = googleClientId || process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || (typeof window !== "undefined" ? localStorage.getItem(CLIENT_ID_KEY) : "");
+
+      if (!clientIdToUse) {
+        // Prompt user for Client ID if not configured yet
+        setIsClientIdModalOpen(true);
+        setIsLoading(false);
         return;
       }
 
-      // Dev mode Google Auth Fallback
-      const demoGoogleProfile: UserProfile = {
-        id: "usr_google_demo_" + Date.now(),
-        email: "jan.mynar@gmail.com",
-        name: "Jan Mynář",
-        avatarUrl: "https://lh3.googleusercontent.com/a/ACg8ocK1-demo-avatar=s96-c",
-        provider: "google",
-      };
-      setUser(demoGoogleProfile);
-      localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(demoGoogleProfile));
-      setIsLoginModalOpen(false);
+      // Initialize Google Identity Services (GIS)
+      if (typeof window !== "undefined" && (window as any).google?.accounts?.id) {
+        const google = (window as any).google;
+        google.accounts.id.initialize({
+          client_id: clientIdToUse,
+          callback: (response: any) => {
+            if (response.credential) {
+              handleGoogleCredentialResponse(response.credential);
+            }
+          },
+        });
+
+        // Trigger real Google Sign-In prompt
+        google.accounts.id.prompt((notification: any) => {
+          if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
+            // Fall back to popup button if prompt is dismissed
+            console.log("GIS prompt dismissed, rendering explicit auth container");
+          }
+        });
+      } else {
+        // Fallback: If GIS script is loading, open Client ID configuration modal
+        setIsClientIdModalOpen(true);
+      }
     } catch (err) {
-      console.error("Google login failed:", err);
-      loginDemoUser("Jan Mynář", "jan.mynar@gmail.com");
+      console.error("Real Google login trigger error:", err);
+      setIsClientIdModalOpen(true);
     } finally {
       setIsLoading(false);
     }
-  };
-
-  const loginDemoUser = (name = "Jan Mynář", email = "jan.mynar@gmail.com") => {
-    const profile: UserProfile = {
-      id: "usr_demo_" + Date.now(),
-      email,
-      name,
-      provider: "demo",
-    };
-    setUser(profile);
-    localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(profile));
-    setIsLoginModalOpen(false);
   };
 
   const logout = async () => {
@@ -152,7 +174,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       // Ignore
     }
     setUser(null);
-    localStorage.removeItem(LOCAL_STORAGE_KEY);
+    if (typeof window !== "undefined") {
+      localStorage.removeItem(LOCAL_STORAGE_KEY);
+    }
     setIsLoading(false);
   };
 
@@ -161,11 +185,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       value={{
         user,
         isLoading,
+        googleClientId,
+        setGoogleClientId,
         loginWithGoogle,
-        loginDemoUser,
         logout,
         isLoginModalOpen,
         setIsLoginModalOpen,
+        isClientIdModalOpen,
+        setIsClientIdModalOpen,
+        handleGoogleCredentialResponse,
       }}
     >
       {children}
@@ -176,15 +204,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 export const useAuth = (): AuthContextType => {
   const context = useContext(AuthContext);
   if (!context) {
-    // Graceful fallback for components tested in isolation
     return {
       user: null,
       isLoading: false,
+      googleClientId: "",
+      setGoogleClientId: () => {},
       loginWithGoogle: async () => {},
-      loginDemoUser: () => {},
       logout: async () => {},
       isLoginModalOpen: false,
       setIsLoginModalOpen: () => {},
+      isClientIdModalOpen: false,
+      setIsClientIdModalOpen: () => {},
+      handleGoogleCredentialResponse: () => {},
     };
   }
   return context;
