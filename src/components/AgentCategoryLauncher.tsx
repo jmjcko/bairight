@@ -1,5 +1,5 @@
-import { UserRAGHistoryService } from "@/lib/agent/user-rag-history-service";
 'use client';
+import { UserRAGHistoryService } from "@/lib/agent/user-rag-history-service";
 import { Badge, Button, Card, Toast } from '@/components/ui';
 
 import React, { useState, useEffect, useRef } from 'react';
