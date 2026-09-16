@@ -1,0 +1,38 @@
+version: '1.0'
+project: bairight-redesign
+shared_files:
+  - src/app/globals.css
+  - src/lib/i18n/translations.ts
+stories:
+  - id: 1.1
+    title: UI Primitives Component Library
+    file: docs/plans/stories/epic-1-story-1.1-ui-primitives-library.md
+    dependencies: []
+    wave: 1
+    files_touched:
+      - src/components/ui/Badge.tsx
+      - src/components/ui/Button.tsx
+      - src/components/ui/Card.tsx
+      - src/components/ui/Toast.tsx
+  - id: 1.2
+    title: Concise Parameter Pills & Step Transitions
+    file: docs/plans/stories/epic-1-story-1.2-concise-parameter-pills.md
+    dependencies: ['1.1']
+    wave: 2
+    files_touched:
+      - src/components/AgentCategoryLauncher.tsx
+      - src/components/ParameterResearchWizard.tsx
+  - id: 1.3
+    title: Research Loading Progress Card & Error Retry UI
+    file: docs/plans/stories/epic-1-story-1.3-research-progress-retry-card.md
+    dependencies: ['1.2']
+    wave: 2
+    files_touched:
+      - src/components/AgentCategoryLauncher.tsx
+  - id: 1.4
+    title: Modern Prompt Export Preview Workspace
+    file: docs/plans/stories/epic-1-story-1.4-prompt-export-preview-workspace.md
+    dependencies: ['1.3']
+    wave: 3
+    files_touched:
+      - src/components/AgentCategoryLauncher.tsx

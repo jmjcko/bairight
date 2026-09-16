@@ -1,4 +1,5 @@
 'use client';
+import { Badge, Button, Card, Toast } from '@/components/ui';
 
 import React, { useState, useEffect, useRef } from 'react';
 import { 
@@ -77,7 +78,23 @@ export const AgentCategoryLauncher: React.FC<AgentCategoryLauncherProps> = ({
   const [researchedAnalysis, setResearchedAnalysis] = useState<DomainAnalysisResult | null>(null);
   const [isResearching, setIsResearching] = useState(false);
   const [researchNotice, setResearchNotice] = useState<string | null>(null);
-  const [researchError, setResearchError] = useState<string | null>(null);
+    const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const [toastType, setToastType] = useState<'success' | 'error' | 'info'>('success');
+
+  const handleCopyPrompt = async (promptText: string) => {
+    try {
+      if (typeof navigator !== 'undefined' && navigator.clipboard) {
+        await navigator.clipboard.writeText(promptText);
+      }
+      setToastType('success');
+      setToastMessage('Kopírováno do schránky!');
+    } catch (err) {
+      setToastType('error');
+      setToastMessage('Kopírování selhalo');
+    }
+  };
+
+const [researchError, setResearchError] = useState<string | null>(null);
   const [lastFailedQuery, setLastFailedQuery] = useState<string | null>(null);
 
   // Trigger Parameter Research Agent on-demand for a target keyword
@@ -442,7 +459,7 @@ export const AgentCategoryLauncher: React.FC<AgentCategoryLauncherProps> = ({
 
           {/* Researching Animation Progress Card */}
           {isResearching && (
-            <div className="rounded-2xl bg-[#090d16] border border-cyan-500/40 p-6 text-center space-y-3 animate-pulse shadow-2xl">
+            <Card active className="p-6 text-center space-y-3 animate-pulse shadow-2xl">
               <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-cyan-950/90 border border-cyan-500/50 text-cyan-400 mx-auto">
                 <Sparkles className="w-6 h-6 animate-spin" />
               </div>
@@ -455,12 +472,12 @@ export const AgentCategoryLauncher: React.FC<AgentCategoryLauncherProps> = ({
                   Procházím odborné recenze, komunitní fóra a technické specifikace výrobců pro nalezení skutečných rozhodovacích parametrů...
                 </p>
               </div>
-            </div>
+            </Card>
           )}
 
           {/* Luke Research Error Card — no generic fallback, user must retry */}
           {researchError && !isResearching && (
-            <div className="rounded-2xl bg-[#0d0a0a] border border-red-500/40 p-6 text-center space-y-4 shadow-2xl">
+            <Card error className="p-6 text-center space-y-4 shadow-2xl">
               <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-red-950/80 border border-red-500/50 text-red-400 mx-auto">
                 <span className="text-2xl">⚠️</span>
               </div>
@@ -472,17 +489,18 @@ export const AgentCategoryLauncher: React.FC<AgentCategoryLauncherProps> = ({
                   {researchError}
                 </p>
               </div>
-              <button
+              <Button
+                variant="danger"
                 onClick={() => {
                   setResearchError(null);
                   if (lastFailedQuery) handleResearchParameters(lastFailedQuery);
                 }}
-                className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-red-950/60 border border-red-500/40 text-red-300 text-xs font-mono font-semibold hover:bg-red-900/60 hover:border-red-400/60 transition-all"
+                className="gap-2 font-mono text-xs"
               >
                 <span>🔄</span>
                 <span>Zkusit znovu</span>
-              </button>
-            </div>
+              </Button>
+            </Card>
           )}
 
           {/* Researched Domain Parameter Discovery & Interactive Tuner */}
@@ -561,7 +579,7 @@ export const AgentCategoryLauncher: React.FC<AgentCategoryLauncherProps> = ({
                         <div className="min-w-0 flex-1 pr-7">
                           <div className="flex items-center gap-1.5 flex-wrap">
                             <span className={`text-xs font-semibold leading-snug line-clamp-2 break-words ${isSelected ? 'text-white' : 'text-slate-400'}`}>
-                              {param.name}
+                              {formatConciseParameterName(param.name)}
                             </span>
                             {param.id.startsWith('learned-') && (
                               <span className="text-[9px] font-mono px-1.5 py-0.2 rounded bg-purple-950 text-purple-300 border border-purple-500/40 font-bold flex items-center gap-1">
@@ -586,7 +604,7 @@ export const AgentCategoryLauncher: React.FC<AgentCategoryLauncherProps> = ({
                           }}
                           className="absolute top-2 right-2 p-1 rounded-lg text-slate-500 hover:text-rose-400 hover:bg-rose-950/40 border border-transparent hover:border-rose-500/30 transition-all cursor-pointer"
                           title="Odebrat tento parametr"
-                          aria-label={`Odebrat parametr ${param.name}`}
+                          aria-label={`Odebrat parametr ${formatConciseParameterName(param.name)}`}
                         >
                           <X className="w-3.5 h-3.5" />
                         </button>
@@ -804,6 +822,17 @@ export const AgentCategoryLauncher: React.FC<AgentCategoryLauncherProps> = ({
                     </div>
 
                     <div className="flex items-center gap-1.5">
+                      <Button
+                        variant="secondary"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleCopyPrompt(agent.systemPrompt || agent.description);
+                        }}
+                        className="text-[11px] py-1 px-2.5 gap-1 font-mono"
+                        title="Kopírovat prompt"
+                      >
+                        📋 Kopírovat
+                      </Button>
                       <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-slate-900 border border-slate-800 text-slate-400">
                         {agent.questions.length} otázek
                       </span>
@@ -849,6 +878,30 @@ export const AgentCategoryLauncher: React.FC<AgentCategoryLauncherProps> = ({
           </div>
         </div>
       )}
+      {toastMessage && (
+        <Toast
+          type={toastType}
+          message={toastMessage}
+          onClose={() => setToastMessage(null)}
+        />
+      )}
     </div>
   );
 };
+
+export function formatConciseParameterName(name: string): string {
+  if (!name) return '';
+  if (name.length <= 22) return name;
+  const shortMap: Record<string, string> = {
+    'Servisní dostupnost & náhradní díly v ČR': 'Servisní podpora',
+    'Rozlišení a kvalita snímače fotoaparátu': 'Fotoaparát',
+    'Rozlišení a vlastnosti fotoaparátu': 'Fotoaparát',
+    'Kapacita a vnitřní objem': 'Kapacita',
+    'Hlučnost a úroveň vibrací': 'Hlučnost',
+    'Spotřeba energie a vody': 'Spotřeba',
+    'Typ displeje a obnovovací frekvence': 'Displej',
+    'Výdrž baterie a nabíjení': 'Baterie',
+  };
+  if (shortMap[name]) return shortMap[name];
+  return name.slice(0, 18) + '...';
+}

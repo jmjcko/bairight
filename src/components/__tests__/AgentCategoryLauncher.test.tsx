@@ -1,7 +1,7 @@
 import React from 'react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import { AgentCategoryLauncher } from '../AgentCategoryLauncher';
+import { AgentCategoryLauncher, formatConciseParameterName } from '../AgentCategoryLauncher';
 import { AgentStorageService } from '@/lib/agent/agent-storage-service';
 import { discoverDomainParameters, buildCustomAgentFromParameters } from '@/lib/agent/domain-parameter-discovery';
 
@@ -274,6 +274,66 @@ describe('AgentCategoryLauncher Unit Test Suite (PRD v1)', () => {
     const selected = mockOnSelectAgent.mock.calls[0][0];
     expect(selected.id).toBe('custom_car_advisor');
     expect(selected.version).toBe('1.2.0');
+  });
+
+  it('10. Zkracuje dlouhé názvy parametrů na stručné štítky (<= 18 znaků)', () => {
+    expect(formatConciseParameterName('Servisní dostupnost & náhradní díly v ČR')).toBe('Servisní podpora');
+    expect(formatConciseParameterName('Rozlišení a kvalita snímače fotoaparátu')).toBe('Fotoaparát');
+    expect(formatConciseParameterName('Hlučnost')).toBe('Hlučnost');
+  });
+
+  it('11. Zobrazuje kartu chybového stavu s tlačítkem Zkusit znovu při selhání API', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
+      ok: false,
+      status: 500,
+      json: async () => ({ ok: false, error: 'API Timeout' })
+    }));
+
+    render(<AgentCategoryLauncher onSelectAgent={mockOnSelectAgent} />);
+
+    const searchInput = screen.getByPlaceholderText(/Kancelářská ergonomická židle/i);
+    fireEvent.change(searchInput, { target: { value: 'neznámý produkt' } });
+
+    const researchBtn = screen.getByRole('button', { name: /Začít/i });
+    fireEvent.click(researchBtn);
+
+    await waitFor(() => {
+      expect(screen.getByText(/Výzkum parametrů selhal/i)).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /Zkusit znovu/i })).toBeInTheDocument();
+    });
+  });
+
+  it('12. Kliknutí na Kopírovat prompt zkopíruje text a zobrazí Toast notifikaci', async () => {
+    const writeTextMock = vi.fn().mockResolvedValue(undefined);
+    Object.defineProperty(navigator, 'clipboard', {
+      value: { writeText: writeTextMock },
+      configurable: true,
+      writable: true,
+    });
+
+    AgentStorageService.resetToDefaults();
+    AgentStorageService.saveAgent({
+      id: 'copy_test_agent',
+      name: 'Agent pro test kopírování',
+      category: 'Test',
+      description: 'Popis testovacího agenta',
+      icon: '📋',
+      version: '1.0',
+      questions: [],
+      systemPrompt: 'Systémový prompt k zakopírování',
+      createdAt: new Date().toISOString(),
+      isCustom: true,
+    });
+
+    render(<AgentCategoryLauncher onSelectAgent={mockOnSelectAgent} />);
+
+    const copyBtn = screen.getByTitle(/Kopírovat prompt/i);
+    fireEvent.click(copyBtn);
+
+    await waitFor(() => {
+      expect(writeTextMock).toHaveBeenCalledWith('Systémový prompt k zakopírování');
+      expect(screen.getByText('Kopírováno do schránky!')).toBeInTheDocument();
+    });
   });
 });
 

@@ -8,8 +8,9 @@ describe('Auto Category Custom Wizard Flow', () => {
     vi.clearAllMocks();
 
     // Mock fetch for research-parameters API (no server in test env)
-    global.fetch = vi.fn(async (url: string, opts?: any) => {
-      if (typeof url === 'string' && url.includes('/api/agent/research-parameters')) {
+    global.fetch = vi.fn(async (input: any, opts?: any) => {
+      const url = typeof input === 'string' ? input : input.toString();
+      if (url.includes('/api/agent/research-parameters')) {
         const body = JSON.parse((opts as any)?.body || '{}');
         const query = body.query || 'auto';
         const { discoverDomainParameters } = await import('@/lib/agent/domain-parameter-discovery');
