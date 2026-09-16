@@ -30,3 +30,30 @@ This repository (`bAIright` / `shoes`) operates under the **3Pillar AIRE SDLC Ag
 4. **Communication & Language:**
    - Clear, professional engineering communication in Czech (`cs`) or English (`en`) according to user preference.
    - User-facing UI strings must be localized via `src/lib/i18n/translations.ts`.
+
+
+## 🤖 Agent Luke Specification & Maintenance Protocol
+- **Canonical Specification**: [`SPEC/agents/LUKE_RESEARCH_AGENT.md`](file:///Users/jan.mynar/Documents/GitHub/bairight/SPEC/agents/LUKE_RESEARCH_AGENT.md)
+- **AI Assistant Maintenance Responsibility**: When the user requests improvements, tweaks, or new behaviors for Agent Luke:
+  1. The AI Assistant updates [`SPEC/agents/LUKE_RESEARCH_AGENT.md`](file:///Users/jan.mynar/Documents/GitHub/bairight/SPEC/agents/LUKE_RESEARCH_AGENT.md) with the new rule or persona requirement.
+  2. The AI Assistant synchronizes the runtime system prompt in `src/lib/agent/luke-agent-prompt.ts` and `src/app/api/agent/research-parameters/route.ts`.
+  3. The AI Assistant updates or creates automated unit tests in `src/lib/agent/__tests__/` to enforce the new rule.
+  4. The AI Assistant runs `npx vitest run` and `npx tsc --noEmit` to guarantee zero regressions.
+
+
+
+## ⚡ Autonomous AIRE SDLC Workflow Execution (No Manual Trigger Required)
+
+The user does NOT need to type explicit workflow trigger commands (e.g., `aire-greenfield-requirements`, `aire-brownfield-inspect`, `aire-dev-implement`, `aire-review-code`, `aire-qa-validate`).
+
+**AUTOMATIC DISPATCH PROTOCOL**:
+For ANY prompt or request submitted by the user:
+1. **Automatic Workflow Mapping**:
+   - **New Feature / Refactoring on existing code**: Automatically sequence through `aire-brownfield-inspect` -> `aire-brownfield-requirements` -> `aire-brownfield-architecture` -> `aire-brownfield-plan` -> `aire-dev-implement`.
+   - **Feature Implementation**: Automatically read `SPEC/workflows/aire-dev-implement.md` and execute implementation steps.
+   - **Review / Code Audit**: Automatically read `SPEC/workflows/aire-review-code.md` and run the audit.
+   - **Bug / Remediation**: Automatically read `SPEC/workflows/aire-dev-remediate.md` and apply TDD fixes.
+   - **Testing & QA**: Automatically execute `SPEC/workflows/aire-qa-validate.md` or `SPEC/workflows/aire-qa-regression.md`.
+2. **Read Workflow File**: Always load the exact file from `SPEC/workflows/<workflow-name>.md` before running steps.
+3. **Seamless Execution**: Execute all required steps (inspections, TDD, code review, QA checks, TypeScript validation, Vitest runs) automatically.
+4. **Transparent Status**: Display a short banner notifying the user which AIRE SDLC workflow is active (e.g., `🔄 [AIRE SDLC Auto-Workflow: aire-dev-implement]`).

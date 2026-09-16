@@ -1,3 +1,4 @@
+import { UserRAGHistoryService } from "@/lib/agent/user-rag-history-service";
 'use client';
 import { Badge, Button, Card, Toast } from '@/components/ui';
 
@@ -323,6 +324,12 @@ const [researchError, setResearchError] = useState<string | null>(null);
 
       if (finalAgent) {
         AgentStorageService.saveAgent(finalAgent);
+        UserRAGHistoryService.saveUserSearchHistory("demo", {
+          query: currentAnalysis?.categoryName || query,
+          domainKey: currentAnalysis?.matchedDomain,
+          selectedParameters: finalParamsToUse,
+          generatedPrompt: finalAgent.systemPrompt,
+        });
         setAgents(AgentStorageService.getAllAgents());
         setQuery('');
         onSelectAgent(finalAgent, false);
