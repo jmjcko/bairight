@@ -57,3 +57,18 @@ For ANY prompt or request submitted by the user:
 2. **Read Workflow File**: Always load the exact file from `SPEC/workflows/<workflow-name>.md` before running steps.
 3. **Seamless Execution**: Execute all required steps (inspections, TDD, code review, QA checks, TypeScript validation, Vitest runs) automatically.
 4. **Transparent Status**: Display a short banner notifying the user which AIRE SDLC workflow is active (e.g., `🔄 [AIRE SDLC Auto-Workflow: aire-dev-implement]`).
+
+
+## 📋 AIRE SDLC Transparency, Reporting & Local Git Control Rules
+
+1. **Mandatory AIRE SDLC Execution Audit Table**:
+   In EVERY response reporting completed development, refactoring, or bug fixes, the AI Assistant MUST include a structured **AIRE SDLC Audit Table** detailing:
+   - 🔄 **Workflows Executed**: (e.g. `aire-brownfield-inspect` -> `aire-dev-implement` / `aire-dev-remediate` -> `aire-review-code` -> `aire-qa-validate`).
+   - 🤖 **AIRE Role Agents Active**: (e.g. `AIRE_ARCHITECT`, `AIRE_DEV`, `AIRE_REVIEWER`, `AIRE_QA`).
+   - 📑 **Workflow Files Loaded**: (e.g. `SPEC/workflows/aire-dev-implement.md`, `SPEC/workflows/aire-qa-validate.md`).
+   - 🛡️ **Quality Gates Verified**: TypeScript compilation (`npx tsc --noEmit`), Vitest unit tests (`npx vitest run`), CodeGuard/OWASP security audit.
+
+2. **Local Worktree Integrity & User Push Gate (NO Auto-Push)**:
+   - The AI Assistant MUST save all edits directly to local workspace files so they are immediately visible as uncommitted changes (`git diff`) in the user's IDE.
+   - The AI Assistant MUST NOT execute `git commit` or `git push` automatically.
+   - The user retains 100% control over committing and pushing changes to GitHub.

@@ -68,13 +68,29 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       // Ignore
     }
 
-    // 2. Load Google Client ID from env or localStorage
-    const envClientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || "";
-    const storedClientId = typeof window !== "undefined" ? localStorage.getItem(CLIENT_ID_KEY) || "" : "";
-    const activeClientId = envClientId || storedClientId;
-    if (activeClientId) {
-      setGoogleClientIdState(activeClientId);
-    }
+    // 2. Load Google Client ID from API config, env, or localStorage
+    fetch("/api/auth/config")
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.clientId && isMounted) {
+          setGoogleClientIdState(data.clientId);
+        } else {
+          const envClientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || "";
+          const storedClientId = typeof window !== "undefined" ? localStorage.getItem(CLIENT_ID_KEY) || "" : "";
+          const activeClientId = envClientId || storedClientId;
+          if (activeClientId && isMounted) {
+            setGoogleClientIdState(activeClientId);
+          }
+        }
+      })
+      .catch(() => {
+        const envClientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || "";
+        const storedClientId = typeof window !== "undefined" ? localStorage.getItem(CLIENT_ID_KEY) || "" : "";
+        const activeClientId = envClientId || storedClientId;
+        if (activeClientId && isMounted) {
+          setGoogleClientIdState(activeClientId);
+        }
+      });
 
     // 3. Load GIS Script dynamically
     if (typeof window !== "undefined" && !document.getElementById("google-gis-script")) {
