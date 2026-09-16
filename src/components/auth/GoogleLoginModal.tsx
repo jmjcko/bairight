@@ -18,6 +18,7 @@ export const GoogleLoginModal: React.FC<GoogleLoginModalProps> = ({ isOpen, onCl
     handleGoogleCredentialResponse,
   } = useAuth();
   const [mounted, setMounted] = useState(false);
+  const [hasRenderedGis, setHasRenderedGis] = useState(false);
   const gisButtonRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -48,8 +49,9 @@ export const GoogleLoginModal: React.FC<GoogleLoginModalProps> = ({ isOpen, onCl
           text: "continue_with",
           shape: "pill",
         });
+        setHasRenderedGis(true);
       }
-    }, 150);
+    }, 100);
 
     return () => clearTimeout(timer);
   }, [isOpen, mounted, googleClientId, handleGoogleCredentialResponse]);
@@ -87,13 +89,16 @@ export const GoogleLoginModal: React.FC<GoogleLoginModalProps> = ({ isOpen, onCl
           </p>
         </div>
 
-        {/* Clean Google Sign-In Container */}
+        {/* Clean Single Google Sign-In Container */}
         <div className="py-2 flex flex-col items-center justify-center min-h-[50px]">
-          {/* Native Google GIS Button */}
-          <div ref={gisButtonRef} className="flex justify-center w-full min-h-[44px]"></div>
+          {/* Native Google GIS Button Container */}
+          <div 
+            ref={gisButtonRef} 
+            className={`flex justify-center w-full min-h-[44px] ${hasRenderedGis ? "block" : "hidden"}`}
+          ></div>
 
-          {/* Fallback button if GIS script is loading */}
-          {(!gisButtonRef.current || !gisButtonRef.current.hasChildNodes()) && (
+          {/* Fallback button rendered ONLY if native GIS button hasn't rendered */}
+          {!hasRenderedGis && (
             <button
               onClick={() => loginWithGoogle()}
               disabled={isLoading}
