@@ -5,6 +5,7 @@ import { Database, User, LogOut, Shield, ChevronDown, Sparkles } from "lucide-re
 import { AIProviderConfig } from "@/lib/agent/engine-config";
 import { useAuth } from "@/lib/auth/AuthContext";
 import { GoogleLoginModal } from "@/components/auth/GoogleLoginModal";
+import { GoogleClientIdModal } from "@/components/auth/GoogleClientIdModal";
 
 interface UserProfileCapsuleProps {
   userName?: string;
@@ -18,7 +19,7 @@ interface UserProfileCapsuleProps {
 export const UserProfileCapsule: React.FC<UserProfileCapsuleProps> = ({
   onOpenMemoryModal,
 }) => {
-  const { user, logout, isLoginModalOpen, setIsLoginModalOpen } = useAuth();
+  const { user, logout, isLoginModalOpen, setIsLoginModalOpen, isClientIdModalOpen, setIsClientIdModalOpen } = useAuth();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -150,6 +151,7 @@ export const UserProfileCapsule: React.FC<UserProfileCapsuleProps> = ({
 
       {/* Login Modal */}
       <GoogleLoginModal isOpen={isLoginModalOpen} onClose={() => setIsLoginModalOpen(false)} />
+      <GoogleClientIdModal isOpen={isClientIdModalOpen} onClose={() => setIsClientIdModalOpen(false)} />
     </div>
   );
 };

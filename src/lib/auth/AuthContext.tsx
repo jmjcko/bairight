@@ -134,26 +134,71 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
 
       // Initialize Google Identity Services (GIS)
-      if (typeof window !== "undefined" && (window as any).google?.accounts?.id) {
+      if (typeof window !== "undefined" && (window as any).google?.accounts) {
         const google = (window as any).google;
-        google.accounts.id.initialize({
-          client_id: clientIdToUse,
-          callback: (response: any) => {
-            if (response.credential) {
-              handleGoogleCredentialResponse(response.credential);
-            }
-          },
-        });
+        if (google.accounts.id) {
+          google.accounts.id.initialize({
+            client_id: clientIdToUse,
+            callback: (response: any) => {
+              if (response.credential) {
+                handleGoogleCredentialResponse(response.credential);
+              }
+            },
+          });
+        }
 
-        // Trigger real Google Sign-In prompt
-        google.accounts.id.prompt((notification: any) => {
-          if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
-            // Fall back to popup button if prompt is dismissed
-            console.log("GIS prompt dismissed, rendering explicit auth container");
+        // 1. Try OAuth2 token client popup directly for explicit button click action
+        if (google.accounts.oauth2) {
+          try {
+            const tokenClient = google.accounts.oauth2.initTokenClient({
+              client_id: clientIdToUse,
+              scope: "email profile openid",
+              callback: async (tokenResponse: any) => {
+                if (tokenResponse && tokenResponse.access_token) {
+                  try {
+                    const res = await fetch("https://www.googleapis.com/oauth2/v3/userinfo", {
+                      headers: { Authorization: `Bearer ${tokenResponse.access_token}` },
+                    });
+                    const userInfo = await res.json();
+                    if (userInfo && userInfo.email) {
+                      const realGoogleProfile: UserProfile = {
+                        id: userInfo.sub || `usr_g_${Date.now()}`,
+                        email: userInfo.email,
+                        name: userInfo.name || userInfo.email.split("@")[0],
+                        avatarUrl: userInfo.picture,
+                        provider: "google",
+                      };
+                      setUser(realGoogleProfile);
+                      if (typeof window !== "undefined") {
+                        localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(realGoogleProfile));
+                      }
+                      setIsLoginModalOpen(false);
+                      return;
+                    }
+                  } catch (fetchErr) {
+                    console.error("Failed to fetch Google userinfo:", fetchErr);
+                  }
+                }
+              },
+            });
+            tokenClient.requestAccessToken();
+            return;
+          } catch (oauthErr) {
+            console.warn("OAuth2 token client error, attempting GIS prompt fallback:", oauthErr);
           }
-        });
+        }
+
+        // 2. Fallback to GIS prompt if OAuth2 token client fails
+        if (google.accounts.id) {
+          google.accounts.id.prompt((notification: any) => {
+            if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
+              console.log("GIS prompt skipped/not displayed, opening Client ID configuration modal");
+              setIsClientIdModalOpen(true);
+            }
+          });
+        }
       } else {
-        // Fallback: If GIS script is loading, open Client ID configuration modal
+        // Fallback: If GIS script is loading or unavailable, open Client ID modal
         setIsClientIdModalOpen(true);
       }
     } catch (err) {
