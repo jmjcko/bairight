@@ -1,9 +1,9 @@
 "use client";
 
-import React from "react";
+import React, { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { X, Sparkles, Shield, Database, LogIn } from "lucide-react";
 import { useAuth } from "@/lib/auth/AuthContext";
-import { useI18n } from "@/lib/i18n/I18nContext";
 
 interface GoogleLoginModalProps {
   isOpen: boolean;
@@ -12,27 +12,34 @@ interface GoogleLoginModalProps {
 
 export const GoogleLoginModal: React.FC<GoogleLoginModalProps> = ({ isOpen, onClose }) => {
   const { loginWithGoogle, isLoading } = useAuth();
-  const { t } = useI18n();
+  const [mounted, setMounted] = useState(false);
 
-  if (!isOpen) return null;
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md animate-in fade-in duration-200">
+  if (!isOpen || !mounted) return null;
+
+  const modalContent = (
+    <div 
+      className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 bg-slate-950/80 backdrop-blur-md overflow-y-auto animate-in fade-in duration-200"
+      onClick={onClose}
+    >
       <div 
-        className="relative w-full max-w-md p-6 sm:p-8 rounded-2xl bg-[#09111e]/95 border border-cyan-500/30 shadow-[0_0_50px_rgba(6,182,212,0.15)] text-slate-100 space-y-6"
+        className="relative w-full max-w-md max-h-[90vh] overflow-y-auto my-auto p-6 sm:p-8 rounded-2xl bg-[#09111e]/95 border border-cyan-500/40 shadow-[0_0_50px_rgba(6,182,212,0.25)] text-slate-100 space-y-6"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Close Button */}
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 p-2 rounded-lg text-slate-400 hover:text-slate-100 hover:bg-slate-800/60 transition-colors"
+          className="absolute top-4 right-4 p-2 rounded-lg text-slate-400 hover:text-slate-100 hover:bg-slate-800/60 transition-colors cursor-pointer"
           title="Zavřít"
         >
           <X className="w-5 h-5" />
         </button>
 
         {/* Modal Header */}
-        <div className="text-center space-y-2">
+        <div className="text-center space-y-2 pt-2">
           <div className="mx-auto w-12 h-12 rounded-xl bg-gradient-to-tr from-cyan-600/30 to-teal-500/30 border border-cyan-400/40 flex items-center justify-center text-cyan-300 shadow-md">
             <LogIn className="w-6 h-6 text-cyan-400" />
           </div>
@@ -106,4 +113,6 @@ export const GoogleLoginModal: React.FC<GoogleLoginModalProps> = ({ isOpen, onCl
       </div>
     </div>
   );
+
+  return createPortal(modalContent, document.body);
 };
