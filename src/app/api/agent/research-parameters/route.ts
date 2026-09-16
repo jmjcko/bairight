@@ -2,7 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { 
   DomainAnalysisResult,
   ExtractedDomainParameter,
-  UNIVERSAL_BRAND_PARAMETER 
+  UNIVERSAL_BRAND_PARAMETER,
+  discoverDomainParameters
 } from '@/lib/agent/domain-parameter-discovery';
 import {
   getCachedAnalysis,
@@ -77,42 +78,28 @@ export async function POST(req: NextRequest) {
       });
     }
 
-    // ——— STEP 2: Require server-side API key ———
+    // ——— STEP 2 & 3: Gemini Flash LLM with High-Availability Heuristic Fallback ———
     const serverKey = process.env.GOOGLE_GEMINI_API_KEY;
-    if (!serverKey) {
-      console.error('[Luke] GOOGLE_GEMINI_API_KEY not configured in environment');
-      return NextResponse.json(
-        {
-          error:
-            locale === 'en'
-              ? 'AI research service is not configured. Please contact support.'
-              : 'Výzkumná služba AI není nakonfigurována. Kontaktujte prosím podporu.',
-        },
-        { status: 503 }
-      );
-    }
-
-    // ——— STEP 3: Always call Gemini Flash ———
-    console.log(`[Luke] Cache MISS — calling Gemini Flash for: "${trimmedQuery}"`);
     let analysis: DomainAnalysisResult | null = null;
+    let source = 'luke_heuristic';
 
-    try {
-      analysis = await researchParametersWithLuke(trimmedQuery, serverKey, 'google_gemini', locale);
-    } catch (llmErr) {
-      console.error('[Luke] LLM call failed:', llmErr);
+    if (serverKey) {
+      try {
+        console.log(`[Luke] Cache MISS — calling Gemini Flash for: "${trimmedQuery}"`);
+        analysis = await researchParametersWithLuke(trimmedQuery, serverKey, 'google_gemini', locale);
+        if (analysis && analysis.parameters && analysis.parameters.length >= 8) {
+          source = 'luke_gemini_flash';
+        }
+      } catch (llmErr) {
+        console.warn('[Luke] Gemini Flash call failed, activating Luke heuristic fallback:', llmErr);
+      }
     }
 
+    // High-availability fallback if key missing, API call failed, or insufficient parameters
     if (!analysis || !analysis.parameters || analysis.parameters.length < 8) {
-      return NextResponse.json(
-        {
-          error:
-            locale === 'en'
-              ? 'Parameter analysis failed. Please try again.'
-              : 'Analýza parametrů selhala. Zkuste to prosím znovu.',
-          retryable: true,
-        },
-        { status: 502 }
-      );
+      console.log(`[Luke] High-Availability Heuristic Discovery activated for: "${trimmedQuery}"`);
+      analysis = discoverDomainParameters(trimmedQuery);
+      source = 'luke_heuristic';
     }
 
     // ——— STEP 4: Ensure brand parameter exists ———
