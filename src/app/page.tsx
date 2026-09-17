@@ -615,7 +615,7 @@ export default function Home() {
                     Propojte své AI předplatné pro živou diskusi
                   </h2>
                   <p className="text-xs sm:text-sm text-slate-400 leading-relaxed max-w-md mx-auto">
-                    Abychom neplýtvali tokeny na obecné dotazy, živá konverzace a ladění probíhá přímo přes vaše vlastní AI předplatné (Google Gemini, OpenAI ChatGPT, Anthropic Claude). Agent využije vaši RAG paměť a vaše data zůstanou v bezpečí.
+                    Živá konverzace a ladění probíhá přímo přes vaše vlastní AI předplatné (Google Gemini, OpenAI ChatGPT, Anthropic Claude). Agent využije vaši RAG paměť a vaše data zůstanou v bezpečí.
                   </p>
                 </div>
 

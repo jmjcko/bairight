@@ -558,7 +558,7 @@ export const translations: Record<SupportedLocale, Translations> = {
     chatTab: {
       byokBadge: 'Diskuse s agentem • Vyžaduje vlastní model (BYOK)',
       byokTitle: 'Propojte své AI předplatné pro živou diskusi',
-      byokDesc: 'Abychom neplýtvali tokeny a mohli vést neomezenou hloubkovou diskusi nad vybraným produktem, zadejte svůj API klíč (Google Gemini, OpenAI, Anthropic).',
+      byokDesc: 'Pro vedení neomezené hloubkové diskuse nad vybraným produktem zadejte svůj API klíč (Google Gemini, OpenAI, Anthropic).',
       connectModelBtn: 'Zadat API klíč (BYOK)',
       inputPlaceholder: 'Zeptejte se agenta na cokoliv ohledně parametrů a výběru...',
       sendBtn: 'Odeslat',
