@@ -41,8 +41,8 @@ interface UserRAGMemoryModalProps {
 export const UserRAGMemoryModal: React.FC<UserRAGMemoryModalProps> = ({
   isOpen,
   onClose,
-  facts,
-  assessments,
+  facts = [],
+  assessments = [],
   userName = 'Jan Mynář',
   onToggleFact,
   onAddFact,
@@ -56,8 +56,8 @@ export const UserRAGMemoryModal: React.FC<UserRAGMemoryModalProps> = ({
   const [newLabel, setNewLabel] = useState('');
   const [newValue, setNewValue] = useState('');
   const [newCategory, setNewCategory] = useState<'biometrics' | 'medical' | 'preference' | 'history'>('medical');
-  const [expandedAssessmentId, setExpandedAssessmentId] = useState<string | null>(
-    assessments[0]?.id || null
+  const [expandedAssessmentId, setExpandedAssessmentId] = useState<string | null>(() =>
+    Array.isArray(assessments) && (assessments || []).length > 0 ? (assessments[0]?.id || null) : null
   );
 
   useEffect(() => {
@@ -95,7 +95,7 @@ export const UserRAGMemoryModal: React.FC<UserRAGMemoryModalProps> = ({
     setIsAdding(false);
   };
 
-  const activeFactsCount = facts.filter((f) => f.isEnriched).length;
+  const activeFactsCount = (facts || []).filter((f) => f?.isEnriched).length;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-5 bg-black/85 backdrop-blur-md animate-in fade-in duration-200">
@@ -143,7 +143,7 @@ export const UserRAGMemoryModal: React.FC<UserRAGMemoryModalProps> = ({
               }`}
             >
               <Calendar className="w-4 h-4" />
-              <span>Historie vyhodnocení ({assessments.length})</span>
+              <span>Historie vyhodnocení ({(assessments || []).length})</span>
             </button>
 
             <button
@@ -155,7 +155,7 @@ export const UserRAGMemoryModal: React.FC<UserRAGMemoryModalProps> = ({
               }`}
             >
               <Terminal className="w-4 h-4" />
-              <span>Vygenerované prompty ({completedPrompts.length})</span>
+              <span>Vygenerované prompty ({(completedPrompts || []).length})</span>
             </button>
 
             <button
@@ -167,7 +167,7 @@ export const UserRAGMemoryModal: React.FC<UserRAGMemoryModalProps> = ({
               }`}
             >
               <FileText className="w-4 h-4" />
-              <span>Osobní fakta & Biometrie ({activeFactsCount}/{facts.length})</span>
+              <span>Osobní fakta & Biometrie ({activeFactsCount}/{(facts || []).length})</span>
             </button>
           </div>
 
@@ -197,11 +197,11 @@ export const UserRAGMemoryModal: React.FC<UserRAGMemoryModalProps> = ({
                   Uložené nákupní protokoly a specifikace s datem:
                 </span>
                 <span className="text-[10px] font-mono text-cyan-400">
-                  {assessments.length} záznamů v databázi
+                  {(assessments || []).length} záznamů v databázi
                 </span>
               </div>
 
-              {assessments.length === 0 ? (
+              {(assessments || []).length === 0 ? (
                 <div className="py-12 text-center text-slate-400 space-y-2">
                   <FileText className="w-8 h-8 text-slate-600 mx-auto" />
                   <p className="text-xs">Zatím nemáte dokončené žádné vyhodnocení.</p>
@@ -211,7 +211,7 @@ export const UserRAGMemoryModal: React.FC<UserRAGMemoryModalProps> = ({
                 </div>
               ) : (
                 <div className="space-y-3">
-                  {assessments.map((assessment) => {
+                  {(assessments || []).map((assessment) => {
                     const isExpanded = expandedAssessmentId === assessment.id;
 
                     return (
@@ -252,7 +252,7 @@ export const UserRAGMemoryModal: React.FC<UserRAGMemoryModalProps> = ({
                             <button
                               onClick={(e) => {
                                 e.stopPropagation();
-                                onDeleteAssessment(assessment.id);
+                                onDeleteAssessment?.(assessment.id);
                               }}
                               className="text-slate-500 hover:text-rose-400 p-1.5 rounded-lg transition-colors cursor-pointer"
                               title="Smazat protokol z historie"
@@ -277,7 +277,7 @@ export const UserRAGMemoryModal: React.FC<UserRAGMemoryModalProps> = ({
                           {/* Dynamic Key Parameters Badges */}
                           {Object.entries(assessment.keyParameters || {}).filter(([_, val]) => val && val !== 'N/A').length > 0 && (
                             <div className="flex flex-wrap gap-2 pt-1">
-                              {Object.entries(assessment.keyParameters)
+                              {Object.entries(assessment.keyParameters || {})
                                 .filter(([_, val]) => val && val !== 'N/A')
                                 .map(([key, val]) => {
                                   const displayKey = key === 'weight' ? 'Váha' : key === 'width' ? 'Šířka' : key === 'knee' ? 'Klouby' : key === 'dropLimit' ? 'Limit dropu' : key;
@@ -295,11 +295,11 @@ export const UserRAGMemoryModal: React.FC<UserRAGMemoryModalProps> = ({
                           {isExpanded && (
                             <div className="pt-3 border-t border-cyan-500/15 space-y-2.5 animate-in fade-in">
                               <span className="text-[10px] font-mono text-cyan-400 uppercase tracking-wider block font-bold">
-                                Vygenerovaná doporučení ({assessment.recommendedModels.length} modely):
+                                Vygenerovaná doporučení ({(assessment.recommendedModels || []).length} modely):
                               </span>
 
                               <div className="space-y-2">
-                                {assessment.recommendedModels.map((shoe) => (
+                                {(assessment.recommendedModels || []).map((shoe) => (
                                   <div
                                     key={shoe.id}
                                     className="p-3 rounded-xl bg-[#050c18] border border-cyan-500/20 flex flex-col sm:flex-row sm:items-center justify-between gap-2"
@@ -374,9 +374,9 @@ export const UserRAGMemoryModal: React.FC<UserRAGMemoryModalProps> = ({
             <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <span className="text-xs font-mono uppercase tracking-wider text-slate-400">
-                  Uložené hotové prompty po dokončení dotazníku ({completedPrompts.length}):
+                  Uložené hotové prompty po dokončení dotazníku ({(completedPrompts || []).length}):
                 </span>
-                {completedPrompts.length > 0 && (
+                {(completedPrompts || []).length > 0 && (
                   <button
                     onClick={handleClearAllPrompts}
                     className="text-[10px] font-mono text-rose-400 hover:text-rose-300 flex items-center gap-1 cursor-pointer transition-colors"
@@ -394,7 +394,7 @@ export const UserRAGMemoryModal: React.FC<UserRAGMemoryModalProps> = ({
                 </p>
               </div>
 
-              {completedPrompts.length === 0 ? (
+              {(completedPrompts || []).length === 0 ? (
                 <div className="py-12 text-center text-slate-400 space-y-2">
                   <Terminal className="w-8 h-8 text-slate-600 mx-auto" />
                   <p className="text-xs font-semibold text-slate-300">Zatím nemáte uložený žádný dokončený prompt.</p>
@@ -404,7 +404,7 @@ export const UserRAGMemoryModal: React.FC<UserRAGMemoryModalProps> = ({
                 </div>
               ) : (
                 <div className="space-y-3.5">
-                  {completedPrompts.map((cp) => (
+                  {(completedPrompts || []).map((cp) => (
                     <div key={cp.id} className="rounded-2xl border border-cyan-500/30 bg-[#071120] p-4 space-y-3">
                       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-cyan-500/15 pb-2.5">
                         <div className="flex items-center gap-2 flex-wrap">
@@ -539,7 +539,7 @@ export const UserRAGMemoryModal: React.FC<UserRAGMemoryModalProps> = ({
 
               {/* Facts list */}
               <div className="space-y-2">
-                {facts.length === 0 ? (
+                {(facts || []).length === 0 ? (
                   <div className="py-8 text-center text-slate-400 space-y-2 border border-dashed border-slate-800 rounded-2xl p-6">
                     <FileText className="w-8 h-8 text-slate-600 mx-auto" />
                     <p className="text-xs font-medium text-slate-300">Zatím nemáte uložena žádná specifická fakta.</p>
@@ -548,7 +548,7 @@ export const UserRAGMemoryModal: React.FC<UserRAGMemoryModalProps> = ({
                     </p>
                   </div>
                 ) : (
-                  facts.map((fact) => {
+                  (facts || []).map((fact) => {
                   const categoryBadge = 
                     fact.category === 'medical' ? { label: 'Ergonomie & komfort', color: 'border-teal-500/30 text-teal-300 bg-teal-950/40' } :
                     fact.category === 'biometrics' ? { label: 'Biometrie', color: 'border-purple-500/30 text-purple-300 bg-purple-950/40' } :
@@ -568,7 +568,7 @@ export const UserRAGMemoryModal: React.FC<UserRAGMemoryModalProps> = ({
                         <input
                           type="checkbox"
                           checked={fact.isEnriched}
-                          onChange={() => onToggleFact(fact.id)}
+                          onChange={() => onToggleFact?.(fact.id)}
                           className="mt-1 w-4 h-4 rounded text-cyan-500 bg-slate-900 border-slate-700 focus:ring-cyan-500 cursor-pointer"
                           title="Zaškrtněte pro vložení tohoto faktu do RAG obohacení promptu"
                         />
@@ -593,7 +593,7 @@ export const UserRAGMemoryModal: React.FC<UserRAGMemoryModalProps> = ({
                       </div>
 
                       <button
-                        onClick={() => onDeleteFact(fact.id)}
+                        onClick={() => onDeleteFact?.(fact.id)}
                         className="text-slate-500 hover:text-rose-400 p-1 rounded-lg transition-colors cursor-pointer"
                         title="Smazat fakt z databáze"
                       >
