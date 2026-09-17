@@ -58,7 +58,7 @@ export const HeaderEngineSwitcher: React.FC<HeaderEngineSwitcherProps> = ({
   }, []);
 
   const activeProvider = SUPPORTED_AI_PROVIDERS.find((p) => p.id === activeProviderId) || SUPPORTED_AI_PROVIDERS[0];
-  const hasKeyForActive = activeProvider.id === "bairight_core" || Boolean(keysState[activeProvider.id]?.trim());
+  const hasKeyForActive = Boolean(keysState[activeProvider.id]?.trim());
 
   const getProviderIcon = (id: AIProviderId) => {
     switch (id) {
@@ -105,13 +105,11 @@ export const HeaderEngineSwitcher: React.FC<HeaderEngineSwitcherProps> = ({
         <div className="flex items-center gap-1.5 font-mono">
           {getProviderIcon(activeProvider.id)}
           <span className="truncate max-w-[130px] font-semibold">
-            {activeProvider.id === "bairight_core" ? "bAIright Managed" : activeProvider.provider}
+            {activeProvider.provider}
           </span>
-          {activeProvider.id !== "bairight_core" && (
-            <span className="text-[10px] px-1 py-0.2 rounded bg-cyan-950/80 border border-cyan-500/30 text-cyan-300 font-mono">
-              BYOK
-            </span>
-          )}
+          <span className="text-[10px] px-1 py-0.2 rounded bg-cyan-950/80 border border-cyan-500/30 text-cyan-300 font-mono">
+            BYOK
+          </span>
         </div>
 
         <ChevronDown className={`w-3.5 h-3.5 text-slate-400 transition-transform duration-200 ${isOpen ? "rotate-180" : ""}`} />
@@ -130,7 +128,7 @@ export const HeaderEngineSwitcher: React.FC<HeaderEngineSwitcherProps> = ({
           <div className="space-y-0.5 max-h-[280px] overflow-y-auto py-1">
             {SUPPORTED_AI_PROVIDERS.map((provider: AIProviderConfig) => {
               const isSelected = provider.id === activeProviderId;
-              const hasKey = provider.id === "bairight_core" || Boolean(keysState[provider.id]?.trim());
+              const hasKey = Boolean(keysState[provider.id]?.trim());
 
               return (
                 <button

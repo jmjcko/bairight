@@ -66,8 +66,17 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // 5. If no LLM or LLM failed, use intelligent conversational synthesizer
-    if (!assistantContent) {
+    // 5. If no user BYOK key is connected, return clear BYOK notice
+    if (!effectiveKey) {
+      assistantContent = `### 🔑 Vyžadováno Připojení Vlastního AI Modelu (BYOK)
+
+Pro živou konverzaci s nákupním agentem **${agent?.name || "bAIright Agent"}** je vyžadováno připojení vašeho vlastního AI modelu (Google Gemini, OpenAI GPT-4o nebo Anthropic Claude).
+
+💡 **Jak začít (100% zdarma):**
+1. Klikněte na tlačítko **Připojit API klíč (BYOK)** v záhlaví aplikace.
+2. Vyberte **Google Gemini** a získejte bezplatný klíč z [Google AI Studio](https://aistudio.google.com/app/apikey) za 30 sekund.
+3. Vložte klíč a konverzujte pod svým účtem bez omezení!`;
+    } else if (!assistantContent) {
       assistantContent = synthesizeConversationalFallback({
         message,
         agent,

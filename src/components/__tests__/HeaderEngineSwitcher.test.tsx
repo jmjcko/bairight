@@ -27,7 +27,7 @@ describe("HeaderEngineSwitcher Unit Tests", () => {
 
     render(
       <HeaderEngineSwitcher
-        activeProviderId="bairight_core"
+        activeProviderId="google_gemini"
         onSelectProvider={onSelect}
         onOpenVaultModal={onOpenVault}
       />

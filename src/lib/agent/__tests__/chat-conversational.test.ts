@@ -46,6 +46,7 @@ describe('Conversational Agent Chat & Parameter Responsiveness', () => {
       body: JSON.stringify({
         sessionId: `test-isolation-${Date.now()}`,
         message: 'jak kavovar do firmy?',
+        apiKey: 'AIzaSyTestKey',
         agent: {
           id: 'custom_coffee_agent',
           name: 'Kávovary & domácí espresso',

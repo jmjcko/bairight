@@ -104,7 +104,7 @@ export default function Home() {
   const [selectedAgent, setSelectedAgent] = useState<UniversalAgentDefinition | null>(null);
   const [storedAgents, setStoredAgents] = useState<UniversalAgentDefinition[]>([]);
   const [wizardMode, setWizardMode] = useState<'launcher' | 'active_agent'>('launcher');
-  const [activeProviderId, setActiveProviderId] = useState<AIProviderId>('bairight_core');
+  const [activeProviderId, setActiveProviderId] = useState<AIProviderId>('google_gemini');
   const [apiKeys, setApiKeys] = useState<Record<string, string>>({});
   const [userFacts, setUserFacts] = useState<PersistentMemoryFact[]>([]);
   const [assessments, setAssessments] = useState<CompletedAssessmentRecord[]>([]);
@@ -117,7 +117,7 @@ export default function Home() {
     apiKeys['google_gemini']?.trim() ||
     apiKeys['openai_gpt4o']?.trim() ||
     apiKeys['anthropic_claude']?.trim() ||
-    (activeProviderId !== 'bairight_core' && apiKeys[activeProviderId]?.trim())
+    (apiKeys[activeProviderId]?.trim())
   );
 
   // Load persisted font preference, theme, assessments, BYOK keys, saved agents & facts from localStorage

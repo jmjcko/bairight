@@ -18,15 +18,16 @@ describe("VaultService Unit Tests", () => {
     expect(VaultService.getApiKey("google_gemini")).toBe(key);
   });
 
-  it("3. Returns valid connection state for bairight_core managed model", () => {
-    const state = VaultService.getConnectionState("bairight_core");
-    expect(state.hasValidToken).toBe(true);
-    expect(state.connectionType).toBe("bairight_managed");
-  });
-
-  it("4. Returns disconnected state when no key is set", () => {
+  it("3. Returns disconnected state when no key is set for provider", () => {
     const state = VaultService.getConnectionState("anthropic_claude");
     expect(state.hasValidToken).toBe(false);
+  });
+
+  it("4. Returns valid connection state when user sets API key", () => {
+    VaultService.saveApiKey("google_gemini", "AIzaSyValidKey123");
+    const state = VaultService.getConnectionState("google_gemini");
+    expect(state.hasValidToken).toBe(true);
+    expect(state.connectionType).toBe("api_key");
   });
 
   it("5. Deletes key when empty string is saved", () => {

@@ -238,7 +238,7 @@ export const AIEngineSubscriptionModal: React.FC<AIEngineSubscriptionModalProps>
             <div className="space-y-3.5">
               {SUPPORTED_AI_PROVIDERS.map((provider: AIProviderConfig) => {
                 const isSelected = provider.id === activeId;
-                const hasKey = provider.id === "bairight_core" || Boolean(apiKeys[provider.id]?.trim());
+                const hasKey = Boolean(apiKeys[provider.id]?.trim());
 
                 return (
                   <div

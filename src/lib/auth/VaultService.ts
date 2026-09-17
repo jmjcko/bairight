@@ -9,7 +9,7 @@ const VAULT_STORAGE_KEY = "bairight_ai_vault_v2";
 
 export interface ProviderConnectionState {
   providerId: AIProviderId;
-  connectionType: "api_key" | "oauth_subscription" | "bairight_managed";
+  connectionType: "api_key" | "oauth_subscription";
   hasValidToken: boolean;
   maskedToken?: string;
   lastTestedAt?: string;
@@ -114,16 +114,6 @@ export class VaultService {
   }
 
   public static getConnectionState(providerId: AIProviderId): ProviderConnectionState {
-    if (providerId === "bairight_core") {
-      return {
-        providerId,
-        connectionType: "bairight_managed",
-        hasValidToken: true,
-        maskedToken: "Managed Demo Tier",
-        isVerified: true,
-      };
-    }
-
     const key = VaultService.getApiKey(providerId);
     if (key) {
       return {
