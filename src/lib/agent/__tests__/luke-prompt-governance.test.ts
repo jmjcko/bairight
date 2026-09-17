@@ -55,7 +55,7 @@ describe('Agent Luke: Prompt Governance & Contract Integrity Test Suite', () => 
 
     it('1.5 Specifikace garantuje minimálně 10 parametrů pro každou kategorii', () => {
       const content = fs.readFileSync(lukeSpecPath, 'utf-8');
-      expect(content).toMatch(/Garance minimálně 10 parametrů/i);
+      expect(content).toMatch(/Garance 10 až 14/i);
       expect(content).toMatch(/10 až 14/);
     });
 
