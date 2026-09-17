@@ -100,7 +100,7 @@ export const AIEngineSubscriptionModal: React.FC<AIEngineSubscriptionModalProps>
       });
       const data = await res.json();
 
-      if (res.ok && data.valid) {
+      if (res.ok && (data.ok || data.valid)) {
         setTestStatus((prev) => ({
           ...prev,
           [providerId]: { loading: false, ok: true, message: data.message || "Klíč je platný a ověřený! 🎉" },
@@ -141,7 +141,7 @@ export const AIEngineSubscriptionModal: React.FC<AIEngineSubscriptionModalProps>
       onClick={onClose}
     >
       <div 
-        className="relative w-full max-w-2xl max-h-[90vh] flex flex-col my-auto rounded-3xl bg-[#070e1b]/98 border border-cyan-500/40 shadow-[0_0_60px_rgba(6,182,212,0.25)] text-slate-100 overflow-hidden"
+        className="relative w-full max-w-2xl max-h-[90vh] flex flex-col my-auto rounded-3xl bg-[#070e1b]/98 border border-slate-700/80 shadow-2xl text-slate-100 overflow-hidden"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
@@ -154,7 +154,7 @@ export const AIEngineSubscriptionModal: React.FC<AIEngineSubscriptionModalProps>
           </button>
 
           <div className="flex items-center gap-3 mb-2">
-            <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-cyan-500/20 to-teal-500/20 border border-cyan-400/40 flex items-center justify-center text-cyan-300 shadow-md">
+            <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700 flex items-center justify-center text-cyan-300 shadow-md">
               <Cpu className="w-5 h-5" />
             </div>
             <div>
@@ -173,7 +173,7 @@ export const AIEngineSubscriptionModal: React.FC<AIEngineSubscriptionModalProps>
               onClick={() => setActiveTab("api_keys")}
               className={`flex items-center gap-2 px-3.5 py-1.5 rounded-xl border transition-all cursor-pointer ${
                 activeTab === "api_keys"
-                  ? "bg-cyan-950/80 border-cyan-400 text-cyan-200 shadow-sm"
+                  ? "bg-slate-800 border-cyan-500/50 text-cyan-300 shadow-sm"
                   : "bg-slate-900/60 border-slate-800 text-slate-400 hover:text-slate-200"
               }`}
             >
@@ -257,7 +257,7 @@ export const AIEngineSubscriptionModal: React.FC<AIEngineSubscriptionModalProps>
                     onClick={() => setActiveId(provider.id)}
                     className={`p-4 rounded-2xl border transition-all cursor-pointer ${
                       isSelected
-                        ? "bg-[#0b162a] border-cyan-400 shadow-lg shadow-cyan-950/40"
+                        ? "bg-[#091322] border-cyan-500/50 shadow-md"
                         : "bg-[#060c18] border-slate-800 hover:border-slate-700 hover:bg-[#081020]"
                     }`}
                   >
@@ -280,7 +280,7 @@ export const AIEngineSubscriptionModal: React.FC<AIEngineSubscriptionModalProps>
                       <div className="flex items-center gap-2 text-[10px] font-mono text-slate-400">
                         <span>Paměť: {provider.contextWindow}</span>
                         {provider.requiresKey && (
-                          <span className={`px-1.5 py-0.5 rounded ${hasKey ? "bg-cyan-950 text-cyan-300 border border-cyan-500/40" : "bg-slate-800 text-slate-400"}`}>
+                          <span className={`px-1.5 py-0.5 rounded ${hasKey ? "bg-emerald-950/60 text-emerald-300 border border-emerald-500/30" : "bg-slate-800/80 text-slate-400 border border-slate-700/50"}`}>
                             {hasKey ? "✓ Klíč zadán" : "Vyžaduje klíč"}
                           </span>
                         )}
@@ -321,7 +321,7 @@ export const AIEngineSubscriptionModal: React.FC<AIEngineSubscriptionModalProps>
                               value={apiKeys[provider.id] || ""}
                               onChange={(e) => handleKeyChange(provider.id, e.target.value)}
                               placeholder={provider.placeholderKey || "Zadejte API klíč..."}
-                              className="w-full bg-[#050a14] border border-cyan-500/30 focus:border-cyan-400 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder:text-slate-600 outline-none pr-10 font-mono"
+                              className="w-full bg-[#050a14] border border-slate-700 focus:border-cyan-500 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder:text-slate-600 outline-none pr-10 font-mono"
                             />
                             <button
                               type="button"
@@ -368,8 +368,8 @@ export const AIEngineSubscriptionModal: React.FC<AIEngineSubscriptionModalProps>
                           <div
                             className={`p-2.5 rounded-xl text-xs flex items-center gap-2 animate-in fade-in duration-200 border ${
                               testStatus[provider.id]?.ok
-                                ? "bg-emerald-950/60 border-emerald-500/40 text-emerald-300"
-                                : "bg-rose-950/60 border-rose-500/40 text-rose-300"
+                                ? "bg-emerald-950/80 border-emerald-500/60 text-emerald-300 font-medium shadow-sm shadow-emerald-950/50"
+                                : "bg-rose-950/80 border-rose-500/60 text-rose-300 font-medium shadow-sm shadow-rose-950/50"
                             }`}
                           >
                             {testStatus[provider.id]?.ok ? (
