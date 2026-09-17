@@ -12,6 +12,7 @@ coverage
 # refreshes this block, preserving paths added by teammates on other IDEs.
 # Edit entries outside the markers manually.
 SPEC/agents/
+!SPEC/agents/LUKE_RESEARCH_AGENT.md
 SPEC/rulebooks/
 SPEC/templates/
 SPEC/workflows/

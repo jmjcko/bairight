@@ -67,6 +67,14 @@ describe('Agent Luke: Prompt Governance & Contract Integrity Test Suite', () => 
     });
   });
 
+    it("1.7 Specifikace nařizuje povinný multi-zdrojový výzkum (fóra, YouTube rozbory, technické specifikace)", () => {
+      const content = fs.readFileSync(lukeSpecPath, "utf-8");
+      expect(content).toMatch(/Metodologie a informační zdroje|Multi-Source/i);
+      expect(content).toMatch(/fóra|forums|diskusní/i);
+      expect(content).toMatch(/YouTube/i);
+      expect(content).toMatch(/specifikace|specs/i);
+    });
+
   // =========================================================================
   // 2. KONTROLA SYNCHRONIZACE S RUNTIME PROMPTEM (src/app/api/agent/.../route.ts)
   // =========================================================================
@@ -97,6 +105,14 @@ describe('Agent Luke: Prompt Governance & Contract Integrity Test Suite', () => 
       expect(routeContent).toContain('STRIKTNÍ ZÁKAZ VÁGNÍCH KLIŠÉ');
     });
   });
+
+    it("2.2 API route prompt nařizuje multi-zdrojový výzkum z fór, YouTube a specifikací", () => {
+      const routeContent = fs.readFileSync(routeCodePath, "utf-8");
+      expect(routeContent).toMatch(/POVINNÝ MULTI-ZDROJOVÝ VÝZKUM/i);
+      expect(routeContent).toMatch(/Uživatelská fóra/i);
+      expect(routeContent).toMatch(/YouTube/i);
+      expect(routeContent).toMatch(/Technické specifikace/i);
+    });
 
   // =========================================================================
   // 3. KONTROLA FUNKČNÍHO VÝSTUPU ENGINGU (Contract Compliance)

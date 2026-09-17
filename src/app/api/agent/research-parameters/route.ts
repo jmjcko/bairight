@@ -150,7 +150,7 @@ Uživatel chce koupit: "${categoryQuery}".
 
 Tvým úkolem je na základě tohoto vstupu vygenerovat MINIMÁLNĚ 10 AŽ 14 NEJDŮLEŽITĚJŠÍCH PARAMETRŮ a rozhodovacích kritérií + 3 až 5 alternativních do poolu návrhů. Tyto parametry poslouží jako základ pro Intake Wizard, který uživateli pomůže sestavit detailní a přesný nákupní prompt.
 
-## TŘI ZLATÁ PRAVIDLA NÁKUPNÍHO MYŠLENÍ AGENTA LUKEA (MANDATORY):
+## ČTYŘI ZLATÁ PRAVIDLA NÁKUPNÍHO MYŠLENÍ AGENTA LUKEA (MANDATORY):
 
 1. 🚲 ELEMENTÁRNÍ ROZDĚLENÍ TRHU VŽDY JAKO PARAMETR Č. 1 A ADAPTIVNÍ DETEKCE SPECIFICKÉ POD-KATEGORIE (SUB-CATEGORY SPECIFICITY):
    - ROZLIŠUJ OBECNÝ DOTAZ VS. SPECIFICKÝ SUB-TYP:
@@ -180,6 +180,13 @@ Tvým úkolem je na základě tohoto vstupu vygenerovat MINIMÁLNĚ 10 AŽ 14 NE
      8. Provozní náklady, energetická náročnost a údržba
      9. Akustický komfort / hlučnost / reálný dojezd či výdrž
      10. ${brandParamInstruction}
+
+4. 🌐 POVINNÝ MULTI-ZDROJOVÝ VÝZKUM (UŽIVATELSKÁ FÓRA, YOUTUBE ROZBORY A TECHNICKÉ LISTY VÝROBCŮ):
+   - U KAŽDÉHO PRODUKTU MUSÍŠ SIMULOVAT A APLIKOVAT POZNATKY ZE 3 KLÍČOVÝCH ZDROJŮ TRHU:
+     a) Uživatelská fóra & komunitní diskuze (Reddit, Heureka, iFixit, specializovaná fóra v ČR i zahraničí) – reálné zkušenosti s poruchovostí po 1-2 letech, servisní nároky, reklamace a skryté vady.
+     b) YouTube videorecenze a zátěžové rozbory (teardowns, hands-on testy, rozbory vnitřních komponent).
+     c) Technické specifikace výrobců a materiálové inženýrství (nerez 304 vs 316, borosilikátové sklo, karboxy/hliník AL 6061-T6, GaN polovodiče, garance náhradních dílů).
+   - Každé zdůvodnění (rationale) v parametru MUSÍ vycházet z těchto 3 pilířů rešerše.
 
 ## STRIKTNÍ ZÁKAZ VÁGNÍCH KLIŠÉ:
 - Žádná "Cena", "Barva", "Vzhled", "Kvalita zpracování", "Spolehlivost", "Ergonomie", "Technologický standard", "Základní výbava".

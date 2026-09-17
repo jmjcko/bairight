@@ -1,10 +1,12 @@
 'use client';
 
+
 import React, { useState, useEffect, useRef } from 'react';
 import { AgentChatMessage } from '@/lib/agent/types';
 import { ToolExecutionBadge } from '@/components/ToolExecutionBadge';
 import { Logo } from '@/components/Logo';
 import { UserProfileCapsule } from '@/components/UserProfileCapsule';
+import { HeaderEngineSwitcher } from '@/components/HeaderEngineSwitcher';
 import { AIEngineSubscriptionModal } from '@/components/AIEngineSubscriptionModal';
 import { UserRAGMemoryModal } from '@/components/UserRAGMemoryModal';
 import { AgentCategoryLauncher } from '@/components/AgentCategoryLauncher';
@@ -366,6 +368,15 @@ export default function Home() {
 
         {/* Right: User Profile & Customization Capsules */}
         <div className="flex items-center gap-2.5 sm:gap-3 shrink-0">
+          <HeaderEngineSwitcher
+            activeProviderId={activeProviderId}
+            onSelectProvider={(pId: AIProviderId) => {
+              setActiveProviderId(pId);
+              localStorage.setItem("bairight_active_provider", pId);
+            }}
+            onOpenVaultModal={() => setIsSubscriptionModalOpen(true)}
+            currentApiKeys={apiKeys}
+          />
           <LanguageSwitcher />
           <UserProfileCapsule
             userName="Jan Mynář"
@@ -864,7 +875,7 @@ export default function Home() {
       <AIEngineSubscriptionModal
         isOpen={isSubscriptionModalOpen}
         onClose={() => setIsSubscriptionModalOpen(false)}
-        selectedProviderId={activeProviderId}
+        activeProviderId={activeProviderId}
         onSaveProvider={(providerId, keys) => {
           setActiveProviderId(providerId);
           setApiKeys(keys);

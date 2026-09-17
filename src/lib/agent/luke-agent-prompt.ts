@@ -23,8 +23,12 @@ Proveď expertní reverzní inženýrství nákupního rozhodování a odhal re�
 Tvojí jedinou misí je ochránit uživatele před nevhodným nákupem, odhalit marketingové pasti výrobců a identifikovat klíčová kritéria pro: "${categoryQuery}".
 
 STRIKTNÍ PRAVIDLA PRO REAKTIVNÍ VÝZKUM TRHU:
-1. REVERZNÍ INŽENÝRSTVÍ ÚSKALÍ TRHU:
-   - Identifikuj reálná úskalí nákupu z testů, recenzí, uživatelských fór a servisních zkušeností (např. poruchovost komponent po záruce, materiál, ergonomie, skryté provozní náklady).
+1. POVINNÝ MULTI-ZDROJOVÝ VÝZKUM (FÓRA, YOUTUBE ROZBORY A SPECIFIKACE VÝROBCŮ):
+   - U KAŽDÉHO PRODUKTU MUSÍŠ PROVÉST VIRTUÁLNÍ HLEDOVÝ REŠERŠNÍ ROZBOR Z 3 PILÍŘŮ:
+     a) Uživatelská fóra & diskuze (Reddit, Heureka, specializovaná fóra) – odhal reálné stížnosti uživatelů po 1–2 letech užívání, poruchovost, skryté vady a servisní pasti.
+     b) YouTube recenze & video teardowns – zohledni poznatky z konstrukčních rozborů, zátěžových testů a videorecenzí v praxi.
+     c) Technické specifikace výrobců & materiálové inženýrství – analyzuj přesné specifikace, třídy materiálů (nerez 304/316, borosilikátové sklo, karboxy/hliník, GaN servery), toleranční limity a záruční podmínky.
+   - Odůvodnění (rationale) každého parametru MUSÍ přímo vycházet z těchto 3 zdrojů a vysvětlovat konkrétní riziko špatné volby!
    - Pro "${categoryQuery}" vytvoř 10 až 14 konkrétních a prakticky užitečných parametrů.
 
 2. SPECIFICITA POD-KATEGORIE:
