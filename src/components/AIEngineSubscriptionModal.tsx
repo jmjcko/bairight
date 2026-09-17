@@ -14,6 +14,7 @@ import {
   Eye, 
   EyeOff, 
   Loader2,
+  Trash2,
   CreditCard,
   Lock,
   Cpu
@@ -58,6 +59,16 @@ export const AIEngineSubscriptionModal: React.FC<AIEngineSubscriptionModalProps>
   }, [currentApiKeys, isOpen]);
 
   if (!isOpen) return null;
+
+  const handleRemoveKey = (providerId: string) => {
+    VaultService.removeApiKey(providerId);
+    setApiKeys((prev) => {
+      const next = { ...prev };
+      delete next[providerId];
+      return next;
+    });
+    setTestStatus((prev) => ({ ...prev, [providerId]: { loading: false } }));
+  };
 
   const handleKeyChange = (providerId: string, val: string) => {
     const next = { ...apiKeys, [providerId]: val };
@@ -320,6 +331,18 @@ export const AIEngineSubscriptionModal: React.FC<AIEngineSubscriptionModalProps>
                               {showKey[provider.id] ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                             </button>
                           </div>
+
+                          {apiKeys[provider.id] && (
+                            <button
+                              type="button"
+                              onClick={() => handleRemoveKey(provider.id)}
+                              title="Odstranit klíč z Vaultu"
+                              className="px-2.5 py-2.5 rounded-xl text-xs font-semibold bg-rose-950/60 hover:bg-rose-900 border border-rose-500/40 text-rose-300 hover:text-white transition-all flex items-center gap-1 shrink-0 cursor-pointer font-mono"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                              <span className="hidden sm:inline">Odstranit</span>
+                            </button>
+                          )}
 
                           <button
                             type="button"
