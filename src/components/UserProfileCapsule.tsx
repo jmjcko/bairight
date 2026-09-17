@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useRef, useEffect } from "react";
-import { Database, User, LogOut, Shield, ChevronDown, Sparkles } from "lucide-react";
+import { Brain, User, LogOut, Shield, ChevronDown, Sparkles } from "lucide-react";
 import { AIProviderConfig } from "@/lib/agent/engine-config";
 import { useAuth } from "@/lib/auth/AuthContext";
 import { GoogleLoginModal } from "@/components/auth/GoogleLoginModal";
@@ -39,10 +39,10 @@ export const UserProfileCapsule: React.FC<UserProfileCapsuleProps> = ({
       <button
         onClick={onOpenMemoryModal}
         className="hidden md:flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-[#06101e] hover:bg-cyan-950/60 border border-cyan-500/25 hover:border-cyan-400/50 text-xs transition-all cursor-pointer group shadow-sm text-slate-300 hover:text-cyan-300"
-        title="Zobrazit uložená fakta a paměť (RAG kontext)"
+        title="Zobrazit osobní paměť AI, biometrii a historii posudků"
       >
-        <Database className="w-3.5 h-3.5 text-cyan-400 group-hover:scale-110 transition-transform" />
-        <span className="text-xs font-mono font-medium">RAG</span>
+        <Brain className="w-3.5 h-3.5 text-cyan-400 group-hover:scale-110 transition-transform" />
+        <span className="text-xs font-mono font-medium">Paměť AI</span>
       </button>
 
       {/* User Login Button or Profile Capsule */}
@@ -130,7 +130,7 @@ export const UserProfileCapsule: React.FC<UserProfileCapsuleProps> = ({
                   className="w-full flex items-center gap-2 px-2.5 py-2 rounded-lg hover:bg-slate-850 text-slate-300 hover:text-cyan-300 transition-colors cursor-pointer"
                 >
                   <Sparkles className="w-4 h-4 text-cyan-400" />
-                  <span>Spravovat RAG paměť</span>
+                  <span>Paměť AI & Historie</span>
                 </button>
 
                 <button

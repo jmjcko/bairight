@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { 
   X, 
+  Brain,
   Database, 
   Plus, 
   Trash2, 
@@ -104,20 +105,20 @@ export const UserRAGMemoryModal: React.FC<UserRAGMemoryModalProps> = ({
           <div className="flex items-center gap-3">
             <div className="w-11 h-11 rounded-2xl bg-gradient-to-tr from-cyan-600 to-teal-400 p-0.5 shadow-lg shadow-cyan-500/20">
               <div className="w-full h-full bg-[#070e1a] rounded-[14px] flex items-center justify-center text-cyan-300">
-                <Database className="w-5 h-5" />
+                <Brain className="w-5 h-5" />
               </div>
             </div>
             <div>
               <div className="flex items-center gap-2">
                 <h2 className="text-base sm:text-lg font-extrabold text-white">
-                  RAG Paměť & Kontextová Databáze
+                  Paměť AI & Historie Posudků
                 </h2>
                 <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-cyan-950 border border-cyan-500/40 text-cyan-300 font-bold">
                   {userName}
                 </span>
               </div>
               <p className="text-xs text-slate-400 mt-0.5">
-                Uložené nákupní preference a ergonomická data propojující všechny nákupní agenty.
+                Přehled uložených biometrických faktů, preferencí a časová osa dřívějších nákupních posudků.
               </p>
             </div>
           </div>
@@ -142,7 +143,7 @@ export const UserRAGMemoryModal: React.FC<UserRAGMemoryModalProps> = ({
               }`}
             >
               <Calendar className="w-4 h-4" />
-              <span>Dokončená vyhodnocení ({assessments.length})</span>
+              <span>Historie vyhodnocení ({assessments.length})</span>
             </button>
 
             <button
@@ -154,7 +155,7 @@ export const UserRAGMemoryModal: React.FC<UserRAGMemoryModalProps> = ({
               }`}
             >
               <Terminal className="w-4 h-4" />
-              <span>Hotové prompty ({completedPrompts.length})</span>
+              <span>Vygenerované prompty ({completedPrompts.length})</span>
             </button>
 
             <button
@@ -166,7 +167,7 @@ export const UserRAGMemoryModal: React.FC<UserRAGMemoryModalProps> = ({
               }`}
             >
               <FileText className="w-4 h-4" />
-              <span>RAG fakta ({activeFactsCount}/{facts.length})</span>
+              <span>Osobní fakta & Biometrie ({activeFactsCount}/{facts.length})</span>
             </button>
           </div>
 
