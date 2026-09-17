@@ -74,7 +74,7 @@ export const MockupClinicalDashboard: React.FC<MockupClinicalDashboardProps> = (
           {/* Logo */}
           <div className="flex items-center gap-2.5">
             <div className="w-8 h-8 rounded-lg bg-cyan-950/80 border border-cyan-400/40 flex items-center justify-center text-cyan-400 shadow-[0_0_15px_rgba(6,182,212,0.3)]">
-              <Sparkles className="w-4 h-4 fill="currentColor"-cyan-400" />
+              <Sparkles className="w-4 h-4 fill-cyan-400" />
             </div>
             <div className="flex items-baseline gap-1.5">
               <span className="text-xl font-extrabold text-white tracking-tight">bAIright</span>
@@ -422,7 +422,7 @@ export const MockupClinicalDashboard: React.FC<MockupClinicalDashboardProps> = (
                 </>
               ) : (
                 <>
-                  <Sparkles className="w-4 h-4 fill="currentColor"-slate-950" />
+                  <Sparkles className="w-4 h-4 fill-slate-950" />
                   <span>{isCs ? 'Aktualizovat doporučení s AI' : 'Run AI Recommendation'}</span>
                 </>
               )}

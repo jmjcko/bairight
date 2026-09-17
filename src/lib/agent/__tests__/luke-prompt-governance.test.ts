@@ -132,6 +132,7 @@ describe('Agent Luke: Prompt Governance & Contract Integrity Test Suite', () => 
       { query: 'smartphone telefon', expectedFirstId: 'phone_form_factor_ecosystem', hasBio: true },
       { query: 'tepelné čerpadlo', expectedFirstId: 'hp_category_type', hasBio: false },
       { query: 'expediční batoh do hor', expectedFirstId: 'elemental_market_segment', hasBio: true },
+      { query: 'tiskárna', expectedFirstId: 'print_technology', hasBio: false },
     ];
 
     for (const testCase of representativeDomains) {
@@ -171,7 +172,8 @@ describe('Agent Luke: Prompt Governance & Contract Integrity Test Suite', () => 
         // D) Žádný parametr nesmí být zakázané klišé jako samostatný název
         const bannedExactNames = [
           'cena', 'barva', 'vzhled', 'kvalita', 'kvalita zpracování',
-          'ergonomie', 'technologický standard', 'základní výbava'
+          'ergonomie', 'technologický standard', 'základní výbava',
+          'konstrukční třída', 'procesní koncepce', 'architektonická úroveň'
         ];
         for (const param of result.parameters) {
           const lowerName = param.name.toLowerCase().trim();

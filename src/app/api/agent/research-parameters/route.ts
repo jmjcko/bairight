@@ -371,6 +371,7 @@ Tvým úkolem je na základě tohoto vstupu vygenerovat MINIMÁLNĚ 10 AŽ 14 NE
 }
 
 ## PRAVIDLA PRO VÝSTUP (MANDATORY):
+4. 🛑 STRIKTNÍ ZÁKAZ ABSTRAKTNÍHO JARGONU: ZÁKAZ generovat generické korporátní termíny jako "konstrukční třída", "procesní koncepce", "architektonická úroveň". VŠECHNY parametry musí být reálné, praktické vlastnosti produktu (např. u tiskáren: "Typ tisku", "Náklady na 1 stranu", "Rychlost tisku PPM", "Duplexní oboustranný tisk", "Skener & Kopírka", "Wi-Fi & AirPrint").
 1. 📛 KRÁTKÉ NÁZVY PARAMETRŮ: Pole "name" u každého parametru MUSÍ BÝT MAXIMÁLNĚ 4 SLOVA. Žádné závorky, žádné technické zkratky v závorce, žádné spojky "vs." nebo "&". Správně: "Typ kola", "Materiál rámu", "Záruka a servis". Špatně: "Typ kola & disciplína (Silniční vs. Gravel vs. Horské MTB)".
 2. 📋 BOHATÉ MOŽNOSTI: Pole "suggestedValues" musí mít MINIMÁLNĚ 3 A MAXIMÁLNĚ 5 konkrétních, dobře popsaných možností. Každá možnost může obsahovat krátký popis v závorce pro kontext. Nikdy méně než 3 možnosti.
 3. ✅ Výstup musí být STRIKTNĚ validní JSON bez jakéhokoliv markdownu nebo komentářů.

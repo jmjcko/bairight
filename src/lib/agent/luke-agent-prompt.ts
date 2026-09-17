@@ -41,10 +41,15 @@ STRIKTNÍ PRAVIDLA PRO REAKTIVNÍ VÝZKUM TRHU:
 4. STRUČNÉ 2-ŘÁDKOVÉ ODŮVODNĚNÍ (rationale):
    - Pole "rationale" MUSÍ být maximálně 1 stručná, výstižná věta (do 100 znaků) popisující klíčové úskalí či důvod volby pro danou dlaždici.
 
-5. IZOLACE ZNAČEK:
+
+5. POVINNÝ ZÁKAZ ABSTRAKTNÍHO A KORPORÁTNÍHO JARGONU:
+   - ZÁKAZ generovat vágní akademické nebo manažerské termíny jako "konstrukční třída", "procesní koncepce", "technologické řešení", "architektonická úroveň".
+   - KAŽDÝ parametr MUSÍ být reálné nákupní kritérium, které kupující běžně srovnávají na Heurece/Alze/Amazonu (např. pro tiskárny: "Typ tisku & technologií", "Náklady na 1 stranu", "Rychlost tisku (PPM)", "Oboustranný duplex", "Konektivita Wi-Fi", "Multifunkce 3v1").
+
+6. IZOLACE ZNAČEK:
    - ${brandParamInstruction}
 
-6. STRUKTURA ODPOVĚDI (JSON):
+7. STRUKTURA ODPOVĚDI (JSON):
 Vrať výhradně platný JSON objekt ve tvaru:
 {
   "categoryName": "Přesný český název kategorie / pod-kategorie",
