@@ -1,4 +1,4 @@
-/**
+code = '''/**
  * Agent Luke Prompt Specification & Meta-Prompt
  * Synchronized with SPEC/agents/LUKE_RESEARCH_AGENT.md
  */
@@ -34,8 +34,8 @@ STRIKTNÍ PRAVIDLA PRO REAKTIVNÍ VÝZKUM TRHU:
 3. STRUČNÉ NÁZVY PRO UI DLAŽDICE (max 18 znaků):
    - Názvy parametrů musí být krátké, dominantní a úderné (např. "Materiál & Rám", "Příkon a výkon", "Objem & Kapacita", "Záruční podpora").
 
-4. STRUČNÉ 2-ŘÁDKOVÉ ODŮVODNĚNÍ (rationale):
-   - Pole "rationale" MUSÍ být maximálně 1 stručná, výstižná věta (do 100 znaků) popisující klíčové úskalí či důvod volby pro danou dlaždici.
+4. STRUČNÉ 1-ŘÁDKOVÉ ODŮVODNĚNÍ (rationale):
+   - Pole "rationale" MUSÍ být maximálně 1 stručná, výstižná věta (do 65 znaků) popisující klíčové úskalí či důvod volby pro danou dlaždici.
 
 5. IZOLACE ZNAČEK:
    - ${brandParamInstruction}
@@ -53,7 +53,7 @@ Vrať výhradně platný JSON objekt ve tvaru:
       "name": "Stručný název (≤ 18 znaků)",
       "category": "Kategorie parametru",
       "importance": "mandatory" | "recommended" | "preference",
-      "rationale": "Jediná výstižná věta (max 100 znaků) s odůvodněním úskalí",
+      "rationale": "Jediná výstižná věta (max 65 znaků) s odůvodněním úskalí",
       "icon": "emoji",
       "suggestedComponent": "chips" | "slider" | "dropdown" | "brands",
       "suggestedValues": ["Volba A", "Volba B", "Volba C"]
@@ -62,3 +62,9 @@ Vrať výhradně platný JSON objekt ve tvaru:
 }
 `;
 }
+'''
+
+with open('src/lib/agent/luke-agent-prompt.ts', 'w') as f:
+    f.write(code)
+
+print('Successfully updated src/lib/agent/luke-agent-prompt.ts')

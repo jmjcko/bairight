@@ -15,10 +15,14 @@ export const GoogleClientIdModal: React.FC<GoogleClientIdModalProps> = ({ isOpen
   const [inputVal, setInputVal] = useState(googleClientId);
   const [mounted, setMounted] = useState(false);
   const [isSaved, setIsSaved] = useState(false);
+  const [currentOrigin, setCurrentOrigin] = useState("http://localhost:3000");
 
   useEffect(() => {
     setMounted(true);
     setInputVal(googleClientId);
+    if (typeof window !== "undefined") {
+      setCurrentOrigin(window.location.origin);
+    }
   }, [googleClientId]);
 
   if (!isOpen || !mounted) return null;
@@ -83,9 +87,12 @@ export const GoogleClientIdModal: React.FC<GoogleClientIdModalProps> = ({ isOpen
           <ol className="list-decimal list-inside space-y-1 text-slate-300 text-[11px] leading-relaxed">
             <li>V Google Console zvolte <strong>Credentials ➔ Create Credentials ➔ OAuth client ID</strong>.</li>
             <li>Vyberte typ <strong>Web Application</strong>.</li>
-            <li>Přidat Authorized JavaScript origin: <code className="bg-slate-900 px-1.5 py-0.5 rounded text-cyan-300">http://localhost:3000</code></li>
+            <li>Přidat Authorized JavaScript origin: <code className="bg-slate-900 px-1.5 py-0.5 rounded text-cyan-300">{currentOrigin}</code></li>
             <li>Zkopírujte vygenerované Client ID (končící na <code className="bg-slate-900 px-1 py-0.5 rounded text-slate-400">.apps.googleusercontent.com</code>).</li>
           </ol>
+          <div className="pt-2 border-t border-slate-800/80 text-[11px] text-slate-400 leading-normal">
+            💡 <strong>Pro produkční nasazení (Vercel):</strong> Vložte vytvořené Client ID do Vercel projektového nastavení (<em>Project Settings ➔ Environment Variables</em>) pod klíčem <code className="text-cyan-400 bg-slate-900 px-1 py-0.5 rounded">GOOGLE_CLIENT_ID</code>.
+          </div>
         </div>
 
         {/* Input Form */}

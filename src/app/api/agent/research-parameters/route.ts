@@ -409,7 +409,7 @@ Odpověz STRIKTNĚ jako validní JSON podle výše uvedené struktury, bez jaké
   }
 
   // Default to Google Gemini API with model cascading (gemini-3.6-flash, 2.5-flash, 2.0-flash, 1.5-flash)
-  const candidateModels = ['gemini-3.6-flash', 'gemini-2.5-flash', 'gemini-2.0-flash', 'gemini-1.5-flash'];
+  const candidateModels = ['gemini-2.0-flash', 'gemini-1.5-flash', 'gemini-1.5-pro'];
   let lastError: Error | null = null;
 
   for (const model of candidateModels) {

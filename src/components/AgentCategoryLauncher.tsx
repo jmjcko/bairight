@@ -574,7 +574,7 @@ const [researchError, setResearchError] = useState<string | null>(null);
                         }`}
                       >
                         {/* Checkbox indicator */}
-                        <div className={`w-4 h-4 rounded-md border flex items-center justify-center shrink-0 mt-0.5 transition-colors ${
+                        <div className={`w-4 h-4 rounded-md border flex items-center justify-center shrink-0 mt-1 transition-colors ${
                           isSelected
                             ? 'bg-cyan-500 border-cyan-400 text-slate-950 shadow-sm'
                             : 'bg-slate-900 border-slate-700 text-transparent'
@@ -582,10 +582,9 @@ const [researchError, setResearchError] = useState<string | null>(null);
                           <Check className="w-3 h-3 stroke-[3]" />
                         </div>
 
-                        <span className="text-base shrink-0 mt-0.5">{param.icon || '📌'}</span>
                         <div className="min-w-0 flex-1 pr-7">
-                          <div className="flex items-center gap-1.5 flex-wrap">
-                            <span className={`text-xs font-semibold leading-snug line-clamp-2 break-words ${isSelected ? 'text-white' : 'text-slate-400'}`}>
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <span className={`text-sm sm:text-base font-extrabold tracking-tight leading-snug line-clamp-1 break-words ${isSelected ? 'text-slate-100 group-hover:text-cyan-300' : 'text-slate-400'}`}>
                               {formatConciseParameterName(param.name)}
                             </span>
                             {param.id.startsWith('learned-') && (
@@ -599,7 +598,9 @@ const [researchError, setResearchError] = useState<string | null>(null);
                               </span>
                             )}
                           </div>
-                          <p className="text-[10px] text-slate-400 leading-tight mt-1 line-clamp-2">{param.rationale}</p>
+                          <p className="text-xs text-slate-400 font-normal leading-relaxed mt-0.5 line-clamp-2">
+                            {formatShortDescription(param.rationale)}
+                          </p>
                         </div>
 
                         {/* X Dismiss Button */}
@@ -895,6 +896,16 @@ const [researchError, setResearchError] = useState<string | null>(null);
     </div>
   );
 };
+
+export function formatShortDescription(rationale: string): string {
+  if (!rationale) return '';
+  const clean = rationale.split(/Otázka pro vás:/i)[0].trim();
+  const firstSentence = clean.split(/[.!?]/)[0].trim();
+  if (firstSentence.length > 110) {
+    return firstSentence.slice(0, 107) + '...';
+  }
+  return firstSentence ? firstSentence + '.' : clean.slice(0, 110);
+}
 
 export function formatConciseParameterName(name: string): string {
   if (!name) return '';
