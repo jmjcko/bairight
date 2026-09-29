@@ -12,7 +12,17 @@ interface I18nContextType {
 const I18nContext = createContext<I18nContextType | undefined>(undefined);
 
 export const I18nProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const [locale, setLocaleState] = useState<SupportedLocale>('cs');
+  const [locale, setLocaleState] = useState<SupportedLocale>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const stored = localStorage.getItem('bairight_locale') as SupportedLocale;
+        if (stored === 'cs' || stored === 'en') {
+          return stored;
+        }
+      } catch {}
+    }
+    return 'en';
+  });
 
   useEffect(() => {
     try {
@@ -20,6 +30,8 @@ export const I18nProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       if (stored === 'cs' || stored === 'en') {
         setLocaleState(stored);
         document.documentElement.lang = stored;
+      } else {
+        document.documentElement.lang = 'en';
       }
     } catch {}
   }, []);
@@ -32,7 +44,7 @@ export const I18nProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     } catch {}
   };
 
-  const t = translations[locale] || translations.cs;
+  const t = translations[locale] || translations.en;
 
   return (
     <I18nContext.Provider value={{ locale, setLocale, t }}>
@@ -44,11 +56,19 @@ export const I18nProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 export const useI18n = (): I18nContextType => {
   const context = useContext(I18nContext);
   if (!context) {
-    // Graceful fallback for components tested in isolation
+    let fallbackLocale: SupportedLocale = 'en';
+    if (typeof window !== 'undefined') {
+      try {
+        const stored = localStorage.getItem('bairight_locale') as SupportedLocale;
+        if (stored === 'cs' || stored === 'en') {
+          fallbackLocale = stored;
+        }
+      } catch {}
+    }
     return {
-      locale: 'cs',
+      locale: fallbackLocale,
       setLocale: () => {},
-      t: translations.cs,
+      t: translations[fallbackLocale] || translations.en,
     };
   }
   return context;

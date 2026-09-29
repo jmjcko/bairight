@@ -1,6 +1,6 @@
 import '@testing-library/jest-dom/vitest';
 import React from 'react';
-import { vi } from 'vitest';
+import { vi, beforeEach } from 'vitest';
 
 // Mock next/image for React 19 / jsdom
 vi.mock('next/image', () => ({
@@ -10,3 +10,9 @@ vi.mock('next/image', () => ({
     return React.createElement('img', { ...props, alt: props.alt || '' });
   },
 }));
+
+beforeEach(() => {
+  if (!localStorage.getItem('bairight_locale')) {
+    localStorage.setItem('bairight_locale', 'cs');
+  }
+});

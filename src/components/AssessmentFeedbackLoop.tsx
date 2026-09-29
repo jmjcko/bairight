@@ -21,13 +21,13 @@ interface FeedbackTag {
 }
 
 const POPULAR_FEEDBACK_TAGS: FeedbackTag[] = [
-  { id: 'budget_under_3500', label: '💰 Chci nižší cenu (do 3 500 Kč)', ruleCategory: 'budget' },
-  { id: 'lightweight_dynamic', label: '🪶 Chci lehčí / svižnější model', ruleCategory: 'mechanics' },
-  { id: 'exclude_asics', label: '🚫 Vyřadit značku ASICS', ruleCategory: 'brand' },
-  { id: 'exclude_hoka', label: '🚫 Vyřadit značku Hoka', ruleCategory: 'brand' },
-  { id: 'more_ankle_stability', label: '🛡️ Vyšší torzní stabilita kotníku', ruleCategory: 'mechanics' },
-  { id: 'moderate_cushion', label: '⚡ Střídmější podešev (méně mohutné tlumení)', ruleCategory: 'mechanics' },
-  { id: 'gravel_capable', label: '🌲 Univerzál: asfalt i polní cesty', ruleCategory: 'mechanics' },
+  { id: 'budget_under_3500', label: ' Chci nižší cenu (do 3 500 Kč)', ruleCategory: 'budget' },
+  { id: 'lightweight_dynamic', label: ' Chci lehčí / svižnější model', ruleCategory: 'mechanics' },
+  { id: 'exclude_asics', label: ' Vyřadit značku ASICS', ruleCategory: 'brand' },
+  { id: 'exclude_hoka', label: ' Vyřadit značku Hoka', ruleCategory: 'brand' },
+  { id: 'more_ankle_stability', label: '️ Vyšší torzní stabilita kotníku', ruleCategory: 'mechanics' },
+  { id: 'moderate_cushion', label: ' Střídmější podešev (méně mohutné tlumení)', ruleCategory: 'mechanics' },
+  { id: 'gravel_capable', label: ' Univerzál: asfalt i polní cesty', ruleCategory: 'mechanics' },
 ];
 
 interface AssessmentFeedbackLoopProps {
@@ -195,7 +195,7 @@ export const AssessmentFeedbackLoop: React.FC<AssessmentFeedbackLoopProps> = ({
           <span>
             {isRecalculating 
               ? 'Přepočítávám a ukládám do RAG...' 
-              : '🔄 Přepočítat doporučení s mou zpětnou vazbou'}
+              : ' Přepočítat doporučení s mou zpětnou vazbou'}
           </span>
         </button>
       </div>

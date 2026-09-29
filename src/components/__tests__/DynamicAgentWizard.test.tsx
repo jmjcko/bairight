@@ -68,14 +68,14 @@ describe('DynamicAgentWizard Unit Test Suite (PRD v1)', () => {
     );
 
     // Step through the 4 steps
-    for (let i = 0; i < 3; i++) {
+    for (let i = 0; i < 4; i++) {
       const nextButton = screen.getByRole('button', { name: /Pokračovat/i });
       fireEvent.click(nextButton);
     }
 
     // On final step
     const inspectButton = screen.getByRole('button', { name: /Zkontrolovat prompt pro AI/i });
-    const generateButton = screen.getByRole('button', { name: /Vygenerovat doporučení/i });
+    const generateButton = screen.getByRole('button', { name: /Vyhodnotit & Doporučit|Vygenerovat doporučení agenta/i });
 
     expect(inspectButton).toBeInTheDocument();
     expect(generateButton).toBeInTheDocument();
@@ -94,12 +94,12 @@ describe('DynamicAgentWizard Unit Test Suite (PRD v1)', () => {
     );
 
     // Navigate to last step
-    for (let i = 0; i < 3; i++) {
+    for (let i = 0; i < 4; i++) {
       fireEvent.click(screen.getByRole('button', { name: /Pokračovat/i }));
     }
 
     // Click generate
-    const generateButton = screen.getByRole('button', { name: /Vygenerovat doporučení/i });
+    const generateButton = screen.getByRole('button', { name: /Vyhodnotit & Doporučit|Vygenerovat doporučení agenta/i });
     fireEvent.click(generateButton);
 
     await waitFor(() => {
@@ -148,14 +148,18 @@ describe('DynamicAgentWizard Unit Test Suite (PRD v1)', () => {
     );
 
     // Dokončení wizardu
-    for (let i = 0; i < 3; i++) {
+    for (let i = 0; i < 4; i++) {
       fireEvent.click(screen.getByRole('button', { name: /Pokračovat/i }));
     }
-    fireEvent.click(screen.getByRole('button', { name: /Vygenerovat doporučení/i }));
+    fireEvent.click(screen.getByRole('button', { name: /Vyhodnotit & Doporučit|Vygenerovat doporučení agenta/i }));
 
     await waitFor(() => {
       expect(screen.getByText(/Stáhnout .agent.md soubor/i)).toBeInTheDocument();
     });
+
+    // Rozbalení sekce s návody (collapsible disclosure)
+    const guidesToggle = screen.getByRole('button', { name: /Jak si z tohoto souboru vytvořit vlastního agenta|How to create your own agent from this file/i });
+    fireEvent.click(guidesToggle);
 
     // Check tabs for Claude, ChatGPT, Gemini instructions
     expect(screen.getByRole('button', { name: /Google Gemini \(Gems\)/i })).toBeInTheDocument();
@@ -182,10 +186,10 @@ describe('DynamicAgentWizard Unit Test Suite (PRD v1)', () => {
       />
     );
 
-    for (let i = 0; i < 3; i++) {
+    for (let i = 0; i < 4; i++) {
       fireEvent.click(screen.getByRole('button', { name: /Pokračovat/i }));
     }
-    fireEvent.click(screen.getByRole('button', { name: /Vygenerovat doporučení/i }));
+    fireEvent.click(screen.getByRole('button', { name: /Vyhodnotit & Doporučit|Vygenerovat doporučení agenta/i }));
 
     await waitFor(() => {
       expect(screen.getByText(/Klíčová výhoda bAIright architektury/i)).toBeInTheDocument();

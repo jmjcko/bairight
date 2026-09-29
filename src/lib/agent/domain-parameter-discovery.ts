@@ -17,7 +17,7 @@ export interface ExtractedDomainParameter {
   importance: 'mandatory' | 'recommended' | 'preference';
   rationale: string;
   icon?: string;
-  suggestedComponent: 'chips' | 'slider' | 'dropdown' | 'brands';
+  suggestedComponent: 'chips' | 'slider' | 'dropdown' | 'brands' | 'text';
   suggestedValues?: string[];
 }
 
@@ -27,7 +27,7 @@ export const UNIVERSAL_BRAND_PARAMETER: ExtractedDomainParameter = {
   category: 'Výrobci & Značky',
   importance: 'recommended',
   rationale: 'Umožňuje uvést konkrétní preferované značky, kterým důvěřujete, a naopak striktně vyloučit výrobce, které nechcete. Otázka pro vás: Máte oblíbené značky, nebo chcete nějaké vyloučit?',
-  icon: '🏷️',
+  icon: '️',
   suggestedComponent: 'brands',
   suggestedValues: [
     'Všechny ověřené značky (otevřený výběr)',
@@ -35,6 +35,21 @@ export const UNIVERSAL_BRAND_PARAMETER: ExtractedDomainParameter = {
     'Chci vyloučit konkrétní výrobce',
   ],
 };
+export const UNIVERSAL_BRAND_PARAMETER_EN: ExtractedDomainParameter = {
+  id: 'brand_preferences',
+  name: 'Brands & Manufacturers',
+  category: 'Brands & Manufacturers',
+  importance: 'recommended',
+  rationale: 'Specify preferred brands you trust and exclude manufacturers you do not want recommended.',
+  icon: '️',
+  suggestedComponent: 'brands',
+  suggestedValues: [
+    'All verified brands (open selection)',
+    'I have specific preferred brands',
+    'I want to exclude specific manufacturers',
+  ],
+};
+
 
 export interface DomainAnalysisResult {
   keyword: string;
@@ -73,7 +88,7 @@ const DOMAIN_PROFILES: Record<string, {
     ],
     categoryName: 'Stolování, Nápoje & Kuchyňské Potřeby',
     agentName: 'Specialista na Stolování & Nápoje',
-    icon: '☕',
+    icon: '',
     description: 'Expertní nákupní poradce pro výběr hrnků, termohrnků, nádobí a nápojového skla na základě materiálu, tepelné izolace, objemu a ergonomie.',
     parameters: [
       {
@@ -82,7 +97,7 @@ const DOMAIN_PROFILES: Record<string, {
         category: 'Materiál & Kvalita',
         importance: 'mandatory',
         rationale: 'Materiál určuje mechanickou odolnost, hmotnost i změnu chuti nápoje. Keramika a porcelán drží teplo, nerez je nerozbitný na cesty a borosilikátové sklo je elegantní a lehké.',
-        icon: '🧱',
+        icon: '',
         suggestedComponent: 'chips',
         suggestedValues: [
           'Porcelán / Keramika (tradiční pocit, výborné držení tepla doma i v kanceláři)',
@@ -97,7 +112,7 @@ const DOMAIN_PROFILES: Record<string, {
         category: 'Termoizolace',
         importance: 'mandatory',
         rationale: 'Klíčový parametr pro udržení horké kávy/čaje nebo naopak ledového nápoje po dlouhé hodiny bez popálení rukou.',
-        icon: '🔥',
+        icon: '',
         suggestedComponent: 'chips',
         suggestedValues: [
           'Vakuační dvojitá stěna (udrží nápoj horký 6+ hodin / studený 12+ hodin)',
@@ -111,7 +126,7 @@ const DOMAIN_PROFILES: Record<string, {
         category: 'Dimenzování',
         importance: 'mandatory',
         rationale: 'Správný objem odpovídá preferovanému nápoji – od malého espressa přes klasické cappuccino až po velký půllitrový čaj.',
-        icon: '🥛',
+        icon: '',
         suggestedComponent: 'chips',
         suggestedValues: [
           'Velký objem 450–600 ml (na čaj, polévky a velké nápoje)',
@@ -125,7 +140,7 @@ const DOMAIN_PROFILES: Record<string, {
         category: 'Údržba & Praktičnost',
         importance: 'mandatory',
         rationale: 'Některé materiály s potiskem, pozlacením nebo lakováním se v myčce či mikrovlnce nenávratně zničí.',
-        icon: '🧼',
+        icon: '',
         suggestedComponent: 'chips',
         suggestedValues: [
           'Vhodné do myčky i mikrovlnky (maximální každodenní komfort)',
@@ -139,7 +154,7 @@ const DOMAIN_PROFILES: Record<string, {
         category: 'Konstrukce víčka',
         importance: 'recommended',
         rationale: 'U cestovních a auto hrnků je nepropustnost těsnění zásadní pro nošení v batohu nebo kabelce.',
-        icon: '🔒',
+        icon: '',
         suggestedComponent: 'chips',
         suggestedValues: [
           '100% vodotěsné nepropustné víčko s uzávěrem (bezpečné nosit v batohu)',
@@ -153,7 +168,7 @@ const DOMAIN_PROFILES: Record<string, {
         category: 'Ergonomie',
         importance: 'recommended',
         rationale: 'Pohodlné ucho pro 3-4 prsty zabraňuje vyklouznutí i u plného těžkého hrnku.',
-        icon: '🤲',
+        icon: '',
         suggestedComponent: 'chips',
         suggestedValues: [
           'Velké ergonomické ucho (pohodlný úchop pro celou ruku)',
@@ -187,7 +202,7 @@ const DOMAIN_PROFILES: Record<string, {
         category: 'Cestování',
         importance: 'preference',
         rationale: 'Zúžené dno zaručuje, že termohrnek pasuje do standardních auto drážek.',
-        icon: '🚗',
+        icon: '',
         suggestedComponent: 'chips',
         suggestedValues: [
           'Zúžené dno kompatibilní s drážkou v autě (průměr pod 7,5 cm)',
@@ -200,13 +215,13 @@ Doporuč přesně 3 kvalitní modely hrnků či nádobí dle materiálu, objemu,
   },
   apparel_fashion: {
     keywords: [
-      'baggy jeans', 'jeans', 'dziny', 'džíny', 'kalhoty', 'pantalon', 'tricko', 'tričko',
+      'tričko', 'trička', 'top', 'topy', 'spodní prádlo', 'prádlo', 'ponožky', 'mikina', 'mikiny', 'svetr', 'svetry', 'bunda', 'bundy', 'kabát', 'kabáty', 'šaty', 'sukně', 'funkční oblečení', 'baggy jeans', 'jeans', 'dziny', 'džíny', 'kalhoty', 'pantalon', 'tricko', 'tričko',
       'mikina', 'bunda', 'bundy', 'saty', 'šaty', 'sukne', 'sukně', 'kratasy', 'kraťasy',
       'obleceni', 'oblečení', 'vesta', 'kabát', 'kabat', 'džínsová bunda'
     ],
     categoryName: 'Móda, Oblečení & Obuv',
     agentName: 'Specialista na Módu & Oblečení',
-    icon: '👖',
+    icon: '',
     description: 'Expertní nákupní poradce pro výběr oblečení a džínoviny na základě střihu, pasu, gramáže denimu, materiálu a stálosti tvaru.',
     parameters: [
       {
@@ -215,7 +230,7 @@ Doporuč přesně 3 kvalitní modely hrnků či nádobí dle materiálu, objemu,
         category: 'Střih & Silueta',
         importance: 'mandatory',
         rationale: 'Střih určuje celkový vzhled a pohodlí. Baggy a loose fit nabízejí volný oversize styl, zatímco straight nebo slim kopírují postavu.',
-        icon: '✂️',
+        icon: '️',
         suggestedComponent: 'chips',
         suggestedValues: [
           'Baggy / Loose Fit (výrazný volný oversize střih)',
@@ -230,7 +245,7 @@ Doporuč přesně 3 kvalitní modely hrnků či nádobí dle materiálu, objemu,
         category: 'Konstrukce pasu',
         importance: 'mandatory',
         rationale: 'Poloha pasu má zásadní vliv na proporce a komfort při sezení či pohybu.',
-        icon: '📏',
+        icon: '',
         suggestedComponent: 'chips',
         suggestedValues: [
           'Vysoký pas (High rise - nad boky)',
@@ -244,7 +259,7 @@ Doporuč přesně 3 kvalitní modely hrnků či nádobí dle materiálu, objemu,
         category: 'Materiál & Kvalita',
         importance: 'mandatory',
         rationale: 'Těžký 100% bavlněný denim (14oz+) drží pevný tvar a vydrží roky, zatímco směsi s elastanem nabízejí pružnost.',
-        icon: '🧵',
+        icon: '',
         suggestedComponent: 'chips',
         suggestedValues: [
           '100% bavlna těžká gramáž (13–15 oz, pevný autentický denim)',
@@ -258,7 +273,7 @@ Doporuč přesně 3 kvalitní modely hrnků či nádobí dle materiálu, objemu,
         category: 'Biometrie & Velikost',
         importance: 'mandatory',
         rationale: 'U džínoviny je klíčové přesné značení obvodu pasu (W) a délky nohavic (L) v palcích.',
-        icon: '🧬',
+        icon: '',
         suggestedComponent: 'chips',
         suggestedValues: [
           'Standardní sizing (odpovídající běžné velikosti)',
@@ -272,7 +287,7 @@ Doporuč přesně 3 kvalitní modely hrnků či nádobí dle materiálu, objemu,
         category: 'Střih & Délka',
         importance: 'recommended',
         rationale: 'Správná délka nohavice zajišťuje ideální padnutí k botám bez nechtěného šlapání po lemu.',
-        icon: '📐',
+        icon: '',
         suggestedComponent: 'chips',
         suggestedValues: [
           'Prodloužená délka (stacking efekt přes boty / tenisky)',
@@ -286,7 +301,7 @@ Doporuč přesně 3 kvalitní modely hrnků či nádobí dle materiálu, objemu,
         category: 'Design & Barva',
         importance: 'recommended',
         rationale: 'Finální seprání (wash) vytváří charakteristický vzhled vintage modré, surového denimu nebo černé.',
-        icon: '🎨',
+        icon: '',
         suggestedComponent: 'chips',
         suggestedValues: [
           'Light Wash (světle modrá sepraná džínovina)',
@@ -296,12 +311,26 @@ Doporuč přesně 3 kvalitní modely hrnků či nádobí dle materiálu, objemu,
         ],
       },
       {
+        id: 'apparel_seasonality',
+        name: 'Sezónní určení',
+        category: 'Sezóna & Využití',
+        importance: 'recommended',
+        rationale: 'Určuje prodyšnost a zateplení pro letní, zimní či celoroční nošení.',
+        icon: '',
+        suggestedComponent: 'chips',
+        suggestedValues: [
+          'Celoroční nošení (univerzální gramáž a prodyšnost)',
+          'Jaro / Léto (lehké prodyšné materiály)',
+          'Podzim / Zima (zateplené provedení a vyšší gramáž)',
+        ],
+      },
+      {
         id: 'apparel_fastening_hardware',
         name: 'Zapínání a doplňky',
         category: 'Konstrukce',
         importance: 'recommended',
         rationale: 'Kovové gombíky (button fly) jsou tradiční a odolnější proti rozbití než klasický zdrhovadlový zip.',
-        icon: '🔘',
+        icon: '',
         suggestedComponent: 'chips',
         suggestedValues: [
           'Kovové knoflíky (Button Fly - tradiční odolné zapínání)',
@@ -315,7 +344,7 @@ Doporuč přesně 3 kvalitní modely hrnků či nádobí dle materiálu, objemu,
         category: 'Údržba',
         importance: 'recommended',
         rationale: 'Kvalitní denim se nesmí po prvním praní srazit v pase ani ztratit barvu.',
-        icon: '🧼',
+        icon: '',
         suggestedComponent: 'chips',
         suggestedValues: [
           'Předepraný materiál (Sanforized - garance nula srážlivosti)',
@@ -349,7 +378,7 @@ Doporuč přesně 3 kvalitní modely hrnků či nádobí dle materiálu, objemu,
         category: 'Kvalita zpracování',
         importance: 'preference',
         rationale: 'Zesílená šití a měděné nýty na namáhaných kapsech zaručují nezničitelnost.',
-        icon: '🔨',
+        icon: '',
         suggestedComponent: 'chips',
         suggestedValues: [
           'Měděné nýty a trojité švy na kapsách',
@@ -368,7 +397,7 @@ Doporuč přesně 3 kvalitní modely džínoviny / kalhot dle zadaného střihu,
     ],
     categoryName: 'Elektromobily & Elektrická Vozidla (EV)',
     agentName: 'Specialista na Elektromobilitu & EV',
-    icon: '⚡',
+    icon: '',
     description: 'Expertní nákupní poradce pro výběr elektromobilu na základě reálného dálničního dojezdu, rychlosti nabíjení (800V vs 400V), tepelného čerpadla a bateriové chemie.',
     parameters: [
       {
@@ -377,7 +406,7 @@ Doporuč přesně 3 kvalitní modely džínoviny / kalhot dle zadaného střihu,
         category: 'Baterie & Dojezd',
         importance: 'mandatory',
         rationale: 'Klíčové pro dálkové cesty: kapacita v kWh a reálný dojezd při 130 km/h za běžných podmínek (nikoliv teoretický laboratorní WLTP).',
-        icon: '🔋',
+        icon: '',
         suggestedComponent: 'chips',
         suggestedValues: ['Městský / Příměstský (45-58 kWh / dojezd ~250 km)', 'Univerzální rodinný (60-77 kWh / dojezd ~360 km)', 'Dálniční křižník (78-100+ kWh / dojezd 450+ km)'],
       },
@@ -387,7 +416,7 @@ Doporuč přesně 3 kvalitní modely džínoviny / kalhot dle zadaného střihu,
         category: 'Nabíjecí výkon',
         importance: 'mandatory',
         rationale: '800V ultrarychlá architektura (Hyundai Ioniq, Kia EV6, Porsche) dobije 10-80 % pod 18 minut; standardní 400V (Škoda Enyaq, VW ID) vyžaduje 28-35 minut.',
-        icon: '⚡',
+        icon: '',
         suggestedComponent: 'chips',
         suggestedValues: [
           'Ultrarychlá 800V architektura (nabití 10–80 % za cca 18 minut na dálničních HPC)',
@@ -401,7 +430,7 @@ Doporuč přesně 3 kvalitní modely džínoviny / kalhot dle zadaného střihu,
         category: 'Termomanagement',
         importance: 'mandatory',
         rationale: 'Při mrazech v ČR (-5 až -15 °C) efektivně vytápí kabinu i temperuje baterii a eliminuje propad dojezdu o 30-40 %.',
-        icon: '❄️',
+        icon: '️',
         suggestedComponent: 'chips',
         suggestedValues: [
           'Úsporné tepelné čerpadlo (šetří až 30 % dojezdu při zimním vytápění)',
@@ -415,7 +444,7 @@ Doporuč přesně 3 kvalitní modely džínoviny / kalhot dle zadaného střihu,
         category: 'Domácí nabíjení',
         importance: 'recommended',
         rationale: 'Třífázové 11 kW (či 22 kW) AC nabíjení umožní plné a bezpečné dobití baterie přes noc během levného nočního tarifu.',
-        icon: '🔌',
+        icon: '',
         suggestedComponent: 'chips',
         suggestedValues: ['Domácí wallbox 11 kW (plné nabití přes noc 6-8 hod.)', 'Zesílená 22 kW AC palubní nabíječka', 'Pouze veřejné nabíjení (bez domácího wallboxu)'],
       },
@@ -425,7 +454,7 @@ Doporuč přesně 3 kvalitní modely džínoviny / kalhot dle zadaného střihu,
         category: 'Technologie baterie',
         importance: 'recommended',
         rationale: 'LFP (Lithium-železo-fosfát) netrpí denním nabíjením do 100 % a má extrémní životnost; NMC/NCA má vyšší energetickou hustotu a lepší zimní výkon.',
-        icon: '🔬',
+        icon: '',
         suggestedComponent: 'chips',
         suggestedValues: ['LFP baterie (bezpečné nabíjení na 100 % denně a extrémní životnost)', 'NMC / NCA baterie (maximální dojezd a nejlepší výkon v mrazech)', 'Nerozhoduje / nechám si doporučit optimální typ dle využití'],
       },
@@ -435,7 +464,7 @@ Doporuč přesně 3 kvalitní modely džínoviny / kalhot dle zadaného střihu,
         category: 'Trakce & Dynamika',
         importance: 'recommended',
         rationale: 'Elektromobily mají nízké těžiště; zadní pohon RWD je efektivní a stabilní, Dual Motor AWD přináší brutální zrychlení a jistotu na sněhu.',
-        icon: '🏎️',
+        icon: '️',
         suggestedComponent: 'chips',
         suggestedValues: ['Dual Motor 4x4 AWD (maximální trakce na sněhu a blesková akcelerace)', 'Úsporný zadní pohon RWD (ideální vyvážení a delší dojezd)', 'Přední pohon FWD (pro klidnou a úspornou městskou jízdu)'],
       },
@@ -445,7 +474,7 @@ Doporuč přesně 3 kvalitní modely džínoviny / kalhot dle zadaného střihu,
         category: 'Cestovní komfort',
         importance: 'recommended',
         rationale: 'Zajišťuje, aby studená baterie dosáhla plného nabíjecího výkonu ihned po připojení k HPC stanici a nestála na stojanu hodinu.',
-        icon: '🌡️',
+        icon: '️',
         suggestedComponent: 'chips',
         suggestedValues: ['Automatický předehřev propojený s navigací (baterie je připravena před příjezdem k HPC)', 'Manuální předehřev tlačítkem v infotainmentu', 'Nepotřebuji předehřev (nabíjím primárně doma na AC wallboxu)'],
       },
@@ -455,7 +484,7 @@ Doporuč přesně 3 kvalitní modely džínoviny / kalhot dle zadaného střihu,
         category: 'Software & Infotainment',
         importance: 'recommended',
         rationale: 'Navigace musí sama dynamicky počítat zastávky na nabíjení podle spotřeby, profilu trasy a reálné obsazenosti stojanů.',
-        icon: '🗺️',
+        icon: '️',
         suggestedComponent: 'chips',
         suggestedValues: ['Pokročilý plánovač tras (automatické zastávky na nabíjení a živá obsazenost)', 'Základní vestavěná navigace', 'Používám výhradně Apple CarPlay / Android Auto (Waze, Google Maps)'],
       },
@@ -465,7 +494,7 @@ Doporuč přesně 3 kvalitní modely džínoviny / kalhot dle zadaného střihu,
         category: 'Konstrukce',
         importance: 'mandatory',
         rationale: 'Aerodynamický koeficient odporu (Cd) má u EV zásadní vliv na spotřebu: nízký liftback spotřebuje o 20 % méně energie než krabicové SUV.',
-        icon: '🚙',
+        icon: '',
         suggestedComponent: 'chips',
         suggestedValues: ['Elektro SUV / Crossover (vyšší posaz, prostor)', 'Aerodynamický Liftback / Sedan (nižší spotřeba, dlouhý dojezd)', 'Kombi / Rodinný Shooting Brake', 'Kompaktní městský hatchback'],
       },
@@ -569,7 +598,7 @@ U každého ze 3 doporučených elektromobilů uveď:
         category: 'Elektrická výbava',
         importance: 'preference',
         rationale: 'Umožňuje napájet nářadí, elektrokola, kávovar nebo dokonce domácí spotřebiče přímo z baterie auta výkonem až 3.6 kW.',
-        icon: '🔌',
+        icon: '',
         suggestedComponent: 'chips',
         suggestedValues: [
           'Plná podpora V2L 230V / 3.6 kW (napájení elektrokol, grilu a kempingového vybavení)',
@@ -583,7 +612,7 @@ U každého ze 3 doporučených elektromobilů uveď:
         category: 'Software',
         importance: 'preference',
         rationale: 'Zda výrobce průběžně vylepšuje dojezd, nabíjecí křivku a funkce vozu na dálku bez nutnosti návštěvy servisu.',
-        icon: '📶',
+        icon: '',
         suggestedComponent: 'chips',
         suggestedValues: [
           'Plná vzdálená OTA podpora (pravidelná vylepšení motoru, dojezdu i infotainmentu)',
@@ -597,7 +626,7 @@ U každého ze 3 doporučených elektromobilů uveď:
     keywords: ['auto', 'automobil', 'vuz', 'vozidlo', 'car', 'cars', 'suv', 'kombi', 'sedan', 'octavia', 'skoda', 'bmw', 'audi', 'toyota', 'volkswagen'],
     categoryName: 'Osobní Automobily & Mobility',
     agentName: 'Nezávislý Automobilový Poradce & Nákupčí',
-    icon: '🚗',
+    icon: '',
     description: 'Expertní nákupní poradce pro výběr vozu na základě motorizace, provozních nákladů, prostoru a spolehlivosti.',
     parameters: [
       {
@@ -606,7 +635,7 @@ U každého ze 3 doporučených elektromobilů uveď:
         category: 'Konstrukce & Rozměry',
         importance: 'mandatory',
         rationale: 'Určuje výšku posazu, světlou výšku podvozku, aerodynamiku a variabilitu vnitřního prostoru (SUV vs. Kombi vs. Hatchback).',
-        icon: '🚙',
+        icon: '',
         suggestedComponent: 'chips',
         suggestedValues: ['SUV / Crossover', 'Kombi', 'Hatchback', 'Sedan / Liftback', 'MPV / Rodinná dodávka'],
       },
@@ -616,7 +645,7 @@ U každého ze 3 doporučených elektromobilů uveď:
         category: 'Pohonná jednotka',
         importance: 'mandatory',
         rationale: 'Klíčové pro provozní náklady a životnost: benzín na kratší trasy, diesel na dálnice, hybrid do města, elektro (BEV) pro domácí nabíjení.',
-        icon: '⚡',
+        icon: '',
         suggestedComponent: 'chips',
         suggestedValues: ['Benzínový motor (TSI/T-GDI)', 'Naftový motor (TDI/dCi)', 'Full-Hybrid (HEV bez nabíjení)', 'Plug-in Hybrid (PHEV)', 'Čistý elektromobil (BEV)'],
       },
@@ -626,7 +655,7 @@ U každého ze 3 doporučených elektromobilů uveď:
         category: 'Jízdní dynamika & Trakce',
         importance: 'mandatory',
         rationale: 'Pohon všech kol (AWD/4x4) přináší jistotu v zimě a v terénu, ale mírně zvyšuje hmotnost, spotřebu a servisní náklady.',
-        icon: '⚙️',
+        icon: '️',
         suggestedComponent: 'chips',
         suggestedValues: ['Pohon všech kol (4x4 / AWD)', 'Přední pohon (FWD)', 'Zadní pohon (RWD)'],
       },
@@ -636,7 +665,7 @@ U každého ze 3 doporučených elektromobilů uveď:
         category: 'Komfort řízení',
         importance: 'recommended',
         rationale: 'Automatická převodovka (DSG, hydrodynamický měnič, e-CVT) nabízí komfort v kolonách; manuální převodovka nižší pořizovací cenu.',
-        icon: '🕹️',
+        icon: '️',
         suggestedComponent: 'chips',
         suggestedValues: [
           'Automatická převodovka (maximální komfort a plynulost v městských kolonách)',
@@ -650,7 +679,7 @@ U každého ze 3 doporučených elektromobilů uveď:
         category: 'Provozní režim',
         importance: 'mandatory',
         rationale: 'Pod 15 000 km ročně převážně po městě způsobuje zanášení DPF filtrů u dieselů; nad 25 000 km po dálnicích je nafta či hybrid nejúspornější.',
-        icon: '🛣️',
+        icon: '️',
         suggestedComponent: 'chips',
         suggestedValues: ['Do 15 000 km / rok (město a okolí)', '15 000 – 30 000 km / rok (smíšený provoz)', '30 000+ km / rok (dálnice a dlouhé trasy)'],
       },
@@ -660,7 +689,7 @@ U každého ze 3 doporučených elektromobilů uveď:
         category: 'Užitná hodnota',
         importance: 'recommended',
         rationale: 'Rozhoduje o schopnosti pojmout kočárek, sportovní vybavení nebo velká zavazadla bez nutnosti střešního boxu.',
-        icon: '🧳',
+        icon: '',
         suggestedComponent: 'chips',
         suggestedValues: ['Kompaktní kufr (do 400 l)', 'Rodinný standard (450 – 580 l)', 'Velký rodinný stěhovák (600+ l)'],
       },
@@ -670,7 +699,7 @@ U každého ze 3 doporučených elektromobilů uveď:
         category: 'Původ & Rizika',
         importance: 'recommended',
         rationale: 'Nové skladové auto s tovární zárukou 5–7 let vs. zánovní prověřený vůz do 3 let vs. spolehlivá ojetina.',
-        icon: '🛡️',
+        icon: '️',
         suggestedComponent: 'chips',
         suggestedValues: ['Zcela nové skladové vozidlo', 'Zánovní vůz do 3 let (certifikovaný program)', 'Kvalitní ojetina (stáří 4–7 let)'],
       },
@@ -680,7 +709,7 @@ U každého ze 3 doporučených elektromobilů uveď:
         category: 'Bezpečnost',
         importance: 'recommended',
         rationale: 'Adaptivní tempomat (ACC), hlídání mrtvého úhlu, LED Matrix světlomety a udržování v pruhu výrazně snižují únavu a riziko nehody.',
-        icon: '👁️',
+        icon: '️',
         suggestedComponent: 'chips',
         suggestedValues: [
           'Maximální bezpečnostní balík (aktivní udržování v pruhu, adaptivní tempomat a nouzové brzdění)',
@@ -694,7 +723,7 @@ U každého ze 3 doporučených elektromobilů uveď:
         category: 'Ekonomika provozu (TCO)',
         importance: 'recommended',
         rationale: 'Zohledňuje dostupnost a ceny náhradních dílů v ČR, spolehlivost motorů a tempo poklesu tržní hodnoty při následném prodeji.',
-        icon: '📊',
+        icon: '',
         suggestedComponent: 'chips',
         suggestedValues: [
           'Minimální provozní a servisní náklady (vysoká spolehlivost a levné náhradní díly)',
@@ -708,7 +737,7 @@ U každého ze 3 doporučených elektromobilů uveď:
         category: 'Financování',
         importance: 'mandatory',
         rationale: 'Finanční strop v Kč včetně DPH. Určuje reálné spektrum modelů v dané třídě.',
-        icon: '💰',
+        icon: '',
         suggestedComponent: 'slider',
         suggestedValues: [
           'Dostupná kategorie do 400 000 Kč (spolehlivá ojetina s jasnou historií)',
@@ -818,7 +847,7 @@ U každého ze 3 doporučených vozů uveď:
         category: 'Praktičnost',
         importance: 'recommended',
         rationale: 'Klíčové pro tahání karavanu, přívěsného vozíku či montáž nosiče jízdních kol na tažné oko.',
-        icon: '🚛',
+        icon: '',
         suggestedComponent: 'chips',
         suggestedValues: ['Požaduji tažné zařízení (1500+ kg)', 'Pouze pro nosič kol (do 750 kg)', 'Není potřeba'],
       },
@@ -828,7 +857,7 @@ U každého ze 3 doporučených vozů uveď:
         category: 'Bezpečnost',
         importance: 'recommended',
         rationale: 'Adaptivní tempomat Stop&Go, aktivní vedení v jízdním pruhu a hlídání mrtvého úhlu.',
-        icon: '🛡️',
+        icon: '️',
         suggestedComponent: 'chips',
         suggestedValues: [
           'Autonomní jízda Level 2+ s 360° kamerami (automatické parkování a dálniční asistent)',
@@ -842,7 +871,7 @@ U každého ze 3 doporučených vozů uveď:
         category: 'Viditelnost',
         importance: 'preference',
         rationale: 'Automatické vykrývání protijedoucích vozidel pro maximální bezpečnost při častých nočních jízdách.',
-        icon: '💡',
+        icon: '',
         suggestedComponent: 'chips',
         suggestedValues: [
           'Inteligentní Matrix LED / Laser světla (vykrývání protijedoucích aut bez oslnění)',
@@ -856,7 +885,7 @@ U každého ze 3 doporučených vozů uveď:
         category: 'Komfort',
         importance: 'preference',
         rationale: 'Optické prosvětlení kabiny a vzdušnost vs. vyšší hmotnost a nižší prostor nad hlavou vzadu.',
-        icon: '☀️',
+        icon: '️',
         suggestedComponent: 'chips',
         suggestedValues: [
           'Otevíratelná panoramatická střecha (vzdušnost kabiny a větrání v létě)',
@@ -870,7 +899,7 @@ U každého ze 3 doporučených vozů uveď:
         category: 'Konektivita',
         importance: 'preference',
         rationale: 'Kvalitní audiofilní ozvučení a stabilní bezdrátové zrcadlení navigace.',
-        icon: '🎵',
+        icon: '',
         suggestedComponent: 'chips',
         suggestedValues: [
           'Prémiový audiosystém (Harman Kardon, Bose nebo B&O se subwooferem)',
@@ -881,11 +910,264 @@ U každého ze 3 doporučených vozů uveď:
     ],
   },
 
+  headphones: {
+    keywords: ['sluchatko', 'sluchatka', 'sluchátko', 'sluchátka', 'tws', 'airpods', 'headset', 'headphones', 'earbuds', 'headphone'],
+    categoryName: 'Bezdrátová & Studiová Sluchátka',
+    agentName: 'AI Audio Specialist na Sluchátka',
+    icon: '',
+    description: 'Expertní průzkum sluchátek s ohledem na akustiku, pohodlí uší, chytré ANC potlačení hluku a výdrž.',
+    parameters: [
+      {
+        id: 'headphone_construction',
+        name: 'Konstrukční formát sluchátek',
+        category: 'Konstrukce & Typ',
+        importance: 'mandatory',
+        rationale: 'Konstrukce určuje akustickou izolaci, pasivní útlum hluku a způsob nošení (špunty do uší vs. náušníky přes uši). Otázka pro vás: Jaký typ konstrukce sluchátek preferujete?',
+        icon: '',
+        suggestedComponent: 'chips',
+        suggestedValues: ['TWS špunty / Do uší (In-ear / Kompaktní na cestování)', 'Přes uši / Okolo uší (Over-ear / Maximální komfort a izolace)', 'Na uši (On-ear / Lehká otevřená konstrukce)', 'Kosti / Bone Conduction (Pro sport a vnímání okolí)'],
+      },
+      {
+        id: 'headphone_connection',
+        name: 'Způsob připojení & Codecy',
+        category: 'Konektivita',
+        importance: 'mandatory',
+        rationale: 'Bezdrátové Bluetooth připojení poskytuje volnost pohybu, drátové připojení garantuje nula latenci pro audiofily a hráče. Otázka pro vás: Jaký způsob připojení vyžadujete?',
+        icon: '',
+        suggestedComponent: 'chips',
+        suggestedValues: ['Plně bezdrátové Bluetooth (TWS / Multipoint spárování)', 'Kombinované (Bezdrát + odpojitelný 3.5mm kabel)', 'Čistě drátové (3.5mm jack / 6.3mm studio / USB-C)'],
+      },
+      {
+        id: 'headphone_anc',
+        name: 'Aktivní potlačení hluku (ANC)',
+        category: 'Akustika & Izolace',
+        importance: 'mandatory',
+        rationale: 'Adaptivní ANC odfiltruje hluk v letadle, kanceláři i MHD, zatíco transparentní režim propouští hlasy. Otázka pro vás: Je pro vás klíčové aktivní rušení okolního hluku?',
+        icon: '',
+        suggestedComponent: 'chips',
+        suggestedValues: ['Špičkové adaptivní ANC s transparentním režimem', 'Základní ANC pro cestování', 'Pasivní izolace stačí (bez elektronického ANC)'],
+      },
+      {
+        id: 'headphone_battery',
+        name: 'Výdrž baterie & Pouzdro',
+        category: 'Napájení & Výdrž',
+        importance: 'mandatory',
+        rationale: 'Kombinovaná výdrž sluchátek a nabíjecího pouzdra určuje, jak často musíte hledat nabíječku. Otázka pro vás: Jakou výdrž na jedno nabití požadujete?',
+        icon: '',
+        suggestedComponent: 'chips',
+        suggestedValues: ['Extrémní výdrž (8+ hodin sluchátka / 30+ hodin pouzdro)', 'Standardní výdrž (5-7 hodin sluchátka / 24 hodin pouzdro)', 'Základní výdrž pro běžné denní nošení'],
+      },
+      {
+        id: 'headphone_sound_profile',
+        name: 'Zvukový profil & Měniče',
+        category: 'Akustický přednes',
+        importance: 'recommended',
+        rationale: 'Charakter zvuku určuje vyrovnanost basů, středu a výšek pro hudební žánry či podkásty. Otázka pro vás: Jaký typ zvukového podání preferujete?',
+        icon: '',
+        suggestedComponent: 'chips',
+        suggestedValues: ['Vyrovnaný analytický studiový zvuk (Věrné podání)', 'Zvýrazněný dynamický basový profil (Bass boost)', 'Warm / Hlasově orientovaný profil pro podcasty a hovory'],
+      },
+      {
+        id: 'headphone_mic_calls',
+        name: 'Kvalita mikrofonů & Hovory',
+        category: 'Hovory & Komunikace',
+        importance: 'recommended',
+        rationale: 'Počet mikrofonů a algoritmy potlačení větru určují, jak vás srozumitelně slyší druhá strana při hovorech v rušném prostředí. Otázka pro vás: Budete sluchátka často používat na telefonování a online schůzky?',
+        icon: '️',
+        suggestedComponent: 'chips',
+        suggestedValues: ['Špičkové mikrofony s filtrací šumu a větru (pro pracovní hovory)', 'Standardní mikrofony pro občasné vyřízení hovoru', 'Hovory neřeším (čistě na poslech hudby)'],
+      },
+      {
+        id: 'headphone_durability_ipx',
+        name: 'Odolnost IPX & Sport',
+        category: 'Odolnost & Ergonomie',
+        importance: 'recommended',
+        rationale: 'Stupeň krytí IPX4 až IPX8 chrání sluchátka před potem, deštěm a prachem při sportu. Otázka pro vás: Budete sluchátka používat při sportu či v náročných podmínkách?',
+        icon: '',
+        suggestedComponent: 'chips',
+        suggestedValues: ['Vysoká odolnost proti potu a dešti (IPX5 - IPX8 pro běh a fitness)', 'Běžná odolnost proti postříkání (IPX4)', 'Bez zvýšené krycí odolnosti (pro indoor / kancelář)'],
+      },
+      {
+        id: 'headphone_codecs',
+        name: 'Podpora Hi-Res kodeků',
+        category: 'Audio Kodeky & Kvalita',
+        importance: 'recommended',
+        rationale: 'Pokročilé bezdrátové kodeky LDAC, aptX Adaptive a AAC garantují přenos hudby bez komprese a zkreslení. Otázka pro vás: Vyžadujete podporu Hi-Res bezdrátových kodeků?',
+        icon: '',
+        suggestedComponent: 'chips',
+        suggestedValues: ['Hi-Res podpora (LDAC / aptX HD / Lossless)', 'Standardní AAC / SBC stačí pro běžné služby'],
+      },
+      {
+        id: 'budget',
+        name: 'Orientační rozpočet',
+        category: 'Rozpočet',
+        importance: 'mandatory',
+        rationale: 'Cenový rámec pomůže vyfiltrovat sluchátka v odpovídající akustické a funkční třídě. Otázka pro vás: Jaký je váš předpokládaný rozpočet?',
+        icon: '',
+        suggestedComponent: 'chips',
+        suggestedValues: ['Prémiová třída (nad 7 000 Kč)', 'Zlatý střed (2 500 – 7 000 Kč)', 'Dostupná třída (do 2 500 Kč)'],
+      },
+      UNIVERSAL_BRAND_PARAMETER,
+    ],
+    questions: [
+      {
+        id: 'q_headphone_construction',
+        step: 1,
+        title: 'Jaký typ konstrukce sluchátek preferujete?',
+        subtitle: 'Vyberte požadované provedení podle způsobu nošení a akustiky.',
+        component: 'chips',
+        isMultiSelect: false,
+        options: [
+          { label: 'TWS špunty / Do uší', value: 'in_ear', description: 'Kompaktní bezdrátové špunty na cestování a sport.' },
+          { label: 'Přes uši (Over-ear)', value: 'over_ear', description: 'Maximální pohodlí, zvuková prostornost a izolace.' },
+        ],
+        defaultValue: 'in_ear',
+        promptForgeTemplate: '- **Konstrukce sluchátek:** {value}',
+      },
+      {
+        id: 'q_headphone_anc',
+        step: 2,
+        title: 'Požadujete aktivní potlačení okolního hluku (ANC)?',
+        subtitle: 'Odfiltrování hluku v letadle, MHD a rušné kanceláři.',
+        component: 'chips',
+        isMultiSelect: false,
+        options: [
+          { label: 'Ano, pokročilé ANC s transparentním režimem', value: 'anc_yes', description: 'Klíčové pro cestování a práci.' },
+          { label: 'Ne, stačí pasivní útlum', value: 'anc_no', description: 'Běžný poslech bez aktivní elektroniky.' },
+        ],
+        defaultValue: 'anc_yes',
+        promptForgeTemplate: '- **Potlačení hluku ANC:** {value}',
+      },
+    ],
+    systemPrompt: 'Expertní nákupní poradce pro výběr bezdrátových a studiových sluchátek...' 
+  },
+  cycling_shoes: {
+    keywords: ['tretry', 'tretra', 'cyklotretry', 'tretry na kolo', 'boty na kolo', 'cyklo boty', 'cyklisticke tretry', 'cyklistické tretry', 'cyklo obuv'],
+    categoryName: 'Cyklistické Tretry & Obuv na Kolo',
+    agentName: 'AI Specialist na Cyklistické Tretry',
+    icon: '‍️',
+    description: 'Expertní výběr cyklistických treter s ohledem na typ nášlapu (SPD/SPD-SL), tuhost podrážky, systém zapínání BOA a šířku kopyta.',
+    parameters: [
+      {
+        id: 'cycling_shoe_type',
+        name: 'Typologie treter & Disciplína',
+        category: 'Kategorie & Určení',
+        importance: 'mandatory',
+        rationale: 'Určení disciplíny určuje typ podrážky a kufru (hladká silniční podrážka s 3-šroubovým kufrem vs. MTB podrážka s gumovým vzorkem pro chůzi). Otázka pro vás: Jaký typ treter pro svou disciplínu potřebujete?',
+        icon: '‍️',
+        suggestedComponent: 'chips',
+        suggestedValues: ['Silniční tretry (Hladká tvrdá podrážka / 3-šroub Look/SPD-SL)', 'MTB & Gravel tretry (Gumový vzorek pro chůzi / 2-šroub SPD)', 'Turistické & Městské tretry (Měkká guma / Vzhled tenisek)', 'Zimní zateplené tretry (Membrána GORE-TEX / Vysoké kotníkové)'],
+      },
+      {
+        id: 'cycling_cleat_system',
+        name: 'Systém kufru & Nášlapu',
+        category: 'Nášlapný systém',
+        importance: 'mandatory',
+        rationale: 'Kompatibilita s pedály (Shimano SPD, SPD-SL, Look Keo, Crankbrothers) je klíčová pro přenos síly a správný záprah. Otázka pro vás: Jaké nášlapné pedály a kufry používáte?',
+        icon: '️',
+        suggestedComponent: 'chips',
+        suggestedValues: ['SPD (2-šroubový systém pro MTB / Gravel / Turistiku)', 'SPD-SL / Look Keo / Time (3-šroubový systém pro silnici)', 'Platformové tretry (Plochá guma Stealth/Vibram bez nášlapu)'],
+      },
+      {
+        id: 'cycling_sole_stiffness',
+        name: 'Tuhost podrážky & Karbon',
+        category: 'Podrážka & Přenos síly',
+        importance: 'mandatory',
+        rationale: 'Tuhá karbonová podrážka (Index 10-12) předává 100 % energie do pedálu bez prohybu, zatímco nylon/kompozit (Index 6-8) nabízí více komfortu při celodenní jízdě. Otázka pro vás: Jakou tuhost podrážky vyžadujete?',
+        icon: '',
+        suggestedComponent: 'chips',
+        suggestedValues: ['100% Karbon (Maximální tuhost a závodní přenos síly / Index 10-12)', 'Karbonový kompozit (Vyvážený poměr tuhosti a komfortu / Index 7-9)', 'Nylon / Guma (Komfortní podajná podrážka pro rekreační jízdu)'],
+      },
+      {
+        id: 'cycling_closure_system',
+        name: 'Systém zapínání',
+        category: 'Zapínání & Utažení',
+        importance: 'mandatory',
+        rationale: 'BOA kolečka umožňují milimetrově jemné utažení i za jízdy bez tlačení na nártu, pásky se suchým zipem jsou jednoduché a spolehlivé. Otázka pro vás: Jaký systém zapínání preferujete?',
+        icon: '',
+        suggestedComponent: 'chips',
+        suggestedValues: ['Dvojité BOA kolečko (Nejjemnější regulace u špičky i nártu)', 'Jednoduché BOA kolečko + suchý zip', 'Ozubená přezka / Ráčna', 'Klasické tkaničky (Stylový retro vzhled a rovnoměrný tlak)'],
+      },
+      {
+        id: 'cycling_shoe_fit',
+        name: 'Šířka kopyta & Objem',
+        category: 'Anatomie & Střih',
+        importance: 'mandatory',
+        rationale: 'Úzké tretry způsobují brnění prstů a křeče v chodidle při delší jízdě. Pro širokou nohu či vysoký nárt je nutné zvolit verzi Wide / 2E. Otázka pro vás: Jakou šířku chodidla a nártu máte?',
+        icon: '',
+        suggestedComponent: 'chips',
+        suggestedValues: ['Standardní kopyto (Běžná šířka chodidla)', 'Wide / HV (Rozšířené kopyto pro široké chodidlo a vysoký nárt)', 'Úzké kopyto (Italský úzký střih)'],
+      },
+      {
+        id: 'cycling_ventilation',
+        name: 'Odvětrání & Svršek',
+        category: 'Prodyšnost & Svršek',
+        importance: 'recommended',
+        rationale: 'Síťované panely a perforace podrážky odvádějí horko v létě, syntetická kůže MIKROFIBER drží tvar a nepromokne. Otázka pro vás: V jakém ročním období budete tretry hlavně používat?',
+        icon: '️',
+        suggestedComponent: 'chips',
+        suggestedValues: ['Maximální letní odvětrání (Perforovaný svršek a větrací otvory v podrážce)', 'Celoroční provedení (Ochrana proti stříkající vodě a větru)', 'Zimní nepromokavé se zateplením (Membrána GORE-TEX / Neoprenový lemovka)'],
+      },
+      {
+        id: 'user_biometrics_health',
+        name: 'Biometrie & Velikost',
+        category: 'Biometrie & Velikost',
+        importance: 'mandatory',
+        rationale: 'Správná velikost tretry vyžaduje nadměrek 5-8 mm pro natečení chodidla při zátěži. Otázka pro vás: Jaká je vaše běžná velikost bot a délka chodidla v mm?',
+        icon: '',
+        suggestedComponent: 'chips',
+        suggestedValues: ['Běžná velikost + 5 mm rezerva na natečení', 'Vyžaduji vyjímatelnou stélku pro vlastní ortopedickou vložku'],
+      },
+      {
+        id: 'budget',
+        name: 'Orientační rozpočet',
+        category: 'Rozpočet',
+        importance: 'mandatory',
+        rationale: 'Cenový rámec pomůže vyfiltrovat tretry od základních nylonových po profesionální karbonové modely. Otázka pro vás: Jaký je váš předpokládaný rozpočet?',
+        icon: '',
+        suggestedComponent: 'chips',
+        suggestedValues: ['Prémiová závodní třída (nad 6 000 Kč)', 'Zlatý střed (2 800 – 6 000 Kč)', 'Dostupná třída (do 2 800 Kč)'],
+      },
+      UNIVERSAL_BRAND_PARAMETER,
+    ],
+    questions: [
+      {
+        id: 'q_cycling_shoe_type',
+        step: 1,
+        title: 'Jaký typ cyklistických treter hledáte?',
+        subtitle: 'Základní rozřazení podle silniční vs. MTB/Gravel disciplíny.',
+        component: 'chips',
+        isMultiSelect: false,
+        options: [
+          { label: 'Silniční tretry (SPD-SL / Look)', value: 'road', description: 'Tvrdá hladká podrážka pro silniční cyklistiku.' },
+          { label: 'MTB & Gravel tretry (SPD 2-šroub)', value: 'mtb', description: 'Podrážka s vzorkem umožňující bezproblémovou chůzi.' },
+        ],
+        defaultValue: 'road',
+        promptForgeTemplate: '- **Typ treter:** {value}',
+      },
+      {
+        id: 'q_cycling_closure',
+        step: 2,
+        title: 'Jaký systém zapínání treter upřednostňujete?',
+        subtitle: 'Utažení nártu a možnost regulace za jízdy.',
+        component: 'chips',
+        isMultiSelect: false,
+        options: [
+          { label: 'BOA kolečka s drátem', value: 'boa', description: 'Nejjemnější utažení a regulace za jízdy.' },
+          { label: 'Přezka / Suché zipsy / Tkaničky', value: 'straps', description: 'Tradiční spolehlivé zapínání.' },
+        ],
+        defaultValue: 'boa',
+        promptForgeTemplate: '- **Zapínání treter:** {value}',
+      },
+    ],
+    systemPrompt: 'Expertní nákupní poradce pro výběr cyklistických treter...'
+  },
+
   shoes: {
-    keywords: ['bot', 'bota', 'boty', 'obuv', 'tenisk', 'tenisky', 'beh', 'bezeck', 'behani', 'trail', 'sneakers', 'shoes', 'footwear', 'maraton'],
+    keywords: ['bot', 'bota', 'boty', 'obuv', 'tenisk', 'tenisky', 'beh', 'bezeck', 'behani', 'trail', 'sneakers', 'shoes', 'footwear', 'maraton', 'tretry', 'tretra', 'cyklotretry', 'tretry na kolo', 'boty na kolo', 'cyklo boty', 'cyklisticke tretry', 'cyklistické tretry', 'cyklo obuv'],
     categoryName: 'Sportovní & Zdravotní Obuv',
     agentName: 'Klinický AI Specialista na Obuv',
-    icon: '👟',
+    icon: '',
     description: 'Expertní biomechanický výběr obuvi s analýzou došlapu, terénu, šířky kopyta, dropu a tlumení.',
     parameters: [
       {
@@ -894,7 +1176,7 @@ U každého ze 3 doporučených vozů uveď:
         category: 'Ortopedie & Anatomie',
         importance: 'mandatory',
         rationale: 'Zamezuje přetížení šlach a vazů. Pronace vyžaduje vnitřní podporu, neutrál a supinace flexibilní vedení.',
-        icon: '🦶',
+        icon: '',
         suggestedComponent: 'chips',
         suggestedValues: ['Neutrální došlap', 'Mírná až silná pronace', 'Supinace (vnější hrana)'],
       },
@@ -904,7 +1186,7 @@ U každého ze 3 doporučených vozů uveď:
         category: 'Tréninkové prostředí',
         importance: 'mandatory',
         rationale: 'Určuje dezén podešve, odolnost svršku a přilnavost (silnice vs. trailové drapáky).',
-        icon: '🏔️',
+        icon: '️',
         suggestedComponent: 'chips',
         suggestedValues: ['Silnice a tvrdý asfalt', 'Lesní cesty a horský trail', 'Kombinovaný povrch', 'Dráha a fitness'],
       },
@@ -914,7 +1196,7 @@ U každého ze 3 doporučených vozů uveď:
         category: 'Pohodlí & Klouby',
         importance: 'recommended',
         rationale: 'Ochrana kloubů při dopadu. Max cushion šetří kolena při objemu, nižší tlumení dává dynamiku a cit pro terén.',
-        icon: '☁️',
+        icon: '️',
         suggestedComponent: 'chips',
         suggestedValues: ['Maximální tlumení (Max Cushion)', 'Vyvážené tréninkové (Daily Trainer)', 'Responzivní & dynamické (Tempo/Závod)'],
       },
@@ -924,7 +1206,7 @@ U každého ze 3 doporučených vozů uveď:
         category: 'Ergonomie chodidla',
         importance: 'recommended',
         rationale: 'Předchází puchýřům, otlakům a zhoršení vbočených palců (halux valgus).',
-        icon: '📐',
+        icon: '',
         suggestedComponent: 'chips',
         suggestedValues: ['Standardní šířka (Medium D)', 'Široké chodidlo (Wide 2E)', 'Extra široké / Haluxy (4E)'],
       },
@@ -934,7 +1216,7 @@ U každého ze 3 doporučených vozů uveď:
         category: 'Biomechanika běhu',
         importance: 'recommended',
         rationale: 'Tradiční drop 8–12 mm šetří achilovky při dopadu na patu; nízký drop 0–5 mm podporuje přirozený dopad na střed chodidla.',
-        icon: '📏',
+        icon: '',
         suggestedComponent: 'chips',
         suggestedValues: ['Klasický drop (8–12 mm)', 'Střední přirozený drop (5–8 mm)', 'Nízký až nulový drop (0–4 mm)'],
       },
@@ -944,7 +1226,7 @@ U každého ze 3 doporučených vozů uveď:
         category: 'Zátěžový profil',
         importance: 'recommended',
         rationale: 'Běžci nad 80–85 kg potřebují hustší a odolnější tlumicí pěnu, aby nedocházelo k rychlému prosezení mezipodešve.',
-        icon: '⚖️',
+        icon: '️',
         suggestedComponent: 'chips',
         suggestedValues: ['Do 75 kg', '75 – 90 kg', 'Nad 90 kg'],
       },
@@ -954,7 +1236,7 @@ U každého ze 3 doporučených vozů uveď:
         category: 'Intenzita tréninku',
         importance: 'recommended',
         rationale: 'Určuje požadavky na životnost materiálů mezipodešve (EVA pěna vs. superkritické pěny PEBA/TPU).',
-        icon: '⏱️',
+        icon: '',
         suggestedComponent: 'chips',
         suggestedValues: ['Do 15 km týdně (rekreace)', '15–35 km týdně (pravidelný trénink)', '35+ km týdně (maratonská příprava)'],
       },
@@ -964,7 +1246,7 @@ U každého ze 3 doporučených vozů uveď:
         category: 'Klimatické podmínky',
         importance: 'preference',
         rationale: 'Membrána chrání před mokrem v zimě a dešti, ale snižuje prodyšnost v teplém počasí.',
-        icon: '💧',
+        icon: '',
         suggestedComponent: 'chips',
         suggestedValues: [
           'Gore-Tex nepromokavá membrána (ochrana proti mokré trávě, blátu a sněhu)',
@@ -978,7 +1260,7 @@ U každého ze 3 doporučených vozů uveď:
         category: 'Závodní technologie',
         importance: 'preference',
         rationale: 'Karbonový plát zvyšuje návratnost energie v závodním tempu, ale vyžaduje specifickou techniku běhu.',
-        icon: '🚀',
+        icon: '',
         suggestedComponent: 'chips',
         suggestedValues: [
           'Karbonový plát po celé délce (maximální odraz a rychlost pro závodní tempo)',
@@ -992,7 +1274,7 @@ U každého ze 3 doporučených vozů uveď:
         category: 'Investice',
         importance: 'preference',
         rationale: 'Filtruje odpovídající cenové kategorie na českém a evropském trhu.',
-        icon: '💰',
+        icon: '',
         suggestedComponent: 'slider',
         suggestedValues: [
           'Dostupná cenová hladina s nejlepším poměrem ceny a výkonu',
@@ -1103,7 +1385,7 @@ U každého ze 3 doporučených modelů uveď:
         category: 'Ochrana proti počasí',
         importance: 'recommended',
         rationale: 'Udrží nohy v suchu při běhu v dešti, blátě a sněhu za cenu mírně nižší prodyšnosti v horku.',
-        icon: '🌧️',
+        icon: '️',
         suggestedComponent: 'chips',
         suggestedValues: [
           'Gore-Tex nepromokavá membrána (ochrana proti mokré trávě, blátu a sněhu)',
@@ -1117,7 +1399,7 @@ U každého ze 3 doporučených modelů uveď:
         category: 'Závodní dynamika',
         importance: 'preference',
         rationale: 'Zvyšuje tuhost ohybu a odrazovou rychlost pro závody a rychlé tempové tréninky.',
-        icon: '🚀',
+        icon: '',
         suggestedComponent: 'chips',
         suggestedValues: [
           'Karbonový plát po celé délce (maximální odraz a rychlost pro závodní tempo)',
@@ -1131,7 +1413,7 @@ U každého ze 3 doporučených modelů uveď:
         category: 'Bezpečnost',
         importance: 'preference',
         rationale: 'Zajišťuje vysokou viditelnost běžce při běhu podél silnic za tmy a šera.',
-        icon: '✨',
+        icon: '',
         suggestedComponent: 'chips',
         suggestedValues: [
           'Výrazné 360° reflexní prvky a reflexní tkaničky (maximální viditelnost za šera a v noci)',
@@ -1145,7 +1427,7 @@ U každého ze 3 doporučených modelů uveď:
         category: 'Anatomie',
         importance: 'recommended',
         rationale: 'Dostatek prostoru pro přirozené roztažení prstů, prevence vbočeného palce a otlaků malíků.',
-        icon: '🦶',
+        icon: '',
         suggestedComponent: 'chips',
         suggestedValues: [
           'Anatomicky široká špička FootShape (prsty mají prostor pro přirozený vějířovitý rozptyl)',
@@ -1160,7 +1442,7 @@ U každého ze 3 doporučených modelů uveď:
     keywords: ['kavovar', 'kavovary', 'kava', 'espresso', 'kafe', 'latte', 'cappuccino', 'coffee'],
     categoryName: 'Kávovary & Příprava Kávy',
     agentName: 'AI Barista & Kávový Expert',
-    icon: '☕',
+    icon: '',
     description: 'Průvodce výběrem kávovaru podle typu extrakce, mléčných nápojů, nároků na údržbu a rozpočtu.',
     parameters: [
       {
@@ -1169,7 +1451,7 @@ U každého ze 3 doporučených modelů uveď:
         category: 'Základní technologie',
         importance: 'mandatory',
         rationale: 'Automatické zrnkové espresso stisknutím tlačítka vs. manuální páka pro baristy vs. kapsle či filtrovaná káva.',
-        icon: '⚙️',
+        icon: '️',
         suggestedComponent: 'chips',
         suggestedValues: ['Plnoautomatický na zrnkovou kávu', 'Pákový manuální espresso', 'Kapslový systém', 'Filtrovaná káva (Drip / Batch)'],
       },
@@ -1179,17 +1461,17 @@ U každého ze 3 doporučených modelů uveď:
         category: 'Mléčné nápoje',
         importance: 'mandatory',
         rationale: 'Integrovaná karafa s automatickým čištěním vs. profesionální parní tryska pro latte art vs. bez mléka.',
-        icon: '🥛',
+        icon: '',
         suggestedComponent: 'chips',
         suggestedValues: ['Automatické cappuccino 1 dotykem', 'Parní tryska (chci se učit pěnit)', 'Piji pouze černé espresso / americano'],
       },
       {
         id: 'daily_cups',
-        name: 'Denní zátěž a počet šálků',
+        name: 'Denní zátěž kávy',
         category: 'Kapacita',
         importance: 'recommended',
         rationale: 'Velikost bojleru, vodní nádržky a rychlost nahřívání (termo-blok vs. dual-boiler).',
-        icon: '☕',
+        icon: '',
         suggestedComponent: 'chips',
         suggestedValues: ['1–2 šálky denně', '3–6 šálků denně (běžná rodina)', '7+ šálků (kancelář / náročný provoz)'],
       },
@@ -1199,17 +1481,17 @@ U každého ze 3 doporučených modelů uveď:
         category: 'Mletí zrn',
         importance: 'recommended',
         rationale: 'Ocelové vs. keramické mlecí kameny, jemnost mikrometrického nastavení a retence mleté kávy.',
-        icon: '🫘',
+        icon: '',
         suggestedComponent: 'chips',
         suggestedValues: ['Integrovaný tichý ocelový mlýnek', 'Mám/chci samostatný externí mlýnek', 'Nerozhoduje / Kapsle'],
       },
       {
         id: 'boiler_type',
-        name: 'Typ ohřevu vody & bojler',
+        name: 'Typ ohřevu vody',
         category: 'Teplotní stabilita',
         importance: 'recommended',
         rationale: 'Rychlý termoblok pro domácnost vs. masivní mosazný bojler či Dual Boiler pro stabilní teplotu.',
-        icon: '🔥',
+        icon: '',
         suggestedComponent: 'chips',
         suggestedValues: [
           'Dvojitý bojler Dual Boiler (současná příprava espressa a šlehání mikropěny)',
@@ -1223,7 +1505,7 @@ U každého ze 3 doporučených modelů uveď:
         category: 'Údržba',
         importance: 'recommended',
         rationale: 'Vyjímatelná spařovací jednotka pro oplach pod vodou vs. automatický chemický čistící program (Jura styl).',
-        icon: '🧼',
+        icon: '',
         suggestedComponent: 'chips',
         suggestedValues: [
           'Plně automatické parní čištění mléčného okruhu po každém šálku',
@@ -1237,7 +1519,7 @@ U každého ze 3 doporučených modelů uveď:
         category: 'Pokročilá chuť',
         importance: 'preference',
         rationale: 'Důležité pro světle pražené výběrové kávy vyžadující vyšší a přesně nastavenou teplotu vody.',
-        icon: '🌡️',
+        icon: '️',
         suggestedComponent: 'chips',
         suggestedValues: [
           'Přesná digitální regulace PID po 1 °C (nastavení ideální extrakce pro světle pražená zrna)',
@@ -1251,7 +1533,7 @@ U každého ze 3 doporučených modelů uveď:
         category: 'Uživatelský komfort',
         importance: 'preference',
         rationale: 'Kompaktní šířka na menší kuchyňskou linku a tiché čerpadlo pro ranní přípravu kávy.',
-        icon: '📐',
+        icon: '',
         suggestedComponent: 'chips',
         suggestedValues: [
           'Kompaktní rozměry do malé kuchyně s tichým rotačním čerpadlem',
@@ -1265,7 +1547,7 @@ U každého ze 3 doporučených modelů uveď:
         category: 'Kvalita extrakce',
         importance: 'preference',
         rationale: 'Nastavitelná pre-infuze (předspaření), gramáž dávky kávy a jemnost sítka v páce.',
-        icon: '✨',
+        icon: '',
         suggestedComponent: 'chips',
         suggestedValues: [
           'Příprava výběrové světle pražené kávy (pre-infuze, PID regulace a jemné mletí)',
@@ -1279,7 +1561,7 @@ U každého ze 3 doporučených modelů uveď:
         category: 'Investice',
         importance: 'preference',
         rationale: 'Od cenově dostupných automatů po prémiové italské espresso stroje.',
-        icon: '💰',
+        icon: '',
         suggestedComponent: 'slider',
         suggestedValues: [
           'Základní domácí kávovar (do 8 000 Kč)',
@@ -1340,7 +1622,7 @@ Vyhodnoť tlak čerpadla (reálných 9 bar vs 15 bar max), termoblok, kvalitu ml
     keywords: ['zidle', 'kreslo', 'sezeni', 'kancelar', 'ergonom', 'zada', 'pater', 'skolioza', 'herman', 'chair'],
     categoryName: 'Ergonomie & Zdravé Sezení',
     agentName: 'Ergonomický Poradce pro Zdravá Záda',
-    icon: '🪑',
+    icon: '',
     description: 'Výběr kancelářské židle chránící bederní a krční páteř při dlouhodobé sedavé práci.',
     parameters: [
       {
@@ -1349,7 +1631,7 @@ Vyhodnoť tlak čerpadla (reálných 9 bar vs 15 bar max), termoblok, kvalitu ml
         category: 'Kategorie & Typologie',
         importance: 'mandatory',
         rationale: 'Základní tržní zařazení. Synchronní židle poskytuje pevnou oporu při celodenním sezení, balanční židle s pohyblivým sedlem posiluje hluboké svaly a křeslo nabízí měkké polstrování. Otázka pro vás: Hledáte synchronní ergonomickou židli, balanční pro aktivní sezení, nebo křeslo?',
-        icon: '🪑',
+        icon: '',
         suggestedComponent: 'chips',
         suggestedValues: ['Synchronní ergonomická kancelářská židle', 'Aktivní balanční židle se sedlem na 3D kloubu', 'Manažerské reprezentativní křeslo'],
       },
@@ -1359,7 +1641,7 @@ Vyhodnoť tlak čerpadla (reálných 9 bar vs 15 bar max), termoblok, kvalitu ml
         category: 'Biometrie & Zdraví',
         importance: 'mandatory',
         rationale: 'Výška postavy určuje rozsah zdvihu pístu a výšku opěráku hlavy. Hmotnost určuje tuhost přítlaku mechaniky. Lidé po operaci ploténky či s kostrční bolestí vyžadují specifický odlehčovací kanálek a nafukovací bederní oporu. Otázka pro vás: Jaká je vaše výška, váha a máte potíže s bederní či krční páteří?',
-        icon: '🧬',
+        icon: '',
         suggestedComponent: 'chips',
         suggestedValues: ['Výška do 175 cm / Hmotnost do 80 kg', 'Vyšší postava (180+ cm) / Hmotnost 80–100 kg', 'Vysoká zátěž 100+ kg (těžký zátěžový píst)', 'Po operaci páteře / chronické bolesti beder (požadavek na zdravotní certifikaci)'],
       },
@@ -1369,7 +1651,7 @@ Vyhodnoť tlak čerpadla (reálných 9 bar vs 15 bar max), termoblok, kvalitu ml
         category: 'Zdravotní zátěž',
         importance: 'mandatory',
         rationale: 'Při sezení 8+ hodin denně je nutná synchronní mechanika a aktivní bederní opora.',
-        icon: '⏳',
+        icon: '',
         suggestedComponent: 'chips',
         suggestedValues: ['Do 4 hodin denně', '4–8 hodin denně', '8+ hodin plný úvazek / home office'],
       },
@@ -1379,7 +1661,7 @@ Vyhodnoť tlak čerpadla (reálných 9 bar vs 15 bar max), termoblok, kvalitu ml
         category: 'Ergonomická mechanika',
         importance: 'mandatory',
         rationale: 'Synchronní mechanika kopíruje sklon trupu; balanční mechanismus stimuluje hluboké svalstvo středu těla.',
-        icon: '⚙️',
+        icon: '️',
         suggestedComponent: 'chips',
         suggestedValues: ['Synchronní s aretací ve více polohách', 'Aktivní balanční mechanika', 'Základní houpací mechanismus'],
       },
@@ -1389,7 +1671,7 @@ Vyhodnoť tlak čerpadla (reálných 9 bar vs 15 bar max), termoblok, kvalitu ml
         category: 'Ergonomie páteře',
         importance: 'mandatory',
         rationale: 'Udržení fyziologické lordózy. Výškově i hloubkově stavitelná opěrka brání sesedání a kulacení zad.',
-        icon: '🩺',
+        icon: '',
         suggestedComponent: 'chips',
         suggestedValues: ['Aktivní nastavitelná bederní opora', 'Mám bolesti zad / výhřez ploténky', 'Základní anatomické tvarování'],
       },
@@ -1399,7 +1681,7 @@ Vyhodnoť tlak čerpadla (reálných 9 bar vs 15 bar max), termoblok, kvalitu ml
         category: 'Úleva pro ramena & šíji',
         importance: 'recommended',
         rationale: 'Správná podpora loktů v úhlu 90° uvolňuje trapézové svaly a předchází bolestem krční páteře.',
-        icon: '💪',
+        icon: '',
         suggestedComponent: 'chips',
         suggestedValues: ['3D/4D nastavitelné (výška, posuv, úhel)', 'Výškově stavitelné', 'Bez područek'],
       },
@@ -1409,7 +1691,7 @@ Vyhodnoť tlak čerpadla (reálných 9 bar vs 15 bar max), termoblok, kvalitu ml
         category: 'Krční páteř',
         importance: 'recommended',
         rationale: 'Zajišťuje oporu hlavy při zaklonění během telefonování či relaxace.',
-        icon: '👤',
+        icon: '',
         suggestedComponent: 'chips',
         suggestedValues: [
           '3D stavitelný podhlavník (výška i úhel sklonu pro relaxaci a oporu krku)',
@@ -1423,7 +1705,7 @@ Vyhodnoť tlak čerpadla (reálných 9 bar vs 15 bar max), termoblok, kvalitu ml
         category: 'Krevní oběh nohou',
         importance: 'recommended',
         rationale: 'Předchází tlaku na podkolenní jamky a zajišťuje volný průtok krve do dolních končetin.',
-        icon: '💺',
+        icon: '',
         suggestedComponent: 'chips',
         suggestedValues: [
           'Nastavitelný posuv hloubky sedáku (nezbytné pro správné prokrvení nohou)',
@@ -1437,7 +1719,7 @@ Vyhodnoť tlak čerpadla (reálných 9 bar vs 15 bar max), termoblok, kvalitu ml
         category: 'Komfort & tepelná pohoda',
         importance: 'recommended',
         rationale: 'Prodyšná samonosná síťovina zabraňuje pocení v létě, zátěžová textilie zaručuje dlouhou životnost.',
-        icon: '🧵',
+        icon: '',
         suggestedComponent: 'chips',
         suggestedValues: ['Plně síťovaná (prodyšná)', 'Čalouněný sedák + síťovaná záda', 'Zátěžová textilie'],
       },
@@ -1447,7 +1729,7 @@ Vyhodnoť tlak čerpadla (reálných 9 bar vs 15 bar max), termoblok, kvalitu ml
         category: 'Nosnost & rozměry',
         importance: 'recommended',
         rationale: 'Hloubka sedáku a nosnost pístu musí odpovídat postavě.',
-        icon: '📏',
+        icon: '',
         suggestedComponent: 'chips',
         suggestedValues: ['Do 175 cm / do 80 kg', '175–190 cm / 80–110 kg', 'Nad 190 cm nebo nad 110 kg'],
       },
@@ -1457,7 +1739,7 @@ Vyhodnoť tlak čerpadla (reálných 9 bar vs 15 bar max), termoblok, kvalitu ml
         category: 'Ochrana podlahy',
         importance: 'preference',
         rationale: 'Měkká pogumovaná kolečka chrání dřevěné parkety a lino; tvrdá kolečka jsou určena pro koberce.',
-        icon: '🛞',
+        icon: '',
         suggestedComponent: 'chips',
         suggestedValues: [
           'Měkká pogumovaná kolečka na tvrdé podlahy (parkety, vinyl, plovoucí podlaha)',
@@ -1471,7 +1753,7 @@ Vyhodnoť tlak čerpadla (reálných 9 bar vs 15 bar max), termoblok, kvalitu ml
         category: 'Investice do zdraví',
         importance: 'preference',
         rationale: 'Od certifikovaných ergonomických židlí po prémiové ikony (Herman Miller, Steelcase).',
-        icon: '💰',
+        icon: '',
         suggestedComponent: 'slider',
         suggestedValues: [
           'Základní ergonomická židle (do 8 000 Kč)',
@@ -1531,7 +1813,7 @@ Detailně rozeber synchronní mechaniku, nastavení hloubky sedáku, 3D/4D podru
     keywords: ['notebook', 'laptop', 'pocitac', 'macbook', 'ultrabook', 'thinkpad', 'dell', 'asus', 'pocitace'],
     categoryName: 'Přenosné Počítače & IT',
     agentName: 'AI IT Architekt & Specialista na Notebooky',
-    icon: '💻',
+    icon: '',
     description: 'Výběr notebooku na míru podle výpočetního výkonu, výdrže baterie, displeje a ergonomie klávesnice.',
     parameters: [
       {
@@ -1540,7 +1822,7 @@ Detailně rozeber synchronní mechaniku, nastavení hloubky sedáku, 3D/4D podru
         category: 'Výkonový profil',
         importance: 'mandatory',
         rationale: 'Programování a Docker, grafika/video, kancelář a multitasking, nebo gaming.',
-        icon: '⚡',
+        icon: '',
         suggestedComponent: 'chips',
         suggestedValues: ['Vývoj software / Kódování', 'Grafika, CAD & střih videa', 'Běžná kancelář & studium', 'Gaming & 3D rendering'],
       },
@@ -1550,7 +1832,7 @@ Detailně rozeber synchronní mechaniku, nastavení hloubky sedáku, 3D/4D podru
         category: 'Zobrazovací technologie',
         importance: 'mandatory',
         rationale: 'OLED / IPS panel, rozlišení 2.8K/4K, barevné pokrytí 100% sRGB/DCI-P3 pro práci s grafikou.',
-        icon: '🖥️',
+        icon: '️',
         suggestedComponent: 'chips',
         suggestedValues: ['Prémiový OLED panel (dokonalá černá)', 'Matný IPS s vysokým jasem (500+ nitů)', 'Standardní Full HD panel'],
       },
@@ -1560,7 +1842,7 @@ Detailně rozeber synchronní mechaniku, nastavení hloubky sedáku, 3D/4D podru
         category: 'Rozměry a hmotnost',
         importance: 'mandatory',
         rationale: 'Kompaktní 13–14" ultrabook na každodenní přenášení vs. 16" pracovní stanice na stůl.',
-        icon: '📐',
+        icon: '',
         suggestedComponent: 'chips',
         suggestedValues: ['13–14" (do 1.4 kg, maximální mobilita)', '15–16" (větší pracovní plocha)', '17"+ (náhrada stolního PC)'],
       },
@@ -1570,7 +1852,7 @@ Detailně rozeber synchronní mechaniku, nastavení hloubky sedáku, 3D/4D podru
         category: 'Platforma',
         importance: 'mandatory',
         rationale: 'macOS (Apple Silicon M-série) vs. Windows 11 Pro vs. Linux kompatibilita.',
-        icon: '🍏',
+        icon: '',
         suggestedComponent: 'chips',
         suggestedValues: ['macOS (Apple Silicon)', 'Windows 11 Pro', 'Linux / Bez OS'],
       },
@@ -1580,7 +1862,7 @@ Detailně rozeber synchronní mechaniku, nastavení hloubky sedáku, 3D/4D podru
         category: 'Multitasking',
         importance: 'recommended',
         rationale: '16 GB jako moderní základ, 32+ GB pro Docker kontejnery, virtualizaci a práci s videem.',
-        icon: '🧠',
+        icon: '',
         suggestedComponent: 'chips',
         suggestedValues: ['16 GB RAM', '32 GB RAM', '64 GB RAM a více'],
       },
@@ -1590,7 +1872,7 @@ Detailně rozeber synchronní mechaniku, nastavení hloubky sedáku, 3D/4D podru
         category: 'Úložiště',
         importance: 'recommended',
         rationale: 'Rychlé NVMe PCIe 4.0/5.0 SSD zkracuje kompilaci a načítání projektů.',
-        icon: '💾',
+        icon: '',
         suggestedComponent: 'chips',
         suggestedValues: ['512 GB SSD', '1 TB SSD', '2 TB SSD'],
       },
@@ -1600,7 +1882,7 @@ Detailně rozeber synchronní mechaniku, nastavení hloubky sedáku, 3D/4D podru
         category: 'Nezávislost na nabíječce',
         importance: 'recommended',
         rationale: 'Celodenní práce na schůzkách (12+ hodin) vs. stacionární použití u adaptéru.',
-        icon: '🔋',
+        icon: '',
         suggestedComponent: 'chips',
         suggestedValues: ['10+ hodin bez nabíječky', 'Stačí běžných 5–8 hodin', 'Výdrž neřeším, většinou jsem v zásuvce'],
       },
@@ -1610,7 +1892,7 @@ Detailně rozeber synchronní mechaniku, nastavení hloubky sedáku, 3D/4D podru
         category: 'Konektivita',
         importance: 'preference',
         rationale: 'Thunderbolt 4 pro dokování k monitoru jedním kabelem, plnohodnotné HDMI a čtečka SD karet.',
-        icon: '🔌',
+        icon: '',
         suggestedComponent: 'chips',
         suggestedValues: [
           'Plná výbava včetně Thunderbolt 4 / USB4 a HDMI (dokování jedním kabelem)',
@@ -1624,7 +1906,7 @@ Detailně rozeber synchronní mechaniku, nastavení hloubky sedáku, 3D/4D podru
         category: 'Akustický komfort',
         importance: 'preference',
         rationale: 'Tichý chod při běžné práci bez neustálého hučení větráků.',
-        icon: '❄️',
+        icon: '️',
         suggestedComponent: 'chips',
         suggestedValues: [
           'Tiché pasivní chlazení bez ventilátoru (zcela bezhlučný chod – např. Apple MacBook Air)',
@@ -1638,7 +1920,7 @@ Detailně rozeber synchronní mechaniku, nastavení hloubky sedáku, 3D/4D podru
         category: 'Investice',
         importance: 'preference',
         rationale: 'Kategorie od dostupných studentských modelů po špičkové profesionální stanice.',
-        icon: '💰',
+        icon: '',
         suggestedComponent: 'slider',
         suggestedValues: [
           'Cenově dostupný studentský notebook (do 18 000 Kč)',
@@ -1701,7 +1983,7 @@ Detailně zhodnoť poměr výkon/watt, jas a barevné pokrytí displeje, ergonom
     ],
     categoryName: 'Freestyle & Sportovní Koloběžky',
     agentName: 'Expertní Specialista na Freestyle Koloběžky',
-    icon: '🛴',
+    icon: '',
     description: 'Nezávislý nákupní rádce pro výběr freestyle koloběžky podle geometrie, kompresního systému, parametrů desky a výšky jezdce.',
     parameters: [
       {
@@ -1710,7 +1992,7 @@ Detailně zhodnoť poměr výkon/watt, jas a barevné pokrytí displeje, ergonom
         category: 'Geometrie & Styl',
         importance: 'mandatory',
         rationale: 'Parkové koloběžky jsou kratší a lehčí pro airy a rotace; streetové mají delší, širší desku s rovnými konci (box-cut) pro grindy.',
-        icon: '🛹',
+        icon: '',
         suggestedComponent: 'chips',
         suggestedValues: ['Skatepark (lehká, obratná na airy a triky)', 'Street (robustní, široká box-cut deska na grindy)', 'Univerzální / Hybrid (park i street)'],
       },
@@ -1720,7 +2002,7 @@ Detailně zhodnoť poměr výkon/watt, jas a barevné pokrytí displeje, ergonom
         category: 'Ergonomie & Bezpečnost',
         importance: 'mandatory',
         rationale: 'Správná výška řídítek (obvykle mezi pasem a boky, 55–72 cm) zabraňuje bolesti zad a umožňuje čisté provádění triků.',
-        icon: '📏',
+        icon: '',
         suggestedComponent: 'chips',
         suggestedValues: ['Do 60 cm (pro výšku jezdce do 140 cm)', '60–65 cm (pro výšku 140–165 cm)', '65–70 cm (pro výšku 165–180 cm)', 'Nad 70 cm (pro výšku nad 180 cm)'],
       },
@@ -1730,7 +2012,7 @@ Detailně zhodnoť poměr výkon/watt, jas a barevné pokrytí displeje, ergonom
         category: 'Konstrukce & Komprese',
         importance: 'mandatory',
         rationale: 'SCS je nejpevnější a nejodolnější systém na trhu; IHC je lehčí a levnější, ideální pro parkové jezdce a začátečníky.',
-        icon: '🔩',
+        icon: '',
         suggestedComponent: 'chips',
         suggestedValues: ['SCS (Standard Compression System - maximální pevnost)', 'IHC (Integrated Headset Compression - lehký standard)', 'HIC (pro oversize ocelová řídítka)'],
       },
@@ -1740,7 +2022,7 @@ Detailně zhodnoť poměr výkon/watt, jas a barevné pokrytí displeje, ergonom
         category: 'Kolečka & Jízda',
         importance: 'mandatory',
         rationale: '110 mm nabízí rychlou odezvu v parku; 120 mm poskytuje vyšší maximální rychlost, hladší přejezd nerovností a delší životnost.',
-        icon: '🛞',
+        icon: '',
         suggestedComponent: 'chips',
         suggestedValues: ['110 mm / hliníkový střed (klasický obratný standard)', '120 mm / hliníkový střed (vyšší rychlost a plynulost)', '100 mm (pouze pro nejmenší děti)'],
       },
@@ -1750,7 +2032,7 @@ Detailně zhodnoť poměr výkon/watt, jas a barevné pokrytí displeje, ergonom
         category: 'Deska (Deck)',
         importance: 'mandatory',
         rationale: 'Kvalitní tepelně zpracovaný hliník 6061-T6. Širší deska (5.0–6.0") a box-cut konce pro street grindování; užší (4.5–4.8") pro snadné tailwhipy.',
-        icon: '📐',
+        icon: '',
         suggestedComponent: 'chips',
         suggestedValues: ['Šířka 4.5"–4.8" / Peg-cut (park)', 'Šířka 5.0"–5.5" / Box-cut (univerzál)', 'Šířka 5.5"–6.0" / Box-cut (čistý street)'],
       },
@@ -1760,7 +2042,7 @@ Detailně zhodnoť poměr výkon/watt, jas a barevné pokrytí displeje, ergonom
         category: 'Konstrukce řídítek',
         importance: 'recommended',
         rationale: 'Ocel 4130 je prakticky nezničitelná pro street; hliník je extrémně lehký pro park; titan spojuje nízkou váhu s vysokou pružností.',
-        icon: '🛡️',
+        icon: '️',
         suggestedComponent: 'chips',
         suggestedValues: ['Chromoly 4130 ocel (maximální pevnost a spolehlivost)', 'Hliník 6061-T6 (lehká ovladatelnost pro park)', 'Titan (prémiová pevnost při minimální váze)'],
       },
@@ -1770,7 +2052,7 @@ Detailně zhodnoť poměr výkon/watt, jas a barevné pokrytí displeje, ergonom
         category: 'Hmotnost & Ovladatelnost',
         importance: 'recommended',
         rationale: 'Pro park a menší jezdce je ideální váha 3.0–3.6 kg; pro streetové dropy a starší jezdce stabilních 3.8–4.4 kg.',
-        icon: '⚖️',
+        icon: '️',
         suggestedComponent: 'chips',
         suggestedValues: ['Ultralehká (do 3.4 kg - ideální na park)', 'Střední (3.4–3.9 kg - všestranný hybrid)', 'Těžší streetová (nad 4.0 kg - nezničitelná)'],
       },
@@ -1780,7 +2062,7 @@ Detailně zhodnoť poměr výkon/watt, jas a barevné pokrytí displeje, ergonom
         category: 'Brzdový systém',
         importance: 'recommended',
         rationale: 'Ocelová brzda typu Flex fender je přišroubovaná a pružná – nevydává žádné nepříjemné rezonance a neničí kolečka.',
-        icon: '🛑',
+        icon: '',
         suggestedComponent: 'chips',
         suggestedValues: [
           'Pružná ocelová brzda Flex Fender (tichá, bez chrastění a šetrná ke kolečkům)',
@@ -1794,7 +2076,7 @@ Detailně zhodnoť poměr výkon/watt, jas a barevné pokrytí displeje, ergonom
         category: 'Ložiska & Hladkost rotace',
         importance: 'preference',
         rationale: 'Integrované bezzávitové hlavové složení (Integrated Headset) se zapouzdřenými průmyslovými ložisky zaručuje hladké rotace řídítek bez vůle.',
-        icon: '🔄',
+        icon: '',
         suggestedComponent: 'chips',
         suggestedValues: [
           'Integrované průmyslové hlavové složení s ložisky ABEC 9 / ABEC 11',
@@ -1808,7 +2090,7 @@ Detailně zhodnoť poměr výkon/watt, jas a barevné pokrytí displeje, ergonom
         category: 'Nosnost & Odolnost',
         importance: 'mandatory',
         rationale: 'Pevná jednodílná CNC frézovaná hliníková vidlice s nosností 100 kg zvládne i tvrdé skoky ze schodů bez ohnutí.',
-        icon: '💪',
+        icon: '',
         suggestedComponent: 'chips',
         suggestedValues: [
           'Zesílená nosnost do 120 kg (masivní kovaná vidlice a odolné svary pro skoky)',
@@ -1870,7 +2152,7 @@ Detailně zhodnoť výšku řídítek vůči jezdci, typ komprese (IHC vs. SCS),
         category: 'Příslušenství',
         importance: 'preference',
         rationale: 'Hliníkové nebo ocelové kolíky na osách koleček pro grindování po zábradlích.',
-        icon: '🔩',
+        icon: '',
         suggestedComponent: 'chips',
         suggestedValues: [
           'Součástí balení jsou přední i zadní grindovací pegy',
@@ -1884,7 +2166,7 @@ Detailně zhodnoť výšku řídítek vůči jezdci, typ komprese (IHC vs. SCS),
         category: 'Grip & Bezpečnost',
         importance: 'preference',
         rationale: 'Hrubší zrno griptapu zabraňuje sklouznutí boty při tvrdých dopadech z triků.',
-        icon: '🛹',
+        icon: '',
         suggestedComponent: 'chips',
         suggestedValues: [
           'Hrubý protiskluzový griptape s maximálním gripem pro street',
@@ -1898,7 +2180,7 @@ Detailně zhodnoť výšku řídítek vůči jezdci, typ komprese (IHC vs. SCS),
     keywords: ['lyze', 'lyzovani', 'lyzaky', 'sjezdovky', 'snowboard', 'bezky', 'skialpy', 'skis', 'skiing', 'slalom', 'sjezdove lyze'],
     categoryName: 'Zimní Sporty & Lyžování',
     agentName: 'Ski & Snowboard Expert',
-    icon: '🎿',
+    icon: '',
     description: 'Nezávislý nákupní rádce pro výběr sjezdových, all-mountain a skialpových lyží podle rádiusu oblouku, šířky pod patou, torzní tuhosti dřevěného jádra s Titanalem a typu vázání.',
     parameters: [
       {
@@ -1907,7 +2189,7 @@ Detailně zhodnoť výšku řídítek vůči jezdci, typ komprese (IHC vs. SCS),
         category: 'Jezdecký styl & Terén',
         importance: 'mandatory',
         rationale: 'Rozlišuje čistě sjezdovkové lyže (Piste) držící na ledu od univerzálních All-Mountain 50:50 na odpolední rozbitou sjezdovku a širokých Freeride/Skialp lyží do volného terénu. Otázka pro vás: Kde a v jakých podmínkách nejčastěji lyžujete?',
-        icon: '🏔️',
+        icon: '️',
         suggestedComponent: 'chips',
         suggestedValues: ['Upravená sjezdovka (Piste)', 'All-Mountain 50:50 (ranní led i odpolední muldy)', 'Skialp / Skitouring (lehká konstrukce na výšlapy)', 'Freeride (hluboký neupravený prašan)'],
       },
@@ -1917,7 +2199,7 @@ Detailně zhodnoť výšku řídítek vůči jezdci, typ komprese (IHC vs. SCS),
         category: 'Biometrie & Zdraví',
         importance: 'mandatory',
         rationale: 'Výška a váha určují optimální délku lyží a vypínací sílu vázání DIN. Lyžaři po operaci křížového vazu v koleni (ACL) nebo s artrózou potřebují měkčí flexi a včasné bezpečné vypínání vázání bez torzního přetížení kloubu. Otázka pro vás: Jaká je vaše výška, váha a máte potíže s koleny či klouby?',
-        icon: '🧬',
+        icon: '',
         suggestedComponent: 'chips',
         suggestedValues: ['Standardní postava bez omezení kolen', 'Vyšší hmotnost (90+ kg) / silový styl', 'Po operaci kolen / citlivé klouby (požadavek na šetrný flex a bezpečné vázání)'],
       },
@@ -1927,7 +2209,7 @@ Detailně zhodnoť výšku řídítek vůči jezdci, typ komprese (IHC vs. SCS),
         category: 'Geometrie & Ovladatelnost',
         importance: 'mandatory',
         rationale: 'Rádius určuje přirozenou délku oblouku: krátký (11-13 m) pro dynamické krátké oblouky, střední univerzální (14-16 m) pro celodenní jízdu a dlouhý (17+ m) pro rychlou stabilitu. Otázka pro vás: Jaký styl oblouků vás nejvíce baví?',
-        icon: '🔄',
+        icon: '',
         suggestedComponent: 'chips',
         suggestedValues: ['Krátký slalomový oblouk (11–13 m)', 'Střední univerzální oblouk (14–16 m)', 'Dlouhý rychlý obřákový oblouk (17–20+ m)'],
       },
@@ -1937,7 +2219,7 @@ Detailně zhodnoť výšku řídítek vůči jezdci, typ komprese (IHC vs. SCS),
         category: 'Geometrie lyže',
         importance: 'mandatory',
         rationale: 'Užší střed (68–74 mm) bleskově přehraňuje na tvrdém podkladu; širší střed (78–88 mm) dává stabilitu v měkkém jarním firnu a novém sněhu. Otázka pro vás: Preferujete ranní tvrdou pistu, nebo celodenní jízdu v jakémkoliv sněhu?',
-        icon: '📐',
+        icon: '',
         suggestedComponent: 'chips',
         suggestedValues: ['Sportovní úzká (68–74 mm, bleskové přehranění na ledu)', 'Univerzální celodenní (75–84 mm, zvládne i odpolední břečku)', 'Široká All-mountain (85–98 mm, do rozbitého terénu)'],
       },
@@ -1947,7 +2229,7 @@ Detailně zhodnoť výšku řídítek vůči jezdci, typ komprese (IHC vs. SCS),
         category: 'Materiál & Torzní tuhost',
         importance: 'mandatory',
         rationale: 'Dřevěné jádro s 1-2 pláty Titanalu eliminuje vibrace a drží stopu i v 80 km/h, vyžaduje však sílu. Pěnové jádro bez kovu v rychlosti kmitá a ztrácí hranu. Otázka pro vás: Jaká je vaše fyzická kondice a agresivita jízdy?',
-        icon: '🪵',
+        icon: '',
         suggestedComponent: 'chips',
         suggestedValues: ['Dřevěné sendvičové jádro s 1–2 pláty Titanalu (sportovní/závodní grip)', 'Dřevěné jádro vyztužené karbonem (dynamické a lehčí)', 'Kompozitní jádro odpouštějící chyby (pro rekreační pohodovou jízdu)'],
       },
@@ -1957,7 +2239,7 @@ Detailně zhodnoť výšku řídítek vůči jezdci, typ komprese (IHC vs. SCS),
         category: 'Profil & Záběr hrany',
         importance: 'recommended',
         rationale: 'Plný Camber nabízí maximální délku účinné hrany na tvrdém sněhu; Tip Rocker (přizvednutá špička) usnadňuje zahájení oblouku a zamezuje zakousnutí špičky. Otázka pro vás: Požadujete maximální agresivitu, nebo snadné zahájení oblouku?',
-        icon: '🎿',
+        icon: '',
         suggestedComponent: 'chips',
         suggestedValues: ['Tip Rocker (snadné zahájení oblouku + stabilita)', 'Klasický sportovní Camber (maximální odraz a grip po celé délce)', 'Tip & Tail Rocker (oboustranně přizvednuté, hravé)'],
       },
@@ -1967,7 +2249,7 @@ Detailně zhodnoť výšku řídítek vůči jezdci, typ komprese (IHC vs. SCS),
         category: 'Fyzická náročnost',
         importance: 'recommended',
         rationale: 'Příliš tvrdá sportovní lyže unaví rekreačního jezdce po dvou jízdách; příliš měkká lyže selže pod těžším či agresivním jezdcem. Otázka pro vás: Jak hodnotíte svou jezdeckou úroveň?',
-        icon: '⛷️',
+        icon: '️',
         suggestedComponent: 'chips',
         suggestedValues: ['Pokročilý sportovní jezdec (rychlá jízda po hranách)', 'Zkušený expert / Bývalý závodník (agresivní silová jízda)', 'Mírně pokročilý / Rekreační lyžař (kontrolovaná jízda, smýkání)'],
       },
@@ -1977,7 +2259,7 @@ Detailně zhodnoť výšku řídítek vůči jezdci, typ komprese (IHC vs. SCS),
         category: 'Bezpečnost & Vázání',
         importance: 'recommended',
         rationale: 'Vázání musí odpovídat vaší hmotnosti a výšce (DIN rozsah obvykle 3–11 nebo 4–14) a podporovat moderní zaoblené podrážky GripWalk (GW). Otázka pro vás: Jaké lyžáky vlastníte a jaká je vaše hmotnost?',
-        icon: '🔒',
+        icon: '',
         suggestedComponent: 'chips',
         suggestedValues: ['Integrované systémové vázání GripWalk s DIN do 11–12', 'Zesílené sportovní vázání s DIN do 14–16', 'Skialpové pinové vázání (Tech / Tour)'],
       },
@@ -1987,7 +2269,7 @@ Detailně zhodnoť výšku řídítek vůči jezdci, typ komprese (IHC vs. SCS),
         category: 'Geometrie & Dimenzování',
         importance: 'recommended',
         rationale: 'Slalomka se volí o 10–20 cm kratší než postava; univerzální all-mountain o 5–12 cm kratší; obřačka nebo freeride v plné výšce postavy. Otázka pro vás: Kolik měříte a vážíte?',
-        icon: '📏',
+        icon: '',
         suggestedComponent: 'chips',
         suggestedValues: ['Kratší o 10–18 cm k postavě (snadná točivost a slalom)', 'Kratší o 5–10 cm k postavě (zlatý střed)', 'Na výšku postavy (maximální stabilita ve vysoké rychlosti)'],
       },
@@ -1997,7 +2279,7 @@ Detailně zhodnoť výšku řídítek vůči jezdci, typ komprese (IHC vs. SCS),
         category: 'Investice',
         importance: 'preference',
         rationale: 'Kvalitní sendvičové lyže s dřevěným jádrem a Titanalem začínají na 13 000 Kč; špičkové modely se pohybují mezi 18 000 až 35 000 Kč.',
-        icon: '💰',
+        icon: '',
         suggestedComponent: 'slider',
         suggestedValues: [
           'Dostupná kategorie do 12 000 Kč včetně vázání (rekreační lyžování)',
@@ -2079,7 +2361,7 @@ Striktní pravidla pro hodnocení lyží:
         category: 'Servis & Tuning',
         importance: 'preference',
         rationale: 'Ostrý závodní úhel 87° zařízne led jako žiletka, vyžaduje však častější broušení a bezchybnou techniku.',
-        icon: '🔪',
+        icon: '',
         suggestedComponent: 'chips',
         suggestedValues: ['Sportovní úhel 88° (ideál pro české hory)', 'Závodní úhel 87°', 'Tovární standard 89°'],
       }
@@ -2089,7 +2371,7 @@ Striktní pravidla pro hodnocení lyží:
   tv: {
     categoryName: 'Televize & Domácí Kino',
     agentName: 'Specialista na Televize & Displeje',
-    icon: '📺',
+    icon: '',
     description: 'Technický nákupní poradce pro výběr televizí. Analyzuje technologie panelu (OLED vs. MiniLED), pozorovací vzdálenost, herní funkce 120Hz/HDMI 2.1 a audio propustnost.',
     keywords: ['tv', 'televize', 'televizor', 'oled', 'qled', 'miniled', 'smart tv', 'soundbar'],
     parameters: [
@@ -2099,7 +2381,7 @@ Striktní pravidla pro hodnocení lyží:
         category: 'Obrazová technologie',
         importance: 'mandatory',
         rationale: 'Klíčové rozhodnutí pro kvalitu obrazu. OLED zaručuje nekonečný kontrast a nulový blooming ve tmě, zatímco MiniLED dosahuje extrémního jasu v prosvětlených místnostech bez rizika vypálení. Otázka pro vás: Sledujete televizi převážně večer za tmy (filmy), nebo ve dne ve světlém pokoji?',
-        icon: '🖥️',
+        icon: '️',
         suggestedComponent: 'chips',
         suggestedValues: [
           'OLED / QD-OLED (dokonalá černá a nekonečný kontrast pro večerní sledování)',
@@ -2113,7 +2395,7 @@ Striktní pravidla pro hodnocení lyží:
         category: 'Rozměry & Ergonomie',
         importance: 'mandatory',
         rationale: 'Špatně zvolená úhlopříčka kazí zážitek – malá obrazovka nutí mhouřit oči a neužijete si 4K detaily, příliš velká na krátkou vzdálenost unavuje zrak. Otázka pro vás: Jaká je vaše přesná pozorovací vzdálenost od sedačky k televizi?',
-        icon: '📐',
+        icon: '',
         suggestedComponent: 'chips',
         suggestedValues: ['55" úhlopříčka (pozorovací vzdálenost 1.8 až 2.2 metru)', '65" úhlopříčka (pozorovací vzdálenost 2.3 až 2.8 metru)', '75" až 85" úhlopříčka (pozorovací vzdálenost 2.9 metru a více)'],
       },
@@ -2123,7 +2405,7 @@ Striktní pravidla pro hodnocení lyží:
         category: 'Plynulost & Gaming',
         importance: 'mandatory',
         rationale: 'Základní 60Hz panel způsobuje trhání obrazu při rychlých sportovních přenosech (hokej, fotbal). Pro herní konzole PS5/Xbox je nutný nativní 120Hz panel s HDMI 2.1 a variabilní frekvencí VRR. Otázka pro vás: Plánujete na televizi hrát hry na konzoli / PC nebo sledovat rychlé sporty?',
-        icon: '🎮',
+        icon: '',
         suggestedComponent: 'chips',
         suggestedValues: [
           'Pravých 120 Hz / 144 Hz panel s HDMI 2.1 (plynulé sportovní přenosy a gaming na PS5/Xbox)',
@@ -2137,7 +2419,7 @@ Striktní pravidla pro hodnocení lyží:
         category: 'Zvuk & Konektivita',
         importance: 'recommended',
         rationale: 'Integrované reproduktory tenkých televizí postrádají basy a srozumitelnost dialogů. Port HDMI eARC umožňuje bezztrátový přenos Dolby Atmos přímo do soundbaru bez zpoždění zvuku. Otázka pro vás: Budete k TV připojovat externí soundbar nebo domácí kino?',
-        icon: '🔊',
+        icon: '',
         suggestedComponent: 'chips',
         suggestedValues: [
           'Podpora Dolby Atmos / DTS:X a HDMI eARC (připojení kvalitního soundbaru nebo domácího kina)',
@@ -2151,7 +2433,7 @@ Striktní pravidla pro hodnocení lyží:
         category: 'Zpracování obrazu',
         importance: 'recommended',
         rationale: 'Většina českého televizního vysílání je pouze v rozlišení 720p/1080i. Špičkový procesor (Sony Cognitive XR, LG Alpha, Samsung Neo) dokáže dopočítat čistý obraz bez šumu a rozmazání.',
-        icon: '🧠',
+        icon: '',
         suggestedComponent: 'chips',
         suggestedValues: [
           'Špičkový neuronový AI procesor (dokonalý upscaling staršího vysílání a redukce šumu)',
@@ -2165,7 +2447,7 @@ Striktní pravidla pro hodnocení lyží:
         category: 'Kontrast & Barvy',
         importance: 'recommended',
         rationale: 'Dynamické HDR upravuje jas a barvy scénu po scéně podle senzoru okolního osvětlení v místnosti. Dolby Vision je standardem pro Netflix a Apple TV.',
-        icon: '✨',
+        icon: '',
         suggestedComponent: 'chips',
         suggestedValues: [
           'Plná podpora Dolby Vision IQ i HDR10+ (dynamické přizpůsobení jasu světlu v místnosti)',
@@ -2179,7 +2461,7 @@ Striktní pravidla pro hodnocení lyží:
         category: 'Systém & Aplikace',
         importance: 'recommended',
         rationale: 'Google TV nabízí nejširší podporu lokálních českých aplikací (Voyo, O2 TV, Kuki, Skylink, Lepší.TV) a Chromecast. webOS a Tizen jsou rychlé a jednoduché.',
-        icon: '📱',
+        icon: '',
         suggestedComponent: 'chips',
         suggestedValues: [
           'Google TV / Android TV (nejširší nabídka aplikací, KODI, O2 TV, Skylink)',
@@ -2193,7 +2475,7 @@ Striktní pravidla pro hodnocení lyží:
         category: 'Pozorovací úhly',
         importance: 'recommended',
         rationale: 'Levnější VA panely při pohledu z úhlu 30° a více ztrácejí kontrast a barvy šednou. OLED panely a MiniLED s širokoúhlou optickou vrstvou drží barvy z libovolného úhlu.',
-        icon: '👀',
+        icon: '',
         suggestedComponent: 'chips',
         suggestedValues: [
           'Široké pozorovací úhly bez blednutí barev (ideální pro rohovou sedačku a rodinu)',
@@ -2207,7 +2489,7 @@ Striktní pravidla pro hodnocení lyží:
         category: 'Montáž & Design',
         importance: 'recommended',
         rationale: 'Televize se středovým podstavcem se vejdou i na úzký TV stolek, zatímco nožičky na krajích vyžadují stolek široký jako celá TV. Při montáži na zeď je klíčový tenký profil bez vyčnívající elektroniky.',
-        icon: '🧱',
+        icon: '',
         suggestedComponent: 'chips',
         suggestedValues: [
           'Ultra tenká montáž na zeď Slim Fit (televize přiléhá ke zdi jako obraz)',
@@ -2241,7 +2523,7 @@ Striktní pravidla pro hodnocení lyží:
         category: 'Komfort sledování',
         importance: 'preference',
         rationale: 'Matný povrch (jako u Samsung The Frame) absorbuje odrazy světla a zabraňuje tomu, aby televize fungovala jako zrcadlo ve světlém pokoji.',
-        icon: '🛡️',
+        icon: '️',
         suggestedComponent: 'chips',
         suggestedValues: [
           'Špičkový matný antireflexní panel (žádné zrcadlení oken za jasného dne)',
@@ -2257,7 +2539,7 @@ Doporuč přesně 3 špičkové modely televizí dle zadané úhlopříčky, sv�
   vacuum: {
     categoryName: 'Vysavače & Úklidová Technika',
     agentName: 'Specialista na Vysavače & Robotický Úklid',
-    icon: '🧹',
+    icon: '',
     description: 'Nezávislý nákupní rádce pro výběr vysavačů. Analyzuje konstrukční formát (robotický vs. tyčový vs. sáčkový), sací podtlak v kPa, HEPA filtraci a údržbu zvířecí srsti.',
     keywords: ['vysavac', 'vysavač', 'vysavace', 'vysavače', 'roboticky vysavac', 'tycovy vysavac', 'dyson', 'roborock', 'roomba'],
     parameters: [
@@ -2267,7 +2549,7 @@ Doporuč přesně 3 špičkové modely televizí dle zadané úhlopříčky, sv�
         category: 'Kategorie & Konstrukce',
         importance: 'mandatory',
         rationale: 'Základní tržní zařazení. Robot uklízí denně sám, tyčový aku vysavač je okamžitě po ruce pro rychlý úklid drobků a schodů, sáčkový vysavač s kabelem má nepřekonatelný sací výkon a nejčistší vyprazdňování pro alergiky. Otázka pro vás: Hledáte autonomního robota, lehký tyčový aku vysavač, nebo silný klasický sáčkový stroj?',
-        icon: '🧹',
+        icon: '',
         suggestedComponent: 'chips',
         suggestedValues: [
           'Robotický vysavač s multifunkční mopovací a vyprazdňovací stanicí',
@@ -2277,11 +2559,11 @@ Doporuč přesně 3 špičkové modely televizí dle zadané úhlopříčky, sv�
       },
       {
         id: 'household_ergonomics_health',
-        name: 'Typ podlah a zvířecí srst',
+        name: 'Typ podlah a srst',
         category: 'Ergonomie & Zdraví',
         importance: 'mandatory',
         rationale: 'Domácnosti se zvířaty vyžadují motorizovaný rotační kartáč proti namotávání chlupů. Alergici potřebují hermeticky utěsněný prachový sáček s HEPA H13, aby při vysypávání nevdechovali prach. Těžký tyčový vysavač (nad 3 kg v ruce) navíc namáhá zápěstí a rameno. Otázka pro vás: Máte v bytě chlupaté mazlíčky, alergiky a jaký podíl tvoří koberce?',
-        icon: '🧬',
+        icon: '',
         suggestedComponent: 'chips',
         suggestedValues: [
           'Tvrdé podlahy (vinyl, dlažba, parkety) bez zvířat',
@@ -2295,7 +2577,7 @@ Doporuč přesně 3 špičkové modely televizí dle zadané úhlopříčky, sv�
         category: 'Sací výkon',
         importance: 'mandatory',
         rationale: 'Levné tyčové vysavače pouze zametají povrch koberce rotačním kartáčkem, ale jemný roztočový prach z hloubky vláken nevytáhnou. Pro hloubkové čištění je nutný skutečný podtlak alespoň 20–25 kPa. Otázka pro vás: Vyžadujete hloubkové čištění hustých koberců a matrací?',
-        icon: '💨',
+        icon: '',
         suggestedComponent: 'chips',
         suggestedValues: [
           'Maximální sací výkon 200+ AW / 25+ kPa (hloubkové čištění vysokých koberců a zvířecích chlupů)',
@@ -2309,7 +2591,7 @@ Doporuč přesně 3 špičkové modely televizí dle zadané úhlopříčky, sv�
         category: 'Filtrace & Čistota vzduchu',
         importance: 'mandatory',
         rationale: 'Pokud šasi vysavače netěsní, mikroprach a alergeny unikají spárami kolem motoru zpět do vzduchu ještě před filtrem. Certifikovaná hermetická filtrace zachytí 99,97 % částic od velikosti 0,3 mikronu. Otázka pro vás: Trpí někdo v domácnosti alergií na roztoče či prach?',
-        icon: '🛡️',
+        icon: '️',
         suggestedComponent: 'chips',
         suggestedValues: [
           'Certifikovaný HEPA H14 filtr s 99.99% účinností (zachytí roztoče, pyl a mikroprach)',
@@ -2323,7 +2605,7 @@ Doporuč přesně 3 špičkové modely televizí dle zadané úhlopříčky, sv�
         category: 'Hubice & Údržba',
         importance: 'recommended',
         rationale: 'Běžný rotační kartáč se po týdnu ucpe dlouhými vlasy a chlupy, které je nutné složitě odstřihávat nůžkami. Anti-tangle kuželové nebo hřebenové kartáče vlasy automaticky stahují přímo do sací trubice.',
-        icon: '🪮',
+        icon: '',
         suggestedComponent: 'chips',
         suggestedValues: [
           'Speciální kónický kartáč s automatickým nožem proti namotávání dlouhých vlasů a chlupů',
@@ -2337,7 +2619,7 @@ Doporuč přesně 3 špičkové modely televizí dle zadané úhlopříčky, sv�
         category: 'Baterie & Výdrž',
         importance: 'recommended',
         rationale: 'Integrovaná baterie po 3 letech degraduje a její servisní výměna je drahá. Výměnný click-in akumulátor prodlužuje životnost vysavače a umožní nepřetržitý úklid velkého domu.',
-        icon: '🔋',
+        icon: '',
         suggestedComponent: 'chips',
         suggestedValues: [
           'Dlouhá výdrž 60+ minut s vyměnitelnou baterií (úklid velkého rodinného domu)',
@@ -2351,7 +2633,7 @@ Doporuč přesně 3 špičkové modely televizí dle zadané úhlopříčky, sv�
         category: 'Autonomie & Hygiena',
         importance: 'recommended',
         rationale: 'U robotických vysavačů bez sušení mopovacích textilií začne vlhký hadr za 24 hodin silně zapáchat plísní. Stanice s horkovzdušným sušením zaručuje hygienický provoz po dobu několika týdnů bez zásahu.',
-        icon: '🧰',
+        icon: '',
         suggestedComponent: 'chips',
         suggestedValues: [
           'Multifunkční dokovací stanice (automatické odsátí prachu do sáčku a praní mopů)',
@@ -2365,7 +2647,7 @@ Doporuč přesně 3 špičkové modely televizí dle zadané úhlopříčky, sv�
         category: 'Navigace robotů',
         importance: 'recommended',
         rationale: 'Roboti bez 3D kamery se zamotávají do pohozených nabíjecích kabelů, ponožek a mohou rozmazat psí exkrementy po celém bytě. AI kamera s laserem překážky s předstihem objede.',
-        icon: '👁️',
+        icon: '️',
         suggestedComponent: 'chips',
         suggestedValues: [
           'Přesná LiDAR navigace s 3D kamerou a AI rozpoznáváním kabelů a ponožek',
@@ -2379,7 +2661,7 @@ Doporuč přesně 3 špičkové modely televizí dle zadané úhlopříčky, sv�
         category: 'Komfort',
         importance: 'recommended',
         rationale: 'Hlučný vysavač děsí domácí mazlíčky a brání sledování televize či hovoru. Tichý chod motoru s tlumením vibrací umožňuje vysávání v kteroukoli denní dobu.',
-        icon: '🔇',
+        icon: '',
         suggestedComponent: 'chips',
         suggestedValues: [
           'Mimořádně tichý provoz pod 65 dB (neruší děti ani domácí mazlíčky)',
@@ -2413,7 +2695,7 @@ Doporuč přesně 3 špičkové modely televizí dle zadané úhlopříčky, sv�
         category: 'Efektivita úklidu',
         importance: 'preference',
         rationale: 'Speciální zelené laserové nebo LED světlo nasvítí podlahu pod úhlem a zviditelní mikroskopický prach, který je pouhým okem neviditelný.',
-        icon: '🔦',
+        icon: '',
         suggestedComponent: 'chips',
         suggestedValues: [
           'Zelené laserové / širokoúhlé LED osvětlení hubice (odhalí i neviditelný mikroskopický prach)',
@@ -2433,7 +2715,7 @@ Doporuč přesně 3 konkrétní modely vysavačů dle zvoleného formátu, dispo
     ],
     categoryName: "Tiskárny, Skenery & Multifunkce",
     agentName: "Expertní Poradce pro Tiskovou Techniku",
-    icon: "🖨️",
+    icon: "️",
     description: "Specializovaný nákupní poradce pro tiskárny a multifunkční zařízení. Přísně kalkuluje celkové náklady na 1 stranu tisku (TCO), spolehlivost podavače papíru, prevenci zasychání inkoustu a konektivitu.",
     parameters: [
       {
@@ -2442,7 +2724,7 @@ Doporuč přesně 3 konkrétní modely vysavačů dle zvoleného formátu, dispo
         category: "Technologie",
         importance: "mandatory",
         rationale: "Technologie zásadně určuje provozní náklady a riziko znehodnocení. Tankový systém s lahvičkami má nejlevnější tisk, laser nezasychá i při pauze v tisku.",
-        icon: "🖨️",
+        icon: "️",
         suggestedComponent: "chips",
         suggestedValues: [
           "Tankový inkoustový systém (EcoTank / SmartTank - extrémně levný tisk pod 0,15 Kč/str)",
@@ -2457,7 +2739,7 @@ Doporuč přesně 3 konkrétní modely vysavačů dle zvoleného formátu, dispo
         category: "Ekonomika tisku",
         importance: "mandatory",
         rationale: "Cena samotné tiskárny tvoří jen 20 % celkových nákladů. Hlavním kritériem jsou náklady na tisk 1 stránky během 3 let provozu.",
-        icon: "💰",
+        icon: "",
         suggestedComponent: "chips",
         suggestedValues: [
           "Extrémně nízké (do 0,15 Kč/stranu - lahvičkový Tank systém)",
@@ -2471,7 +2753,7 @@ Doporuč přesně 3 konkrétní modely vysavačů dle zvoleného formátu, dispo
         category: "Vybavení",
         importance: "mandatory",
         rationale: "Určuje, zda zařízení zvládne pouze tisk, nebo nahradí celou kancelář skenerem a kopírkou.",
-        icon: "📋",
+        icon: "",
         suggestedComponent: "chips",
         suggestedValues: [
           "Multifunkce 3v1 (Tisk, Skener a Kopírka v jednom)",
@@ -2485,7 +2767,7 @@ Doporuč přesně 3 konkrétní modely vysavačů dle zvoleného formátu, dispo
         category: "Komfort tisku",
         importance: "recommended",
         rationale: "Automatický oboustranný duplex šetří 50 % spotřeby papíru a čas bez nutnosti ručního obracení stránek.",
-        icon: "📄",
+        icon: "",
         suggestedComponent: "chips",
         suggestedValues: [
           "Automatický oboustranný duplexní tisk (doporučeno)",
@@ -2498,7 +2780,7 @@ Doporuč přesně 3 konkrétní modely vysavačů dle zvoleného formátu, dispo
         category: "Konektivita",
         importance: "recommended",
         rationale: "Umožňuje tisknout bezdrátově přímo z notebooku, telefonu či tabletu (AirPrint pro iPhone / Mopria pro Android) bez tahání kabele.",
-        icon: "📶",
+        icon: "",
         suggestedComponent: "chips",
         suggestedValues: [
           "Wi-Fi + Mobilní tisk (AirPrint / Mopria / Google Print)",
@@ -2512,7 +2794,7 @@ Doporuč přesně 3 konkrétní modely vysavačů dle zvoleného formátu, dispo
         category: "Výkon",
         importance: "preference",
         rationale: "Rychlost tisku určuje, jak dlouho čekáte u tiskárny na vytištění vícestránkových dokumentů a skript.",
-        icon: "⚡",
+        icon: "",
         suggestedComponent: "chips",
         suggestedValues: [
           "Standardní domácí rychlost (8–15 stran za minutu)",
@@ -2525,7 +2807,7 @@ Doporuč přesně 3 konkrétní modely vysavačů dle zvoleného formátu, dispo
         category: "Kvalita",
         importance: "preference",
         rationale: "Rozlišení v DPI určuje ostrost písma a podání jemných přechodů u fotografií a grafik.",
-        icon: "🎯",
+        icon: "",
         suggestedComponent: "chips",
         suggestedValues: [
           "Vysoké fotografické rozlišení (4800 x 1200 DPI a více)",
@@ -2538,7 +2820,7 @@ Doporuč přesně 3 konkrétní modely vysavačů dle zvoleného formátu, dispo
         category: "Digitalizace",
         importance: "recommended",
         rationale: "Pro digitalizaci účtenek a smluv je klíčový skener s rozlišením 1200 DPI a automatickým oboustranným podavačem ADF.",
-        icon: "📑",
+        icon: "",
         suggestedComponent: "chips",
         suggestedValues: [
           "Skener s automatickým podavačem ADF (skenování stohu dokumentů)",
@@ -2552,7 +2834,7 @@ Doporuč přesně 3 konkrétní modely vysavačů dle zvoleného formátu, dispo
         category: "Média",
         importance: "preference",
         rationale: "Standardní papír má 80 g/m². Pro tisk diplomů, štítků či fotopapíru je nutná podpora gramáže 220–300 g/m².",
-        icon: "📜",
+        icon: "",
         suggestedComponent: "chips",
         suggestedValues: [
           "Podpora tvrdého papíru a kartonu (až 300 g/m²)",
@@ -2565,7 +2847,7 @@ Doporuč přesně 3 konkrétní modely vysavačů dle zvoleného formátu, dispo
         category: "Formát",
         importance: "preference",
         rationale: "Běžné dokumenty používají A4, projektanti a výtvarníci vyžadují velkoformátový A3 tisk.",
-        icon: "📐",
+        icon: "",
         suggestedComponent: "chips",
         suggestedValues: [
           "Standardní formát A4 (99 % běžných potřeb)",
@@ -2578,7 +2860,7 @@ Doporuč přesně 3 konkrétní modely vysavačů dle zvoleného formátu, dispo
         category: "Značky & Výrobci",
         importance: "recommended",
         rationale: "Vyberte prověřené značky s garantovanou dostupností náhradních tonery a servisu (Epson, Canon, HP, Brother, Kyocera).",
-        icon: "🏷️",
+        icon: "️",
         suggestedComponent: "brands",
         suggestedValues: [
           "Všechny ověřené značky (Epson, Canon, HP, Brother, Kyocera)",
@@ -2609,7 +2891,7 @@ Doporuč přesně 3 konkrétní modely vysavačů dle zvoleného formátu, dispo
   smartphones: {
     categoryName: 'Chytré Telefony & Mobilní Technologie',
     agentName: 'Specialista na Chytré Telefony & Mobilní Ekosystémy',
-    icon: '📱',
+    icon: '',
     description: 'Nezávislý nákupní poradce pro výběr chytrých telefonů. Analyzuje velikost snímače fotoaparátu (OIS), délku softwarové podpory, ochranu zraku PWM a výdrž baterie.',
     keywords: ['mobil', 'mobilni telefon', 'smartphone', 'telefon', 'iphone', 'samsung', 'pixel', 'xiaomi', 'android'],
     parameters: [
@@ -2619,7 +2901,7 @@ Doporuč přesně 3 konkrétní modely vysavačů dle zvoleného formátu, dispo
         category: 'Kategorie & Ekosystém',
         importance: 'mandatory',
         rationale: 'Základní tržní zařazení. Kompaktní telefony se vejdou do kapsy a ovládají se jednou rukou, velké displeje jsou skvělé na práci a média, ohebné telefony nabízejí unikátní konstrukci. Otázka pro vás: Preferujete kompaktní telefon, velký displej nebo ohebný model a jaký systém používáte?',
-        icon: '📱',
+        icon: '',
         suggestedComponent: 'chips',
         suggestedValues: [
           'Kompaktní vlajková loď do 6.2" (snadné ovládání jednou rukou)',
@@ -2635,7 +2917,7 @@ Doporuč přesně 3 konkrétní modely vysavačů dle zvoleného formátu, dispo
         category: 'Ergonomie & Zrak',
         importance: 'mandatory',
         rationale: 'Mnoho moderních OLED displejů bliká na nízké frekvenci (PWM 240–480 Hz), což u citlivých uživatelů způsobuje pálení očí, únavu a migrény. Vysokofrekvenční PWM (nad 1920 Hz) chrání zrak. Telefony nad 220 g hmotnosti unavují malíček při dlouhém držení — důležité pro lidi s menšíma rukama. Otázka pro vás: Býváte citliví na bolesti očí nebo unavené ruce při čtení z mobilu za šera?',
-        icon: '👁️',
+        icon: '️',
         suggestedComponent: 'chips',
         suggestedValues: [
           'Šetrný displej s vysokofrekvenčním PWM (nad 1920 Hz / DC dimming proti únavě očí)',
@@ -2650,7 +2932,7 @@ Doporuč přesně 3 konkrétní modely vysavačů dle zvoleného formátu, dispo
         category: 'Fotoaparát',
         importance: 'mandatory',
         rationale: 'Počet megapixelů je marketingový trik. O reálné kvalitě fotek rozhoduje fyzická velikost snímače (1 palec nebo velký 1/1.3" senzor) a optická stabilizace OIS, která zabrání rozmazání snímků dětí a pohybu za šera. Otázka pro vás: Fotíte často v interiéru, večer a v horším osvětlení bez blesku?',
-        icon: '📸',
+        icon: '',
         suggestedComponent: 'chips',
         suggestedValues: [
           'Absolutní fotomobil s 1" snímačem (velký senzor, OIS, RAW a špičkové noční fotky)',
@@ -2665,7 +2947,7 @@ Doporuč přesně 3 konkrétní modely vysavačů dle zvoleného formátu, dispo
         category: 'Životnost & Bezpečnost',
         importance: 'mandatory',
         rationale: 'Telefon bez bezpečnostních záplat je zranitelný při bankovních transakcích a po 2 letech na něj přestanou vycházet aplikace. Výrobci jako Google Pixel, Samsung a Apple garantují 7 let plných aktualizací. Otázka pro vás: Plánujete telefon používat 4 a více let?',
-        icon: '🛡️',
+        icon: '️',
         suggestedComponent: 'chips',
         suggestedValues: [
           'Dlouhodobá podpora 5–7 let (Apple, Google Pixel, Samsung Galaxy – investice na dlouho)',
@@ -2679,7 +2961,7 @@ Doporuč přesně 3 konkrétní modely vysavačů dle zvoleného formátu, dispo
         category: 'Baterie & Nabíjení',
         importance: 'recommended',
         rationale: 'Rychlé 65W+ nabíjení doplní energii z 0 na 80 % za 20 minut, zatímco pomalé nabíjení trvá hodinu a půl. Standard Qi2 přináší magnetické bezdrátové nabíjení v autě i na nočním stolku. Otázka pro vás: Potřebujete celodenní intenzivní výdrž a rychlé doplnění energie během ranní hygieny?',
-        icon: '⚡',
+        icon: '',
         suggestedComponent: 'chips',
         suggestedValues: [
           'Bleskové nabíjení 65W+ a bezdrátové Qi (nabito za 20 minut a bezdrátové podložky)',
@@ -2694,7 +2976,7 @@ Doporuč přesně 3 konkrétní modely vysavačů dle zvoleného formátu, dispo
         category: 'Displej',
         importance: 'recommended',
         rationale: 'Panel s adaptivní frekvencí 1–120 Hz nabízí dokonale plynulé scrollování a čtení textu bez trhání a při statickém textu sníží frekvenci na 1 Hz, což radikálně šetří baterii.',
-        icon: '✨',
+        icon: '',
         suggestedComponent: 'chips',
         suggestedValues: [
           'Adaptivní LTPO 1–120 Hz (dokonalá plynulost s automatickou úsporou baterie)',
@@ -2708,7 +2990,7 @@ Doporuč přesně 3 konkrétní modely vysavačů dle zvoleného formátu, dispo
         category: 'Odolnost',
         importance: 'recommended',
         rationale: 'Certifikace IP68 zaručuje přežití telefonu při náhodném pádu do vany, louže či bazénu a chrání proti vniknutí jemného prachu do konektorů.',
-        icon: '💧',
+        icon: '',
         suggestedComponent: 'chips',
         suggestedValues: [
           'Plná vodotěsnost IP68 (odolá ponoření do vody, silnému dešti i pádu do vany)',
@@ -2723,7 +3005,7 @@ Doporuč přesně 3 konkrétní modely vysavačů dle zvoleného formátu, dispo
         category: 'Paměť & Výkon',
         importance: 'recommended',
         rationale: 'Základní 128GB úložiště se při natáčení 4K rodinných videí a ukládání fotek zaplní během prvního roku a telefon začne hlásit nedostatek místa. Paměťové karty už většina vlajkových lodí nepodporuje.',
-        icon: '💾',
+        icon: '',
         suggestedComponent: 'chips',
         suggestedValues: [
           '256 GB úložiště + 8–12 GB RAM (optimální zlatý střed s rezervou na roky)',
@@ -2737,7 +3019,7 @@ Doporuč přesně 3 konkrétní modely vysavačů dle zvoleného formátu, dispo
         category: 'Fotoaparát & Zoom',
         importance: 'recommended',
         rationale: 'Digitální výřez z hlavního snímače zrní a maže detaily. Fyzický periskopický teleobjektiv přiblíží vzdálené objekty, sport a portréty s přirozeně rozostřeným pozadím.',
-        icon: '🔭',
+        icon: '',
         suggestedComponent: 'chips',
         suggestedValues: [
           'Periskopický teleobjektiv 5x až 10x optický zoom (vzdálené detaily a sport)',
@@ -2771,7 +3053,7 @@ Doporuč přesně 3 konkrétní modely vysavačů dle zvoleného formátu, dispo
         category: 'Konektivita',
         importance: 'preference',
         rationale: 'eSIM umožňuje bleskové nahrání datového tarifu přes aplikaci při cestách mimo EU bez nutnosti kupovat fyzickou plastovou kartu na letišti.',
-        icon: '📶',
+        icon: '',
         suggestedComponent: 'chips',
         suggestedValues: ['Plná podpora eSIM (rychlé nahrání zahraničních datových tarifů online)', 'Kombinace Dual SIM (fyzická nanoSIM karta + druhá volitelná eSIM)', 'Pouze klasická fyzická nanoSIM karta'],
       },
@@ -2783,7 +3065,7 @@ Doporuč přesně 3 konkrétní modely smartphonů dle zadaných priorit, prefer
   washing_machines: {
     categoryName: 'Pračky & Péče o Prádlo',
     agentName: 'Specialista na Pračky & Bílou Techniku',
-    icon: '🧺',
+    icon: '',
     description: 'Technický nákupní poradce pro výběr praček. Analyzuje konstrukční formát (předem vs. vrchem plněná), DirectDrive invertor, rozebíratelnost ložisek a parní cykly.',
     keywords: ['pracka', 'pračka', 'pracky', 'pračky', 'pracka se susickou', 'miele', 'bosch', 'aeg', 'lg'],
     parameters: [
@@ -2793,7 +3075,7 @@ Doporuč přesně 3 konkrétní modely smartphonů dle zadaných priorit, prefer
         category: 'Kategorie & Konstrukce',
         importance: 'mandatory',
         rationale: 'Základní tržní zařazení. Standardní pračka nabízí největší buben a stabilitu při odstřeďování. Slim pračka se vejde do úzké koupelny, vrchem plněná šetří místo do šířky (pouze 40 cm) a pračka se sušičkou 2v1 vyřeší sušení tam, kde není prostor na dva spotřebiče. Otázka pro vás: Jaké máte prostorové dispozice v koupelně a jaký formát plnění preferujete?',
-        icon: '🧺',
+        icon: '',
         suggestedComponent: 'chips',
         suggestedValues: [
           'Předem plněná standardní hloubka 60 cm (maximální kapacita a stabilita)',
@@ -2808,7 +3090,7 @@ Doporuč přesně 3 konkrétní modely smartphonů dle zadaných priorit, prefer
         category: 'Kapacita & Domácnost',
         importance: 'mandatory',
         rationale: 'Přeplňování malého bubnu způsobuje nedostatečné vymáchání pracího prášku a nadměrné opotřebení tlumičů. Buben o kapacitě 9+ kg bez problémů pojme objemné zimní deky, péřové bundy a ložní prádlo celé rodiny. Otázka pro vás: Kolik osob žije v domácnosti a perete často objemné deky či bundy?',
-        icon: '👨‍👩‍👧‍👦',
+        icon: '‍‍‍',
         suggestedComponent: 'chips',
         suggestedValues: [
           'Velká kapacita 9–10 kg (ideální pro 4+ člennou rodinu, deky a ložní prádlo)',
@@ -2822,7 +3104,7 @@ Doporuč přesně 3 konkrétní modely smartphonů dle zadaných priorit, prefer
         category: 'Motor & Pohon',
         importance: 'mandatory',
         rationale: 'Tradiční motory s uhlíkovými kartáči pískají, jiskří a po 5 letech vyžadují servis. Bezkartáčový invertorový motor s přímým napojením na buben (Direct Drive) je mimořádně tichý, nepřenáší vibrace klínového řemenu a výrobci na něj poskytují záruku 10–20 let.',
-        icon: '⚙️',
+        icon: '️',
         suggestedComponent: 'chips',
         suggestedValues: [
           'Direct Drive s přímým pohonem na ose bubnu (minimální vibrace, ticho a dlouhá životnost)',
@@ -2836,7 +3118,7 @@ Doporuč přesně 3 konkrétní modely smartphonů dle zadaných priorit, prefer
         category: 'Servisovatelnost & Životnost',
         importance: 'mandatory',
         rationale: 'U mnoha levných praček je plastová vana svařená v celku. Když po 4–6 letech odejde ložisko za 300 Kč, nelze jej samostatně vyměnit a oprava celé vany stojí 8 000 Kč (fakticky konec životnosti pračky). Šroubovaná vana umožňuje levnou výměnu ložisek. Otázka pro vás: Hledáte spotřebič s důrazem na dlouhou životnost a snadnou opravitelnost?',
-        icon: '🔧',
+        icon: '',
         suggestedComponent: 'chips',
         suggestedValues: [
           'Rozebíratelná vana se šroubovanými ložisky (možnost levné výměny ložisek i po 8 letech)',
@@ -2850,7 +3132,7 @@ Doporuč přesně 3 konkrétní modely smartphonů dle zadaných priorit, prefer
         category: 'Hygiena & Zdraví',
         importance: 'recommended',
         rationale: 'Parní program pronikne hluboko do textilních vláken, zničí 99,9 % roztočů a bakterií a odstraní zvířecí alergeny i při nižší teplotě vody, což chrání citlivou dětskou pokožku i alergiky.',
-        icon: '💨',
+        icon: '',
         suggestedComponent: 'chips',
         suggestedValues: [
           'Parní program SteamCare s certifikací pro alergiky (odstraní 99.9 % bakterií a roztočů)',
@@ -2864,7 +3146,7 @@ Doporuč přesně 3 konkrétní modely smartphonů dle zadaných priorit, prefer
         category: 'Akustický komfort',
         importance: 'recommended',
         rationale: 'Hlučné ždímání nad 76 dB roztřese celou koupelnu a znemožňuje noční praní při levném nočním proudu. Zesílené boční stěny AntiVibration a tichý podvozek udrží hluk pod 70 dB.',
-        icon: '🔇',
+        icon: '',
         suggestedComponent: 'chips',
         suggestedValues: [
           'Extrémně tichý provoz při odstřeďování pod 70 dB (vhodné pro noční praní v paneláku)',
@@ -2878,7 +3160,7 @@ Doporuč přesně 3 konkrétní modely smartphonů dle zadaných priorit, prefer
         category: 'Odstřeďování',
         importance: 'recommended',
         rationale: 'Pokud prádlo po vyprání dáváte do sušičky, pračka s 1400–1600 ot./min zkrátí dobu sušení až o třetinu, čímž zásadně ušetří drahou elektřinu sušičky.',
-        icon: '🌀',
+        icon: '',
         suggestedComponent: 'chips',
         suggestedValues: [
           'Vysoké otáčky 1400–1600 ot./min (prádlo schne mnohem rychleji v sušičce)',
@@ -2892,7 +3174,7 @@ Doporuč přesně 3 konkrétní modely smartphonů dle zadaných priorit, prefer
         category: 'Bezpečnost',
         importance: 'recommended',
         rationale: 'Při prasknutí přívodní hadice mechanický nebo elektromagnetický ventil AquaStop okamžitě uzavře přívod vody přímo na kohoutu a zabrání vytopení sousedů.',
-        icon: '🛑',
+        icon: '',
         suggestedComponent: 'chips',
         suggestedValues: [
           'Kompletní ochrana AquaStop s dvojitou hadicí a plovákem (garance proti vytopení sousedů)',
@@ -2906,7 +3188,7 @@ Doporuč přesně 3 konkrétní modely smartphonů dle zadaných priorit, prefer
         category: 'Úspora & Provoz',
         importance: 'recommended',
         rationale: 'Automatické dávkování odměří přesné množství pracího gelu podle váhy prádla a tvrdosti vody, což ušetří až 30 % pracího prostředku a zabrání zbytkům mýdla v prádle.',
-        icon: '💧',
+        icon: '',
         suggestedComponent: 'chips',
         suggestedValues: [
           'Plně automatické dávkování tekutého pracího gelu i-DOS / TwinDos (až na 20 praní)',
@@ -2940,7 +3222,7 @@ Doporuč přesně 3 konkrétní modely smartphonů dle zadaných priorit, prefer
         category: 'Pohodlí',
         importance: 'preference',
         rationale: 'Umožňuje bezpečně vhodit zapomenutou ponožku nebo tričko i po spuštění pracího cyklu bez vypouštění vody.',
-        icon: '🚪',
+        icon: '',
         suggestedComponent: 'chips',
         suggestedValues: [
           'Samostatná dvířka AddWash pro přidání zapomenutého prádla během praní',
@@ -2956,7 +3238,7 @@ Doporuč přesně 3 spolehlivé modely praček dle rozměrového formátu, kapac
   smartwatch: {
     categoryName: 'Chytré & Sportovní Hodinky',
     agentName: 'Specialista na Sporttestery & Chytré Hodinky',
-    icon: '⌚',
+    icon: '',
     description: 'Nezávislý nákupní poradce pro chytré a sportovní hodinky. Analyzuje segment (sporttester s tlačítky vs. městské s LTE), obvod zápěstí, výdrž baterie a přesnost GPS.',
     keywords: ['hodinky', 'smartwatch', 'chytre hodinky', 'chytré hodinky', 'sporttester', 'garmin', 'apple watch', 'coros', 'polar', 'suunto'],
     parameters: [
@@ -2966,7 +3248,7 @@ Doporuč přesně 3 spolehlivé modely praček dle rozměrového formátu, kapac
         category: 'Kategorie & Segment',
         importance: 'mandatory',
         rationale: 'Základní tržní zařazení. Sporttestery (Garmin, Coros) se ovládají spolehlivými tlačítky za deště i v rukavicích a mají výdrž v týdnech. Městské hodinky (Apple Watch, Samsung Galaxy Watch) mají dotykový displej, umožňují telefonovat a odpovídat na zprávy, ale nabíjí se denně. Outdoorové modely snesou nárazy a mráz. Otázka pro vás: Hledáte tréninkový sporttester pro sport a hory, nebo městské hodinky jako prodlouženou ruku telefonu?',
-        icon: '⌚',
+        icon: '',
         suggestedComponent: 'chips',
         suggestedValues: [
           'Sportovní tréninkový sporttester s mechanickými tlačítky a výdrží 7–20+ dní (Garmin / Coros)',
@@ -2980,7 +3262,7 @@ Doporuč přesně 3 spolehlivé modely praček dle rozměrového formátu, kapac
         category: 'Biometrie & Ergonomie',
         importance: 'mandatory',
         rationale: 'Příliš velká a těžká luneta (nad 75 g) tlačí do zápěstní kosti, odstává od kůže (což zkresluje měření tepu) a vadí při spánku, takže si nezměříte noční regeneraci. Na štíhlé zápěstí patří pouzdro 40–42 mm. Otázka pro vás: Jaký je obvod vašeho zápěstí a vadí vám těžké hodinky při spaní?',
-        icon: '🧬',
+        icon: '',
         suggestedComponent: 'chips',
         suggestedValues: [
           'Štíhlé zápěstí (dámská/unisex velikost pouzdra 40–43 mm, lehká váha do 45 g)',
@@ -2994,7 +3276,7 @@ Doporuč přesně 3 spolehlivé modely praček dle rozměrového formátu, kapac
         category: 'Baterie & Výdrž',
         importance: 'mandatory',
         rationale: 'Denní nabíjení hodinek je pro sportovce a outdoorové nadšence dealbreakerem, zejména na vícedenních túrách nebo při nepřetržitém sledování spánku a regenerace HRV. Otázka pro vás: Požadujete výdrž baterie v týdnech, nebo jste ochotni hodinky nabíjet každý den?',
-        icon: '🔋',
+        icon: '',
         suggestedComponent: 'chips',
         suggestedValues: [
           'Extrémní výdrž 14–30 dní (outdoorové a sportovní modely Garmin, Coros)',
@@ -3008,7 +3290,7 @@ Doporuč přesně 3 spolehlivé modely praček dle rozměrového formátu, kapac
         category: 'GPS & Navigace',
         importance: 'mandatory',
         rationale: 'Jednofrekvenční GPS v hlubokém lese, mezi skalami nebo městskými výškovými budovami uskakuje o desítky metrů a zkresluje tempo běhu. Dvoufrekvenční Multi-Band čip drží přesnou stopu s odchylkou do 1 metru.',
-        icon: '🛰️',
+        icon: '️',
         suggestedComponent: 'chips',
         suggestedValues: [
           'Dvoufrekvenční Multi-Band GPS L1+L5 (maximální přesnost v hustém lese, horách i mezi budovami)',
@@ -3022,7 +3304,7 @@ Doporuč přesně 3 spolehlivé modely praček dle rozměrového formátu, kapac
         category: 'Displej',
         importance: 'recommended',
         rationale: 'Transflektivní MIP displej využívá okolní sluneční světlo – čím více slunce svítí, tím lépe je vidět, a nespotřebovává téměř žádnou energii. AMOLED je krásný a zářivý jako telefon, ale na přímém slunci vyžaduje maximální jas a vybíjí baterii.',
-        icon: '☀️',
+        icon: '️',
         suggestedComponent: 'chips',
         suggestedValues: [
           'Zářivý AMOLED displej s vysokým jasem a živými barvami',
@@ -3036,7 +3318,7 @@ Doporuč přesně 3 spolehlivé modely praček dle rozměrového formátu, kapac
         category: 'Zdravotní senzory',
         importance: 'recommended',
         rationale: 'Noční variabilita srdečního tepu (HRV status) je nejlepším ukazatelem regenerace těla, blížící se nemoci a připravenosti k tréninku. Spolehlivý senzor tepu eliminuje nutnost hrudního pásu při běžném běhu.',
-        icon: '❤️',
+        icon: '️',
         suggestedComponent: 'chips',
         suggestedValues: [
           'Kompletní zdravotní diagnostika: EKG, krevní tlak, HRV status a noční monitoring spánku',
@@ -3050,7 +3332,7 @@ Doporuč přesně 3 spolehlivé modely praček dle rozměrového formátu, kapac
         category: 'Odolnost & Materiály',
         importance: 'recommended',
         rationale: 'Minerální sklo se při náhodném škrtnutí o skálu, omítku nebo kovové zábradlí okamžitě poškrábe. Safírové sklo nelze poškrábat prakticky ničím kromě diamantu.',
-        icon: '💎',
+        icon: '',
         suggestedComponent: 'chips',
         suggestedValues: [
           'Nezničitelné safírové sklíčko s titanovou lunetou (odolné proti poškrábání o skálu a klíče)',
@@ -3064,7 +3346,7 @@ Doporuč přesně 3 spolehlivé modely praček dle rozměrového formátu, kapac
         category: 'Vodotěsnost',
         importance: 'recommended',
         rationale: 'Hodinky s 5 ATM snesou klidné plavání na hladině, ale skoky do vody či vodní sporty mohou způsobit dynamický tlak a průsak vody. Pro jistotu na divoké vodě a potápění je nutné 10 ATM.',
-        icon: '🏊',
+        icon: '',
         suggestedComponent: 'chips',
         suggestedValues: [
           'Vodotěsnost 10 ATM / 100 m s potápěčským hloubkoměrem (vhodné pro plavání i potápění)',
@@ -3078,7 +3360,7 @@ Doporuč přesně 3 spolehlivé modely praček dle rozměrového formátu, kapac
         category: 'Chytré funkce',
         importance: 'recommended',
         rationale: 'Plnohodnotné offline topografické mapy v hodinkách umožňují navigaci na křižovatkách v horách bez nutnosti vytahovat telefon z batohu.',
-        icon: '🗺️',
+        icon: '️',
         suggestedComponent: 'chips',
         suggestedValues: [
           'Plná nezávislost s LTE eSIM (volání a poslech hudby bez telefonu v kapse)',
@@ -3111,7 +3393,7 @@ Doporuč přesně 3 spolehlivé modely praček dle rozměrového formátu, kapac
         category: 'Baterie',
         importance: 'preference',
         rationale: 'Integrovaný fotovoltaický prstenec v lunetě prodlužuje výdrž baterie při venkovních aktivitách za slunečného počasí.',
-        icon: '☀️',
+        icon: '️',
         suggestedComponent: 'chips',
         suggestedValues: [
           'Integrované solární dobíjení Power Glass (prodloužení výdrže při pobytu na slunci)',
@@ -3127,7 +3409,7 @@ Doporuč přesně 3 konkrétní modely hodinek dle zadaného zaměření (sport 
   mattress: {
     categoryName: 'Matrace & Zdravý Spánek',
     agentName: 'Ortopedický Specialista na Spánek & Matrace',
-    icon: '🛏️',
+    icon: '️',
     description: 'Nezávislý nákupní rádce pro výběr ortopedických matrací. Analyzuje hmotnost spáče, technologii jádra (taštičky vs. HR pěna vs. latex), tuhost H1-H5 a zonaci páteře.',
     keywords: ['matrace', 'matraci', 'spanek', 'spánek', 'postel', 'rost', 'rošt', 'ortopedicka matrace', 'pater', 'plotenky'],
     parameters: [
@@ -3137,7 +3419,7 @@ Doporuč přesně 3 konkrétní modely hodinek dle zadaného zaměření (sport 
         category: 'Biometrie & Zdravotní profil',
         importance: 'mandatory',
         rationale: 'Hmotnost spáče je nejdůležitějším parametrem pro volbu tuhosti (při 95 kg na měkké matraci se páteř prohne do luku). Lidé po operaci ploténky či s chronickou bolestí beder vyžadují zpevněnou bederní oporu a zónování, které drží páteř v absolutní rovině. Otázka pro vás: Jaká je vaše přesná váha, výška a máte potíže s bolestmi páteře či kloubů?',
-        icon: '🧬',
+        icon: '',
         suggestedComponent: 'chips',
         suggestedValues: [
           'Hmotnost do 75 kg (potřeba poddajnější matrace pro zanoření ramen)',
@@ -3152,7 +3434,7 @@ Doporuč přesně 3 konkrétní modely hodinek dle zadaného zaměření (sport 
         category: 'Jádro & Materiál',
         importance: 'mandatory',
         rationale: 'Základní tržní zařazení. Taštičkové pružiny poskytují dokonalou bodovou elasticitu a jsou bezkonkurenčně nejprodyšnější (vhodné pro lidi, kteří se potí). Studená HR pěna s otevřenou buněčnou strukturou je tvarově stálá a tichá. Přírodní latex nabízí luxusní pružnost a je přirozeně antibakteriální. Otázka pro vás: Preferujete prodyšné taštičkové pružiny, nebo celopěnové ortopedické jádro?',
-        icon: '🛏️',
+        icon: '️',
         suggestedComponent: 'chips',
         suggestedValues: [
           'Taštičkové pružiny s mikropružinami (špičková prodyšnost a bodová podpora)',
@@ -3166,7 +3448,7 @@ Doporuč přesně 3 konkrétní modely hodinek dle zadaného zaměření (sport 
         category: 'Tuhost matrace',
         importance: 'mandatory',
         rationale: 'Příliš měkká matrace způsobuje prohnutí páteře do tvaru písmene U a ranní ztuhlost beder. Příliš tvrdá matrace tlačí na kyčle a ramena a omezuje krevní oběh.',
-        icon: '⚖️',
+        icon: '️',
         suggestedComponent: 'chips',
         suggestedValues: ['H2 měkká (do 70 kg nebo pro spaní na boku)', 'H3 středně tuhá (70–95 kg, univerzální ortopedická volba)', 'H4 tuhá (95–125 kg nebo pro spaní na zádech/břiše)'],
       },
@@ -3176,7 +3458,7 @@ Doporuč přesně 3 konkrétní modely hodinek dle zadaného zaměření (sport 
         category: 'Ergonomie páteře',
         importance: 'mandatory',
         rationale: 'Lidské tělo nemá tvar válce. Změkčená ramenní zóna umožní zanoření ramene při spánku na boku, zatímco pevná bederní zóna podepře těžkou pánev a udrží páteř v přirozené rovině.',
-        icon: '📏',
+        icon: '',
         suggestedComponent: 'chips',
         suggestedValues: [
           '7 anatomických zón s rozdílnou tuhostí (dokonalé uvolnění ramen a opora beder)',
@@ -3190,7 +3472,7 @@ Doporuč přesně 3 konkrétní modely hodinek dle zadaného zaměření (sport 
         category: 'Spánkové návyky',
         importance: 'recommended',
         rationale: 'Při spánku na boku je nutná vyšší poddajnost v ramenou a bocích. Pro spánek na zádech a břiše je nutná tužší matrace, aby se neprohýbala bederní lordóza.',
-        icon: '💤',
+        icon: '',
         suggestedComponent: 'chips',
         suggestedValues: ['Spaní převážně na boku (nutnost hlubšího zanoření ramene)', 'Spaní na zádech nebo na břiše (potřeba tužší stabilní opory)', 'Kombinovaná poloha se střídáním'],
       },
@@ -3200,7 +3482,7 @@ Doporuč přesně 3 konkrétní modely hodinek dle zadaného zaměření (sport 
         category: 'Výška & Konstrukce',
         importance: 'recommended',
         rationale: 'Nízké matrace pod 18 cm se rychleji proleží a vstávání z nízké postele silně namáhá kolenní a kyčelní klouby. Matrace o výšce 24+ cm nabízí prémiový komfort a šetří klouby seniorů i sportovců.',
-        icon: '📐',
+        icon: '',
         suggestedComponent: 'chips',
         suggestedValues: [
           'Vysoká prémiová matrace 24–30 cm (snadné vstávání z postele a luxusní pocit)',
@@ -3214,7 +3496,7 @@ Doporuč přesně 3 konkrétní modely hodinek dle zadaného zaměření (sport 
         category: 'Hygiena & Údržba',
         importance: 'recommended',
         rationale: 'Roztoči a alergeny hynou až při teplotě praní 60 °C. Rozdělení zipem dokola umožní vyprat v běžné domácí pračce vždy jednu polovinu potahu, zatímco na druhé lze spát.',
-        icon: '🧼',
+        icon: '',
         suggestedComponent: 'chips',
         suggestedValues: [
           'Snímatelný potah dělitelný na 2 poloviny pratelný na 60 °C (likvidace roztočů a snadné praní)',
@@ -3228,7 +3510,7 @@ Doporuč přesně 3 konkrétní modely hodinek dle zadaného zaměření (sport 
         category: 'Rošt & Podklad',
         importance: 'recommended',
         rationale: 'Taštičkové matrace se nesmí dávat na polohovací rošty ani na rošty s mezerami mezi latěmi většími než 4 cm (pružiny by propadávaly). Pěnové matrace naopak vyžadují pružné lamely.',
-        icon: '🪵',
+        icon: '',
         suggestedComponent: 'chips',
         suggestedValues: [
           'Lamelový polohovací rošt (vyžaduje elastickou pěnovou či latexovou matraci)',
@@ -3242,7 +3524,7 @@ Doporuč přesně 3 konkrétní modely hodinek dle zadaného zaměření (sport 
         category: 'Partnerská řešení',
         importance: 'recommended',
         rationale: 'Pokud muž váží 95 kg a žena 60 kg, jedna společná matrace bude pro jednoho příliš tvrdá a pro druhého měkká. Partnerská matrace nabízí dvě odlišně tuhé poloviny v jednom potahu bez mezery.',
-        icon: '👫',
+        icon: '',
         suggestedComponent: 'chips',
         suggestedValues: [
           'Partnerská matrace s dvojí tuhostí (jedna strana měkčí, druhá tužší)',
@@ -3276,7 +3558,7 @@ Doporuč přesně 3 konkrétní modely hodinek dle zadaného zaměření (sport 
         category: 'Termoregulace',
         importance: 'preference',
         rationale: 'Pěna s chladivým gelem nebo PCM kapslemi odvádí přebytečné tělesné teplo a zabraňuje nepříjemnému probouzení v horku.',
-        icon: '❄️',
+        icon: '️',
         suggestedComponent: 'chips',
         suggestedValues: [
           'Chladivá gelová pěna GelFoam / termoaktivní potah (pro lidi náchylné k nočnímu pocení)',
@@ -3292,7 +3574,7 @@ Doporuč přesně 3 konkrétní ortopedické matrace dle hmotnosti uživatele, z
   heat_pumps: {
     categoryName: 'Tepelná Čerpadla & Energetika Domu',
     agentName: 'Specialista na Tepelná Čerpadla & HVAC',
-    icon: '♨️',
+    icon: '️',
     description: 'Nezávislý nákupní rádce pro výběr tepelných čerpadel. Analyzuje typ (vzduch-voda vs. země-voda), tepelnou ztrátu domu, SCOP při -15 °C, chladivo R290 a dotace NZÚ.',
     keywords: ['tepelne cerpadlo', 'tepelné čerpadlo', 'cerpadlo', 'čerpadlo', 'vytapeni', 'vytápění', 'topeni', 'topení', 'nibe', 'viessmann', 'vaillant', 'daikin'],
     parameters: [
@@ -3302,7 +3584,7 @@ Doporuč přesně 3 konkrétní ortopedické matrace dle hmotnosti uživatele, z
         category: 'Kategorie & Typologie',
         importance: 'mandatory',
         rationale: 'Základní tržní zařazení. Vzduch-voda monoblok má celý chladivový okruh hermeticky uzavřený ve venkovní jednotce (nepotřebuje revize chladiva a nezabírá místo uvnitř). Split vyžaduje propojení chladivem chlaďařem. Země-voda nabízí stabilní výkon i při -20 °C s nejvyšším SCOP, ale vyžaduje vrty. Otázka pro vás: Hledáte bezúdržbový monoblok vzduch-voda, splitové řešení, nebo systém země-voda?',
-        icon: '♨️',
+        icon: '️',
         suggestedComponent: 'chips',
         suggestedValues: [
           'Vzduch-voda monoblok (hermetický venkovní okruh, bezpečný a bez revizí chladiva)',
@@ -3316,7 +3598,7 @@ Doporuč přesně 3 konkrétní ortopedické matrace dle hmotnosti uživatele, z
         category: 'Dům & Otopná soustava',
         importance: 'mandatory',
         rationale: 'Předimenzované čerpadlo cykluje a ničí kompresor, poddimenzované spíná drahý elektrokotel. Nízkoteplotní podlahové topení dosahuje o 30 % vyšší účinnosti než staré litinové radiátory. Otázka pro vás: Jaká je tepelná ztráta vašeho domu a topíte podlahovkou, nebo radiátory?',
-        icon: '🏡',
+        icon: '',
         suggestedComponent: 'chips',
         suggestedValues: [
           'Novostavba / Nízkoenergetický dům (tepelná ztráta do 5 kW, podlahové topení 35 °C)',
@@ -3330,7 +3612,7 @@ Doporuč přesně 3 konkrétní ortopedické matrace dle hmotnosti uživatele, z
         category: 'Účinnost & Výkon v mrazu',
         importance: 'mandatory',
         rationale: 'Tabulkový výkon při +7 °C uváděný v letácích je zavádějící. Klíčový je sezónní faktor SCOP (min. 4.5+) a schopnost dodat dostatek tepla i při -15 °C bez nutnosti spínat bivalentní elektrokotel. Otázka pro vás: Bydlíte v horské oblasti s častými mrazy, nebo v nížině?',
-        icon: '❄️',
+        icon: '️',
         suggestedComponent: 'chips',
         suggestedValues: [
           'Špičkový topný faktor SCOP > 4.8 s garancí plného výkonu i při -20 °C',
@@ -3344,7 +3626,7 @@ Doporuč přesně 3 konkrétní ortopedické matrace dle hmotnosti uživatele, z
         category: 'Chladivo & Ekologie',
         importance: 'mandatory',
         rationale: 'Syntetická chladiva (R410A, R32) podléhají přísným kvótám EU F-plynů a v budoucnu hrozí jejich zákaz a drahé doplňování. Přírodní propan R290 je ekologický, umožňuje vysokou výstupní teplotu 70–75 °C pro radiátory a má neomezenou budoucnost.',
-        icon: '🔬',
+        icon: '',
         suggestedComponent: 'chips',
         suggestedValues: [
           'Přírodní ekologické chladivo R290 propan (výstupní voda až 75 °C – skvělé pro radiátory)',
@@ -3358,7 +3640,7 @@ Doporuč přesně 3 konkrétní ortopedické matrace dle hmotnosti uživatele, z
         category: 'Hlučnost & Hygiena',
         importance: 'mandatory',
         rationale: 'Hlučné tepelné čerpadlo překračuje noční hygienický limit 35 dB u hranice pozemku, což vede k sousedským sporům a pokutám od hygienické stanice. Špičková čerpadla s pomaloběžnými ventilátory v noci téměř neslyšíte.',
-        icon: '🔇',
+        icon: '',
         suggestedComponent: 'chips',
         suggestedValues: [
           'Mimořádně tichá venkovní jednotka pod 35 dB(A) ve vzdálenosti 3 m (vhodné pro hustou zástavbu)',
@@ -3372,7 +3654,7 @@ Doporuč přesně 3 konkrétní ortopedické matrace dle hmotnosti uživatele, z
         category: 'Kompresor & Regulace',
         importance: 'recommended',
         rationale: 'Schopnost kompresoru plynule stáhnout výkon v přechodných obdobích (jaro/podzim) zabraňuje neustálému zapínání a vypínání (cyklování), které ničí elektroniku a zkracuje životnost kompresoru.',
-        icon: '⚡',
+        icon: '',
         suggestedComponent: 'chips',
         suggestedValues: [
           'Plynulá modulace kompresoru Inverter 20–100 % (přesné přizpůsobení aktuální tepelné ztrátě domu)',
@@ -3386,7 +3668,7 @@ Doporuč přesně 3 konkrétní ortopedické matrace dle hmotnosti uživatele, z
         category: 'Teplá voda TUV',
         importance: 'recommended',
         rationale: 'Tepelné čerpadlo ohřívá vodu pomaleji než plynový kotel. Pro 4člennou rodinu s vanou je nutný kvalitně zaizolovaný nerezový zásobník o objemu alespoň 200–250 litrů s velkou teplosměnnou plochou výměníku.',
-        icon: '🚿',
+        icon: '',
         suggestedComponent: 'chips',
         suggestedValues: [
           'Integrovaný nerezový zásobník na 180–230 l vnitřní jednotky (úspora místa v domě)',
@@ -3400,7 +3682,7 @@ Doporuč přesně 3 konkrétní ortopedické matrace dle hmotnosti uživatele, z
         category: 'Dotace & Financování',
         importance: 'recommended',
         rationale: 'Čerpadlo musí mít platný kód SVT (Seznam výrobků a technologií) u Státního fondu životního prostředí, aby bylo možné čerpat dotaci NZÚ ve výši až 100 000 – 140 000 Kč.',
-        icon: '📜',
+        icon: '',
         suggestedComponent: 'chips',
         suggestedValues: [
           'Plná certifikace a splnění podmínek pro dotaci Nová zelená úsporám (kotlíková dotace)',
@@ -3414,7 +3696,7 @@ Doporuč přesně 3 konkrétní ortopedické matrace dle hmotnosti uživatele, z
         category: 'Servis & Podpora',
         importance: 'recommended',
         rationale: 'Při poruše v třeskutém mrazu potřebujete servisního technika s náhradními díly na místě do 24 hodin, ne za dva týdny. Vzdálená online diagnostika umožní servisnímu technikovi odhalit závadu přes internet.',
-        icon: '📶',
+        icon: '',
         suggestedComponent: 'chips',
         suggestedValues: [
           'Vzdálený online monitoring a servisní diagnostika výrobcem přes Wi-Fi/LAN',
@@ -3448,7 +3730,7 @@ Doporuč přesně 3 konkrétní ortopedické matrace dle hmotnosti uživatele, z
         category: 'Letní komfort',
         importance: 'preference',
         rationale: 'Umožňuje obrátit chod čerpadla a v horkých letních dnech chladit dům přes podlahové topení nebo fan-coily.',
-        icon: '❄️',
+        icon: '️',
         suggestedComponent: 'chips',
         suggestedValues: [
           'Aktivní reverzní chlazení v parném létě (přes podlahové topení či fancoily)',
@@ -3463,7 +3745,7 @@ Doporuč přesně 3 konkrétní modely tepelných čerpadel dle typu stavby, tep
   bicycles: {
     categoryName: 'Jízdní Kola & Elektromobilita',
     agentName: 'Specialista na Jízdní Kola & E-biky',
-    icon: '🚲',
+    icon: '',
     description: 'Technický nákupní poradce pro jízdní kola a elektrokola. Analyzuje disciplínu, biometrii jezdce, geometrii rámu, materiál (karbon vs. hliník), sadu řazení Shimano/SRAM, odpružení a motorové parametry.',
     keywords: ['kolo', 'kola', 'horske kolo', 'horské kolo', 'elektrokolo', 'ebike', 'e-bike', 'gravel', 'silnicni kolo', 'silniční kolo', 'bicykl', 'bicykly'],
     parameters: [
@@ -3473,7 +3755,7 @@ Doporuč přesně 3 konkrétní modely tepelných čerpadel dle typu stavby, tep
         category: 'Kategorie & Disciplína',
         importance: 'mandatory',
         rationale: 'Klíčové elementární zařazení na trhu, které určuje celou geometrii, šířku plášťů i typ řídítek. Špatný výběr typu je nejčastějším zklamáním. Otázka pro vás: Po jakém povrchu a v jakém terénu budete na kole nejčastěji jezdit?',
-        icon: '🚲',
+        icon: '',
         suggestedComponent: 'chips',
         suggestedValues: [
           'Gravel (rychlý a univerzální na silnici, cyklostezky i šotolinu)',
@@ -3489,7 +3771,7 @@ Doporuč přesně 3 konkrétní modely tepelných čerpadel dle typu stavby, tep
         category: 'Biometrie & Zdraví',
         importance: 'mandatory',
         rationale: 'Výška a vnitřní délka nohou (inseam) určují velikost rámu (S/M/L/XL), hmotnost je nutná pro natlakování vzduchové vidlice. Jezdci po operaci kolen či s výhřezem ploténky vyžadují vzpřímenější geometrii a celoodpružený rám pro šetření beder. Otázka pro vás: Jaká je vaše přesná výška, hmotnost a máte zdravotní limity zad či kolen?',
-        icon: '🧬',
+        icon: '',
         suggestedComponent: 'chips',
         suggestedValues: [
           'Výška do 175 cm / Hmotnost do 75 kg (rám S/M, běžný posed)',
@@ -3504,7 +3786,7 @@ Doporuč přesně 3 konkrétní modely tepelných čerpadel dle typu stavby, tep
         category: 'Rám & Jízdní vlastnosti',
         importance: 'mandatory',
         rationale: 'Tuhý hliníkový rám bez karbonových prvků přenáší veškeré rázy z polních cest do zápěstí a krční páteře. Karbon tlumí vibrace a šetří energii. Otázka pro vás: Preferujete nízkou hmotnost a pohodlné tlumení vibrací, nebo robustnost a odolnost proti pádům?',
-        icon: '📐',
+        icon: '',
         suggestedComponent: 'chips',
         suggestedValues: [
           'Lehký karbonový rám (vynikající pohlcování vibrací a maximální tuhost v záběru)',
@@ -3519,7 +3801,7 @@ Doporuč přesně 3 konkrétní modely tepelných čerpadel dle typu stavby, tep
         category: 'Odpružení',
         importance: 'mandatory',
         rationale: 'Levná pružinová vidlice nelze nastavit na hmotnost jezdce a v zimě tuhne. Vzduchovou vidlici natlakujete přesně na své tělo a celoodpružený rám šetří páteř v terénu. Otázka pro vás: Vyžadujete citlivé žehlení nerovností a možnost vidlici zamknout na asfaltu?',
-        icon: '🚵',
+        icon: '',
         suggestedComponent: 'chips',
         suggestedValues: ['Pevná karbonová vidlice (rychlost na silnici a gravelu)', 'Přední vzduchová odpružená vidlice s lockoutem na řídítkách (Hardtail)', 'Celoodpružený rám (Full-suspension pro šetření zad v terénu)'],
       },
@@ -3529,7 +3811,7 @@ Doporuč přesně 3 konkrétní modely tepelných čerpadel dle typu stavby, tep
         category: 'Pohon & Řazení',
         importance: 'mandatory',
         rationale: 'Jednopřevodník 1x12 zjednodušuje řazení a zabraňuje padání řetězu v terénu, zatímco na dlouhé silniční rovinky je vhodnější jemnější odstupňování 2x11. Otázka pro vás: Jezdíte převážně v kopcovitém terénu a na trailech, nebo po asfaltových rovinách?',
-        icon: '⚙️',
+        icon: '️',
         suggestedComponent: 'chips',
         suggestedValues: [
           'Elektronické bezdrátové řazení (SRAM AXS / Shimano Di2 – bleskové a přesné řazení)',
@@ -3543,7 +3825,7 @@ Doporuč přesně 3 konkrétní modely tepelných čerpadel dle typu stavby, tep
         category: 'Bezpečnost',
         importance: 'mandatory',
         rationale: 'Mechanické lankové brzdy vadnou v dlouhých sjezdech a vyžadují velkou sílu prstů, zatímco hydraulické kotouče zastaví kolo jedním prstem za mokra i bláta. Otázka pro vás: Sjíždíte prudké kopce s plnou zátěží nebo elektrokolem?',
-        icon: '🛑',
+        icon: '',
         suggestedComponent: 'chips',
         suggestedValues: [
           'Hydraulické kotoučové brzdy Shimano / SRAM s chlazenými destičkami (jistota za mokra i v dlouhých sjezdech)',
@@ -3557,7 +3839,7 @@ Doporuč přesně 3 konkrétní modely tepelných čerpadel dle typu stavby, tep
         category: 'Kola & Trakce',
         importance: 'recommended',
         rationale: '29" kola lépe překonávají kameny a drží rychlost, 27.5" jsou obratnější v technických točkách. Bezdušový tmel eliminuje procvaknutí duše. Otázka pro vás: Preferujete stabilitu a rychlost na rovinách, nebo hravost?',
-        icon: '🛞',
+        icon: '',
         suggestedComponent: 'chips',
         suggestedValues: ['29" kola (skvělá průchodnost terénem a setrvačnost)', 'Gravel pláště 40–45 mm s bezdušovým tmelem', '27.5" kola pro menší postavu a hravost'],
       },
@@ -3567,7 +3849,7 @@ Doporuč přesně 3 konkrétní modely tepelných čerpadel dle typu stavby, tep
         category: 'Elektropohon (u E-biků)',
         importance: 'recommended',
         rationale: 'Levné motory v náboji kola zabírají skokově a ztrácejí trakci, zatímco středový motor s torzním snímačem dávkuje asistenci přirozeně podle tlaku na pedál. Otázka pro vás: Plánujete celodenní vyjížďky v horách na 80+ km s převýšením?',
-        icon: '⚡',
+        icon: '',
         suggestedComponent: 'chips',
         suggestedValues: ['Středový motor Bosch CX / Shimano EP8 (85 Nm) + baterie 700+ Wh', 'Lehčí středový motor SL (50–60 Nm, baterie 400 Wh) pro přirozený pocit z jízdy', 'Běžné jízdní kolo bez motoru'],
       },
@@ -3577,7 +3859,7 @@ Doporuč přesně 3 konkrétní modely tepelných čerpadel dle typu stavby, tep
         category: 'Ergonomie & Pohodlí',
         importance: 'recommended',
         rationale: 'Příliš široká řídítka způsobují brnění rukou a bolesti trapézů. Správná šířka sedla podle sedacích kostí je klíčem k jízdě bez otlaků. Otázka pro vás: Míváte při delších vyjížďkách potíže s brněním prstů nebo tlakem v sedací oblasti?',
-        icon: '🖐️',
+        icon: '️',
         suggestedComponent: 'chips',
         suggestedValues: [
           'Ergonomické gripy s opěrkou dlaně a gelové sedlo pro komfortní vzpřímený posed',
@@ -3591,7 +3873,7 @@ Doporuč přesně 3 konkrétní modely tepelných čerpadel dle typu stavby, tep
         category: 'Praktičnost & Nosnost',
         importance: 'recommended',
         rationale: 'Běžné sportovní rámy mají limit nosnosti 115 kg včetně kola. Pro těžší jezdce nebo výpravy s brašnami je nutný rám s nosností 135–150 kg.',
-        icon: '🎒',
+        icon: '',
         suggestedComponent: 'chips',
         suggestedValues: [
           'Zvýšená nosnost 130–150 kg (vhodné pro těžší jezdce i expediční brašny)',
@@ -3640,7 +3922,7 @@ Doporuč přesně 3 konkrétní modely tepelných čerpadel dle typu stavby, tep
         category: 'Komfort & Bezpečnost',
         importance: 'preference',
         rationale: 'Umožňuje snížit sedlo za jízdy před prudkým sjezdem, což radikálně snižuje riziko pádu přes řídítka v terénu.',
-        icon: '📏',
+        icon: '',
         suggestedComponent: 'chips',
         suggestedValues: [
           'Teleskopická sedlovka ovládaná z řídítek (okamžité snížení sedla ve sjezdech a technických pasážích)',
@@ -3654,7 +3936,7 @@ Doporuč přesně 3 konkrétní modely tepelných čerpadel dle typu stavby, tep
         category: 'Záruka & Podpora',
         importance: 'preference',
         rationale: 'Výrobci jako Trek či Specialized poskytují prvnímu majiteli doživotní záruku na rám kola.',
-        icon: '🛡️',
+        icon: '️',
         suggestedComponent: 'chips',
         suggestedValues: [
           'Doživotní tovární záruka na rám kola (Trek, Specialized, Orbea)',
@@ -3675,7 +3957,7 @@ Pravidla pro doporučení:
   strollers: {
     categoryName: 'Dětské Kočárky & Cestování s Dětmi',
     agentName: 'Specialista na Dětské Kočárky & Bezpečnost',
-    icon: '👶',
+    icon: '',
     description: 'Nezávislý nákupní rádce pro výběr dětských kočárků. Analyzuje odpružení, skládání do kufru, rozměry korbičky a terénní prostupnost.',
     keywords: ['kocarek', 'kočárek', 'kocarky', 'kočárky', 'dvojkombinace', 'trojkombinace', 'golfky', 'sportak', 'sporťák', 'stroller'],
     parameters: [
@@ -3685,7 +3967,7 @@ Pravidla pro doporučení:
         category: 'Kategorie & Typologie',
         importance: 'mandatory',
         rationale: 'Základní tržní zařazení určuje celou konstrukci podvozku. Kombinovaný kočárek poslouží od narození po batole, sportovní projede kořeny a cestovní se vejde do letadla. Otázka pro vás: Hledáte kočárek od narození s hlubokou korbou, sportovní do terénu, nebo kompaktní na cestování?',
-        icon: '👶',
+        icon: '',
         suggestedComponent: 'chips',
         suggestedValues: ['Kombinovaný kočárek 2v1 / 3v1 (od narození po batole)', 'Sportovní terénní kočárek s nafukovacími koly', 'Lehký kompaktní cestovní kočárek (golfky do auta a letadla)'],
       },
@@ -3695,7 +3977,7 @@ Pravidla pro doporučení:
         category: 'Biometrie & Ergonomie',
         importance: 'mandatory',
         rationale: 'Vysocí rodiče (180+ cm) bez teleskopického madla zakopávají při chůzi o osu kočárku a hrubě namáhají záda. Kočárek se navíc musí vejít do kufru auta a projet dveřmi výtahu. Otázka pro vás: Jaká je výška rodičů a jaké jsou prostorové limity kufru auta či výtahu?',
-        icon: '🧬',
+        icon: '',
         suggestedComponent: 'chips',
         suggestedValues: ['Rodiče do 175 cm (běžná výška madla)', 'Vysocí rodiče 180+ cm (nutné teleskopické prodloužení madla)', 'Omezený prostor (malý kufr auta / úzký výtah do 65 cm)'],
       },
@@ -3705,7 +3987,7 @@ Pravidla pro doporučení:
         category: 'Podvozek & Terén',
         importance: 'mandatory',
         rationale: 'Tvrdá nenafukovací kola na dlažebních kostkách vytřesou z miminka duši. Na polní cesty a dlažbu je nutné 4bodové odpružení s velkými pěnovými nebo nafukovacími koly. Otázka pro vás: Budete jezdit po kočičích hlavách a polních cestách, nebo pouze v nákupních centrech a parcích?',
-        icon: '🛞',
+        icon: '',
         suggestedComponent: 'chips',
         suggestedValues: [
           'Nafukovací nebo gelová velká kola s měkkým nastavitelným odpružením všech 4 kol (do terénu a na kočičí hlavy)',
@@ -3719,7 +4001,7 @@ Pravidla pro doporučení:
         category: 'Manipulace',
         importance: 'mandatory',
         rationale: 'Rodiče často drží dítě v jedné ruce a druhou musí složit kočárek do kufru. Možnost složení v celku bez sundávání sedadla šetří čas i nervy. Otázka pro vás: Budete kočárek denně nakládat do auta?',
-        icon: '🤏',
+        icon: '',
         suggestedComponent: 'chips',
         suggestedValues: [
           'Bleskové složení jednou rukou i se sportovním sedákem (ideální při nastupování do MHD)',
@@ -3733,7 +4015,7 @@ Pravidla pro doporučení:
         category: 'Pohodlí miminka',
         importance: 'mandatory',
         rationale: 'Pokud se dítě narodí na jaře či v létě, v zimě bude mít 6 měsíců a do krátké designové korby (pod 75 cm) se s teplým zimním fusakem nevejde. Otázka pro vás: V jakém ročním období se miminko narodí?',
-        icon: '🛏️',
+        icon: '️',
         suggestedComponent: 'chips',
         suggestedValues: [
           'Prostorná XL hluboká korba (délka 80+ cm – dostatek místa pro zimní fusak)',
@@ -3747,7 +4029,7 @@ Pravidla pro doporučení:
         category: 'Sportovní sezení',
         importance: 'recommended',
         rationale: 'Menší děti potřebují oční kontakt s rodičem pro pocit bezpečí, starší batolata chtějí pozorovat svět před sebou. Otázka pro vás: Požadujete možnost otočit sportovní sedák oběma směry a polohovat do úplného lehu?',
-        icon: '🔄',
+        icon: '',
         suggestedComponent: 'chips',
         suggestedValues: [
           'Obousměrné otočné sezení (čelem k rodičům pro kontakt s miminkem i po směru jízdy na objevování světa)',
@@ -3761,7 +4043,7 @@ Pravidla pro doporučení:
         category: 'Ochrana',
         importance: 'recommended',
         rationale: 'Krátká stříška nechrání spící dítě před nízkým ranním sluncem ani větrem a nutí rodiče používat pleny s kolíčky, které přehřívají vnitřek kočárku.',
-        icon: '☀️',
+        icon: '️',
         suggestedComponent: 'chips',
         suggestedValues: [
           'Prodloužitelná stříška s UV 50+ ochranou, větrací síťkou a tichým magnetickým okénkem',
@@ -3775,7 +4057,7 @@ Pravidla pro doporučení:
         category: 'Praktičnost',
         importance: 'recommended',
         rationale: 'Košík s nízkou nosností do 3 kg se pod váhou nákupu prověsí a dře o obrubníky. Důležitý je nosnost min. 5–10 kg a přístup i při sklopeném sedadle.',
-        icon: '🧺',
+        icon: '',
         suggestedComponent: 'chips',
         suggestedValues: [
           'Velký uzavíratelný nákupní košík s nosností 5–10 kg',
@@ -3789,7 +4071,7 @@ Pravidla pro doporučení:
         category: 'Bezpečnost',
         importance: 'mandatory',
         rationale: 'Tradiční zacvakávací přezky jsou u vzpouzejícího se batolete noční můrou. Magnetické rychlozámky upevní dítě během sekundy.',
-        icon: '🔒',
+        icon: '',
         suggestedComponent: 'chips',
         suggestedValues: [
           '5bodové magnetické zapínání pásů s měkkým polstrováním',
@@ -3823,7 +4105,7 @@ Pravidla pro doporučení:
         category: 'Bezpečnost',
         importance: 'preference',
         rationale: 'Při chůzi z prudkého kopce s těžkým dítětem ruční kotoučová brzda zabraňuje tomu, aby kočárek táhl rodiče dolů.',
-        icon: '🛑',
+        icon: '',
         suggestedComponent: 'chips',
         suggestedValues: [
           'Ruční přibrzďovací brzda na madle (bezpečné přibrzďování při chůzi z prudkého kopce a in-line bruslení)',
@@ -3839,7 +4121,7 @@ Doporuč přesně 3 reálné modely kočárků dle typu terénu, výšky rodič�
   lawnmowers: {
     categoryName: 'Sekačky & Péče o Trávník',
     agentName: 'Specialista na Sekačky & Zahradní Techniku',
-    icon: '🌱',
+    icon: '',
     description: 'Nezávislý nákupní rádce pro výběr sekaček. Analyzuje plochu trávníku, typ pohonu (robotická RTK vs. aku vs. benzín), šířku záběru a servisní spolehlivost.',
     keywords: ['sekacka', 'sekačka', 'sekacky', 'sekačky', 'trakturek', 'traktůrek', 'mulcovac', 'roboticka sekacka', 'mower'],
     parameters: [
@@ -3849,7 +4131,7 @@ Doporuč přesně 3 reálné modely kočárků dle typu terénu, výšky rodič�
         category: 'Kategorie & Pohon',
         importance: 'mandatory',
         rationale: 'Základní tržní zařazení. Robot seká denně bez vaší přítomnosti, aku sekačka je tichá a bezúdržbová pro pozemky do 600 m², benzín zvládne vysokou trávu a traktor velké zahrady nad 1 500 m². Otázka pro vás: Hledáte bezpracného robota, tichou aku sekačku, nebo silný benzínový stroj?',
-        icon: '🌱',
+        icon: '',
         suggestedComponent: 'chips',
         suggestedValues: [
           'Robotická sekačka bez obvodového drátu (autonomní údržba)',
@@ -3864,7 +4146,7 @@ Doporuč přesně 3 reálné modely kočárků dle typu terénu, výšky rodič�
         category: 'Pozemek & Terén',
         importance: 'mandatory',
         rationale: 'Při sklonu svahu nad 20° (35 %) ztrácí sekačky bez pohonu všech kol trakci a běžné motory se zadírají kvůli odlití oleje. Otázka pro vás: Jak velkou plochu trávníku sekáte a jaký je sklon vašeho pozemku?',
-        icon: '📐',
+        icon: '',
         suggestedComponent: 'chips',
         suggestedValues: ['Malá rovinatá zahrada do 400 m²', 'Střední zahrada 400–1 000 m² s mírným sklonem', 'Velký pozemek nad 1 000 m² nebo svažitý terén nad 20°'],
       },
@@ -3874,7 +4156,7 @@ Doporuč přesně 3 reálné modely kočárků dle typu terénu, výšky rodič�
         category: 'Navigace (u robotů)',
         importance: 'mandatory',
         rationale: 'Obvodový drát se často přesekne při provzdušňování trávníku a jeho pokládka trvá hodiny. Satelitní RTK navigace funguje bez drátů s přesností na centimetry. Otázka pro vás: Chcete robota bez nutnosti zakopávat drát do země?',
-        icon: '🛰️',
+        icon: '️',
         suggestedComponent: 'chips',
         suggestedValues: ['Satelitní RTK-GPS + AI kamera bez obvodového drátu', 'Klasický obvodový naváděcí kabel v zemi', 'Tradiční sekačka s ručním vedením'],
       },
@@ -3884,7 +4166,7 @@ Doporuč přesně 3 reálné modely kočárků dle typu terénu, výšky rodič�
         category: 'Pojezd & Ergonomie',
         importance: 'mandatory',
         rationale: 'Pevná rychlost pojezdu u levných sekaček buď nutí obsluhu běžet, nebo popojíždí příliš pomalu. Plynulá regulace rychlosti páčkou na madle je zásadní pro pohodlí. Otázka pro vás: Vyžadujete možnost plynule měnit rychlost pojezdu podle tempa chůze?',
-        icon: '⚡',
+        icon: '',
         suggestedComponent: 'chips',
         suggestedValues: ['Plynulý variabilní pojezd s nastavením rychlosti na madle', 'Pohon všech kol 4x4 (pro strmé svahy)', 'Bez pojezdu (pouze pro malé rovinky)'],
       },
@@ -3894,7 +4176,7 @@ Doporuč přesně 3 reálné modely kočárků dle typu terénu, výšky rodič�
         category: 'Výkon & Efektivita',
         importance: 'mandatory',
         rationale: 'Široký záběr (51+ cm) zkrátí dobu sečení velké zahrady na polovinu, ale neprojede mezi záhony a stromy. Otázka pro vás: Máte otevřenou plochu, nebo zahradu plnou stromků a záhonů?',
-        icon: '✂️',
+        icon: '️',
         suggestedComponent: 'chips',
         suggestedValues: [
           'Široký záběr 51–56 cm (rychlé posečení velkých ploch nad 1 200 m²)',
@@ -3908,7 +4190,7 @@ Doporuč přesně 3 reálné modely kočárků dle typu terénu, výšky rodič�
         category: 'Odolnost & Životnost',
         importance: 'recommended',
         rationale: 'Běžné tenké plechy po 4 letech proreznou od kyselé travní šťávy. Šasi z hliníkového odlitku nebo tvrzeného polymeru nikdy nezrezne. Otázka pro vás: Hledáte stroj s dlouhou životností bez koroze?',
-        icon: '🛡️',
+        icon: '️',
         suggestedComponent: 'chips',
         suggestedValues: [
           'Robustní ocelové šasi s antikorozním nátěrem (dlouhá životnost)',
@@ -3922,7 +4204,7 @@ Doporuč přesně 3 reálné modely kočárků dle typu terénu, výšky rodič�
         category: 'Funkčnost sečení',
         importance: 'recommended',
         rationale: 'Mulčování rozseká trávu na mikroskopické kousky, které slouží jako hnojivo a šetří čas s vyvážením koše. Otázka pro vás: Chcete posekanou trávu sbírat, nebo mulčovat zpět do trávníku?',
-        icon: '🔄',
+        icon: '',
         suggestedComponent: 'chips',
         suggestedValues: [
           'Systém 4v1: sběr do koše, mulčování, zadní i boční výhoz trávy',
@@ -3936,7 +4218,7 @@ Doporuč přesně 3 reálné modely kočárků dle typu terénu, výšky rodič�
         category: 'Podvozek',
         importance: 'recommended',
         rationale: 'Kola uložená na kluzných plastových pouzdrech se za dvě sezóny vyviklají a tlačení sekačky se stane dřinou. Kuličková ložiska zaručují hladký chod i po letech.',
-        icon: '🛞',
+        icon: '',
         suggestedComponent: 'chips',
         suggestedValues: [
           'Kuličková ložiska ve všech kolech (lehký pojezd a dlouhá životnost bez viklání)',
@@ -3950,7 +4232,7 @@ Doporuč přesně 3 reálné modely kočárků dle typu terénu, výšky rodič�
         category: 'Komfort',
         importance: 'recommended',
         rationale: 'V husté zástavbě je hlučná benzínová sekačka zdrojem sousedských sporů o víkendech. Tichá aku či robotická sekačka může běžet kdykoliv.',
-        icon: '🔇',
+        icon: '',
         suggestedComponent: 'chips',
         suggestedValues: [
           'Tichý akumulátorový motor (možnost sečení v neděli a za přítomnosti sousedů)',
@@ -3984,7 +4266,7 @@ Doporuč přesně 3 reálné modely kočárků dle typu terénu, výšky rodič�
         category: 'Ergonomie',
         importance: 'preference',
         rationale: 'Eliminuje namáhavé tahání za startovací šňůru – motor naskočí okamžitě po stisku tlačítka díky malé li-ion baterii.',
-        icon: '🔘',
+        icon: '',
         suggestedComponent: 'chips',
         suggestedValues: [
           'Elektrický startér tlačítkem na madle s Li-Ion baterií (snadný start bez tahání za šňůru)',
@@ -4009,100 +4291,11 @@ function normalizeText(text: string): string {
     .trim();
 }
 
-export function discoverDomainParameters(query: string): DomainAnalysisResult {
-  const normalized = normalizeText(query);
-
-  // Find best domain profile match (prioritizing longest/most specific keyword)
-  let bestMatch: { key: string; profile: (typeof DOMAIN_PROFILES)[string]; matchedKwLength: number } | null = null;
-
-  for (const [key, profile] of Object.entries(DOMAIN_PROFILES)) {
-    for (const kw of profile.keywords) {
-      const normKw = normalizeText(kw);
-      // For short keywords (<= 3 chars like 'ev', 'tv'), require distinct word boundaries to avoid false substring matches (e.g. 'televize' matching 'ev')
-      const isMatch = normKw.length <= 3
-        ? new RegExp(`(^|\\s|[.,;!?])${normKw}($|\\s|[.,;!?])`, 'i').test(normalized)
-        : normalized.includes(normKw);
-
-      if (isMatch) {
-        if (!bestMatch || normKw.length > bestMatch.matchedKwLength) {
-          bestMatch = { key, profile, matchedKwLength: normKw.length };
-        }
-      }
-    }
-  }
-
-  if (bestMatch) {
-    const { key, profile } = bestMatch;
-    const learned = DomainLearningService.getLearnedParametersForDomain(key);
-    const existingAlternatives = profile.suggestedAlternatives || [];
-    const mergedAlternatives: ExtractedDomainParameter[] = [
-      ...learned,
-      ...existingAlternatives,
-    ].filter((item, idx, arr) =>
-      !profile.parameters.some((p) => p.id === item.id || normalizeText(p.name) === normalizeText(item.name)) &&
-      arr.findIndex((x) => x.id === item.id || normalizeText(x.name) === normalizeText(item.name)) === idx
-    );
-
-    // INTENT FILTER:
-    // If the user's query already explicitly specified a constraint, eliminate redundant/contradictory questions!
-    let effectiveQuestions = [...profile.questions];
-    let effectiveParameters = [...profile.parameters];
-
-    const isElectricIntent = /elektro|electric|bater|bev|ev/i.test(normalized);
-    const isDieselIntent = /diesel|naft/i.test(normalized);
-    const isPetrolIntent = /benzin|petrol/i.test(normalized);
-    const isAutomaticIntent = /automat/i.test(normalized);
-
-    // If cars domain was matched with explicit powertrain in query, remove powertrain question
-    if (isElectricIntent || isDieselIntent || isPetrolIntent) {
-      effectiveQuestions = effectiveQuestions.filter((q) => q.id !== 'car_powertrain');
-      effectiveParameters = effectiveParameters.filter((p) => p.id !== 'powertrain');
-    }
-    if (isAutomaticIntent) {
-      effectiveQuestions = effectiveQuestions.filter((q) => q.id !== 'car_transmission');
-      effectiveParameters = effectiveParameters.filter((p) => p.id !== 'transmission');
-    }
-
-    // Ensure Luke ALWAYS offers brand/manufacturer preferences
-    const hasBrandParam = effectiveParameters.some(
-      (p) => p.id === 'brand_preferences' || p.id.includes('brand') || normalizeText(p.name).includes('znack') || normalizeText(p.name).includes('vyrobc')
-    );
-    if (!hasBrandParam) {
-      effectiveParameters.push(UNIVERSAL_BRAND_PARAMETER);
-    }
-
-    const hasBrandQuestion = effectiveQuestions.some(
-      (q) => q.id.includes('brand') || normalizeText(q.title).includes('znack') || normalizeText(q.title).includes('vyrobc')
-    );
-    if (!hasBrandQuestion) {
-      effectiveQuestions.push({
-        id: 'brand_preferences_q',
-        step: effectiveQuestions.length + 1,
-        title: 'Preferované a zakázané značky / výrobci',
-        subtitle: 'Uveďte značky, kterým důvěřujete a chcete je doporučit, a naopak ty, které si nepřejete.',
-        component: 'brands',
-        isMultiSelect: false,
-        defaultValue: { preferred: '', forbidden: '' },
-        promptForgeTemplate: '- **Pravidla pro výrobce & značky:** {value}',
-      });
-    }
-
-    return {
-      keyword: query,
-      matchedDomain: key,
-      categoryName: profile.categoryName,
-      agentName: profile.agentName,
-      icon: profile.icon,
-      description: profile.description,
-      parameters: effectiveParameters,
-      questions: effectiveQuestions,
-      systemPrompt: profile.systemPrompt,
-      suggestedAlternatives: mergedAlternatives,
-    };
-  }
-
-  // If no predefined profile matched, dynamically synthesize an intelligent, deep 10-parameter profile
-  return synthesizeGenericDomainProfile(query);
+export function discoverDomainParameters(query: string, locale: string = "cs"): DomainAnalysisResult {
+  // Direct clean title synthesis — NO fuzzy substring matching or dictionary keyword guessing.
+  // Unless exact letter-for-letter verified match exists in database, query is synthesized directly for LLM/clean title.
+  const cleanTitle = extractCleanProductTitle(query);
+  return synthesizeGenericDomainProfile(cleanTitle, locale);
 }
 
 /**
@@ -4111,8 +4304,10 @@ export function discoverDomainParameters(query: string): DomainAnalysisResult {
  */
 export function buildCustomAgentFromParameters(
   analysis: DomainAnalysisResult,
-  activeParameters: ExtractedDomainParameter[]
+  activeParameters: ExtractedDomainParameter[],
+  locale: string = "cs"
 ): UniversalAgentDefinition {
+  const isEn = locale === "en";
   const slug = normalizeText(analysis.keyword)
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/(^-|-$)/g, '') || 'custom-agent';
@@ -4132,12 +4327,12 @@ export function buildCustomAgentFromParameters(
       tunedQuestions.push({
         id: param.id,
         step: stepIndex,
-        title: param.name || 'Preferované a zakázané značky / výrobci',
-        subtitle: param.rationale || 'Napište výrobce, které preferujete, a značky, které chcete z výběru striktně vyloučit.',
+        title: param.name || (isEn ? 'Preferred & Forbidden Brands / Manufacturers' : 'Preferované a zakázané značky / výrobci'),
+        subtitle: param.rationale || (isEn ? 'Specify preferred brands and brands you strictly want to exclude.' : 'Napište výrobce, které preferujete, a značky, které chcete z výběru striktně vyloučit.'),
         component: 'brands',
         isMultiSelect: false,
         defaultValue: { preferred: '', forbidden: '' },
-        promptForgeTemplate: `- **Pravidla pro výrobce & značky:** {value}`,
+        promptForgeTemplate: isEn ? `- **Manufacturer & Brand Rules:** {value}` : `- **Pravidla pro výrobce & značky:** {value}`,
       });
       stepIndex++;
       continue;
@@ -4167,14 +4362,24 @@ export function buildCustomAgentFromParameters(
     }
 
     // Synthesize question for custom or newly added parameter
-    const options = (param.suggestedValues && param.suggestedValues.length > 0)
-      ? param.suggestedValues.map((v) => {
+    const isCustomOrLearned = param.id.startsWith('custom_') || 
+      param.id.startsWith('learned-') || 
+      param.id.startsWith('extra_') || 
+      param.suggestedComponent === 'text' ||
+      param.suggestedValues?.some((v) => 
+        v.includes('Vysoká priorita') || v.includes('High priority') || 
+        v.includes('Doporučeno') || v.includes('Recommended') ||
+        v.includes('Není nutné') || v.includes('Not required')
+      );
+
+    const rawOptions = (!isCustomOrLearned && param.suggestedValues && param.suggestedValues.length > 0)
+      ? param.suggestedValues.map((v, idx) => {
           const parenMatch = v.match(/^([^(]+?)\s*\(([^)]+)\)$/);
           if (parenMatch) {
             return {
               label: parenMatch[1].trim(),
               description: parenMatch[2].trim(),
-              value: parenMatch[1].toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, ''),
+              value: parenMatch[1].toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '') || `opt_${idx}`,
             };
           }
           const colonMatch = v.match(/^([^:]+?)\s*:\s*(.+)$/);
@@ -4182,42 +4387,72 @@ export function buildCustomAgentFromParameters(
             return {
               label: colonMatch[1].trim(),
               description: colonMatch[2].trim(),
-              value: colonMatch[1].toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, ''),
+              value: colonMatch[1].toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '') || `opt_${idx}`,
             };
           }
           return {
             label: v.trim(),
-            value: v.toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, ''),
+            value: v.toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '') || `opt_${idx}`,
             description: undefined,
           };
         })
-      : [
-          { label: 'Vysoká priorita (Požadováno)', value: 'required', description: 'Striktní podmínka výběru' },
-          { label: 'Doporučeno (Výhodou)', value: 'preferred', description: 'Uvítám, pokud to nabídka a cena dovolí' },
-          { label: 'Není nutné', value: 'optional', description: 'Neovlivňuje výsledné doporučení' },
-        ];
+      : null;
 
-    tunedQuestions.push({
-      id: param.id,
-      step: stepIndex,
-      title: param.name,
-      subtitle: param.rationale || 'Vyberte variantu odpovídající vašim potřebám.',
-      component: param.suggestedComponent || 'chips',
-      isMultiSelect: false,
-      options,
-      defaultValue: options[0].value,
-      promptForgeTemplate: `- **${param.name}:** {value}`,
-    });
+    const options = rawOptions ? rawOptions.reduce((acc, current, idx) => {
+      let uniqueVal = current.value;
+      if (acc.some((o) => o.value === uniqueVal)) {
+        uniqueVal = `${current.value}_${idx}`;
+      }
+      acc.push({ ...current, value: uniqueVal });
+      return acc;
+    }, [] as { label: string; description?: string; value: string }[]) : null;
+
+    // When Luke returns no suggestedValues, use a free-text input instead of fake generic chips
+    if (options === null) {
+      tunedQuestions.push({
+        id: param.id,
+        step: stepIndex,
+        title: param.name,
+        subtitle: param.rationale || 'Napište svoji odpověď.',
+        component: 'text' as const,
+        isMultiSelect: false,
+        defaultValue: '',
+        promptForgeTemplate: `- **${param.name}:** {value}`,
+      });
+    } else {
+      tunedQuestions.push({
+        id: param.id,
+        step: stepIndex,
+        title: param.name,
+        subtitle: param.rationale || 'Vyberte variantu odpovídající vašim potřebám.',
+        component: (param.suggestedComponent === 'slider' || param.suggestedComponent === 'dropdown')
+          ? param.suggestedComponent
+          : 'chips',
+        isMultiSelect: param.suggestedComponent !== 'dropdown',
+        options,
+        defaultValue: undefined,
+        promptForgeTemplate: `- **${param.name}:** {value}`,
+      });
+    }
 
     stepIndex++;
   }
 
   // 2. Synthesize updated system prompt with explicit tuned parameters
   const tunedParametersSummary = activeParameters
-    .map((p, idx) => `${idx + 1}. **${p.name}** (${p.importance === 'mandatory' ? 'Kritický' : 'Doporučený'}): ${p.rationale}`)
+    .map((p, idx) => `${idx + 1}. **${p.name}** (${p.importance === 'mandatory' ? (isEn ? 'Critical' : 'Kritický') : (isEn ? 'Recommended' : 'Doporučený')}): ${p.rationale}`)
     .join('\n');
 
-  const tunedSystemPrompt = `${analysis.systemPrompt}
+  const tunedSystemPrompt = isEn
+    ? `${analysis.systemPrompt}
+
+---
+### User Specified & Tuned Parameters:
+Before starting the selection, the user actively tuned these key parameters:
+${tunedParametersSummary}
+
+Strictly verify that all recommended models match every single one of these selected parameters!`
+    : `${analysis.systemPrompt}
 
 ---
 ### Uživatelsky specifikované a vytuněné parametry:
@@ -4232,7 +4467,7 @@ Při vyhodnocení striktně zkontroluj shodu všech doporučených modelů s ka�
     category: analysis.categoryName,
     icon: analysis.icon,
     version: '1.1.0',
-    description: `Nákupní poradce vyladěný na míru s ${activeParameters.length} klíčovými parametry.`,
+    description: locale === "en" ? `Custom shopping agent tailored with ${activeParameters.length} key parameters.` : `Nákupní poradce vyladěný na míru s ${activeParameters.length} klíčovými parametry.`,
     systemPrompt: tunedSystemPrompt,
     questions: tunedQuestions.length > 0 ? tunedQuestions : analysis.questions,
     createdAt: new Date().toISOString(),
@@ -4248,10 +4483,15 @@ Při vyhodnocení striktně zkontroluj shodu všech doporučených modelů s ka�
  */
 export function buildAgentFromDomainAnalysis(
   analysis: DomainAnalysisResult,
-  customParameters?: ExtractedDomainParameter[]
+  customParameters?: ExtractedDomainParameter[],
+  locale: string = "cs"
 ): UniversalAgentDefinition {
-  if (customParameters && customParameters.length > 0) {
-    return buildCustomAgentFromParameters(analysis, customParameters);
+  const activeParams = (customParameters && customParameters.length > 0)
+    ? customParameters
+    : analysis.parameters;
+
+  if (activeParams && activeParams.length > 0) {
+    return buildCustomAgentFromParameters(analysis, activeParams, locale);
   }
 
   const slug = normalizeText(analysis.keyword)
@@ -4277,282 +4517,173 @@ export function buildAgentFromDomainAnalysis(
  * Produces AT LEAST 10 structured, product-requirement parameters covering technical, functional,
  * ergonomic, reliability, and budgetary aspects.
  */
-function synthesizeGenericDomainProfile(query: string): DomainAnalysisResult {
+function synthesizeGenericDomainProfile(query: string, locale: string = "cs"): DomainAnalysisResult {
+  const isEn = locale === "en";
   const cleanTitle = query.trim().slice(0, 40);
-
-  const isPersonalBodyProduct = /(kolo|kola|lyže|lyze|boty|bota|obuv|židle|zidle|křeslo|kreslo|matrace|batoh|helma|přilba|prilba|oblečení|obleceni|bunda|kalhoty|sport|sedad|sedák|brusle|rukavice)/i.test(query);
 
   const parameters: ExtractedDomainParameter[] = [
     {
-      id: 'elemental_market_segment',
-      name: `Základní typové rozdělení a tržní segment produktu "${cleanTitle}"`,
-      category: 'Kategorie & Typologie',
-      importance: 'mandatory',
-      rationale: `Klíčové elementární zařazení na trhu, které určuje celý směr výběru. Než se začnou řešit dílčí součástky a technologie, je nutné určit přesnou podkategorii a disciplínu. Otázka pro vás: Jaký konkrétní typ nebo konstrukční variantu produktu "${cleanTitle}" hledáte?`,
-      icon: '🧭',
-      suggestedComponent: 'chips',
-      suggestedValues: ['Univerzální standardní provedení', 'Vysoce výkonná / Profesionální varianta', 'Kompaktní / Odlehčené provedení pro mobilitu'],
-    },
-    ...(isPersonalBodyProduct ? [{
-      id: 'user_biometrics_health',
-      name: 'Výška, váha a proporce',
-      category: 'Biometrie & Ergonomie',
-      importance: 'mandatory' as const,
-      rationale: 'U produktů přicházejících do přímého kontaktu s lidským tělem určují výška, hmotnost a zdravotní historie (např. operace páteře, kloubů, vbočený palec či chronické bolesti) optimální velikost, tvrdost i ergonomii. Otázka pro vás: Jaká je vaše výška, váha a máte nějaká zdravotní či pohybová omezení?',
-      icon: '🧬',
-      suggestedComponent: 'chips' as const,
-      suggestedValues: ['Běžná postava bez pohybových omezení', 'Vyšší postava / Hmotnost nad 90 kg', 'Specifická ergonomická a zdravotní omezení (páteř/klouby)'],
-    }] : []),
-
-    {
-      id: 'primary_purpose',
-      name: 'Způsob využití',
-      category: 'Způsob využití',
-      importance: 'mandatory',
-      rationale: 'Rozdíl mezi prémiovým a základním modelem spočívá v kvalitě zpracování a dimenzování pro pravidelné používání. Otázka pro vás: Jak často a jak dlouho v kuse budete produkt reálně používat?',
-      icon: '🎯',
-      suggestedComponent: 'chips',
-      suggestedValues: ['Každodenní intenzivní provoz s vysokou zátěží', 'Pravidelné rodinné / víkendové použití', 'Příležitostné / Hobby'],
+      id: "primary_product_type",
+      name: isEn ? "Type & Primary Purpose" : "Typ & hlavní určení",
+      category: isEn ? "Category & Typology" : "Kategorie & Typologie",
+      importance: "mandatory",
+      rationale: isEn
+        ? "Based on expert forum and review insights, considering the specific purpose for " + cleanTitle + " is a key factor."
+        : "Podle zkušeností z odborných fór a recenzí je určujícím krokem zohlednit konkrétní určení pro " + cleanTitle + ".",
+      icon: "",
+      suggestedComponent: "text",
     },
     {
-      id: 'technical_class',
-      name: 'Konstrukce & Zpracování',
-      category: 'Výkon & Technologie',
-      importance: 'mandatory',
-      rationale: 'Kvalitnější provedení nabízí vyšší stálost, lepší odolnost a celkový uživatelský komfort. Otázka pro vás: Vyžadujete špičkovou výkonovou rezervu pro náročné situace?',
-      icon: '⚡',
-      suggestedComponent: 'chips',
-      suggestedValues: ['Špičková profesionální třída s výkonovou rezervou', 'Zlatý střed (optimální poměr cena / výkon)', 'Základní spolehlivá řada pro nenáročné nasazení'],
+      id: "user_biometrics_health",
+      name: isEn ? "Sizing & Ergonomics" : "Velikost & biometrie",
+      category: isEn ? "Biometrics & Ergonomics" : "Biometrie & Ergonomie",
+      importance: "mandatory",
+      rationale: isEn
+        ? "Physical parameters, dimensions, and ergonomic requirements for " + cleanTitle + "."
+        : "Fyzické parametry, rozměry a zdravotní limity pro " + cleanTitle + ".",
+      icon: "",
+      suggestedComponent: "text",
     },
     {
-      id: 'capacity_sizing',
-      name: 'Kapacita a dimenzování',
-      category: 'Dimenzování',
-      importance: 'mandatory',
-      rationale: 'Poddimenzovaná kapacita vede k neustálému přetěžování stroje a frustraci uživatele. Otázka pro vás: Jak velkou zátěž nebo dávku potřebujete najednou zpracovat?',
-      icon: '⚖️',
-      suggestedComponent: 'chips',
-      suggestedValues: [
-          'Velká kapacita pro rodinu či intenzivní zátěž (maximální prostorová i výkonová rezerva)',
-          'Standardní střední velikost pro běžné každodenní použití',
-          'Kompaktní úsporné provedení do menších prostor či pro občasné použití',
-        ],
+      id: "primary_purpose",
+      name: isEn ? "Usage Intensity" : "Intenzita využití",
+      category: isEn ? "Usage & Load" : "Použití & Zátěž",
+      importance: "mandatory",
+      rationale: isEn
+        ? "Actual frequency of use and environment demands for " + cleanTitle + "."
+        : "Reálná frekvence používání a náročnost prostředí pro " + cleanTitle + ".",
+      icon: "",
+      suggestedComponent: "text",
     },
     {
-      id: 'dimensions_installation',
-      name: 'Rozměry a montáž',
-      category: 'Ergonomie & Umístění',
-      importance: 'recommended',
-      rationale: 'Ověření rozměrů pro umístění v prostoru a manipulační prostor pro servis. Otázka pro vás: Máte omezený prostor pro uskladnění nebo transport v autě?',
-      icon: '📐',
-      suggestedComponent: 'chips',
-      suggestedValues: [
-          'Kompaktní rozměry pro snadné umístění bez nutnosti stavebních úprav',
-          'Standardní rozměry odpovídající běžným evropským normám',
-          'Velkorysé rozměry s důrazem na maximální vnitřní objem',
-        ],
+      id: "technical_class",
+      name: isEn ? "Key Features" : "Klíčové vlastnosti",
+      category: isEn ? "Features & Equipment" : "Funkce & Výbava",
+      importance: "mandatory",
+      rationale: isEn
+        ? "Specific features and comfort elements required for " + cleanTitle + "."
+        : "Specifické vlastnosti a komfortní prvky požadované pro " + cleanTitle + ".",
+      icon: "",
+      suggestedComponent: "text",
     },
     {
-      id: 'controls_ui',
-      name: 'Způsob ovládání',
-      category: 'Uživatelský komfort',
-      importance: 'recommended',
-      rationale: 'Způsob ovládání a obsluhy ovlivňuje každodenní komfort a přehlednost. Otázka pro vás: Preferujete jednoduchá nerozbitná tlačítka, nebo chytré digitální funkce?',
-      icon: '📱',
-      suggestedComponent: 'chips',
-      suggestedValues: [
-          'Intuitivní fyzická mechanická tlačítka a otočné voliče (spolehlivost a ovládání poslepu)',
-          'Moderní dotykový displej s přehlednou grafikou a českým menu',
-          'Chytré ovládání přes mobilní aplikaci a Wi-Fi / Bluetooth',
-        ],
+      id: "capacity_sizing",
+      name: isEn ? "Execution & Specs" : "Provedení & specifikace",
+      category: isEn ? "Specifications & Build" : "Specifikace & Provedení",
+      importance: "mandatory",
+      rationale: isEn
+        ? "Technical design and scope of features for " + cleanTitle + "."
+        : "Technické provedení a rozsah vlastností pro " + cleanTitle + ".",
+      icon: "️",
+      suggestedComponent: "text",
     },
     {
-      id: 'energy_efficiency',
-      name: 'Provozní náklady',
-      category: 'Ekonomika provozu',
-      importance: 'recommended',
-      rationale: 'Dlouhodobé nároky na údržbu, provoz a spotřebu vyžadují uvážlivou volbu. Otázka pro vás: Záleží vám na minimalizaci dlouhodobých provozních nákladů?',
-      icon: '🌿',
-      suggestedComponent: 'chips',
-      suggestedValues: [
-          'Nejvyšší energetická třída A (minimální spotřeba elektřiny a vody)',
-          'Vyvážená energetická třída B/C s výhodným poměrem ceny a provozních nákladů',
-          'Základní energetická třída pro méně frekventované využití',
-        ],
+      id: "dimensions_installation",
+      name: isEn ? "Design & Ergonomics" : "Konstrukce & ergonomie",
+      category: isEn ? "Construction & Shape" : "Konstrukce & Tvar",
+      importance: "recommended",
+      rationale: isEn
+        ? "Structural properties and anatomical shape for " + cleanTitle + "."
+        : "Konstrukční vlastnosti a anatomický tvar pro " + cleanTitle + ".",
+      icon: "",
+      suggestedComponent: "text",
     },
     {
-      id: 'materials_durability',
-      name: 'Materiály a odolnost',
-      category: 'Kvalita konstrukce',
-      importance: 'mandatory',
-      rationale: 'Prémiové materiálové složení a zpracování zvyšují odolnost proti opotřebení. Otázka pro vás: Bude produkt vystaven hrubšímu zacházení nebo náročnému prostředí?',
-      icon: '🛡️',
-      suggestedComponent: 'chips',
-      suggestedValues: [
-          'Prémiové kovové a nerezové komponenty s vysokou odolností proti opotřebení',
-          'Kvalitní tvrzený plast a kompozitní slitiny',
-          'Základní materiálové provedení s důrazem na dostupnou cenu',
-        ],
+      id: "materials_durability",
+      name: isEn ? "Material & Durability" : "Materiál & odolnost",
+      category: isEn ? "Material & Quality" : "Materiál & Kvalita",
+      importance: "mandatory",
+      rationale: isEn
+        ? "Material composition directly impacts durability for " + cleanTitle + "."
+        : "Materiálové složení přímo ovlivňuje trvanlivost pro " + cleanTitle + ".",
+      icon: "️",
+      suggestedComponent: "text",
     },
     {
-      id: 'maintenance_service',
-      name: 'Servis a náhradní díly',
-      category: 'Servis & Podpora',
-      importance: 'recommended',
-      rationale: 'Dostupnost záručního i pozáručního servisu a zákaznické podpory v ČR. Otázka pro vás: Požadujete ověřenou značku se servisem a díly v ČR?',
-      icon: '🔧',
-      suggestedComponent: 'chips',
-      suggestedValues: [
-          'Snadná samoobslužná údržba a široce dostupné náhradní díly v ČR',
-          'Autorizovaný servis s rychlou dostupností techniků po celé ČR',
-          'Základní bezúdržbové provedení',
-        ],
+      id: "maintenance_service",
+      name: isEn ? "Warranty & Service" : "Záruka & servis",
+      category: isEn ? "Warranty & Support" : "Záruka & Podpora",
+      importance: "recommended",
+      rationale: isEn
+        ? "Availability of spare parts and warranty options for " + cleanTitle + "."
+        : "Dostupnost náhradních dílů a záruky pro " + cleanTitle + ".",
+      icon: "",
+      suggestedComponent: "text",
     },
     {
-      id: 'safety_certification',
-      name: 'Bezpečnost a certifikace',
-      category: 'Bezpečnost',
-      importance: 'preference',
-      rationale: 'Certifikovaná bezpečnost a splnění oborových norem. Otázka pro vás: Vyžadujete certifikované jištění proti selhání a bezpečnostní atesty?',
-      icon: '🔒',
-      suggestedComponent: 'chips',
-      suggestedValues: [
-          'Špičková bezpečnostní certifikace s automatickým vypnutím a ochranou proti přetížení',
-          'Standardní evropská certifikace CE a TÜV',
-          'Základní bezpečnostní prvky dle platných norem',
-        ],
+      id: "budget",
+      name: isEn ? "Estimated Budget" : "Orientační rozpočet",
+      category: isEn ? "Budget" : "Rozpočet",
+      importance: "mandatory",
+      rationale: isEn
+        ? "Price range and expected budget help filter the corresponding quality tier for " + cleanTitle + "."
+        : "Cenový rámec a předpokládaný rozpočet pomůže vyfiltrovat odpovídající kvalitativní třídu pro " + cleanTitle + ".",
+      icon: "",
+      suggestedComponent: "chips",
+      suggestedValues: isEn
+        ? ["Sweet spot (best price / performance ratio)", "Premium segment without limits", "Affordable budget tier"]
+        : ["Zlatý střed (nejlepší poměr cena / výkon)", "Prémiový segment bez omezení", "Dostupná cenová hladina"],
     },
-    {
-      id: 'total_budget',
-      name: 'Orientační rozpočet',
-      category: 'Investice',
-      importance: 'mandatory',
-      rationale: 'Investice do kvalitnějších komponent se vrací v delší životnosti bez nutnosti opakovaného nákupu. Otázka pro vás: Jaký je váš orientační rozpočet na nákup?',
-      icon: '💰',
-      suggestedComponent: 'slider',
-      suggestedValues: [
-          'Ekonomická kategorie s nejlepším poměrem ceny a užitné hodnoty',
-          'Zlatá střední třída s vyváženou kvalitou a dlouhou životností',
-          'Prémiový segment bez kompromisů v materiálech a technologiích',
-        ],
-    },
-    UNIVERSAL_BRAND_PARAMETER,
+    isEn ? UNIVERSAL_BRAND_PARAMETER_EN : UNIVERSAL_BRAND_PARAMETER,
   ];
-
-  const questions: WizardQuestion[] = [
-    {
-      id: 'generic_primary_usage',
-      step: 1,
-      title: `Jak budete "${cleanTitle}" nejčastěji používat?`,
-      subtitle: 'Pomůže určit potřebnou odolnost, výbavu a dimenzování.',
-      component: 'chips',
-      isMultiSelect: false,
-      options: [
-        { label: 'Intenzivní / Poloprofesionální provoz', value: 'heavy_duty', description: 'Důraz na maximální odolnost, životnost a výkonovou rezervu.' },
-        { label: 'Pravidelné rodinné / běžné použití', value: 'standard_home', description: 'Důraz na vyvážený poměr cena / výkon a spolehlivost.' },
-        { label: 'Občasné / Nenáročné použití', value: 'casual', description: 'Základní osvědčené a cenově dostupné řešení.' },
-      ],
-      defaultValue: 'standard_home',
-      promptForgeTemplate: '- **Hlavní využití:** {value}',
-    },
-    {
-      id: 'generic_priorities',
-      step: 2,
-      title: 'Jaké jsou vaše klíčové priority a technologické požadavky?',
-      subtitle: 'Vyberte vlastnosti, na kterých vám nejvíce záleží.',
-      component: 'chips',
-      isMultiSelect: true,
-      options: [
-        { label: 'Špičková životnost a záruční servis v ČR', value: 'durability' },
-        { label: 'Nízké provozní náklady a energetická úspornost', value: 'efficiency' },
-        { label: 'Jednoduché a intuitivní ovládání', value: 'easy_to_use' },
-        { label: 'Kompaktní rozměry a snadná manipulace', value: 'compactness' },
-      ],
-      defaultValue: ['durability', 'efficiency'],
-      promptForgeTemplate: '- **Klíčové priority:** {value}',
-    },
-    {
-      id: 'generic_brands',
-      step: 3,
-      title: 'Preferované a zakázané značky / výrobci',
-      subtitle: 'Napište výrobce, které preferujete, a značky, které chcete z výběru striktně vyloučit.',
-      component: 'brands',
-      isMultiSelect: false,
-      defaultValue: { preferred: '', forbidden: '' },
-      promptForgeTemplate: '- **Pravidla pro výrobce & značky:** {value}',
-    },
-    {
-      id: 'generic_budget',
-      step: 4,
-      title: 'Orientační rozpočet na nákup',
-      subtitle: 'Cenová hladina v Kč pro výběr optimálního modelu.',
-      component: 'slider',
-      sliderConfig: { min: 2000, max: 80000, step: 1000, unit: 'Kč', defaultValue: 15000 },
-      defaultValue: 15000,
-      promptForgeTemplate: '- **Cenový rozpočet:** do {value} Kč',
-    },
-  ];
-
-  const systemPrompt = `Jsi nezávislý a expertní nákupní rádce pro kategorii "${cleanTitle}".
-Tvým úkolem je na základě parametrů zadaných uživatelem doporučit přesně 3 reálné, aktuálně na trhu dostupné modely, které nejlépe splňují jeho požadavky.
-
-Pravidla pro vyhodnocení:
-1. Zvaž poměr cena/výkon, spolehlivost značky a reference uživatelů z dlouhodobých testů.
-2. U každého modelu uveď přesnou značku a modelové označení.
-3. Poskytni technické odůvodnění srovnané s požadavky uživatele.
-4. Uveď klíčová pozitiva (Pros), možná omezení (Cons) a orientační cenu v Kč.
-5. Striktně respektuj zadané preferované a zakázané značky.`;
-
-  const suggestedAlternatives: ExtractedDomainParameter[] = [
-    {
-      id: 'warranty_service',
-      name: 'Záruka a servis',
-      category: 'Spolehlivost & Podpora',
-      importance: 'recommended',
-      rationale: 'Dostupnost náhradních dílů, rychlost vyřízení servisu a možnost prodloužené záruky.',
-      icon: '🛡️',
-      suggestedComponent: 'chips',
-      suggestedValues: [
-          'Prodloužená 5letá až 10letá záruka od výrobce s opravou přímo u zákazníka',
-          'Standardní 3letá záruka s autorizovaným servisem v ČR',
-          'Zákonná 2letá záruka',
-        ],
-    },
-    {
-      id: 'noise_level_acoustic',
-      name: 'Hlučnost a akustika',
-      category: 'Komfort',
-      importance: 'preference',
-      rationale: 'Nízká provozní hlučnost vhodná pro použití v obytných a klidových prostorách.',
-      icon: '🤫',
-      suggestedComponent: 'chips',
-      suggestedValues: [
-          'Extra tichý chod (vhodné pro použití v noci a v otevřených obytných prostorech)',
-          'Standardní akustická hladina běžná v dané kategorii',
-          'Výkonový režim bez specifických požadavků na tichost',
-        ],
-    },
-  ];
-
-  const learned = DomainLearningService.getLearnedParametersForDomain('generic');
-  const mergedAlternatives: ExtractedDomainParameter[] = [
-    ...learned,
-    ...suggestedAlternatives,
-  ].filter((item, idx, arr) =>
-    !parameters.some((p) => p.id === item.id || normalizeText(p.name) === normalizeText(item.name)) &&
-    arr.findIndex((x) => x.id === item.id || normalizeText(x.name) === normalizeText(item.name)) === idx
-  );
 
   return {
-    keyword: query,
-    matchedDomain: 'generic',
-    categoryName: `Výběr: ${cleanTitle}`,
-    agentName: `Specialista na ${cleanTitle}`,
-    icon: '🎯',
-    description: `Inteligentní nákupní rádce pro výběr ideálního modelu v kategorii "${cleanTitle}".`,
+    keyword: cleanTitle,
+    matchedDomain: "generic",
+    categoryName: isEn ? "Shopping selection for " + cleanTitle : "Nákupní výběr pro " + cleanTitle,
+    agentName: isEn ? "bAIright: Specialist in " + cleanTitle : "bAIright: Specialista na " + cleanTitle,
+    icon: "",
+    description: isEn ? "Shopping advisor for selecting " + cleanTitle + " incorporating insights from forums and expert reviews." : "Nákupní poradce pro výběr " + cleanTitle + " zohledňující poznatky z fór a odborných recenzí.",
     parameters,
-    questions,
-    systemPrompt,
-    suggestedAlternatives: mergedAlternatives,
+    questions: [
+      {
+        id: "q_generic_type",
+        step: 1,
+        title: isEn ? "What type and purpose are you looking for in " + cleanTitle + "?" : "Jaký typ a určení pro " + cleanTitle + " hledáte?",
+        subtitle: isEn ? "Specify your intended use case." : "Specifikujte váš účel použití.",
+        component: "text",
+        isMultiSelect: false,
+        defaultValue: "",
+        promptForgeTemplate: isEn ? "- **Type & Purpose:** {value}" : "- **Typ a určení:** {value}",
+      },
+      {
+        id: "q_generic_biometrics_specs",
+        step: 2,
+        title: isEn ? "What are your key ergonomic and feature requirements for " + cleanTitle + "?" : "Jaké máte klíčové požadavky na ergonomii a vlastnosti pro " + cleanTitle + "?",
+        subtitle: isEn ? "Specify dimensions, shape, or biometric requirements." : "Specifikujte rozměry, tvar či biometrické požadavky.",
+        component: "text",
+        isMultiSelect: false,
+        defaultValue: "",
+        promptForgeTemplate: isEn ? "- **Ergonomics & Specs:** {value}" : "- **Ergonomie a specifikace:** {value}",
+      },
+      {
+        id: "q_generic_budget",
+        step: 3,
+        title: isEn ? "What is your estimated budget for " + cleanTitle + "?" : "Jaký je váš předpokládaný rozpočet pro " + cleanTitle + "?",
+        subtitle: isEn ? "Helps filter price-appropriate models." : "Pomůže vyfiltrovat cenově odpovídající modely.",
+        component: "chips",
+        isMultiSelect: false,
+        options: isEn ? [
+          { label: "Sweet spot (best price / performance ratio)", value: "mid_range", description: "Optimized quality at a reasonable price." },
+          { label: "Premium segment regardless of price", value: "premium", description: "The best available on the market." },
+          { label: "Affordable budget tier", value: "entry", description: "Focus on economic value." },
+        ] : [
+          { label: "Zlatý střed (nejlepší poměr cena / výkon)", value: "mid_range", description: "Optimalizovaná kvalita za rozumnou cenu." },
+          { label: "Prémiový segment bez ohledu na cenu", value: "premium", description: "To nejlepší dostupné na trhu." },
+          { label: "Dostupná cenová hladina", value: "entry", description: "Důraz na ekonomickou výhodnost." },
+        ],
+        defaultValue: "mid_range",
+        promptForgeTemplate: isEn ? "- **Budget:** {value}" : "- **Rozpočet:** {value}",
+      },
+    ],
+    systemPrompt: isEn ? "Expert shopping advisor for " + cleanTitle + " incorporating insights from forums and expert reviews." : "Expertní nákupní poradce pro " + cleanTitle + " zohledňující zkušenosti z fór a odborných recenzí.",
   };
+}
+
+export function extractCleanProductTitle(query: string): string {
+  if (!query) return '';
+  return query
+    .trim()
+    .replace(/^(doporuč mi|doporuč|chci|vyber mi|vyber|koupit|nejlepší|nejlepšou)\s+/i, '')
+    .trim();
 }

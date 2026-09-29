@@ -100,7 +100,7 @@ export const AIEngineSubscriptionModal: React.FC<AIEngineSubscriptionModalProps>
       if (res.ok && (data.ok || data.valid)) {
         setTestStatus((prev) => ({
           ...prev,
-          [providerId]: { loading: false, ok: true, message: data.message || "Klíč je platný a ověřený! 🎉" },
+          [providerId]: { loading: false, ok: true, message: data.message || "Klíč je platný a ověřený!" },
         }));
       } else {
         setTestStatus((prev) => ({
@@ -201,7 +201,7 @@ export const AIEngineSubscriptionModal: React.FC<AIEngineSubscriptionModalProps>
                     <span>Paměť: {provider.contextWindow}</span>
                     {provider.requiresKey && (
                       <span className={`px-1.5 py-0.5 rounded ${hasKey ? "bg-emerald-950/60 text-emerald-300 border border-emerald-500/30" : "bg-slate-800/80 text-slate-400 border border-slate-700/50"}`}>
-                        {hasKey ? "✓ Klíč zadán" : "Vyžaduje klíč"}
+                        {hasKey ? "Klíč zadán" : "Vyžaduje klíč"}
                       </span>
                     )}
                   </div>

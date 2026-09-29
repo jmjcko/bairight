@@ -1,4 +1,5 @@
 'use client';
+import { useI18n } from '@/lib/i18n/I18nContext';
 
 import React, { useState } from 'react';
 import { X, Copy, Check, Terminal, Eye, Sparkles, ShieldAlert, Cpu } from 'lucide-react';
@@ -22,6 +23,7 @@ export const PromptInspectorModal: React.FC<PromptInspectorModalProps> = ({
   isSubmitting = false,
 }) => {
   const [activeTab, setActiveTab] = useState<'prompt' | 'payload'>('prompt');
+  const { locale } = useI18n();
   const [copied, setCopied] = useState(false);
 
   if (!isOpen) return null;
@@ -50,14 +52,14 @@ export const PromptInspectorModal: React.FC<PromptInspectorModalProps> = ({
             <div>
               <div className="flex items-center gap-2">
                 <h2 className="text-base sm:text-lg font-extrabold text-white tracking-tight">
-                  Inspekce AI Promptu (Transparentní zadání)
+                  {locale === "en" ? "AI Prompt Inspection (Transparent Input)" : "Inspekce AI Promptu (Transparentní zadání)"}
                 </h2>
                 <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-cyan-950 border border-cyan-500/40 text-cyan-300 font-bold">
                   Zero Hallucinations
                 </span>
               </div>
               <p className="text-xs text-slate-400 mt-0.5">
-                Přesná instrukce a biometrická data odesílaná do LLM modelu.
+                {locale === "en" ? "Exact instructions and parameters sent to the LLM model." : "Přesná instrukce a biometrická data odesílaná do LLM modelu."}
               </p>
             </div>
           </div>
@@ -73,19 +75,19 @@ export const PromptInspectorModal: React.FC<PromptInspectorModalProps> = ({
         {/* Quick Rules Summary Bar */}
         <div className="px-5 py-3 bg-[#050A14] border-b border-slate-800/80 flex flex-wrap items-center justify-between gap-3 text-xs">
           <div className="flex items-center gap-2 flex-wrap">
-            <span className="text-[11px] font-mono text-slate-400">Pravidla značek:</span>
+            <span className="text-[11px] font-mono text-slate-400">{locale === "en" ? "Brand rules:" : "Pravidla značek:"}</span>
             {preferredList.length > 0 ? (
               <span className="px-2 py-0.5 rounded-md bg-cyan-950 text-cyan-300 border border-cyan-500/40 font-mono text-[10px] font-bold">
                 Povoleno: {preferredList.join(', ')}
               </span>
             ) : (
-              <span className="text-[11px] text-slate-400 italic">Všechny značky</span>
+              <span className="text-[11px] text-slate-400 italic">{locale === "en" ? "All brands" : "Všechny značky"}</span>
             )}
 
             {forbiddenList.length > 0 && (
               <span className="px-2 py-0.5 rounded-md bg-rose-950/80 text-rose-300 border border-rose-500/40 font-mono text-[10px] font-bold flex items-center gap-1">
                 <ShieldAlert className="w-3 h-3" />
-                Vyloučeno: {forbiddenList.slice(0, 4).join(', ')}{forbiddenList.length > 4 ? ` +${forbiddenList.length - 4}` : ''}
+                {locale === "en" ? "Excluded:" : "Vyloučeno:"} {forbiddenList.slice(0, 4).join(', ')}{forbiddenList.length > 4 ? ` +${forbiddenList.length - 4}` : ''}
               </span>
             )}
           </div>
@@ -154,7 +156,7 @@ export const PromptInspectorModal: React.FC<PromptInspectorModalProps> = ({
               disabled={isSubmitting}
               className="flex items-center gap-2 px-6 py-2.5 rounded-xl text-xs font-extrabold bg-gradient-to-r from-cyan-400 to-teal-400 text-slate-950 hover:brightness-110 shadow-[0_0_20px_rgba(6,182,212,0.4)] transition-all cursor-pointer disabled:opacity-50"
             >
-              <Sparkles className="w-4 h-4" />
+              <Sparkles className={`w-4 h-4 ${isSubmitting ? "animate-spin" : ""}`} />
               <span>{isSubmitting ? 'Vyhodnocuji...' : 'Potvrdit a odeslat do AI'}</span>
             </button>
           </div>

@@ -2,9 +2,11 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import { ChevronDown, Plus, Check, Download, History, Sparkles, FileText, ChevronRight, User, Trash2, Bot, Layers } from 'lucide-react';
-import { UniversalAgentDefinition } from '@/lib/agent/universal-agent-schema';
+import { UniversalAgentDefinition, resolveAgentIcon } from '@/lib/agent/universal-agent-schema';
 import { AgentStorageService } from '@/lib/agent/agent-storage-service';
+import { useI18n } from '@/lib/i18n/I18nContext';
 import { ManagedAgentRegistryService } from '@/lib/agent/managed-agents-registry';
+import { getLocalizedAgent } from '@/lib/agent/agent-localization';
 
 interface MissionSelectorProps {
   currentAgent: UniversalAgentDefinition | null;
@@ -33,18 +35,19 @@ export const MissionSelector: React.FC<MissionSelectorProps> = ({
   const [managedAgents, setManagedAgents] = useState<UniversalAgentDefinition[]>([]);
   const [showTemplates, setShowTemplates] = useState(false);
   const [expandedHistoryAgentId, setExpandedHistoryAgentId] = useState<string | null>(null);
+  const { t, locale } = useI18n();
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   const activeUserAgents = userAgents !== undefined ? userAgents : internalAgents;
 
   const refreshAgents = () => {
     setInternalAgents(AgentStorageService.getAllAgents());
-    setManagedAgents(ManagedAgentRegistryService.getManagedAgents());
+    setManagedAgents(ManagedAgentRegistryService.getManagedAgents(locale));
   };
 
   useEffect(() => {
     refreshAgents();
-  }, [isOpen]);
+  }, [isOpen, locale]);
 
   // Close when clicking outside
   useEffect(() => {
@@ -60,11 +63,11 @@ export const MissionSelector: React.FC<MissionSelectorProps> = ({
 
   const countBadge = activeUserAgents.length > 0 ? ` (${activeUserAgents.length})` : '';
   const activeLabel = isLauncherActive || !currentAgent 
-    ? `Vybrat z mých vytvořených agentů${countBadge}` 
+    ? `${t.missionSelector.selectFromMyAgents}${countBadge}` 
     : currentAgent.name;
   const activeIcon = isLauncherActive || !currentAgent 
-    ? '🤖' 
-    : (currentAgent.icon || '🤖');
+    ? '' 
+    : (currentAgent.icon || '');
   const activeVersion = currentAgent?.version ? `v${currentAgent.version}` : null;
 
   return (
@@ -75,7 +78,7 @@ export const MissionSelector: React.FC<MissionSelectorProps> = ({
           type="button"
           onClick={() => setIsOpen(!isOpen)}
           className="w-full flex items-center justify-between gap-2.5 px-4 py-2.5 rounded-xl bg-slate-900/90 hover:bg-slate-800/95 border border-cyan-500/35 hover:border-cyan-400 text-slate-200 hover:text-white transition-all duration-200 cursor-pointer shadow-lg shadow-cyan-950/40 group backdrop-blur-md"
-          title="Zvolit historicky vytvořeného agenta vašeho účtu"
+          title={t.missionSelector.selectFromMyAgents}
         >
           <div className="flex items-center gap-2.5 min-w-0">
             <span className="text-lg p-1 rounded-lg bg-cyan-950/80 border border-cyan-500/30 text-cyan-300 shrink-0">
@@ -94,8 +97,8 @@ export const MissionSelector: React.FC<MissionSelectorProps> = ({
               </div>
               <span className="text-[11px] text-slate-400 block truncate">
                 {isLauncherActive || !currentAgent 
-                  ? `Historicky vytvoření agenti vašeho účtu (${userName})` 
-                  : 'Připraven k detailnímu výběru či ladění'}
+                  ? t.missionSelector.historyAccount.replace('{userName}', userName) 
+                  : t.missionSelector.readyForTuning}
               </span>
             </div>
           </div>
@@ -109,7 +112,7 @@ export const MissionSelector: React.FC<MissionSelectorProps> = ({
           type="button"
           onClick={() => setIsOpen(!isOpen)}
           className="flex items-center gap-2 px-2.5 py-1.5 rounded-lg bg-[#08101e]/80 hover:bg-[#0c182c] border border-cyan-500/25 hover:border-cyan-400/60 transition-all cursor-pointer group shadow-sm text-xs"
-          title="Zvolit historicky vytvořeného agenta účtu"
+          title={t.missionSelector.selectFromMyAgents}
         >
           <span className="text-sm leading-none">{activeIcon}</span>
           <span className="text-slate-200 group-hover:text-cyan-300 transition-colors font-medium hidden sm:inline truncate max-w-[140px]">
@@ -133,22 +136,23 @@ export const MissionSelector: React.FC<MissionSelectorProps> = ({
           <div className="px-3 py-2.5 border-b border-cyan-500/15 flex items-center justify-between">
             <span className="text-[11px] font-mono text-cyan-300 font-bold uppercase tracking-wider flex items-center gap-1.5">
               <Sparkles className="w-3.5 h-3.5 text-cyan-400" />
-              Moji vytvoření agenti ({activeUserAgents.length})
+              {t.missionSelector.myCreatedAgents} ({activeUserAgents.length})
             </span>
             <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-cyan-950 text-cyan-300 border border-cyan-800/50 flex items-center gap-1">
               <User className="w-3 h-3 text-cyan-400" />
-              Účet: {userName}
+              {t.missionSelector.account} {userName}
             </span>
           </div>
 
           {/* User's Created Agents List */}
           {activeUserAgents.length > 0 ? (
             <div className="py-2 space-y-1.5 max-h-96 overflow-y-auto pr-1">
-              {activeUserAgents.map((agent) => {
+              {activeUserAgents.map((rawAgent) => {
+                const agent = getLocalizedAgent(rawAgent, locale) || rawAgent;
                 const isSelected = !isLauncherActive && currentAgent?.id === agent.id;
                 const formattedDate = agent.updatedAt 
                   ? new Date(agent.updatedAt).toLocaleDateString('cs-CZ') 
-                  : (agent.createdAt ? new Date(agent.createdAt).toLocaleDateString('cs-CZ') : 'Nedávno');
+                  : (agent.createdAt ? new Date(agent.createdAt).toLocaleDateString(locale === 'en' ? 'en-US' : 'cs-CZ') : t.missionSelector.recently);
 
                 return (
                   <div 
@@ -168,9 +172,7 @@ export const MissionSelector: React.FC<MissionSelectorProps> = ({
                         }}
                         className="flex items-start gap-2.5 text-left flex-1 min-w-0 cursor-pointer group"
                       >
-                        <span className="text-xl p-1.5 rounded-lg bg-[#050c18] border border-cyan-500/25 shrink-0 group-hover:border-cyan-400/50 transition-colors">
-                          {agent.icon || '🤖'}
-                        </span>
+
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2 flex-wrap">
                             <span className="text-xs font-bold text-slate-100 group-hover:text-cyan-300 transition-colors truncate">
@@ -182,17 +184,17 @@ export const MissionSelector: React.FC<MissionSelectorProps> = ({
                             {isSelected && (
                               <span className="flex items-center gap-1 text-[10px] font-mono text-cyan-300 bg-cyan-950 px-1.5 py-0.2 rounded border border-cyan-500/40 font-semibold">
                                 <Check className="w-2.5 h-2.5" />
-                                Aktivní
+                                {t.missionSelector.active}
                               </span>
                             )}
                           </div>
                           <p className="text-[11px] text-slate-400 leading-snug mt-1 line-clamp-2">
-                            {agent.description || `Nákupní poradce pro kategorii ${agent.category}`}
+                            {agent.description || t.missionSelector.advisorForCategory.replace('{category}', agent.category)}
                           </p>
                           <div className="flex items-center gap-2 mt-1.5 text-[10px] font-mono text-slate-500">
-                            <span className="text-cyan-400/90">{agent.questions?.length || 0} parametrů</span>
+                            <span className="text-cyan-400/90">{agent.questions?.length || 0} {t.missionSelector.parameters}</span>
                             <span>•</span>
-                            <span>Uloženo: {formattedDate}</span>
+                            <span>{t.missionSelector.savedDate} {formattedDate}</span>
                           </div>
                         </div>
                       </button>
@@ -206,27 +208,27 @@ export const MissionSelector: React.FC<MissionSelectorProps> = ({
                             AgentStorageService.downloadAgentMarkdown(agent);
                           }}
                           className="flex items-center gap-1 px-2 py-1 rounded-lg bg-slate-900 hover:bg-cyan-950 text-slate-300 hover:text-cyan-300 border border-slate-700 hover:border-cyan-500/50 text-[10px] font-mono transition-colors cursor-pointer"
-                          title={`Stáhnout ${agent.name} jako soubor .agent.md`}
+                          title={t.missionSelector.downloadTitle.replace('{name}', agent.name)}
                         >
                           <Download className="w-3 h-3 text-cyan-400" />
-                          <span className="hidden sm:inline">Stáhnout</span>
+                          <span className="hidden sm:inline">{t.missionSelector.download}</span>
                         </button>
 
                         <button
                           type="button"
                           onClick={(e) => {
                             e.stopPropagation();
-                            if (confirm(`Opravdu chcete smazat agenta "${agent.name}" z vašeho účtu?`)) {
+                            if (confirm(t.missionSelector.deleteConfirm.replace('{name}', agent.name))) {
                               AgentStorageService.deleteAgent(agent.id);
                               if (onDeleteAgent) onDeleteAgent(agent.id);
                               refreshAgents();
                             }
                           }}
                           className="flex items-center gap-1 px-2 py-1 rounded-lg bg-slate-900 hover:bg-rose-950/60 text-slate-400 hover:text-rose-300 border border-slate-700 hover:border-rose-500/40 text-[10px] font-mono transition-colors cursor-pointer"
-                          title="Smazat agenta z účtu"
+                          title={t.missionSelector.deleteTitle}
                         >
                           <Trash2 className="w-3 h-3 text-rose-400" />
-                          <span className="hidden sm:inline">Smazat</span>
+                          <span className="hidden sm:inline">{locale === "en" ? "Delete" : "Smazat"}</span>
                         </button>
                       </div>
                     </div>
@@ -242,7 +244,7 @@ export const MissionSelector: React.FC<MissionSelectorProps> = ({
               <div>
                 <h5 className="text-xs font-bold text-slate-200">Zatím žádní vytvoření agenti</h5>
                 <p className="text-[11px] text-slate-400 mt-1 max-w-xs mx-auto">
-                  Pod účtem <strong className="text-cyan-300">{userName}</strong> zatím nemáte vytvořeného žádného nákupního agenta. Zadejte produkt výše a vytvořte si prvního agenta na míru.
+                  {t.missionSelector.noAgentsDesc.replace("{userName}", userName)}
                 </p>
               </div>
             </div>
@@ -258,7 +260,7 @@ export const MissionSelector: React.FC<MissionSelectorProps> = ({
               >
                 <span className="flex items-center gap-1.5 uppercase tracking-wider">
                   <Layers className="w-3 h-3 text-cyan-400" />
-                  Oficiální doporučené šablony ({managedAgents.length})
+                  {t.missionSelector.managedTemplates.replace('{count}', String(managedAgents.length))}
                 </span>
                 <ChevronRight className={`w-3.5 h-3.5 transition-transform ${showTemplates ? 'rotate-90' : ''}`} />
               </button>
@@ -278,14 +280,14 @@ export const MissionSelector: React.FC<MissionSelectorProps> = ({
                         }}
                         className="flex items-center gap-2 text-left flex-1 min-w-0 cursor-pointer"
                       >
-                        <span className="text-lg">{tAgent.icon || '🤖'}</span>
+                        
                         <div className="min-w-0">
                           <div className="flex items-center gap-1.5">
                             <span className="text-xs font-medium text-slate-200 truncate">
                               {tAgent.name}
                             </span>
                             <span className="text-[9px] font-mono px-1 py-0.2 rounded bg-cyan-950 text-cyan-400 border border-cyan-800/40">
-                              Šablona v{tAgent.version}
+                              {t.missionSelector.templateVersion.replace('{version}', tAgent.version)}
                             </span>
                           </div>
                           <span className="text-[10px] text-slate-400 block truncate">
@@ -300,7 +302,7 @@ export const MissionSelector: React.FC<MissionSelectorProps> = ({
                           ManagedAgentRegistryService.downloadAgentFile(tAgent);
                         }}
                         className="p-1.5 rounded-lg bg-slate-800 hover:bg-cyan-950 text-slate-400 hover:text-cyan-300 border border-slate-700 text-xs cursor-pointer"
-                        title={`Stáhnout šablonu ${tAgent.name}`}
+                        title={t.missionSelector.downloadTemplate.replace('{name}', tAgent.name)}
                       >
                         <Download className="w-3 h-3 text-cyan-400" />
                       </button>
@@ -323,7 +325,7 @@ export const MissionSelector: React.FC<MissionSelectorProps> = ({
                 className="w-full py-2 px-3 rounded-xl bg-gradient-to-r from-cyan-950/60 to-slate-900 hover:from-cyan-900/50 hover:to-slate-800 border border-cyan-500/30 hover:border-cyan-400/60 text-cyan-300 hover:text-white text-xs font-bold flex items-center justify-center gap-2 transition-all cursor-pointer shadow-sm"
               >
                 <Plus className="w-3.5 h-3.5" />
-                <span>Nadefinovat nového agenta zadáním produktu nahoře</span>
+                <span>{t.missionSelector.createNewAgent}</span>
               </button>
             </div>
           )}

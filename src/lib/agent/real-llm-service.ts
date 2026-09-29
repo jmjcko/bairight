@@ -1,3 +1,4 @@
+import { ModelDiscoveryService } from "./model-discovery-service";
 import { IntakeFormData, AgentPrescriptionResult } from './markdown-agent-loader';
 import { EUROPEAN_CATALOG_2E_MODELS } from './tools/scan-eshops';
 import { ShoeRecommendation } from './types';
@@ -306,177 +307,165 @@ Vrať POUZE validní JSON bez markdownu, který přesně odpovídá této strukt
  * Evaluates with Google Gemini API with dynamic model discovery and clean error parsing
  */
 async function callGemini(apiKey: string, prompt: string): Promise<AgentPrescriptionResult | null> {
-  // 1. First, attempt to discover available models for this specific API key
-  let candidateModels: string[] = [];
-  try {
-    const listRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${apiKey}`, {
-      headers: { 'Content-Type': 'application/json' },
-    });
-    if (listRes.ok) {
-      const listData = await listRes.json();
-      const models = listData?.models || [];
-      const supported = models
-        .filter((m: any) => m.supportedGenerationMethods?.includes('generateContent'))
-        .map((m: any) => m.name.replace(/^models\//, ''));
+  const failoverRes = await ModelDiscoveryService.executeWithResilientFailover<AgentPrescriptionResult>({
+    providerId: 'google_gemini',
+    apiKey,
+    executeFn: async (model) => {
+      const endpoints = [
+        `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`,
+        `https://generativelanguage.googleapis.com/v1/models/${model}:generateContent?key=${apiKey}`,
+      ];
 
-      // Sort with modern fast models prioritized
-      supported.sort((a: string, b: string) => {
-        const score = (name: string) => {
-          if (name.includes('2.5-flash')) return 10;
-          if (name.includes('2.0-flash')) return 9;
-          if (name.includes('flash-latest')) return 8;
-          if (name.includes('1.5-flash')) return 7;
-          if (name.includes('flash')) return 6;
-          if (name.includes('pro')) return 5;
-          return 1;
-        };
-        return score(b) - score(a);
-      });
-
-      if (supported.length > 0) {
-        candidateModels = supported;
-      }
-    }
-  } catch (discoveryErr) {
-    console.warn('Gemini model discovery skipped:', discoveryErr);
-  }
-
-  // Fallback defaults if discovery returned nothing
-  if (candidateModels.length === 0) {
-    candidateModels = ['gemini-2.5-flash', 'gemini-2.0-flash', 'gemini-1.5-flash-latest', 'gemini-1.5-flash', 'gemini-pro'];
-  }
-
-  let lastHumanError = '';
-
-  for (const model of candidateModels.slice(0, 4)) {
-    // Try v1beta first, and support both with/without JSON mimeType
-    const endpoints = [
-      `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`,
-      `https://generativelanguage.googleapis.com/v1/models/${model}:generateContent?key=${apiKey}`,
-    ];
-
-    for (const url of endpoints) {
-      try {
-        // Attempt with responseMimeType
-        let response = await fetch(url, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            contents: [{ role: 'user', parts: [{ text: prompt }] }],
-            generationConfig: {
-              temperature: 0.2,
-              responseMimeType: 'application/json',
-            },
-          }),
-        });
-
-        // If response failed with 400 (e.g. responseMimeType not supported on this model), try plain text
-        if (!response.ok && response.status === 400) {
-          response = await fetch(url, {
+      for (const url of endpoints) {
+        try {
+          let response = await fetch(url, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
               contents: [{ role: 'user', parts: [{ text: prompt }] }],
               generationConfig: {
                 temperature: 0.2,
+                responseMimeType: 'application/json',
               },
             }),
           });
+
+          // If response failed with 400 (e.g. responseMimeType not supported on this model), try plain text
+          if (!response.ok && response.status === 400) {
+            response = await fetch(url, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                contents: [{ role: 'user', parts: [{ text: prompt }] }],
+                generationConfig: {
+                  temperature: 0.2,
+                },
+              }),
+            });
+          }
+
+          if (!response.ok) {
+            const errData = await response.json().catch(() => ({}));
+            const errMsg = errData?.error?.message || `HTTP ${response.status}`;
+            if (response.status === 400 && (errMsg.includes('API_KEY_INVALID') || errMsg.includes('not valid'))) {
+              throw new Error('Neplatný Google Gemini API klíč. Zkontrolujte svůj klíč v Google AI Studio.');
+            }
+            if (response.status === 429 || errMsg.includes('quota') || errMsg.includes('RESOURCE_EXHAUSTED')) {
+              throw new Error('Byla vyčerpána bezplatná kvóta pro váš Google Gemini klíč. Zkuste to za chvíli nebo použijte OpenAI/Claude.');
+            }
+            return { success: false, status: response.status, errorBody: errMsg };
+          }
+
+          const data = await response.json();
+          const rawText = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+          if (rawText) {
+            const parsed = safeJsonParse<AgentPrescriptionResult>(rawText);
+            if (parsed) return { success: true, data: parsed };
+          }
+          return { success: false, status: 200, errorBody: 'Empty candidate text or invalid JSON' };
+        } catch (e: any) {
+          if (e.message?.includes('Neplatný') || e.message?.includes('vyčerpána')) {
+            throw e;
+          }
         }
+      }
+      return { success: false, status: 500, errorBody: `Failed all endpoints for model ${model}` };
+    },
+  });
+
+  return failoverRes.result;
+}
+
+/**
+ * Evaluates with OpenAI ChatGPT API with dynamic failover
+ */
+async function callOpenAI(apiKey: string, prompt: string): Promise<AgentPrescriptionResult | null> {
+  const failoverRes = await ModelDiscoveryService.executeWithResilientFailover<AgentPrescriptionResult>({
+    providerId: 'openai_gpt4o',
+    apiKey,
+    executeFn: async (model) => {
+      try {
+        const response = await fetch('https://api.openai.com/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${apiKey}`,
+          },
+          body: JSON.stringify({
+            model,
+            temperature: 0.2,
+            response_format: { type: 'json_object' },
+            messages: [
+              { role: 'system', content: 'You are bAIright Footwear Intelligence Agent. Respond only with valid JSON.' },
+              { role: 'user', content: prompt },
+            ],
+          }),
+        });
 
         if (!response.ok) {
-          const errData = await response.json().catch(() => ({}));
-          const errMsg = errData?.error?.message || `HTTP ${response.status}`;
-          if (response.status === 400 && (errMsg.includes('API_KEY_INVALID') || errMsg.includes('not valid'))) {
-            throw new Error('Neplatný Google Gemini API klíč. Zkontrolujte svůj klíč v Google AI Studio.');
-          }
-          if (response.status === 429 || errMsg.includes('quota') || errMsg.includes('RESOURCE_EXHAUSTED')) {
-            throw new Error('Byla vyčerpána bezplatná kvóta pro váš Google Gemini klíč. Zkuste to za chvíli nebo použijte OpenAI/Claude.');
-          }
-          lastHumanError = `Model ${model} vrátil: ${errMsg}`;
-          continue;
+          const errText = await response.text();
+          return { success: false, status: response.status, errorBody: errText };
         }
 
         const data = await response.json();
-        const rawText = data?.candidates?.[0]?.content?.parts?.[0]?.text;
-        if (rawText) {
-          const parsed = safeJsonParse<AgentPrescriptionResult>(rawText);
-          if (parsed) return parsed;
-        }
-      } catch (e: any) {
-        if (e.message?.includes('Neplatný') || e.message?.includes('vyčerpána')) {
-          throw e;
-        }
-        lastHumanError = e.message || String(e);
+        const rawText = data?.choices?.[0]?.message?.content;
+        if (!rawText) return { success: false, status: 200, errorBody: 'Empty response from OpenAI API' };
+
+        const parsed = safeJsonParse<AgentPrescriptionResult>(rawText);
+        if (parsed) return { success: true, data: parsed };
+        return { success: false, status: 200, errorBody: 'Invalid JSON from OpenAI API' };
+      } catch (err: any) {
+        return { success: false, error: err, errorBody: err?.message };
       }
-    }
-  }
-
-  throw new Error(lastHumanError || 'Žádný z modelů Google Gemini není pro váš klíč dostupný.');
-}
-
-/**
- * Evaluates with OpenAI ChatGPT (GPT-4o) API
- */
-async function callOpenAI(apiKey: string, prompt: string): Promise<AgentPrescriptionResult | null> {
-  const response = await fetch('https://api.openai.com/v1/chat/completions', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${apiKey}`,
     },
-    body: JSON.stringify({
-      model: 'gpt-4o',
-      temperature: 0.2,
-      response_format: { type: 'json_object' },
-      messages: [
-        { role: 'system', content: 'You are bAIright Footwear Intelligence Agent. Respond only with valid JSON.' },
-        { role: 'user', content: prompt },
-      ],
-    }),
   });
 
-  if (!response.ok) {
-    const errText = await response.text();
-    throw new Error(`OpenAI API error (${response.status}): ${errText}`);
-  }
-
-  const data = await response.json();
-  const rawText = data?.choices?.[0]?.message?.content;
-  if (!rawText) throw new Error('Empty response from OpenAI API');
-
-  return safeJsonParse<AgentPrescriptionResult>(rawText);
+  return failoverRes.result;
 }
 
 /**
- * Evaluates with Anthropic Claude API
+ * Evaluates with Anthropic Claude API with dynamic failover
  */
 async function callAnthropic(apiKey: string, prompt: string): Promise<AgentPrescriptionResult | null> {
-  const response = await fetch('https://api.anthropic.com/v1/messages', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'x-api-key': apiKey,
-      'anthropic-version': '2023-06-01',
+  const failoverRes = await ModelDiscoveryService.executeWithResilientFailover<AgentPrescriptionResult>({
+    providerId: 'anthropic_claude',
+    apiKey,
+    executeFn: async (model) => {
+      try {
+        const response = await fetch('https://api.anthropic.com/v1/messages', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-api-key': apiKey,
+            'anthropic-version': '2023-06-01',
+          },
+          body: JSON.stringify({
+            model,
+            max_tokens: 3500,
+            temperature: 0.2,
+            messages: [{ role: 'user', content: prompt }],
+          }),
+        });
+
+        if (!response.ok) {
+          const errText = await response.text();
+          return { success: false, status: response.status, errorBody: errText };
+        }
+
+        const data = await response.json();
+        const rawText = data?.content?.[0]?.text;
+        if (!rawText) return { success: false, status: 200, errorBody: 'Empty response from Anthropic Claude API' };
+
+        const parsed = safeJsonParse<AgentPrescriptionResult>(rawText);
+        if (parsed) return { success: true, data: parsed };
+        return { success: false, status: 200, errorBody: 'Invalid JSON from Anthropic Claude API' };
+      } catch (err: any) {
+        return { success: false, error: err, errorBody: err?.message };
+      }
     },
-    body: JSON.stringify({
-      model: 'claude-3-5-sonnet-20241022',
-      max_tokens: 3500,
-      temperature: 0.2,
-      messages: [{ role: 'user', content: prompt }],
-    }),
   });
 
-  if (!response.ok) {
-    const errText = await response.text();
-    throw new Error(`Anthropic Claude API error (${response.status}): ${errText}`);
-  }
-
-  const data = await response.json();
-  const rawText = data?.content?.[0]?.text;
-  if (!rawText) throw new Error('Empty response from Anthropic Claude API');
-
-  return safeJsonParse<AgentPrescriptionResult>(rawText);
+  return failoverRes.result;
 }
 
 /**

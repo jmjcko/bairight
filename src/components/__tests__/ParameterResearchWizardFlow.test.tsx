@@ -41,7 +41,7 @@ describe('Parameter Research Agent & 3-Phase Wizard Flow (Updated PRD)', () => {
 
     // Ověříme čistý titulek a počty
     await waitFor(() => {
-      expect(screen.getByText(/Osobní Automobily & Mobility/i)).toBeInTheDocument();
+      expect(screen.getByText(/Nákupní výběr pro auto/i)).toBeInTheDocument();
       expect(screen.getByText(/Vybráno \d+ z \d+ parametrů/i)).toBeInTheDocument();
     });
   });
@@ -59,16 +59,16 @@ describe('Parameter Research Agent & 3-Phase Wizard Flow (Updated PRD)', () => {
       expect(screen.getByText(/Vybráno \d+ z \d+ parametrů/i)).toBeInTheDocument();
     });
 
-    // Klikneme na parametr 'Typ karoserie' pro odznačení
-    const paramTile = screen.getByText(/Typ karoserie/i);
+    // Klikneme na parametr 'Typ & hlavní určení' pro odznačení
+    const paramTile = screen.getByText(/Klíčové vlastnosti/i);
     fireEvent.click(paramTile);
 
     // Počet vybraných klesl
-    expect(screen.getByText(/Vybráno 10 z 11 parametrů/i)).toBeInTheDocument();
+    expect(screen.getByText(/Vybráno 9 z 10 parametrů/i)).toBeInTheDocument();
 
     // Klikneme znovu pro opětovné zaškrtnutí
     fireEvent.click(paramTile);
-    expect(screen.getByText(/Vybráno 11 z 11 parametrů/i)).toBeInTheDocument();
+    expect(screen.getByText(/Vybráno 10 z 10 parametrů/i)).toBeInTheDocument();
   });
 
   it('3. Tlačítko pro postup do wizardu nese přesný text dle PRD a generuje agenta pro vybrané parametry', async () => {
@@ -99,18 +99,17 @@ describe('Parameter Research Agent & 3-Phase Wizard Flow (Updated PRD)', () => {
     });
   });
 
-  it('4. Serializace a zpětný parsing agenta do Markdown/YAML zachovává researchedPool i user selection', () => {
+  it('4. Serializace a zpětný parsing agenta do čistého Markdown/YAML zachovává název a systémové instrukce', () => {
     const analysis = discoverDomainParameters('auto');
     const customAgent = buildCustomAgentFromParameters(analysis, analysis.parameters.slice(0, 5));
 
     const markdown = serializeAgentToMarkdown(customAgent);
-    expect(markdown).toContain('researchedParametersPool');
-    expect(markdown).toContain('selectedParameters');
+    expect(markdown).not.toContain('researchedParametersPool');
+    expect(markdown).not.toContain('selectedParameters');
 
     const restoredAgent = parseAgentFromMarkdown(markdown);
     expect(restoredAgent.name).toBe(customAgent.name);
-    expect(restoredAgent.researchedParametersPool).toBeDefined();
-    expect(restoredAgent.selectedParameters).toHaveLength(5);
+    expect(restoredAgent.systemPrompt).toBeDefined();
   });
 
   it('5. DynamicAgentWizard zobrazuje přehledné záhlaví a krok vybraných parametrů', () => {
@@ -121,6 +120,42 @@ describe('Parameter Research Agent & 3-Phase Wizard Flow (Updated PRD)', () => {
 
     // Zkontrolujeme zobrazení názvu a kroků v čistém záhlaví
     expect(screen.getByText(testAgent.name)).toBeInTheDocument();
-    expect(screen.getAllByText(/Krok 1 z 3/i).length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText(/Krok 1 z 4/i).length).toBeGreaterThanOrEqual(1);
+  });
+
+  it('6. Wizard obsahuje přesně tolik kroků jako je vybraných parametrů (10 parametrů = 10 otázek + 1 baseline krok)', () => {
+    const analysis = discoverDomainParameters('road bike shoes');
+    expect(analysis.parameters.length).toBeGreaterThanOrEqual(10);
+    const tenParams = analysis.parameters.slice(0, 10);
+    const customAgent = buildCustomAgentFromParameters(analysis, tenParams);
+
+    // Každý parametr musí mít svou otázku s unikátním krokem
+    expect(customAgent.questions.length).toBe(10);
+    const steps = new Set(customAgent.questions.map(q => q.step));
+    expect(steps.size).toBe(10);
+
+    render(<DynamicAgentWizard agent={customAgent} />);
+
+    // Celkem 11 kroků (10 otázek + 1 krok stávající zkušenosti)
+    expect(screen.getAllByText(/Krok 1 z 11/i).length).toBeGreaterThanOrEqual(1);
+
+    // Proklikáme se až na poslední krok (krok 11)
+    for (let i = 0; i < 10; i++) {
+      const continueBtn = screen.getByRole('button', { name: /Pokračovat/i });
+      fireEvent.click(continueBtn);
+    }
+
+    // Na 11. kroku se zobrazí obrazovka stávajících zkušeností s 2-kartovou volbou
+    expect(screen.getByText(/Dosavadní zkušenosti & Stávající produkt/i)).toBeInTheDocument();
+    expect(screen.getByText(/První nákup v této kategorii/i)).toBeInTheDocument();
+    expect(screen.getByText(/Vlastním \/ používal jsem produkt/i)).toBeInTheDocument();
+
+    // Výběr Karty B otevře formulář pro zadání stávajícího modelu a preferencí
+    const cardB = screen.getByText(/Vlastním \/ používal jsem produkt/i);
+    fireEvent.click(cardB);
+
+    expect(screen.getByPlaceholderText(/DeLonghi Magnifica S \/ Hoka Clifton 8/i)).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Přeskočit & Vyhodnotit/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Vyhodnotit & Doporučit/i })).toBeInTheDocument();
   });
 });

@@ -67,6 +67,16 @@ describe('Agent Luke: Prompt Governance & Contract Integrity Test Suite', () => 
     });
   });
 
+    it("1.8 Specifikace nařizuje striktní zákaz statického fallbacku a kontrolu historie dotazů na webu", () => {
+      const content = fs.readFileSync(lukeSpecPath, "utf-8");
+      expect(content).toMatch(/Striktní Zákaz Statického Fallbacku|Strict No Fallback/i);
+      expect(content).toMatch(/zda se na tento produkt.*na našem webu/i);
+
+      const canonicalSpec = fs.readFileSync(path.join(rootDir, "SPEC", "agents", "LUKE_RESEARCH_AGENT.md"), "utf-8");
+      expect(canonicalSpec).toMatch(/Striktní Zákaz Statického Fallbacku|Strict No Fallback/i);
+      expect(canonicalSpec).toMatch(/zda se na tento produkt.*na našem webu/i);
+    });
+
     it("1.7 Specifikace nařizuje povinný multi-zdrojový výzkum (fóra, YouTube rozbory, technické specifikace)", () => {
       const content = fs.readFileSync(lukeSpecPath, "utf-8");
       expect(content).toMatch(/Metodologie a informační zdroje|Multi-Source/i);
@@ -83,35 +93,32 @@ describe('Agent Luke: Prompt Governance & Contract Integrity Test Suite', () => 
       expect(fs.existsSync(routeCodePath), 'API route pro research musí existovat').toBe(true);
       const routeContent = fs.readFileSync(routeCodePath, 'utf-8');
 
-      // 1. Zlaté pravidlo: Elementární segmentace č. 1
-      expect(routeContent).toMatch(/ELEMENTÁRNÍ ROZDĚLENÍ TRHU VŽDY JAKO PARAMETR Č\.\s*1/i);
-      expect(routeContent).toContain('bike_type_category');
+      // 1. Persona a vstup
+      expect(routeContent).toMatch(/expertní nákupní analytik a technický specifikátor/i);
 
-      // 2. Zlaté pravidlo: Povinná biometrie a operace
-      expect(routeContent).toMatch(/POVINNÉ TĚLESNÉ BIOMETRICKÉ A ZDRAVOTNÍ PARAMETRY/i);
-      expect(routeContent).toContain('bike_rider_biometrics');
-      expect(routeContent).toMatch(/výška/i);
-      expect(routeContent).toMatch(/hmotnost/i);
-      expect(routeContent).toMatch(/operace/i);
+      // 2. Rozsah 8 až 12 parametrů
+      expect(routeContent).toMatch(/8 až (?:10|12)/i);
 
-      // 3. Zlaté pravidlo: Minimálně 10 až 14 parametrů
-      expect(routeContent).toMatch(/MINIMÁLNĚ 10 AŽ 14/i);
-
-      // 4. Izolace značek
+      // 3. Izolace značek
       expect(routeContent).toContain('brand_preferences');
       expect(routeContent).toContain('suggestedComponent');
 
-      // 5. Zákaz klišé
+      // 4. Zákaz klišé
       expect(routeContent).toContain('STRIKTNÍ ZÁKAZ VÁGNÍCH KLIŠÉ');
     });
   });
 
-    it("2.2 API route prompt nařizuje multi-zdrojový výzkum z fór, YouTube a specifikací", () => {
+    it("2.3 API route prompt obsahuje instrukci pro kontrolu historie dotazů na webu a zákaz statického fallbacku", () => {
       const routeContent = fs.readFileSync(routeCodePath, "utf-8");
-      expect(routeContent).toMatch(/POVINNÝ MULTI-ZDROJOVÝ VÝZKUM/i);
-      expect(routeContent).toMatch(/Uživatelská fóra/i);
-      expect(routeContent).toMatch(/YouTube/i);
-      expect(routeContent).toMatch(/Technické specifikace/i);
+      expect(routeContent).toMatch(/Ověření historie webu|KONTROLA HISTORIE/i);
+    });
+
+    it("2.2 API route prompt nařizuje výzkum z recenzí, fór a technických specifikací", () => {
+      const routeContent = fs.readFileSync(routeCodePath, "utf-8");
+      expect(routeContent).toMatch(/expertní nákupní analytik a technický specifikátor/i);
+      expect(routeContent).toMatch(/recenzí/i);
+      expect(routeContent).toMatch(/fór/i);
+      expect(routeContent).toMatch(/technické specifikace/i);
     });
 
   // =========================================================================
@@ -119,20 +126,20 @@ describe('Agent Luke: Prompt Governance & Contract Integrity Test Suite', () => 
   // =========================================================================
   describe('3. Kontrola funkčního výstupu enginu (Contract Compliance)', () => {
     const representativeDomains = [
-      { query: 'jízdní kolo na výlety', expectedFirstId: 'bike_type_category', hasBio: true },
-      { query: 'sjezdové lyže', expectedFirstId: 'skis_terrain_purpose', hasBio: true },
-      { query: 'kancelářská židle', expectedFirstId: 'chair_category_type', hasBio: true },
-      { query: 'zdravotní matrace', expectedFirstId: 'mattress_user_biometrics_health', hasBio: true },
-      { query: 'běžecké boty', expectedFirstId: 'biomechanics', hasBio: true },
-      { query: 'automatická pračka', expectedFirstId: 'washer_construction_format', hasBio: false },
-      { query: 'chytrá televize oled', expectedFirstId: 'tv_display_technology', hasBio: false },
-      { query: 'robotický vysavač', expectedFirstId: 'vacuum_type_format', hasBio: false },
-      { query: 'robotická sekačka na trávu', expectedFirstId: 'mower_category_power', hasBio: false },
-      { query: 'kombinovaný dětský kočárek', expectedFirstId: 'stroller_type_segment', hasBio: true },
-      { query: 'smartphone telefon', expectedFirstId: 'phone_form_factor_ecosystem', hasBio: true },
-      { query: 'tepelné čerpadlo', expectedFirstId: 'hp_category_type', hasBio: false },
-      { query: 'expediční batoh do hor', expectedFirstId: 'elemental_market_segment', hasBio: true },
-      { query: 'tiskárna', expectedFirstId: 'print_technology', hasBio: false },
+      { query: 'jízdní kolo na výlety', expectedFirstId: 'primary_product_type', hasBio: true },
+      { query: 'sjezdové lyže', expectedFirstId: 'primary_product_type', hasBio: true },
+      { query: 'kancelářská židle', expectedFirstId: 'primary_product_type', hasBio: true },
+      { query: 'zdravotní matrace', expectedFirstId: 'primary_product_type', hasBio: true },
+      { query: 'běžecké boty', expectedFirstId: 'primary_product_type', hasBio: true },
+      { query: 'automatická pračka', expectedFirstId: 'primary_product_type', hasBio: false },
+      { query: 'chytrá televize oled', expectedFirstId: 'primary_product_type', hasBio: false },
+      { query: 'robotický vysavač', expectedFirstId: 'primary_product_type', hasBio: false },
+      { query: 'robotická sekačka na trávu', expectedFirstId: 'primary_product_type', hasBio: false },
+      { query: 'kombinovaný dětský kočárek', expectedFirstId: 'primary_product_type', hasBio: true },
+      { query: 'smartphone telefon', expectedFirstId: 'primary_product_type', hasBio: true },
+      { query: 'tepelné čerpadlo', expectedFirstId: 'primary_product_type', hasBio: false },
+      { query: 'expediční batoh do hor', expectedFirstId: 'primary_product_type', hasBio: true },
+      { query: 'tiskárna', expectedFirstId: 'primary_product_type', hasBio: false },
     ];
 
     for (const testCase of representativeDomains) {

@@ -5,7 +5,7 @@
  * Když uživatel přidá k nějaké kategorii (např. boty, auta) nový parametr (např. "sport", "dětská velikost"),
  * tento parametr se zaznamená do paměti s relevančním skóre a počítadlem použití.
  * Při dalším vyhledávání v dané kategorii se tento parametr automaticky nabídne
- * všem ostatním uživatelům jako ověřený komunitní parametr s odznakem 👥 Komunitní.
+ * všem ostatním uživatelům jako ověřený komunitní parametr s odznakem  Komunitní.
  */
 
 import { ExtractedDomainParameter } from './domain-parameter-discovery';
@@ -18,7 +18,7 @@ export interface LearnedDomainParameter {
   importance: 'mandatory' | 'recommended' | 'preference';
   rationale: string;
   icon: string;
-  suggestedComponent: 'chips' | 'slider' | 'dropdown';
+  suggestedComponent: 'chips' | 'slider' | 'dropdown' | 'brands' | 'text';
   suggestedValues?: string[];
   usageCount: number;
   relevanceScore: number; // 0 - 100 %
@@ -38,8 +38,8 @@ const SEEDED_LEARNED_PARAMETERS: LearnedDomainParameter[] = [
     category: 'Sportovní zaměření',
     importance: 'recommended',
     rationale: 'Specifikace sportu (basketbal, volejbal, fitness/crossfit, tenis, atletika) pro optimalizaci stability a boční opory.',
-    icon: '🏅',
-    suggestedComponent: 'chips',
+    icon: '',
+    suggestedComponent: 'text',
     suggestedValues: ['Běh / Silnice a maraton', 'Trail / Hory a les', 'Fitness / Silový trojboj', 'Halové sporty (basket, florbal)', 'Běžné nošení & chůze'],
     usageCount: 14,
     relevanceScore: 95,
@@ -54,7 +54,7 @@ const SEEDED_LEARNED_PARAMETERS: LearnedDomainParameter[] = [
     category: 'Ortopedie & Zdraví',
     importance: 'recommended',
     rationale: 'Hluboká pata a vyjímatelná původní stélka pro bezproblémové vložení individuální stélky od podiatra.',
-    icon: '🩺',
+    icon: '',
     suggestedComponent: 'chips',
     suggestedValues: ['Plně vyjímatelná stélka nutná', 'Standardní integrovaná stélka'],
     usageCount: 9,
@@ -70,7 +70,7 @@ const SEEDED_LEARNED_PARAMETERS: LearnedDomainParameter[] = [
     category: 'Rodina & Bezpečnost',
     importance: 'recommended',
     rationale: 'Schopnost umístit tři dětské autosedačky vedle sebe ve druhé řadě či ISOFIX na sedadle spolujezdce.',
-    icon: '👶',
+    icon: '',
     suggestedComponent: 'chips',
     suggestedValues: ['3x ISOFIX vzadu podmínkou', '2x ISOFIX vzadu postačí', 'ISOFIX i vpředu u spolujezdce'],
     usageCount: 18,
@@ -86,7 +86,7 @@ const SEEDED_LEARNED_PARAMETERS: LearnedDomainParameter[] = [
     category: 'Údržba & Životnost',
     importance: 'preference',
     rationale: 'Automatická signalizace zanesení bojleru a snadný proplach pro ochranu před tvrdou vodou v ČR.',
-    icon: '🧼',
+    icon: '',
     suggestedComponent: 'chips',
     suggestedValues: ['Plně automatický cyklus odvápnění', 'Běžná manuální údržba'],
     usageCount: 7,
@@ -125,13 +125,13 @@ export class DomainLearningService {
    * Získá naučené parametry pro konkrétní doménu (např. 'shoes', 'cars')
    * seřazené podle relevance a četnosti použití.
    */
-  static getLearnedParametersForDomain(domainKey: string): ExtractedDomainParameter[] {
+  static getLearnedParametersForDomain(domainKey: string, locale: string = "cs"): ExtractedDomainParameter[] {
     const all = this.getAllLearnedParameters();
     const matching = all
       .filter((p) => p.domainKey === domainKey && (p.isCommunityApproved || p.usageCount >= 1))
       .sort((a, b) => b.usageCount * b.relevanceScore - a.usageCount * a.relevanceScore);
 
-    return matching.map((p) => this.toExtractedParameter(p));
+    return matching.map((p) => this.toExtractedParameter(p, locale));
   }
 
   /**
@@ -142,7 +142,8 @@ export class DomainLearningService {
   static recordUserParameter(
     domainKey: string,
     rawName: string,
-    rationale?: string
+    rationale?: string,
+    locale: string = "cs"
   ): { parameter: ExtractedDomainParameter; isNew: boolean } {
     const trimmedName = rawName.trim();
     if (!trimmedName || trimmedName.length < 2) {
@@ -187,12 +188,14 @@ export class DomainLearningService {
         id,
         domainKey,
         name: trimmedName,
-        category: 'Komunitní doporučení',
+        category: locale === 'en' ? 'Community Learned' : 'Komunitní doporučení',
         importance: 'recommended',
-        rationale: rationale || `Populární parametr požadovaný uživateli při nákupu v kategorii ${domainKey}.`,
+        rationale: rationale || (locale === 'en'
+          ? `Popular parameter requested by users when purchasing in category ${domainKey}.`
+          : `Populární parametr požadovaný uživateli při nákupu v kategorii ${domainKey}.`),
         icon,
         suggestedComponent: 'chips',
-        suggestedValues: ['Vysoká priorita', 'Doporučeno', 'Není nutné'],
+        suggestedValues: [],
         usageCount: 1,
         relevanceScore: 80,
         isCommunityApproved: true,
@@ -212,7 +215,7 @@ export class DomainLearningService {
     }
 
     return {
-      parameter: this.toExtractedParameter(resultRecord),
+      parameter: this.toExtractedParameter(resultRecord, locale),
       isNew,
     };
   }
@@ -221,16 +224,30 @@ export class DomainLearningService {
    * Převede interní LearnedDomainParameter na standardní ExtractedDomainParameter
    * a připojí k němu vizuální komunitní metadata.
    */
-  private static toExtractedParameter(learned: LearnedDomainParameter): ExtractedDomainParameter {
+  private static toExtractedParameter(learned: LearnedDomainParameter, locale: string = "cs"): ExtractedDomainParameter {
+    const isEn = locale === "en";
+    let cleanRationale = learned.rationale || "";
+    if (isEn) {
+      const popMatch = cleanRationale.match(/Populární parametr požadovaný uživateli při nákupu v kategorii (.+)/i);
+      if (popMatch) {
+        cleanRationale = `Popular parameter requested by users when purchasing in category ${popMatch[1]}.`;
+      }
+    }
+    const usageText = isEn 
+      ? `(Used by ${learned.usageCount} user${learned.usageCount > 1 ? "s" : ""})` 
+      : `(Využilo ${learned.usageCount}× uživatelů)`;
+
     return {
       id: learned.id,
       name: learned.name,
-      category: learned.category,
+      category: isEn && (learned.category === "Komunitní doporučení" || !learned.category) ? "Community Recommendation" : learned.category,
       importance: learned.importance,
-      rationale: `${learned.rationale} (👥 Využilo ${learned.usageCount}× uživatelů)`,
+      rationale: `${cleanRationale} ${usageText}`.trim(),
       icon: learned.icon,
       suggestedComponent: learned.suggestedComponent,
-      suggestedValues: learned.suggestedValues,
+      suggestedValues: learned.suggestedValues && learned.suggestedValues.length > 0
+        ? learned.suggestedValues
+        : (isEn ? ["High Priority", "Recommended", "Optional"] : ["Vysoká priorita", "Doporučeno", "Není nutné"]),
     };
   }
 
@@ -239,17 +256,17 @@ export class DomainLearningService {
    */
   private static detectParameterIcon(name: string): string {
     const low = name.toLowerCase();
-    if (low.includes('sport') || low.includes('beh') || low.includes('fit')) return '🏅';
-    if (low.includes('zdrav') || low.includes('ortoped') || low.includes('vlozk') || low.includes('zada')) return '🩺';
-    if (low.includes('dite') || low.includes('det') || low.includes('isofix') || low.includes('kocar')) return '👶';
-    if (low.includes('voda') || low.includes('mokr') || low.includes('dest') || low.includes('gore')) return '🌧️';
-    if (low.includes('tazn') || low.includes('prives') || low.includes('nosic')) return '🚛';
-    if (low.includes('bater') || low.includes('nabij') || low.includes('vydrz')) return '🔋';
-    if (low.includes('zvuk') || low.includes('audio') || low.includes('repro') || low.includes('hudb')) return '🎵';
-    if (low.includes('displej') || low.includes('obraz') || low.includes('oled') || low.includes('monitor')) return '🖥️';
-    if (low.includes('cist') || low.includes('udrzb') || low.includes('odvapn')) return '🧼';
-    if (low.includes('zaruk') || low.includes('servis')) return '🛡️';
-    return '👥';
+    if (low.includes('sport') || low.includes('beh') || low.includes('fit')) return '';
+    if (low.includes('zdrav') || low.includes('ortoped') || low.includes('vlozk') || low.includes('zada')) return '';
+    if (low.includes('dite') || low.includes('det') || low.includes('isofix') || low.includes('kocar')) return '';
+    if (low.includes('voda') || low.includes('mokr') || low.includes('dest') || low.includes('gore')) return '️';
+    if (low.includes('tazn') || low.includes('prives') || low.includes('nosic')) return '';
+    if (low.includes('bater') || low.includes('nabij') || low.includes('vydrz')) return '';
+    if (low.includes('zvuk') || low.includes('audio') || low.includes('repro') || low.includes('hudb')) return '';
+    if (low.includes('displej') || low.includes('obraz') || low.includes('oled') || low.includes('monitor')) return '️';
+    if (low.includes('cist') || low.includes('udrzb') || low.includes('odvapn')) return '';
+    if (low.includes('zaruk') || low.includes('servis')) return '️';
+    return '';
   }
 
   /**

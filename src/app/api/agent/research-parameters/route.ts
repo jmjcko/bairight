@@ -1,9 +1,11 @@
+import { ModelDiscoveryService } from '@/lib/agent/model-discovery-service';
 import { NextRequest, NextResponse } from 'next/server';
 import { 
   DomainAnalysisResult,
   ExtractedDomainParameter,
   UNIVERSAL_BRAND_PARAMETER,
-  discoverDomainParameters
+  discoverDomainParameters,
+  extractCleanProductTitle
 } from '@/lib/agent/domain-parameter-discovery';
 import {
   getCachedAnalysis,
@@ -27,11 +29,11 @@ function ensureBrandParameter(params: ExtractedDomainParameter[], locale: string
     const brandParam: ExtractedDomainParameter = locale === 'en'
       ? {
           id: 'brand_preferences',
-          name: 'Brand & Manufacturers',
+          name: 'Brands & Manufacturers',
           category: 'Brands & Manufacturers',
           importance: 'recommended',
-          rationale: 'Specify preferred brands you trust and exclude brands you do not want recommended.',
-          icon: '🏷️',
+          rationale: 'Specify preferred brands you trust and exclude manufacturers you do not want recommended.',
+          icon: '',
           suggestedComponent: 'brands',
           suggestedValues: [
             'All verified brands (open selection)',
@@ -42,6 +44,28 @@ function ensureBrandParameter(params: ExtractedDomainParameter[], locale: string
       : UNIVERSAL_BRAND_PARAMETER;
     return [...params, brandParam];
   }
+  if (locale === 'en') {
+    return params.map((p) => {
+      const isBrand = p.id === 'brand_preferences' || p.name.toLowerCase().includes('značk') || p.name.toLowerCase().includes('výrobc');
+      if (isBrand && (p.name === 'Značky a výrobci' || p.name === 'Výrobci & Značky')) {
+        return {
+          id: 'brand_preferences',
+          name: 'Brands & Manufacturers',
+          category: 'Brands & Manufacturers',
+          importance: 'recommended',
+          rationale: 'Specify preferred brands you trust and exclude manufacturers you do not want recommended.',
+          icon: '',
+          suggestedComponent: 'brands',
+          suggestedValues: [
+            'All verified brands (open selection)',
+            'I have specific preferred brands',
+            'I want to exclude specific manufacturers',
+          ],
+        };
+      }
+      return p;
+    });
+  }
   return params;
 }
 
@@ -51,7 +75,7 @@ function ensureBrandParameter(params: ExtractedDomainParameter[], locale: string
 // ————————————————————————————————————————————————
 export async function POST(req: NextRequest) {
   try {
-    const { query, locale = 'cs' } = await req.json();
+    const { query, locale = 'en', apiKey: bodyApiKey, providerId } = await req.json();
 
     if (!query || typeof query !== 'string' || query.trim().length === 0) {
       return NextResponse.json(
@@ -78,34 +102,40 @@ export async function POST(req: NextRequest) {
       });
     }
 
-    // ——— STEP 2 & 3: Gemini Flash LLM with High-Availability Heuristic Fallback ———
-    const serverKey = process.env.GOOGLE_GEMINI_API_KEY;
-    let analysis: DomainAnalysisResult | null = null;
-    let source = 'luke_heuristic';
+    // ——— STEP 2: Key Resolution (Client BYOK or Server Env Keys) ———
+    const effectiveKey =
+      bodyApiKey ||
+      process.env.GOOGLE_GEMINI_API_KEY ||
+      process.env.GEMINI_API_KEY ||
+      process.env.NEXT_PUBLIC_GEMINI_API_KEY ||
+      process.env.GOOGLE_API_KEY;
 
-    if (serverKey) {
+    let analysis: DomainAnalysisResult | null = null;
+    let source = 'luke_domain_discovery';
+
+    if (effectiveKey) {
       try {
-        console.log(`[Luke] Cache MISS — calling Gemini Flash for: "${trimmedQuery}"`);
-        analysis = await researchParametersWithLuke(trimmedQuery, serverKey, 'google_gemini', locale);
+        console.log(`[Luke] Calling Gemini Flash research for: "${trimmedQuery}"`);
+        analysis = await researchParametersWithLuke(trimmedQuery, effectiveKey, providerId || 'google_gemini', locale);
         if (analysis && analysis.parameters && analysis.parameters.length >= 8) {
           source = 'luke_gemini_flash';
         }
       } catch (llmErr) {
-        console.warn('[Luke] Gemini Flash call failed, activating Luke heuristic fallback:', llmErr);
+        console.warn('[Luke] Live LLM call failed, activating domain parameter discovery:', llmErr);
       }
     }
 
-    // High-availability fallback if key missing, API call failed, or insufficient parameters
+    // High-yield domain parameter discovery if key missing or LLM call failed
     if (!analysis || !analysis.parameters || analysis.parameters.length < 8) {
-      console.log(`[Luke] High-Availability Heuristic Discovery activated for: "${trimmedQuery}"`);
-      analysis = discoverDomainParameters(trimmedQuery);
-      source = 'luke_heuristic';
+      console.log(`[Luke] High-Yield Domain Parameter Discovery for: "${trimmedQuery}"`);
+      analysis = discoverDomainParameters(trimmedQuery, locale);
+      source = 'luke_domain_discovery';
     }
 
-    // ——— STEP 4: Ensure brand parameter exists ———
+    // ——— STEP 3: Ensure brand parameter exists ———
     analysis.parameters = ensureBrandParameter(analysis.parameters, locale);
 
-    // ——— STEP 5: Cache the result ———
+    // ——— STEP 4: Cache the result ———
     setCachedAnalysis(trimmedQuery, analysis, locale).catch((err) =>
       console.warn('[Luke] Cache write failed (non-critical):', err)
     );
@@ -113,7 +143,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({
       success: true,
       analysis,
-      source: 'luke_gemini_flash',
+      source,
     });
   } catch (error: any) {
     console.error('Error in research-parameters endpoint:', error);
@@ -129,7 +159,7 @@ async function researchParametersWithLuke(
   categoryQuery: string,
   apiKey: string,
   providerId?: string,
-  locale: string = 'cs'
+  locale: string = 'en'
 ): Promise<DomainAnalysisResult | null> {
   const isEn = locale === 'en';
   const languageInstruction = isEn
@@ -140,317 +170,192 @@ async function researchParametersWithLuke(
     ? `MANDATORY BRAND GOVERNANCE: You MUST ALWAYS INCLUDE a brand preferences parameter ("Brand & Manufacturers (Preferred vs. Forbidden)", id: "brand_preferences", suggestedComponent: "brands"). This parameter enables the user to explicitly specify which brands they want (preferred) and which they reject (forbidden).`
     : `POVINNÁ IZOLACE ZNAČEK: Mezi vygenerovanými parametry MUSÍŠ VŽDY ZAHRNOUT parametr pro značky a výrobce ("Značka & Výrobci (Preferované vs. Zakázané)", id: "brand_preferences", suggestedComponent: "brands"). Tento parametr slouží k tomu, aby si uživatel mohl explicitně napsat, které konkrétní značky chce (preferuje) a které nechce (zakazuje doporučit).`;
 
-  const metaPrompt = `
+  const metaPrompt = isEn ? `
 ${languageInstruction}
 
-Jsi Luke, špičkový produktový analytik, nezávislý nákupčí a reverzní inženýr nákupního rozhodování v expertním systému bAIright.
-Znáš psychologii nákupu, víš, jaká úskalí skrývají marketingové materiály výrobců, a přesně víš, na co se zákazníka zeptat, aby zúžil výběr na ten nejvhodnější produkt. Nemáš žádný zájem na prodeji konkrétní značky nebo modelu. Tvojí jedinou misí je ochránit uživatele před nevhodným nákupem, dodat mu maximální jistotu a ušetřit mu hodiny složité rešerše.
+You are an expert purchase analyst and technical specification writer in the bAIright system. Your task is to break down any user-specified product category into a list of 8 to 12 most critical parameters that a buyer must consider before making a final decision.
 
-Uživatel chce koupit: "${categoryQuery}".
+Input entity (Product): "${categoryQuery}"
 
-Tvým úkolem je na základě tohoto vstupu vygenerovat MINIMÁLNĚ 10 AŽ 14 NEJDŮLEŽITĚJŠÍCH PARAMETRŮ a rozhodovacích kritérií + 3 až 5 alternativních do poolu návrhů. Tyto parametry poslouží jako základ pro Intake Wizard, který uživateli pomůže sestavit detailní a přesný nákupní prompt.
+Parameter generation rules:
 
-## ČTYŘI ZLATÁ PRAVIDLA NÁKUPNÍHO MYŠLENÍ AGENTA LUKEA (MANDATORY):
+1. Scope: Generate strictly 8 to 12 parameters.
 
-1. 🚲 ELEMENTÁRNÍ ROZDĚLENÍ TRHU VŽDY JAKO PARAMETR Č. 1 A ADAPTIVNÍ DETEKCE SPECIFICKÉ POD-KATEGORIE (SUB-CATEGORY SPECIFICITY):
-   - ROZLIŠUJ OBECNÝ DOTAZ VS. SPECIFICKÝ SUB-TYP:
-     a) Pokud je dotaz OBECNÝ (např. "jízdní kolo", "myčka", "notebook", "kávovar"):
-        - Parametr č. 1 musí být elementární zařazení na trhu a typologie (např. "Typ kola: Silniční vs Gravel vs MTB vs E-bike").
-     b) Pokud uživatel ZADAL KONKRÉTNÍ POD-TYP (např. "endurance silniční kolo", "vestavná myčka 45cm", "herní notebook 15"):
-        - ROVNĚŽ PŘESNĚ SPECIFIKUJ PARAMETRY PRO TENTO POD-TYP!
-        - ZÁKAZ vkládat irelevantní parametry jiných kategorií! U "endurance silničního kola" STRIKTNÍ ZÁKAZ vkládat elektropohony/baterie nebo odpružené vidlice.
-        - Zaměř se přímo na odlišující vlastnosti dané pod-kategorie (u endurance silničky: Stack/Reach geometrie, šířka plášťů 28-32mm, sada řazení Shimano 105/Ultegra, pohlcování vibrací karbonovou sedlovkou, kotoučové brzdy).
+2. Complexity: Parameters must cover the full spectrum of the buying decision (1-2 focused on user context/purpose and market typology, the rest on key technical specifications typical for this product). For body-related products, include body biometrics and ergonomics.
 
-2. 🧬 POVINNÉ TĚLESNÉ BIOMETRICKÉ A ZDRAVOTNÍ PARAMETRY U PRODUKTŮ VÁZANÝCH NA TĚLO (BIOMETRICS & MEDICAL PROFILE):
-   - U všech produktů, které přicházejí do přímého kontaktu s tělem, nesou váhu uživatele nebo ovlivňují pohybový aparát (jízdní kola, běžecká i treková obuv, lyže a lyžáky, kancelářské židle, matrace, batohy, helmy, oblečení, sportovní pomůcky):
-   - VŽDY MUSÍŠ ZAHRNOUT JAKO SAMOSTATNÝ POVINNÝ PARAMETR (např. Parametr č. 2) OSOBNÍ BIOMETRICKÉ A ZDRAVOTNÍ PARAMETRY UŽIVATELE:
-     a) Přesná výška postavy (cm) a tělesná hmotnost (kg) – kritické pro velikost rámu, flex index lyží, tuhost matrace, dimenzování pístu židle, drop a tlumení bot.
-     b) Specifické anatomické rozměry – šířka nohy/chodidla (standard vs. široké 2E/4E, úzká pata), vnitřní délka nohou (inseam), obvod hlavy / hrudníku / pasu.
-     c) Zdravotní anamnéza a prodělané operace – operace kolenních vazů a menisků, operace páteře (výhřez plotének), skolióza, chronické bolesti beder a krku, vbočený palec (hallux valgus). Tyto zdravotní faktory mají absolutní přednost před designem!
+3. Clarity: Each parameter must have a short explanatory description for a layperson (rationale, max 100 characters) explaining why it matters and what the risk of a wrong choice is, based on insights from reviews and forums.
 
-3. 🔟 GARANCE MINIMÁLNĚ 10 STRUKTUROVANÝCH PARAMETRŮ:
-   - Výstup musí obsahovat minimálně 10 parametrů (ideálně 10 až 14) pokrývajících:
-     1. Primární tržní segment / typologie
-     2. Uživatelská biometrie / tělesná & zdravotní kritéria (pokud je produkt tělesně vázán)
-     3. Klíčové technologické jádro / motor / pohon
-     4. Materiálové složení a konstrukční odolnost
-     5. Ergonomie, rozměry a montážní/prostorové limity
-     6. Bezpečnostní prvky a certifikace
-     7. Servisovatelnost, rozebíratelnost a dostupnost náhradních dílů v ČR
-     8. Provozní náklady, energetická náročnost a údržba
-     9. Akustický komfort / hlučnost / reálný dojezd či výdrž
-     10. ${brandParamInstruction}
+4. Categorization: For each parameter, suggest a typical response format (suggestedComponent: "chips", "slider", "dropdown", "brands") and ALWAYS include 3 to 5 of the most common market values or examples in suggestedValues — even for parameters where values are individual (e.g. size, material). NO empty array, NO omitting the field. suggestedValues are used both as chips and as examples for text fields. DO NOT use suggestedComponent: "text" — instead use "chips" with meaningful labels.
 
-4. 🌐 POVINNÝ MULTI-ZDROJOVÝ VÝZKUM (UŽIVATELSKÁ FÓRA, YOUTUBE ROZBORY A TECHNICKÉ LISTY VÝROBCŮ):
-   - U KAŽDÉHO PRODUKTU MUSÍŠ SIMULOVAT A APLIKOVAT POZNATKY ZE 3 KLÍČOVÝCH ZDROJŮ TRHU:
-     a) Uživatelská fóra & komunitní diskuze (Reddit, Heureka, iFixit, specializovaná fóra v ČR i zahraničí) – reálné zkušenosti s poruchovostí po 1-2 letech, servisní nároky, reklamace a skryté vady.
-     b) YouTube videorecenze a zátěžové rozbory (teardowns, hands-on testy, rozbory vnitřních komponent).
-     c) Technické specifikace výrobců a materiálové inženýrství (nerez 304 vs 316, borosilikátové sklo, karboxy/hliník AL 6061-T6, GaN polovodiče, garance náhradních dílů).
-   - Každé zdůvodnění (rationale) v parametru MUSÍ vycházet z těchto 3 pilířů rešerše.
+5. Brand isolation: ${brandParamInstruction} The last parameter MUST have id "brand_preferences", name "Brands & Manufacturers", category "Brands & Manufacturers", suggestedComponent "brands".
 
-## STRIKTNÍ ZÁKAZ VÁGNÍCH KLIŠÉ:
-- Žádná "Cena", "Barva", "Vzhled", "Kvalita zpracování", "Spolehlivost", "Ergonomie", "Technologický standard", "Základní výbava".
-- Každý parametr musí mít v "rationale" dvě složky:
-  1. Insight z fór a testů (proč na tom záleží a jaké je riziko špatné volby).
-  2. Konkrétní návodnou otázku pro uživatele.
+6. Strict ban on clichés & static fallbacks: STRICTLY FORBIDDEN: vague clichés ("Price", "Color", "Appearance", "Quality", "Ergonomics"). No boilerplate phrases about installation space or power consumption for non-appliances.
 
-## FEW-SHOT REFERENČNÍ VZOR (Příklad správné hloubky a hierarchie na dotaz "Jízdní kolo"):
+7. History check: If a query for this product has been made on our platform before, take into account the previously offered parameters.
+
+Output structure (generate valid JSON):
+Respond STRICTLY as a valid JSON object:
 {
-  "keyword": "Jízdní kolo",
-  "matchedDomain": "bicycles",
-  "categoryName": "Jízdní Kola & Elektromobilita",
-  "agentName": "Luke: Specialista na Jízdní Kola & E-biky",
-  "description": "Nezávislý nákupní analytik pro jízdní kola. Analyzuje disciplínu, biometrii jezdce, geometrii rámu, sady řazení, odpružení a servisovatelnost.",
+  "keyword": "${categoryQuery}",
+  "matchedDomain": "custom",
+  "categoryName": "Shopping selection for ${categoryQuery}",
+  "agentName": "Specialist: ${categoryQuery}",
+  "description": "Shopping advisor for selecting ${categoryQuery} based on key technical specs and review insights.",
   "parameters": [
     {
-      "id": "bike_type_category",
-      "name": "Typ kola a disciplína",
-      "category": "Kategorie & Disciplína",
+      "id": "param_id_1",
+      "name": "Short name (≤ 18 chars)",
+      "category": "Parameter category",
       "importance": "mandatory",
-      "rationale": "Výběr špatného typu kola je nejčastější chybou – horské kolo na asfaltu drhne a bere energii, silniční neprojede lesem a gravel vyžaduje specifický posed. Otázka pro vás: Po jakém povrchu a v jakém terénu budete reálně jezdit nejčastěji?",
-      "icon": "🚲",
+      "rationale": "Short layperson explanation of why this matters.",
       "suggestedComponent": "chips",
-      "suggestedValues": ["Gravel (univerzální na silnici, cyklostezky i šotolinu)", "Horské kolo MTB (kořeny, kameny a lesní traily)", "Silniční kolo (maximální rychlost na hladkém asfaltu)", "Městské / Trekingové (vzpřímený posed a nosiče)", "Elektrokolo E-bike (středový motor do kopců)"]
-    },
-    {
-      "id": "bike_rider_biometrics",
-      "name": "Biometrie jezdce & zdravotní profil (Výška, váha, délka nohou, operace páteře/kolen)",
-      "category": "Biometrie & Zdraví",
-      "importance": "mandatory",
-      "rationale": "Výška a délka nohou určují přesnou velikost rámu (S/M/L/XL), váha jezdce je nutná pro nastavení tlaku vzduchové vidlice. Lidé po operaci kolenních vazů nebo s výhřezem ploténky potřebují vzpřímenější geometrii a celoodpružený rám. Otázka pro vás: Jaká je vaše výška, váha a máte potíže s koleny či zády?",
-      "icon": "🧬",
-      "suggestedComponent": "chips",
-      "suggestedValues": ["Výška do 175 cm / Váha do 75 kg", "Výška 175–185 cm / Váha 75–90 kg", "Výška 185+ cm / Váha 90+ kg", "Po operaci zad/kolen (požadavek na vzpřímený posed a tlumení rázu)"]
-    },
-    {
-      "id": "bike_frame_material",
-      "name": "Materiál rámu (Karbon s absorpcí mikrovibrací vs. Odolný hydroformovaný hliník AL 6061)",
-      "category": "Rám & Konstrukce",
-      "importance": "mandatory",
-      "rationale": "Hliník je odolný a levnější, ale přenáší mikrovibrace do zápěstí a krku. Karbon je lehčí, tužší v záběru a přirozeně tlumí vibrace terénu. Otázka pro vás: Hledáte maximální lehkost a komfort tlumení, nebo preferujete odolnost hliníku při pádech?",
-      "icon": "📐",
-      "suggestedComponent": "chips",
-      "suggestedValues": ["Karbonový rám (nízká váha a filtrace vibrací)", "Hydroformovaný hliník AL 6061/7005 (odolný a cenově dostupný)"]
-    },
-    {
-      "id": "bike_suspension_system",
-      "name": "Systém odpružení (Pevný rám vs. Vzduchová vidlice s lockoutem vs. Full-suspension)",
-      "category": "Odpružení",
-      "importance": "mandatory",
-      "rationale": "Levné pružinové vidlice v zimě tuhnou a nelze je nastavit na váhu jezdce. Vzduchovou vidlici natlakujete přesně na své tělo a celoodpružený rám šetří bederní páteř. Otázka pro vás: Vyžadujete žehlení nerovností a možnost zamknutí do kopce?",
-      "icon": "🚵",
-      "suggestedComponent": "chips",
-      "suggestedValues": ["Pevná vidlice (gravel a silnice pro maximální přenos síly)", "Přední vzduchová vidlice (Hardtail s lockoutem na řídítkách)", "Celoodpružený rám (Full-suspension pro šetření zad v terénu)"]
-    },
-    {
-      "id": "bike_drivetrain_groupset",
-      "name": "Sada řazení & převodový poměr (Jednopřevodník 1x12 Shimano XT/Deore/SRAM vs. 2x11)",
-      "category": "Pohon & Řazení",
-      "importance": "mandatory",
-      "rationale": "Jednopřevodník 1x12 eliminuje padání řetězu v terénu a usnadňuje ovládání, zatímco 2x11 nabízí jemnější silniční odstupňování. Otázka pro vás: Jezdíte kopcovitý terén a traily, nebo dlouhé silniční rovinky?",
-      "icon": "⚙️",
-      "suggestedComponent": "chips",
-      "suggestedValues": ["1x12 s kazetou 10–51T (jednoduchost v terénu)", "2x11 / 2x12 (jemné odstupňování na silnici a asfalt)"]
-    },
-    {
-      "id": "bike_brakes_hydraulic",
-      "name": "Brzdový systém (Hydraulické kotoučové 2/4pístkové brzdy vs. mechanické lankové)",
-      "category": "Bezpečnost",
-      "importance": "mandatory",
-      "rationale": "Mechanická lanka v dlouhých sjezdech vadnou a unavují prsty. Hydraulické kotouče zastaví kolo bezpečně jedním prstem i za deště a bláta. Otázka pro vás: Sjíždíte prudké kopce a požadujete okamžitý brzdný účinek?",
-      "icon": "🛑",
-      "suggestedComponent": "chips",
-      "suggestedValues": ["Hydraulické kotoučové brzdy Shimano/SRAM (vysoký brzdný účinek)", "4pístkové hydraulické brzdy (pro těžší jezdce, sjezdy a e-biky)"]
-    },
-    {
-      "id": "bike_wheel_tire_size",
-      "name": "Průměr kol a šířka plášťů (29" vs. 27.5" vs. Gravel 40–45 mm Tubeless Ready)",
-      "category": "Kola & Trakce",
-      "importance": "recommended",
-      "rationale": "Kola 29" lépe překonávají překážky a drží setrvačnost, 27.5" jsou hravější v zatáčkách. Bezdušové pláště (tubeless) eliminují defekty o trny. Otázka pro vás: Preferujete rychlost a stabilitu na nerovnostech, nebo obratnost?",
-      "icon": "🛞",
-      "suggestedComponent": "chips",
-      "suggestedValues": ["29" kola (skvělé převalování překážek a setrvačnost)", "Gravel pláště 40–45 mm s bezdušovým tmelem", "27.5" kola pro menší postavu a hravost"]
-    },
-    {
-      "id": "bike_ebike_motor_battery",
-      "name": "Středový motor s torzním snímačem (Bosch/Shimano 85 Nm) & baterie 600–750 Wh",
-      "category": "Elektropohon",
-      "importance": "recommended",
-      "rationale": "Levné motory v náboji trhají a ztrácí trakci. Středový motor s torzním snímačem dávkuje přípomoc plynule podle síly vašeho šlápnutí. Otázka pro vás: Požadujete asistenci do prudkých kopců a dojezd 80+ km?",
-      "icon": "⚡",
-      "suggestedComponent": "chips",
-      "suggestedValues": ["Středový motor Bosch CX / Shimano EP8 (85 Nm) + 700+ Wh baterie", "Lehký pohon SL (50–60 Nm, 400 Wh) pro přirozený pocit z jízdy", "Klasické kolo bez motoru"]
-    },
-    {
-      "id": "bike_cockpit_ergonomics",
-      "name": "Ergonomie kokpitu & sedlo (Šířka řídítek, sklon představce, ergonomické gripy)",
-      "category": "Ergonomie & Pohodlí",
-      "importance": "recommended",
-      "rationale": "Špatná šířka řídítek způsobuje brnění prstů (útlak ulnárního nervu) a bolesti trapézů. Ergonomické gripy a správná šířka sedla dle sedacích kostí jsou klíčem k jízdě bez bolesti. Otázka pro vás: Míváte při delší jízdě problémy s brněním rukou nebo otlaky?",
-      "icon": "🖐️",
-      "suggestedComponent": "chips",
-      "suggestedValues": ["Ergonomické gripy s opěrkou dlaně + sedlo s anatomickým výřezem", "Standardní sportovní kokpit"]
-    },
-    {
-      "id": "bike_weight_capacity",
-      "name": "Celková nosnost systému a příprava na brašny (Bikepacking / Nosiče)",
-      "category": "Praktičnost & Nosnost",
-      "importance": "recommended",
-      "rationale": "Běžná kola mají celkovou nosnost rámu 110–120 kg včetně kola. Pro těžší jezdce nebo vícedenní výpravy s brašnami je nutné kolo s certifikovanou nosností 135–150 kg.",
-      "icon": "🎒",
-      "suggestedComponent": "chips",
-      "suggestedValues": ["Zvýšená nosnost 130–150 kg (těžší jezdec / brašny)", "Příprava rámu na montáž blatníků a expedičních nosičů", "Běžná sportovní nosnost do 115 kg"]
-    },
-    {
-      "id": "brand_preferences",
-      "name": "Značka & Výrobci (Preferované vs. Zakázané)",
-      "category": "Značky & Výrobci",
-      "importance": "recommended",
-      "rationale": "Umožňuje vám preferovat prověřené výrobce s dostupným servisem a zárukou (např. Trek, Specialized, Canyon, Scott, Ghost) a naopak striktně zakázat nespolehlivé značky. Otázka pro vás: Máte oblíbené značky, nebo chcete nějaké vyloučit?",
-      "icon": "🏷️",
-      "suggestedComponent": "brands",
-      "suggestedValues": ["Otevřený výběr ze všech ověřených značek", "Preferuji specifické značky", "Chci vyloučit určité výrobce"]
+      "suggestedValues": ["Option 1", "Option 2", "Option 3"],
+      "isMultiSelect": true
     }
   ],
-  "suggestedAlternatives": [
-    {
-      "id": "bike_dropper_post",
-      "name": "Teleskopická sedlovka ovládaná z řídítek",
-      "category": "Komfort & Bezpečnost v terénu",
-      "importance": "preference",
-      "rationale": "Umožňuje snížit sedlo za jízdy před prudkým sjezdem, což radikálně snižuje riziko pádu přes řídítka.",
-      "icon": "📏",
-      "suggestedComponent": "chips",
-      "suggestedValues": ["Požaduji teleskopickou sedlovku (pro jistotu ve sjezdech)", "Pevná klasická sedlovka"]
-    },
-    {
-      "id": "bike_service_warranty",
-      "name": "Záruka a servis",
-      "category": "Záruka & Podpora",
-      "importance": "preference",
-      "rationale": "Značky jako Trek či Specialized nabízejí prvnímu majiteli doživotní záruku na rám.",
-      "icon": "🛡️",
-      "suggestedComponent": "chips",
-      "suggestedValues": ["Doživotní záruka na rám od výrobce", "Běžná 2-3letá záruka"]
-    }
-  ],
-  "questions": [
-    {
-      "id": "bike_q_type",
-      "step": 1,
-      "title": "V jakém terénu a na jakých površích budete na kole jezdit?",
-      "subtitle": "Klíčové elementární rozdělení určující celou geometrii a typ rámu.",
-      "component": "chips",
-      "isMultiSelect": false,
-      "options": [
-        { "label": "Gravel / Šotolina, cyklostezky a asfalt", "value": "gravel", "description": "Berany řídítka, rychlost na asfaltu i polních cestách." },
-        { "label": "Horské kolo (MTB) / Lesní cesty, kameny a traily", "value": "mtb", "description": "Široká řídítka, odpružená vidlice, maximální jistota v terénu." },
-        { "label": "Elektrokolo (E-bike) / Pomoc do kopců", "value": "ebike", "description": "Středový motor pro zdolání prudkých stoupání bez vyčerpání." }
-      ],
-      "defaultValue": "gravel",
-      "promptForgeTemplate": "- **Typ kola a povrch jízdy:** {value}"
-    },
-    {
-      "id": "bike_q_biometrics",
-      "step": 2,
-      "title": "Jaká je vaše výška, váha a máte zdravotní omezení?",
-      "subtitle": "Určuje přesnou velikost rámu, dimenzování odpružení a ergonomii posedu.",
-      "component": "chips",
-      "isMultiSelect": false,
-      "options": [
-        { "label": "Standardní postava bez omezení", "value": "standard", "description": "Sportovní posed a běžné nastavení odpružení." },
-        { "label": "Vyšší hmotnost (90+ kg) / Vyšší postava", "value": "heavy", "description": "Požadavek na vyšší tuhost rámu, vzduchovou vidlici a silné brzdy." },
-        { "label": "Zdravotní limity (bolavá záda / kolena po operaci)", "value": "orthopedic", "description": "Požadavek na vzpřímenější geometrii a šetrné odpružení pro páteř." }
-      ],
-      "defaultValue": "standard",
-      "promptForgeTemplate": "- **Biometrie a zdravotní profil jezdce:** {value}"
-    }
-  ],
-  "systemPrompt": "Expertní nezávislý nákupní poradce pro jízdní kola. Doporučuje přesně 3 konkrétní modely dle disciplíny, biometrie a rozpočtu."
-}
+  "questions": [],
+  "systemPrompt": "Expert shopping advisor for ${categoryQuery}..."
+}`.trim() : `
+${languageInstruction}
 
-## PRAVIDLA PRO VÝSTUP (MANDATORY):
-4. 🛑 STRIKTNÍ ZÁKAZ ABSTRAKTNÍHO JARGONU: ZÁKAZ generovat generické korporátní termíny jako "konstrukční třída", "procesní koncepce", "architektonická úroveň". VŠECHNY parametry musí být reálné, praktické vlastnosti produktu (např. u tiskáren: "Typ tisku", "Náklady na 1 stranu", "Rychlost tisku PPM", "Duplexní oboustranný tisk", "Skener & Kopírka", "Wi-Fi & AirPrint").
-1. 📛 KRÁTKÉ NÁZVY PARAMETRŮ: Pole "name" u každého parametru MUSÍ BÝT MAXIMÁLNĚ 4 SLOVA. Žádné závorky, žádné technické zkratky v závorce, žádné spojky "vs." nebo "&". Správně: "Typ kola", "Materiál rámu", "Záruka a servis". Špatně: "Typ kola & disciplína (Silniční vs. Gravel vs. Horské MTB)".
-2. 📋 BOHATÉ MOŽNOSTI: Pole "suggestedValues" musí mít MINIMÁLNĚ 3 A MAXIMÁLNĚ 5 konkrétních, dobře popsaných možností. Každá možnost může obsahovat krátký popis v závorce pro kontext. Nikdy méně než 3 možnosti.
-3. ✅ Výstup musí být STRIKTNĚ validní JSON bez jakéhokoliv markdownu nebo komentářů.
+Jsi expertní nákupní analytik a technický specifikátor v expertním systému bAIright. Tvým úkolem je rozpadnout jakoukoliv uživatelem zadanou kategorii zboží na seznam 8 až 12 nejkritičtějších parametrů, které musí kupující zvážit před finálním rozhodnutím.
 
-Nyní zpracuj uživatelský dotaz: "${categoryQuery}".
-Vygeneruj MINIMÁLNĚ 10 AŽ 14 takových špičkových parametrů seřazených od tržního zařazení přes biometrii až po technické detaily + 3 až 5 alternativních do poolu návrhů.
-Odpověz STRIKTNĚ jako validní JSON podle výše uvedené struktury, bez jakéhokoliv doplňkového markdownového textu.
-`.trim();
+Vstupní entita (Zboží): "${categoryQuery}"
+
+Pravidla pro generování parametrů:
+
+1. Rozsah: Vygeneruj striktně 8 až 12 parametrů.
+
+2. Komplexita: Parametry musí pokrývat celé spektrum výběru (1-2 zaměřené na uživatelský kontext/účel a typologii trhu, zbytek na klíčové technické specifikace typické pro dané zboží). U produktů vázaných na tělo zařaď biometrii a ergonomii.
+
+3. Srozumitelnost: Každý parametr musí mít krátký vysvětlující popis pro laika (rationale, max 100 znaků), proč je daná věc důležitá a jaké je riziko špatné volby na základě poznatků z recenzí a fór.
+
+4. Kategorizace: Ke každému parametru navrhni typický formát odpovědi (suggestedComponent: "chips", "slider", "dropdown", "brands") a VŽDY uveď 3 až 5 nejběžnějších hodnot nebo příkladů z trhu v poli suggestedValues – i pro parametry kde jsou hodnoty individuální (např. velikost, materiál). NE prázdné pole, NE vynechání pole. suggestedValues slouží jako chips i jako příklady pro text pole. NEPOUŽÍVEJ suggestedComponent: "text" – místo toho použij "chips" a dej hodnotám smysluplné labely.
+
+5. Izolace značek: ${brandParamInstruction} Poslední parametr MUSÍ mít id "brand_preferences", name "Značky a výrobci", category "Výrobci & Značky", suggestedComponent "brands".
+
+6. Striktní zákaz klišé & statických fallbacků: STRIKTNÍ ZÁKAZ VÁGNÍCH KLIŠÉ ("Cena", "Barva", "Vzhled", "Kvalita", "Ergonomie"). Žádné šablonové fráze o montáži či spotřebě u ne-spotřebičů.
+
+7. Ověření historie webu: Pokud již na našem webu proběhl dotaz na toto zboží, zohledni dříve nabízené parametry z databáze.
+
+Struktura výstupu (vygeneruj validní JSON):
+Odpověz STRIKTNĚ jako validní JSON objekt:
+{
+  "keyword": "${categoryQuery}",
+  "matchedDomain": "custom",
+  "categoryName": "Nákupní výběr pro ${categoryQuery}",
+  "agentName": "Specialista na ${categoryQuery}",
+  "description": "Nákupní poradce pro výběr ${categoryQuery} zohledňující klíčové technické specifikace a recenze.",
+  "parameters": [
+    {
+      "id": "param_id_1",
+      "name": "Stručný název (≤ 18 znaků)",
+      "category": "Kategorie parametru",
+      "importance": "mandatory",
+      "rationale": "Krátký vysvětlující popis pro laika, proč je daná věc důležitá.",
+      "suggestedComponent": "chips",
+      "suggestedValues": ["Možnost 1", "Možnost 2", "Možnost 3"],
+      "isMultiSelect": true
+    }
+  ],
+  "questions": [],
+  "systemPrompt": "Expertní nákupní poradce pro ${categoryQuery}..."
+}`.trim();
 
   // Route according to provider
   if (providerId === 'openai_gpt4o' || apiKey.startsWith('sk-proj-') || apiKey.startsWith('sk-')) {
-    try {
-      const res = await fetch('https://api.openai.com/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${apiKey}`,
-        },
-        body: JSON.stringify({
-          model: 'gpt-4o',
-          messages: [
-            {
-              role: 'system',
-              content: 'Jsi Luke – elitní Parameter Research Agent pro hloubkovou analýzu nákupních rozhodnutí, recenzí a odborných fór. Vždy dodržuješ elementární tržní segmentaci jako 1. parametr, biometrii uživatele a minimálně 10 parametrů. Odpovídáš výhradně validním JSONem.',
+    const failoverOpenAI = await ModelDiscoveryService.executeWithResilientFailover<DomainAnalysisResult>({
+      providerId: 'openai_gpt4o',
+      apiKey,
+      executeFn: async (model) => {
+        try {
+          const res = await fetch('https://api.openai.com/v1/chat/completions', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${apiKey}`,
             },
-            { role: 'user', content: metaPrompt },
-          ],
-          response_format: { type: 'json_object' },
-          temperature: 0.2,
-        }),
-      });
+            body: JSON.stringify({
+              model,
+              messages: [
+                {
+                  role: 'system',
+                  content: isEn
+                    ? 'You are an elite Parameter Research Agent specializing in deep analysis of purchasing decisions, reviews, and expert forums. You always include market segmentation as the first parameter, user biometrics, and a minimum of 8 parameters. You respond exclusively with valid JSON.'
+                    : 'Jsi elitní Parameter Research Agent pro hloubkovou analýzu nákupních rozhodnutí, recenzí a odborných fór. Vždy dodržuješ elementární tržní segmentaci jako 1. parametr, biometrii uživatele a minimálně 10 parametrů. Odpovídáš výhradně validním JSONem.',
+                },
+                { role: 'user', content: metaPrompt },
+              ],
+              response_format: { type: 'json_object' },
+              temperature: 0.2,
+            }),
+          });
 
-      if (res.ok) {
-        const data = await res.json();
-        const content = data?.choices?.[0]?.message?.content;
-        if (content) {
-          return JSON.parse(content) as DomainAnalysisResult;
+          if (!res.ok) {
+            const errText = await res.text();
+            return { success: false, status: res.status, errorBody: errText };
+          }
+
+          const data = await res.json();
+          const jsonText = data?.choices?.[0]?.message?.content;
+          if (jsonText) {
+            const parsed = JSON.parse(jsonText) as DomainAnalysisResult;
+            return { success: true, data: parsed };
+          }
+          return { success: false, status: 200, errorBody: 'Empty content from OpenAI' };
+        } catch (err: any) {
+          return { success: false, error: err, errorBody: err?.message };
         }
-      }
-    } catch (err) {
-      console.warn('OpenAI research call failed, trying Gemini:', err);
+      },
+    });
+
+    if (failoverOpenAI.result) {
+      return failoverOpenAI.result;
     }
   }
 
-  // Default to Google Gemini API with model cascading (gemini-3.6-flash, 2.5-flash, 2.0-flash, 1.5-flash)
-  const candidateModels = ['gemini-2.0-flash', 'gemini-1.5-flash', 'gemini-1.5-pro'];
-  let lastError: Error | null = null;
+  // Google Gemini API with dynamic resilient failover
+  const failoverGemini = await ModelDiscoveryService.executeWithResilientFailover<DomainAnalysisResult>({
+    providerId: 'google_gemini',
+    apiKey,
+    executeFn: async (model) => {
+      try {
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
+        const response = await fetch(url, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            contents: [{ role: 'user', parts: [{ text: metaPrompt }] }],
+            generationConfig: {
+              temperature: 0.2,
+              maxOutputTokens: 5000,
+              responseMimeType: 'application/json',
+            },
+          }),
+        });
 
-  for (const model of candidateModels) {
-    try {
-      const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
-      const response = await fetch(url, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          contents: [{ role: 'user', parts: [{ text: metaPrompt }] }],
-          generationConfig: {
-            temperature: 0.2,
-            maxOutputTokens: 5000,
-            responseMimeType: 'application/json',
-          },
-        }),
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
-        if (text) {
-          const cleanJson = text.replace(/```json/gi, '').replace(/```/g, '').trim();
-          return JSON.parse(cleanJson) as DomainAnalysisResult;
+        if (response.ok) {
+          const data = await response.json();
+          const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+          if (text) {
+            const cleanJson = text.replace(/```json/gi, '').replace(/```/g, '').trim();
+            const parsed = JSON.parse(cleanJson) as DomainAnalysisResult;
+            return { success: true, data: parsed };
+          }
+          return { success: false, status: 200, errorBody: 'Empty text returned' };
+        } else {
+          const errBody = await response.text();
+          return { success: false, status: response.status, errorBody: errBody };
         }
-      } else {
-        lastError = new Error(`Gemini API error for model ${model}: ${response.status}`);
+      } catch (err: any) {
+        return { success: false, error: err, errorBody: err?.message };
       }
-    } catch (err: any) {
-      lastError = err;
-    }
+    },
+  });
+
+  if (failoverGemini.result) {
+    return failoverGemini.result;
   }
 
-  if (lastError) throw lastError;
   return null;
 }

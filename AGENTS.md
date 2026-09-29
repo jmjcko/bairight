@@ -16,6 +16,18 @@ This repository (`bAIright` / `shoes`) operates under the **3Pillar AIRE SDLC Ag
 
 ---
 
+## 🚫 STRICT DESIGN & PRODUCT SPECIFICATION: ZERO ICONS & ZERO GENERIC EMOTICONS
+- **MANDATORY PRODUCT PRINCIPLE**: The bAIright UI is strictly an ultra-clean, serious, modern Cyber-glass application.
+- **STRICTLY FORBIDDEN ACROSS ALL SCREENS & COMPONENTS**:
+  - **NO emojis or generic emoticons** (e.g. 🤖, 💎, 🧠, ⚡, 🔥, ✨, 🏀, 👟, 🎯, etc.) anywhere in titles, cards, pickers, loaders, instructions, badges, or buttons.
+  - **NO decorative icon boxes or avatar containers** (e.g. `<div className="w-9 h-9 ..."><Bot .../></div>`, `<Sparkles>`, `<Cpu>`, generic robot heads, or category icon containers).
+  - **NO icon clutter** decorating section headers or tab titles (e.g. no `<Sparkles>` or `<Bot>` before `Instructions for Google Gemini:`).
+- **PERMITTED ONLY**:
+  - Clean typography-driven hierarchy (bold typography, clean tracking, monospace metadata chips, elegant cyan/teal accent lines).
+  - Minimal functional UI indicators only when functionally required (e.g. minimalist collapsible chevrons `▾`/`▴` for open/close state, checkmark `✓` when text was copied).
+
+---
+
 ## 🛡️ AIRE SDLC Workflows & Operating Guidelines
 
 1. **Brownfield Workflows (Existing Codebase Inspection):**
@@ -72,3 +84,7 @@ For ANY prompt or request submitted by the user:
    - The AI Assistant MUST save all edits directly to local workspace files so they are immediately visible as uncommitted changes (`git diff`) in the user's IDE.
    - The AI Assistant MUST NOT execute `git commit` or `git push` automatically.
    - The user retains 100% control over committing and pushing changes to GitHub.
+
+3. **User Design Approval & Consultation Gate (NO Unsolicited Automatic Edits)**:
+   - When the user asks analytical questions ("PROČ?", "Jak funguje..."), asks for explanations, or asks to design a solution, the AI Assistant MUST NOT modify application code automatically.
+   - The AI Assistant MUST present the analysis, architectural concept, and proposal in text first, and wait for explicit user approval before making any code changes in `src/`.

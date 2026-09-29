@@ -21,7 +21,8 @@ import {
   Terminal
 } from 'lucide-react';
 import { UniversalAgentDefinition } from '@/lib/agent/universal-agent-schema';
-import { PersistentMemoryFact, ShoppingMission, AIProviderConfig } from '@/lib/agent/engine-config';
+import { PersistentMemoryFact, ShoppingMission, AIProviderConfig, formatValueDisplay } from '@/lib/agent/engine-config';
+import { useI18n } from '@/lib/i18n/I18nContext';
 
 export interface GuardrailSettings {
   medicalRigor: number; // 0 - 100
@@ -61,6 +62,7 @@ export const AIPromptTunerPanel: React.FC<AIPromptTunerPanelProps> = ({
 }) => {
   const [activeTab, setActiveTab] = useState<'prompt' | 'guardrails' | 'rag' | 'payload'>('prompt');
   const [newBannedBrand, setNewBannedBrand] = useState('');
+  const { t, locale } = useI18n();
 
   const defaultPrompt = activeAgent?.systemPrompt || 
     `Jsi špičkový certifikovaný podiatrický AI nákupčí bot bAIright pro běžeckou a zdravotní obuv.
@@ -83,7 +85,7 @@ ${currentSystemPrompt}
 - Negative Constraints (Banned Brands): [${guardrails.bannedBrands.join(', ') || 'Žádné'}]
 
 === INJECTED RAG CONTEXT (USER ANAMNESIS & FACTS) ===
-${activeFacts.length > 0 ? activeFacts.map(f => `- [${f.category.toUpperCase()}] ${f.label}: ${f.value}`).join('\n') : '(Žádná aktivní fakta)'}
+${activeFacts.length > 0 ? activeFacts.map(f => `- [${f.category.toUpperCase()}] ${f.label}: ${formatValueDisplay(f.value)}`).join('\n') : '(Žádná aktivní fakta)'}
 
 === CURRENT MISSION ===
 Domain: ${activeMission.name} (${activeMission.id})
@@ -219,16 +221,16 @@ Target Category: ${activeAgent?.category || 'Běžecká obuv'}`;
             <div className="flex items-center justify-between">
               <span className="font-bold text-slate-200 text-xs flex items-center gap-1.5">
                 <Sparkles className="w-3.5 h-3.5 text-cyan-400" />
-                <span>Instrukce & Osobnost Agenta</span>
+                <span>{t.promptTuner.systemPromptLabel}</span>
               </span>
               {systemPromptOverride !== null && (
                 <button
                   onClick={onResetSystemPrompt}
                   className="flex items-center gap-1 text-[10px] font-mono text-cyan-400 hover:text-cyan-300 cursor-pointer"
-                  title="Obnovit výchozí prompt"
+                  title={t.promptTuner.resetDefault}
                 >
                   <RotateCcw className="w-3 h-3" />
-                  <span>Obnovit výchozí</span>
+                  <span>{t.promptTuner.resetDefault}</span>
                 </button>
               )}
             </div>
@@ -236,7 +238,7 @@ Target Category: ${activeAgent?.category || 'Běžecká obuv'}`;
             <div className="relative rounded-xl border border-slate-700/80 bg-[#050810] overflow-hidden focus-within:border-cyan-400/80 transition-colors">
               <div className="px-3 py-1.5 bg-slate-900/90 border-b border-slate-800 flex items-center justify-between text-[10px] font-mono text-slate-400">
                 <span>SYSTEM_PROMPT_TEMPLATE.md</span>
-                <span className="text-cyan-400 font-bold">ŽIVĚ UPRAVITELNÉ</span>
+                <span className="text-cyan-400 font-bold">{t.promptTuner.liveEditable}</span>
               </div>
               <textarea
                 value={currentSystemPrompt}
@@ -250,11 +252,9 @@ Target Category: ${activeAgent?.category || 'Běžecká obuv'}`;
             <div className="p-3 rounded-xl bg-cyan-950/30 border border-cyan-500/25 space-y-1.5 text-[11px] text-slate-300 leading-snug">
               <div className="font-bold text-cyan-300 flex items-center gap-1">
                 <Check className="w-3.5 h-3.5" />
-                <span>Přímý vliv na generování</span>
+                <span>{t.promptTuner.directInfluence}</span>
               </div>
-              <p>
-                Jakákoliv úprava textu výše okamžitě mění uvažování agenta při generování doporučení v pravém panelu.
-              </p>
+              <p>{t.promptTuner.directInfluenceDesc}</p>
             </div>
           </div>
         )}
@@ -267,7 +267,7 @@ Target Category: ${activeAgent?.category || 'Běžecká obuv'}`;
               <div className="flex items-center justify-between">
                 <span className="font-bold text-slate-200 flex items-center gap-1.5">
                   <Stethoscope className="w-3.5 h-3.5 text-cyan-400" />
-                  <span>Klinická přísnost došlapu & kopyta</span>
+                  <span>{t.promptTuner.medicalRigor}</span>
                 </span>
                 <span className="font-mono text-cyan-300 font-bold">{guardrails.medicalRigor}%</span>
               </div>
@@ -280,7 +280,7 @@ Target Category: ${activeAgent?.category || 'Běžecká obuv'}`;
                 className="w-full cursor-pointer accent-cyan-400"
               />
               <div className="flex justify-between text-[10px] text-slate-500 font-mono">
-                <span>Volnější tolerance</span>
+                <span>{t.promptTuner.standardTolerance}</span>
                 <span className="text-cyan-400 font-medium">
                   {guardrails.medicalRigor > 75 ? 'Striktní 2E kopyto & Rocker' : 'Střední doporučení'}
                 </span>
@@ -292,7 +292,7 @@ Target Category: ${activeAgent?.category || 'Běžecká obuv'}`;
               <div className="flex items-center justify-between">
                 <span className="font-bold text-slate-200 flex items-center gap-1.5">
                   <Activity className="w-3.5 h-3.5 text-emerald-400" />
-                  <span>Striktnost rozpočtu (Cenový strop)</span>
+                  <span>{t.promptTuner.budgetStrictness}</span>
                 </span>
                 <span className="font-mono text-emerald-300 font-bold">{guardrails.budgetStrictness}%</span>
               </div>
@@ -317,7 +317,7 @@ Target Category: ${activeAgent?.category || 'Běžecká obuv'}`;
               <div className="flex items-center justify-between">
                 <span className="font-bold text-slate-200 flex items-center gap-1.5">
                   <Layers className="w-3.5 h-3.5 text-purple-400" />
-                  <span>Hloubka odůvodnění (Reasoning)</span>
+                  <span>{t.promptTuner.reasoningDepth}</span>
                 </span>
                 <span className="font-mono text-purple-300 font-bold">{guardrails.reasoningDepth}%</span>
               </div>
@@ -330,8 +330,8 @@ Target Category: ${activeAgent?.category || 'Běžecká obuv'}`;
                 className="w-full cursor-pointer accent-purple-400"
               />
               <div className="flex justify-between text-[10px] text-slate-500 font-mono">
-                <span>Kompaktní souhrn</span>
-                <span className="text-purple-400 font-medium">Detailní biomechanické zdůvodnění</span>
+                <span>{t.promptTuner.compactReasoning}</span>
+                <span className="text-purple-400 font-medium">{t.promptTuner.detailedReasoning}</span>
               </div>
             </div>
 
@@ -339,7 +339,7 @@ Target Category: ${activeAgent?.category || 'Běžecká obuv'}`;
             <div className="pt-2 border-t border-slate-800 space-y-2.5">
               <span className="font-bold text-slate-200 flex items-center gap-1.5">
                 <ShieldAlert className="w-3.5 h-3.5 text-rose-400" />
-                <span>Negativní prompt (Zakázané značky)</span>
+                <span>{t.promptTuner.bannedBrands}</span>
               </span>
 
               <div className="flex flex-wrap gap-1.5">
@@ -366,7 +366,7 @@ Target Category: ${activeAgent?.category || 'Běžecká obuv'}`;
                   type="text"
                   value={newBannedBrand}
                   onChange={(e) => setNewBannedBrand(e.target.value)}
-                  placeholder="Přidat další zákaz (např. Nike, Hoka)..."
+                  placeholder={t.promptTuner.addBannedPlaceholder}
                   className="flex-1 bg-[#050810] border border-slate-700/80 rounded-lg px-2.5 py-1.5 text-xs text-white placeholder-slate-500 outline-none focus:border-rose-400/80"
                 />
                 <button
@@ -374,7 +374,7 @@ Target Category: ${activeAgent?.category || 'Běžecká obuv'}`;
                   className="px-3 py-1.5 rounded-lg bg-rose-900/60 hover:bg-rose-800/80 border border-rose-600/50 text-rose-200 text-xs font-medium cursor-pointer transition-colors flex items-center gap-1"
                 >
                   <Plus className="w-3.5 h-3.5" />
-                  <span>Zakázat</span>
+                  <span>{t.promptTuner.banButton}</span>
                 </button>
               </form>
             </div>
@@ -418,7 +418,7 @@ Target Category: ${activeAgent?.category || 'Běžecká obuv'}`;
                         </span>
                         <span className="font-semibold text-xs text-white truncate">{fact.label}</span>
                       </div>
-                      <div className="text-[11px] text-slate-300 truncate">{fact.value}</div>
+                      <div className="text-[11px] text-slate-300 truncate">{formatValueDisplay(fact.value)}</div>
                     </div>
 
                     <div className={`w-4 h-4 rounded border flex items-center justify-center transition-colors ${

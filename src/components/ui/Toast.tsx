@@ -18,7 +18,7 @@ export const Toast: React.FC<ToastProps> = ({
       'bg-teal-950/80 border-teal-500/50 text-teal-200 shadow-[0_0_15px_rgba(20,184,166,0.3)]',
     error:
       'bg-red-950/80 border-red-500/50 text-red-200 shadow-[0_0_15px_rgba(239,68,68,0.3)]',
-    info: 'bg-cyan-950/80 border-cyan-500/50 text-cyan-200 shadow-[0_0_15px_rgba(6,182,212,0.3)]',
+    info: 'bg-cyan-950/80 border-cyan-500/50 text-cyan-200 shadow-[0_0_15px_rgba(6,182,212,0.3)] shadow-[0_0_15px_rgba(59,91,169,0.3)]',
   };
 
   return (
@@ -31,7 +31,7 @@ export const Toast: React.FC<ToastProps> = ({
           onClick={onClose}
           className="ml-2 text-slate-400 hover:text-white transition-colors"
         >
-          ✕
+          ×
         </button>
       )}
     </div>

@@ -1,4 +1,6 @@
-"use client";
+'use client';
+import { useI18n } from '@/lib/i18n/I18nContext';
+import { useTheme } from '@/lib/theme/ThemeContext';
 
 import React, { useState, useEffect, useRef } from "react";
 import { 
@@ -32,6 +34,8 @@ export const HeaderEngineSwitcher: React.FC<HeaderEngineSwitcherProps> = ({
   onOpenVaultModal,
   currentApiKeys = {},
 }) => {
+  const { locale } = useI18n();
+  const { themeStyle, setThemeStyle } = useTheme();
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const [keysState, setKeysState] = useState<Record<string, string>>(currentApiKeys);
@@ -60,17 +64,8 @@ export const HeaderEngineSwitcher: React.FC<HeaderEngineSwitcherProps> = ({
   const activeProvider = SUPPORTED_AI_PROVIDERS.find((p) => p.id === activeProviderId) || SUPPORTED_AI_PROVIDERS[0];
   const hasKeyForActive = Boolean(keysState[activeProvider.id]?.trim());
 
-  const getProviderIcon = (id: AIProviderId) => {
-    switch (id) {
-      case "anthropic_claude":
-        return <Cpu className="w-3.5 h-3.5 text-purple-400" />;
-      case "google_gemini":
-        return <Zap className="w-3.5 h-3.5 text-sky-400" />;
-      case "openai_gpt4o":
-        return <Sparkles className="w-3.5 h-3.5 text-teal-400" />;
-      default:
-        return <ShieldCheck className="w-3.5 h-3.5 text-cyan-400" />;
-    }
+  const getProviderIcon = (_id: AIProviderId) => {
+    return <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 shrink-0" />;
   };
 
   return (
@@ -79,12 +74,12 @@ export const HeaderEngineSwitcher: React.FC<HeaderEngineSwitcherProps> = ({
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium border transition-all cursor-pointer shadow-sm backdrop-blur-md ${
+        className={`flex items-center gap-2 px-3 h-8 rounded-lg text-xs font-medium border transition-all cursor-pointer shadow-sm backdrop-blur-md ${
           hasKeyForActive
-            ? "bg-[#081224]/90 border-cyan-500/40 text-slate-200 hover:border-cyan-400 hover:shadow-[0_0_15px_rgba(6,182,212,0.25)]"
+            ? "bg-[#081224]/90 border-cyan-500/30 text-slate-200 hover:border-cyan-400 hover:shadow-[0_0_15px_rgba(6,182,212,0.25)]"
             : "bg-amber-950/40 border-amber-500/50 text-amber-200 hover:border-amber-400"
         }`}
-        title="Přepnout AI Engine & Správu Klíčů (BYOK)"
+        title={locale === "en" ? "Switch AI Engine & Manage Keys (BYOK)" : "Přepnout AI Engine & Správu Klíčů (BYOK)"}
       >
         {/* Status Dot */}
         <span className="relative flex h-2 w-2 shrink-0">
@@ -107,7 +102,7 @@ export const HeaderEngineSwitcher: React.FC<HeaderEngineSwitcherProps> = ({
           <span className="truncate max-w-[130px] font-semibold">
             {activeProvider.provider}
           </span>
-          <span className="text-[10px] px-1 py-0.2 rounded bg-cyan-950/80 border border-cyan-500/30 text-cyan-300 font-mono">
+          <span className="text-[10px] px-1 py-0.2 rounded bg-[#08101d]/98 border border-cyan-500/40 text-cyan-400 font-mono">
             BYOK
           </span>
         </div>
@@ -120,7 +115,7 @@ export const HeaderEngineSwitcher: React.FC<HeaderEngineSwitcherProps> = ({
         <div className="absolute right-0 mt-2 w-72 rounded-2xl bg-[#08101d]/98 border border-cyan-500/40 shadow-[0_10px_40px_rgba(0,0,0,0.8)] z-[120] p-2 space-y-1 backdrop-blur-xl animate-in fade-in duration-150">
           <div className="px-3 py-2 border-b border-slate-800/80 flex items-center justify-between">
             <span className="text-[11px] font-mono text-slate-400 font-semibold tracking-wider uppercase">
-              Výběr AI Modelu (BYOK)
+              {locale === "en" ? "Select AI Model (BYOK)" : "Výběr AI Modelu (BYOK)"}
             </span>
             <span className="text-[10px] text-cyan-400 font-mono">Real-Time Proxy</span>
           </div>
@@ -164,7 +159,7 @@ export const HeaderEngineSwitcher: React.FC<HeaderEngineSwitcherProps> = ({
                       </span>
                     ) : (
                       <span className="inline-flex items-center gap-1 text-[10px] text-amber-400 font-mono bg-amber-950/50 border border-amber-500/30 px-1.5 py-0.5 rounded">
-                        <AlertCircle className="w-3 h-3" /> Bez klíče
+                        <AlertCircle className="w-3 h-3" /> {locale === "en" ? "No Key" : "Bez klíče"}
                       </span>
                     )}
                   </div>
@@ -173,16 +168,17 @@ export const HeaderEngineSwitcher: React.FC<HeaderEngineSwitcherProps> = ({
             })}
           </div>
 
+
+
           <div className="pt-1.5 border-t border-slate-800/80">
             <button
               onClick={() => {
                 setIsOpen(false);
                 onOpenVaultModal();
               }}
-              className="w-full flex items-center justify-center gap-2 py-2 px-3 rounded-xl bg-gradient-to-r from-cyan-950 to-teal-950 hover:from-cyan-900 hover:to-teal-900 border border-cyan-500/40 text-cyan-300 font-semibold text-xs transition-all shadow-sm"
+              className="w-full flex items-center justify-center gap-2 py-2 px-3 rounded-xl bg-gradient-to-r from-[#1d4ed8] to-[#1e345e] hover:from-[#2563eb] hover:to-[#1d4ed8] border border-[#2563eb] text-[#dbeafe] font-semibold text-xs transition-all shadow-sm"
             >
-              <Sliders className="w-3.5 h-3.5" />
-              <span>Spravovat API klíče & Vault</span>
+              <span>{locale === "en" ? "Manage API Keys & Vault" : "Správa API klíčů & Vault"}</span>
             </button>
           </div>
         </div>

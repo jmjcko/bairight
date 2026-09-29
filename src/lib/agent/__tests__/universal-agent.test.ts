@@ -23,7 +23,7 @@ describe('Universal Agent Schema & Markdown Parser (PRD v1)', () => {
     const parsed = parseAgentFromMarkdown(markdown);
     expect(parsed.id).toBe('ergo_seating');
     expect(parsed.name).toBe('Ergonomické sezení & kancelář');
-    expect(parsed.questions.length).toBeGreaterThan(0);
+    expect(parsed.systemPrompt).toBeDefined();
     expect(parsed.systemPrompt).toContain('certifikovaný ergonom');
   });
 
@@ -42,12 +42,12 @@ describe('Universal Agent Schema & Markdown Parser (PRD v1)', () => {
 
     const prompt = forgeAgentPrompt(PRESET_ERGO_CHAIR_AGENT, answers, ragFacts);
 
-    expect(prompt).toContain('### ZADANÉ POŽADAVKY A PARAMETRY UŽIVATELE:');
+    expect(prompt).toContain('### STRIKTNÍ A ZÁVAZNÉ POŽADAVKY UŽIVATELE:');
     expect(prompt).toContain('10 hodin/den');
     expect(prompt).toContain('188 cm');
-    expect(prompt).toContain('lumbar_pain, cervical_pain');
+    expect(prompt).toContain('Bederní páteř (Lumbální)');
     expect(prompt).toContain('Prodělaná operace ploténky L5-S1');
-    expect(prompt).toContain('FORMÁT ODPOVĚDI:');
+    expect(prompt).toContain('HUMAN-READABLE MARKDOWN');
   });
 
   it('3. AgentStorageService starts with zero default presets per product decision', () => {
@@ -81,5 +81,22 @@ describe('Universal Agent Schema & Markdown Parser (PRD v1)', () => {
 
     AgentStorageService.deleteAllAgents();
     expect(AgentStorageService.getAllAgents()).toEqual([]);
+  });
+  it("6. forgeAgentPrompt prevents prompt section duplication on repeated invocations", () => {
+    const answers = { brand_preferences: { preferred: "Apple", forbidden: "Dell" } };
+    const firstPrompt = forgeAgentPrompt(PRESET_ERGO_CHAIR_AGENT, answers, [], "en");
+    
+    // Simulate updating agent.systemPrompt with the completed prompt
+    const updatedAgent: UniversalAgentDefinition = {
+      ...PRESET_ERGO_CHAIR_AGENT,
+      systemPrompt: firstPrompt,
+    };
+
+    const secondPrompt = forgeAgentPrompt(updatedAgent, answers, [], "en");
+    
+    // Count occurrences of mandatory header
+    const matches = secondPrompt.match(/### MANDATORY & BINDING USER REQUIREMENTS:/g);
+    expect(matches).not.toBeNull();
+    expect(matches?.length).toBe(1);
   });
 });

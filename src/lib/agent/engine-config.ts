@@ -76,7 +76,7 @@ export const INITIAL_MISSIONS: ShoppingMission[] = [
     id: "running_shoes",
     name: "Běžecká & ortopedická obuv",
     category: "Footwear & Orthotics",
-    icon: "👟",
+    icon: "",
     agentName: "Podiatrický Agent",
     agentVersion: "v1.1",
     status: "active",
@@ -86,7 +86,7 @@ export const INITIAL_MISSIONS: ShoppingMission[] = [
     id: "ergo_seating",
     name: "Ergonomické sezení & kancelář",
     category: "Ergonomics & Spine",
-    icon: "🪑",
+    icon: "",
     agentName: "Ergonomický Poradce",
     agentVersion: "v0.9",
     status: "preset",
@@ -96,7 +96,7 @@ export const INITIAL_MISSIONS: ShoppingMission[] = [
     id: "gravel_bikes",
     name: "Gravel & silniční kola (Bike-fit)",
     category: "Cycling & Fit",
-    icon: "🚲",
+    icon: "",
     agentName: "Bike-Fit Expert",
     agentVersion: "v0.8",
     status: "preset",
@@ -147,3 +147,25 @@ export interface CompletedAssessmentRecord {
 }
 
 export const INITIAL_ASSESSMENT_RECORDS: CompletedAssessmentRecord[] = [];
+
+
+export function formatValueDisplay(val: any): string {
+  if (val === null || val === undefined) return '';
+  if (typeof val === 'string') return val;
+  if (typeof val === 'number' || typeof val === 'boolean') return String(val);
+  if (Array.isArray(val)) return val.map(formatValueDisplay).filter(Boolean).join(', ');
+  if (typeof val === 'object') {
+    if ('preferred' in val || 'forbidden' in val) {
+      const parts: string[] = [];
+      if (val.preferred) parts.push(`Preferuji: ${val.preferred}`);
+      if (val.forbidden) parts.push(`Zakázáno: ${val.forbidden}`);
+      return parts.length > 0 ? parts.join(' | ') : 'Otevřený výběr ze všech značek';
+    }
+    try {
+      return JSON.stringify(val);
+    } catch {
+      return String(val);
+    }
+  }
+  return String(val);
+}

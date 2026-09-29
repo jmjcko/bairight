@@ -92,3 +92,21 @@ Non-technical consumers who want high-quality, personalized purchase recommendat
 
 ## 11. Intended Next Step
 This PRD is intended to be used as an input document for the BMAD method to structure and kick off development planning.
+
+---
+
+## 12. Visual & Interaction Design Mandate (Strict Zero-Emoji & Zero-Decorative-Icon Rule)
+
+### 12.1 Core Directive
+bAIright is designed as a high-precision, trustworthy AI consultant and prompt engineering engine. It is NOT a whimsical toy or playful chatbot. To preserve institutional authority and clinical credibility:
+
+1. **Zero Emojis / Emoticons**:
+   - Strictly NO Unicode emojis (e.g. 🤖, 💎, 🧠, ⚡, 🔥, ✨, 🏀, 👟, 🎯, etc.) anywhere in the user interface.
+   - Prohibited in: agent names, titles, questionnaire cards, category pickers, loading screens, instructions, buttons, or generated recommendations.
+2. **Zero Decorative Icon Containers & Avatar Boxes**:
+   - Strictly NO generic icon boxes, avatar containers (e.g. robot heads, CPU chips, sparkles, or oversized icon boxes).
+   - Section headers, accordion headers, and tabs must NOT be prefixed with decorative iconography.
+3. **Typography & Layout First**:
+   - Hierarchy is communicated purely via typography (weight, size, contrast, letter-spacing), monospace badges, and cyber-glass border geometry.
+4. **Functional Indicators Only**:
+   - Minimal functional indicators are permitted only where interaction demands it (e.g. minimalist collapsible chevron `▾`/`▴` for open/close state, checkmark `✓` for copied confirmation).

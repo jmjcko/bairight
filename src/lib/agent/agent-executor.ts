@@ -142,11 +142,11 @@ function generateClarifyingQuestions(
 ): string {
   const parts: string[] = [];
   
-  parts.push(`### 🩺 Biometrické vyhodnocení profilu\n`);
+  parts.push(`###  Biometrické vyhodnocení profilu\n`);
   parts.push(`Děkuji za zadání vašich parametrů. Jako váš biomechanický nákupčí obuvi bAIright se zaměřuji na maximální šetření kloubů a prevenci přetížení.\n`);
 
   if (profile.knee_condition === 'osteoarthritis_grade_3') {
-    parts.push(`> ⚠️ **Důležité upozornění:** Eviduji diagnózu **artrózy kolene 3. stupně**. V tomto stadiu je klíčové tlumení nárazů, kolébková geometrie podrážky (rocker) a neutrální široká základna.\n`);
+    parts.push(`> ️ **Důležité upozornění:** Eviduji diagnózu **artrózy kolene 3. stupně**. V tomto stadiu je klíčové tlumení nárazů, kolébková geometrie podrážky (rocker) a neutrální široká základna.\n`);
   }
 
   parts.push(`Než odemknu vyhledávání v evropských katalozích a běžeckých fórech, potřebuji ještě upřesnit **${missing.length} ${missing.length === 1 ? 'klíčový parametr' : missing.length < 5 ? 'klíčové parametry' : 'klíčových parametrů'}**:\n`);
@@ -187,7 +187,7 @@ function formulatePodiatricPrescription(
     ? 'EXTRA ŠIROKÉ KOPYTO 4E' 
     : 'STANDARDNÍ ŠÍŘKA D';
 
-  return `### 🩺 Biomechanický rozbor a doporučení obuvi
+  return `###  Biomechanický rozbor a doporučení obuvi
 
 **Vyhodnocený profil:**
 - **Hmotnost:** ${profile.weight_kg} kg (Vyžaduje vyšší absorpci rázů)
@@ -197,7 +197,7 @@ function formulatePodiatricPrescription(
 
 ---
 
-#### 🔍 Shrnutí biomechanických požadavků:
+####  Shrnutí biomechanických požadavků:
 Při **artróze kolene 3. stupně** dochází k úbytku kloubní chrupavky. Běžná obuv s vysokým dropem (10–12 mm) zvyšuje ohyb v koleni a stupňuje tlak na patelu.
 
 Na základě analýzy běžeckých komunit a biomechanických pravidel:
@@ -207,17 +207,17 @@ Na základě analýzy běžeckých komunit a biomechanických pravidel:
 
 ---
 
-### 🇪🇺 Doporučené modely obuvi skladem v Evropě (šířka 2E):
+###  Doporučené modely obuvi skladem v Evropě (šířka 2E):
 Níže naleznete modely splňující zadaná kritéria pro váš profil:
 `.trim();
 }
 
 function generate10ParametersShoeGuide(profile: BiomechanicalProfile): string {
   const parts: string[] = [];
-  parts.push(`### 👟 10 klíčových parametrů pro výběr správné obuvi\n`);
+  parts.push(`###  10 klíčových parametrů pro výběr správné obuvi\n`);
   
   if (profile.knee_condition === 'osteoarthritis_grade_3') {
-    parts.push(`> ⚠️ **Zohlednění diagnózy:** Eviduji artrózu kolene 3. stupně. U parametrů kladu prioritní důraz na odlehčení kloubních chrupavek a plynulé odvalení kroku.\n`);
+    parts.push(`> ️ **Zohlednění diagnózy:** Eviduji artrózu kolene 3. stupně. U parametrů kladu prioritní důraz na odlehčení kloubních chrupavek a plynulé odvalení kroku.\n`);
   }
 
   parts.push(`Tady je přehled 10 nejdůležitějších parametrů, které při výběru bot rozhodují o pohodlí, biomechanice a zdraví kloubů:\n`);

@@ -1,3 +1,4 @@
+import { ModelDiscoveryService } from '@/lib/agent/model-discovery-service';
 import { NextRequest, NextResponse } from 'next/server';
 
 export async function POST(req: NextRequest) {
@@ -29,12 +30,8 @@ export async function POST(req: NextRequest) {
           return NextResponse.json({ ok: false, error: `Google Gemini chyba: ${errMsg}` });
         }
 
-        const data = await res.json();
-        const available = (data?.models || [])
-          .filter((m: any) => m.supportedGenerationMethods?.includes('generateContent'))
-          .map((m: any) => m.name.replace(/^models\//, ''));
-
-        const preferred = available.find((m: string) => m.includes('2.0-flash') || m.includes('2.5-flash') || m.includes('flash')) || available[0] || 'gemini-flash';
+        const candidates = await ModelDiscoveryService.discoverGeminiModels(key);
+        const preferred = candidates[0] || 'gemini-2.5-flash';
 
         return NextResponse.json({
           ok: true,

@@ -85,4 +85,11 @@ export interface AgentChatMessage {
     result?: unknown;
   }[];
   recommendations?: ShoeRecommendation[];
+  ragMetadata?: {
+    factsCount: number;
+    injectedFacts: Array<{ id?: string; label?: string; value?: string; fact?: string; category?: string }>;
+    assessmentName?: string;
+    assessmentSummary?: string;
+    keyParameters?: Record<string, any>;
+  };
 }

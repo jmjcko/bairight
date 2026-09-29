@@ -85,13 +85,13 @@ export const GoogleClientIdModal: React.FC<GoogleClientIdModalProps> = ({ isOpen
             </a>
           </div>
           <ol className="list-decimal list-inside space-y-1 text-slate-300 text-[11px] leading-relaxed">
-            <li>V Google Console zvolte <strong>Credentials ➔ Create Credentials ➔ OAuth client ID</strong>.</li>
+            <li>V Google Console zvolte <strong>Credentials &rarr; Create Credentials &rarr; OAuth client ID</strong>.</li>
             <li>Vyberte typ <strong>Web Application</strong>.</li>
             <li>Přidat Authorized JavaScript origin: <code className="bg-slate-900 px-1.5 py-0.5 rounded text-cyan-300">{currentOrigin}</code></li>
             <li>Zkopírujte vygenerované Client ID (končící na <code className="bg-slate-900 px-1 py-0.5 rounded text-slate-400">.apps.googleusercontent.com</code>).</li>
           </ol>
           <div className="pt-2 border-t border-slate-800/80 text-[11px] text-slate-400 leading-normal">
-            💡 <strong>Pro produkční nasazení (Vercel):</strong> Vložte vytvořené Client ID do Vercel projektového nastavení (<em>Project Settings ➔ Environment Variables</em>) pod klíčem <code className="text-cyan-400 bg-slate-900 px-1 py-0.5 rounded">GOOGLE_CLIENT_ID</code>.
+            <strong>Pro produkční nasazení (Vercel):</strong> Vložte vytvořené Client ID do Vercel projektového nastavení (<em>Project Settings  Environment Variables</em>) pod klíčem <code className="text-cyan-400 bg-slate-900 px-1 py-0.5 rounded">GOOGLE_CLIENT_ID</code>.
           </div>
         </div>
 

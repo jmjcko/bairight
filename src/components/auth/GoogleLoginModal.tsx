@@ -1,4 +1,5 @@
-"use client";
+'use client';
+import { useI18n } from '@/lib/i18n/I18nContext';
 
 import React, { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
@@ -11,6 +12,7 @@ interface GoogleLoginModalProps {
 }
 
 export const GoogleLoginModal: React.FC<GoogleLoginModalProps> = ({ isOpen, onClose }) => {
+  const { locale } = useI18n();
   const { loginWithGoogle, isLoading } = useAuth();
   const [mounted, setMounted] = useState(false);
 
@@ -44,10 +46,10 @@ export const GoogleLoginModal: React.FC<GoogleLoginModalProps> = ({ isOpen, onCl
             <LogIn className="w-6 h-6 text-cyan-400" />
           </div>
           <h2 className="text-xl font-bold font-sans text-slate-100">
-            Přihlášení do bAIright
+            {locale === "en" ? "Sign in to bAIright" : "Přihlášení do bAIright"}
           </h2>
           <p className="text-xs text-slate-400 font-mono">
-            Odemkněte plný potenciál AI nákupního poradce
+            {locale === "en" ? "Unlock the full potential of your AI shopping consultant" : "Odemkněte plný potenciál AI nákupního poradce"}
           </p>
         </div>
 
@@ -56,21 +58,21 @@ export const GoogleLoginModal: React.FC<GoogleLoginModalProps> = ({ isOpen, onCl
           <div className="flex items-start gap-2.5">
             <Sparkles className="w-4 h-4 text-cyan-400 shrink-0 mt-0.5" />
             <div>
-              <span className="font-semibold text-slate-200">Persistovaný výzkum Luke</span>
+              <span className="font-semibold text-slate-200">{locale === "en" ? "Persisted Market Research" : "Persistovaný výzkum trhu"}</span>
               <p className="text-slate-400 text-[11px]">Ukládejte si nalezené parametry a vygenerované prompty do svého profilu.</p>
             </div>
           </div>
           <div className="flex items-start gap-2.5">
             <Database className="w-4 h-4 text-teal-400 shrink-0 mt-0.5" />
             <div>
-              <span className="font-semibold text-slate-200">Osobní RAG Paměť</span>
-              <p className="text-slate-400 text-[11px]">Synchronizujte své preference, velikosti a biomechanická data.</p>
+              <span className="font-semibold text-slate-200">{locale === "en" ? "Personal RAG Memory" : "Osobní RAG Paměť"}</span>
+              <p className="text-slate-400 text-[11px]">{locale === "en" ? "Sync your preferences, sizes, and requirements" : "Synchronizujte své preference, velikosti a biomechanická data"}.</p>
             </div>
           </div>
           <div className="flex items-start gap-2.5">
             <Shield className="w-4 h-4 text-cyan-400 shrink-0 mt-0.5" />
             <div>
-              <span className="font-semibold text-slate-200">Ochrana soukromí & BYOK</span>
+              <span className="font-semibold text-slate-200">{locale === "en" ? "Privacy Protection & BYOK" : "Ochrana soukromí & BYOK"}</span>
               <p className="text-slate-400 text-[11px]">Klíče API jsou bezpečně uchovávány a nikdy neuniknou do bundle.</p>
             </div>
           </div>
@@ -89,13 +91,13 @@ export const GoogleLoginModal: React.FC<GoogleLoginModalProps> = ({ isOpen, onCl
               <path fill="#FBBC05" d="M5.28 14.27c-.25-.72-.38-1.49-.38-2.27s.13-1.55.38-2.27V6.58H1.29C.47 8.21 0 10.05 0 12s.47 3.79 1.29 5.42l3.99-3.15z"/>
               <path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.31 0 3.26 2.7 1.29 6.58l3.99 3.15c.95-2.83 3.6-4.98 6.72-4.98z"/>
             </svg>
-            <span>Pokračovat pomocí Googlu</span>
+            <span>{locale === "en" ? "Continue with Google" : "Pokračovat pomocí Googlu"}</span>
           </button>
         </div>
 
         {/* Footer info */}
         <p className="text-center text-[11px] text-slate-500 pt-1">
-          Přihlášením souhlasíte s podmínkami použití bAIright a zásadami ochrany osobních údajů.
+          {locale === "en" ? "By signing in, you agree to bAIright terms of service and privacy policy." : "Přihlášením souhlasíte s podmínkami použití bAIright a zásadami ochrany osobních údajů."}
         </p>
       </div>
     </div>

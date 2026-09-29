@@ -66,7 +66,14 @@ export async function getCachedAnalysis(
   // L1: In-memory check
   const memEntry = MEM_CACHE.get(key);
   if (memEntry && memEntry.expiresAt > Date.now()) {
-    return { analysis: memEntry.analysis, source: 'mem_cache' };
+    const hasCzechInEn = locale === 'en' && (
+      memEntry.analysis.categoryName?.startsWith('Nákupní') ||
+      memEntry.analysis.parameters?.some(p => p.name === 'Značky a výrobci' || p.name.includes('Typ &') || p.name.includes('Velikost &') || p.name.includes('Intenzita'))
+    );
+    if (!hasCzechInEn) {
+      return { analysis: memEntry.analysis, source: 'mem_cache' };
+    }
+    MEM_CACHE.delete(key);
   }
   MEM_CACHE.delete(key); // Expired
 
@@ -85,6 +92,34 @@ export async function getCachedAnalysis(
     if (error || !data) return null;
 
     const analysis = data.analysis as DomainAnalysisResult;
+
+    // Stale Cache Eviction: If cached result is generic or contains old corporate jargon, invalidate it!
+    const isStaleGeneric = analysis.matchedDomain === 'generic' || 
+      analysis.parameters?.some(p => 
+        p.name.includes('tržní segment') || 
+        p.name.includes('Konstrukce & Zpracování') ||
+        p.name.includes('Kapacita a dimenzování') ||
+        p.name.includes('Rozměry a montáž') || p.name.includes('Střih') || p.name.includes('Proporce & kapacita') || p.name.includes('Rozměry & ergo') ||
+        p.name.includes('Způsob ovládání') ||
+        p.name.includes('Provozní náklady') ||
+        p.id === 'elemental_market_segment' ||
+        p.id === 'capacity_sizing' ||
+        p.id === 'dimensions_installation' ||
+        p.id === 'controls_ui' ||
+        p.id === 'energy_efficiency'
+      );
+
+    const hasCzechInEn = locale === 'en' && (
+      analysis.categoryName?.startsWith('Nákupní') ||
+      analysis.parameters?.some(p => p.name === 'Značky a výrobci' || p.name.includes('Typ &') || p.name.includes('Velikost &') || p.name.includes('Intenzita'))
+    );
+
+    if (isStaleGeneric || hasCzechInEn) {
+      console.log(`[ParameterCache] Purging stale generic/untranslated cache for: "${query}" (${locale})`);
+      MEM_CACHE.delete(key);
+      sb.from('parameter_cache').delete().eq('cache_key', key).then(() => {});
+      return null;
+    }
 
     // Populate L1 from L2
     MEM_CACHE.set(key, { analysis, expiresAt: Date.now() + MEM_CACHE_TTL_MS });

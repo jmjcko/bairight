@@ -1,6 +1,8 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import { useI18n } from '@/lib/i18n/I18nContext';
+
+import React, { useState, useEffect, useMemo } from 'react';
 import { 
   X, 
   Brain,
@@ -21,9 +23,13 @@ import {
   Activity,
   Copy,
   Download,
-  Terminal
+  Terminal,
+  User,
+  Fingerprint,
+  Heart,
+  ShieldCheck
 } from 'lucide-react';
-import { PersistentMemoryFact, CompletedAssessmentRecord } from '@/lib/agent/engine-config';
+import { PersistentMemoryFact, CompletedAssessmentRecord, formatValueDisplay } from '@/lib/agent/engine-config';
 import { PromptStorageService, CompletedPromptRecord } from '@/lib/agent/prompt-storage-service';
 
 interface UserRAGMemoryModalProps {
@@ -49,78 +55,127 @@ export const UserRAGMemoryModal: React.FC<UserRAGMemoryModalProps> = ({
   onDeleteFact,
   onDeleteAssessment,
 }) => {
-  const [activeTab, setActiveTab] = useState<'facts' | 'history' | 'prompts'>('history');
+  const { locale } = useI18n();
+  const [activeTab, setActiveTab] = useState<'history' | 'prompts' | 'facts'>('history');
+  const [expandedAssessmentId, setExpandedAssessmentId] = useState<string | null>(null);
+  const [isAdding, setIsAdding] = useState(false);
+
+  // Form state for adding new fact
+  const [newLabel, setNewLabel] = useState('');
+  const [newCategory, setNewCategory] = useState<'biometrics' | 'medical' | 'preference' | 'history'>('medical');
+  const [newValue, setNewValue] = useState('');
+
+  // Prompts state
   const [completedPrompts, setCompletedPrompts] = useState<CompletedPromptRecord[]>([]);
   const [copiedPromptId, setCopiedPromptId] = useState<string | null>(null);
-  const [isAdding, setIsAdding] = useState(false);
-  const [newLabel, setNewLabel] = useState('');
-  const [newValue, setNewValue] = useState('');
-  const [newCategory, setNewCategory] = useState<'biometrics' | 'medical' | 'preference' | 'history'>('medical');
-  const [expandedAssessmentId, setExpandedAssessmentId] = useState<string | null>(() =>
-    Array.isArray(assessments) && (assessments || []).length > 0 ? (assessments[0]?.id || null) : null
-  );
 
+  // Load completed prompts from storage on open
   useEffect(() => {
     if (isOpen) {
       setCompletedPrompts(PromptStorageService.getCompletedPrompts());
     }
   }, [isOpen]);
 
-  const copyToClipboard = (text: string, id: string) => {
-    navigator.clipboard.writeText(text);
-    setCopiedPromptId(id);
-    setTimeout(() => setCopiedPromptId(null), 2000);
-  };
-
-  const handleDeletePrompt = (id: string) => {
-    PromptStorageService.deleteCompletedPrompt(id);
-    setCompletedPrompts((prev) => prev.filter((p) => p.id !== id));
-  };
-
-  const handleClearAllPrompts = () => {
-    if (confirm('Opravdu chcete smazat všechny uložené hotové prompty?')) {
-      PromptStorageService.clearAll();
-      setCompletedPrompts([]);
-    }
-  };
+  // Extract active personal & biometric facts
+  const personalBiometricFacts = useMemo(() => {
+    return (facts || []).filter(
+      (f) => f.category === 'biometrics' || f.category === 'medical' || f.category === 'preference'
+    );
+  }, [facts]);
 
   if (!isOpen) return null;
 
+  const activeFactsCount = (facts || []).filter((f) => f.isEnriched).length;
+
   const handleCreateFact = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newLabel.trim() || !newValue.trim()) return;
-    onAddFact(newLabel.trim(), newValue.trim(), newCategory);
+    if (!newLabel || !newValue) return;
+    onAddFact?.(newLabel, newValue, newCategory);
     setNewLabel('');
     setNewValue('');
     setIsAdding(false);
   };
 
-  const activeFactsCount = (facts || []).filter((f) => f?.isEnriched).length;
+  const handleDeletePrompt = (id: string) => {
+    PromptStorageService.deleteCompletedPrompt(id);
+    setCompletedPrompts(PromptStorageService.getCompletedPrompts());
+  };
+
+  const handleClearAllPrompts = () => {
+    if (window.confirm('Opravdu chcete smazat všechny uložené dokončené prompty?')) {
+      PromptStorageService.clearAll();
+      setCompletedPrompts([]);
+    }
+  };
+
+  const copyToClipboard = (text: string, id: string) => {
+    navigator.clipboard.writeText(text);
+    setCopiedPromptId(id);
+    setTimeout(() => setCopiedPromptId(null), 2500);
+  };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-5 bg-black/85 backdrop-blur-md animate-in fade-in duration-200">
-      <div className="relative w-full max-w-3xl bg-[#060c18] border border-cyan-500/30 rounded-3xl shadow-2xl shadow-cyan-950/70 flex flex-col max-h-[92vh] overflow-hidden">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-950/80 backdrop-blur-md animate-in fade-in duration-200">
+      <div className="relative w-full max-w-4xl max-h-[92vh] bg-[#050b14] border border-cyan-500/30 rounded-3xl shadow-2xl shadow-cyan-950/50 flex flex-col overflow-hidden">
+        
         {/* Header */}
-        <div className="p-5 sm:p-6 border-b border-cyan-500/20 bg-[#081222] flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-11 h-11 rounded-2xl bg-gradient-to-tr from-cyan-600 to-teal-400 p-0.5 shadow-lg shadow-cyan-500/20">
-              <div className="w-full h-full bg-[#070e1a] rounded-[14px] flex items-center justify-center text-cyan-300">
-                <Brain className="w-5 h-5" />
-              </div>
+        <div className="p-5 sm:p-6 border-b border-cyan-500/20 bg-gradient-to-r from-[#071322] via-[#091a30] to-[#050b14] flex items-center justify-between">
+          <div className="flex items-center gap-3.5">
+            <div className="w-10 h-10 rounded-2xl bg-cyan-950 border border-cyan-400/40 text-cyan-300 flex items-center justify-center shadow-lg shadow-cyan-950/50">
+              <Brain className="w-5 h-5 text-cyan-400" />
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h2 className="text-base sm:text-lg font-extrabold text-white">
-                  Paměť AI & Historie Posudků
+                <h2 className="text-lg font-black text-white tracking-tight">
+                  {locale === 'en' ? 'AI Memory & Assessment History' : 'Paměť AI & Historie Posudků'}
                 </h2>
-                <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-cyan-950 border border-cyan-500/40 text-cyan-300 font-bold">
+                <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-cyan-950 text-cyan-300 border border-cyan-500/40 font-bold">
                   {userName}
                 </span>
               </div>
               <p className="text-xs text-slate-400 mt-0.5">
-                Přehled uložených biometrických faktů, preferencí a časová osa dřívějších nákupních posudků.
+                Přehled osobního profilu, biometrických faktů a časová osa nákupních protokolů.
               </p>
             </div>
+          </div>
+
+          {/* Integrated Clean Cyberglass Pill Tabs */}
+          <div className="hidden sm:flex items-center gap-1.5 bg-[#050c18] p-1 rounded-2xl border border-cyan-500/20">
+            <button
+              onClick={() => setActiveTab('history')}
+              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
+                activeTab === 'history'
+                  ? 'bg-cyan-950 text-cyan-300 border border-cyan-400/50 shadow-sm'
+                  : 'text-slate-400 hover:text-white'
+              }`}
+            >
+              <Calendar className="w-3.5 h-3.5" />
+              <span>Protokoly ({(assessments || []).length})</span>
+            </button>
+
+            <button
+              onClick={() => setActiveTab('prompts')}
+              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
+                activeTab === 'prompts'
+                  ? 'bg-cyan-950 text-cyan-300 border border-cyan-400/50 shadow-sm'
+                  : 'text-slate-400 hover:text-white'
+              }`}
+            >
+              <Terminal className="w-3.5 h-3.5" />
+              <span>Prompty ({(completedPrompts || []).length})</span>
+            </button>
+
+            <button
+              onClick={() => setActiveTab('facts')}
+              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
+                activeTab === 'facts'
+                  ? 'bg-cyan-950 text-cyan-300 border border-cyan-400/50 shadow-sm'
+                  : 'text-slate-400 hover:text-white'
+              }`}
+            >
+              <FileText className="w-3.5 h-3.5" />
+              <span>Fakta ({(facts || []).length})</span>
+            </button>
           </div>
 
           <button
@@ -131,50 +186,7 @@ export const UserRAGMemoryModal: React.FC<UserRAGMemoryModalProps> = ({
           </button>
         </div>
 
-        {/* Tab Switcher */}
-        <div className="px-6 border-b border-cyan-500/15 bg-[#070e1a] flex items-center justify-between overflow-x-auto">
-          <div className="flex items-center gap-4 text-xs font-semibold shrink-0">
-            <button
-              onClick={() => setActiveTab('history')}
-              className={`py-3 flex items-center gap-2 border-b-2 transition-all cursor-pointer ${
-                activeTab === 'history'
-                  ? 'border-cyan-400 text-cyan-300 font-bold'
-                  : 'border-transparent text-slate-400 hover:text-slate-200'
-              }`}
-            >
-              <Calendar className="w-4 h-4" />
-              <span>Historie vyhodnocení ({(assessments || []).length})</span>
-            </button>
 
-            <button
-              onClick={() => setActiveTab('prompts')}
-              className={`py-3 flex items-center gap-2 border-b-2 transition-all cursor-pointer ${
-                activeTab === 'prompts'
-                  ? 'border-cyan-400 text-cyan-300 font-bold'
-                  : 'border-transparent text-slate-400 hover:text-slate-200'
-              }`}
-            >
-              <Terminal className="w-4 h-4" />
-              <span>Vygenerované prompty ({(completedPrompts || []).length})</span>
-            </button>
-
-            <button
-              onClick={() => setActiveTab('facts')}
-              className={`py-3 flex items-center gap-2 border-b-2 transition-all cursor-pointer ${
-                activeTab === 'facts'
-                  ? 'border-cyan-400 text-cyan-300 font-bold'
-                  : 'border-transparent text-slate-400 hover:text-slate-200'
-              }`}
-            >
-              <FileText className="w-4 h-4" />
-              <span>Osobní fakta & Biometrie ({activeFactsCount}/{(facts || []).length})</span>
-            </button>
-          </div>
-
-          <span className="hidden md:inline text-[10px] font-mono text-slate-400 shrink-0">
-            Ukládání: <strong className="text-cyan-300">Pouze hotové prompty</strong>
-          </span>
-        </div>
 
         {/* Global explanation banner */}
         <div className="mx-5 sm:mx-6 mt-4 p-3 rounded-2xl bg-[#081528] border border-cyan-500/25 text-xs text-slate-300">
@@ -189,6 +201,89 @@ export const UserRAGMemoryModal: React.FC<UserRAGMemoryModalProps> = ({
 
         {/* Content Area */}
         <div className="flex-1 overflow-y-auto p-5 sm:p-6 space-y-4">
+
+          {/* TOP CARD: OSOBNÍ PROFIL A KLÍČOVÉ BIOMETRICKÉ ÚDAJE UŽIVATELE (ALWAYS VISIBLE AT TOP) */}
+          <div className="p-4 rounded-2xl bg-gradient-to-r from-[#081628] to-[#0a1e36] border border-cyan-500/40 shadow-lg space-y-3">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-cyan-500/20 pb-2.5">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-xl bg-cyan-950 border border-cyan-400/40 text-cyan-300 flex items-center justify-center font-bold text-xs">
+                  <User className="w-4 h-4 text-cyan-400" />
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <span className="font-extrabold text-sm text-white">{userName}</span>
+                    <span className="text-[9px] font-mono px-2 py-0.5 rounded-full bg-cyan-950 text-cyan-300 border border-cyan-500/40 font-bold uppercase">
+                      Aktivní osobní profil
+                    </span>
+                  </div>
+                  <span className="text-[10px] font-mono text-slate-400">
+                    Osobní & biometrické údaje používané automaticky pro obohacení AI promptů
+                  </span>
+                </div>
+              </div>
+
+              <button
+                onClick={() => {
+                  setActiveTab('facts');
+                  setIsAdding(true);
+                }}
+                className="text-xs font-mono font-semibold text-cyan-300 hover:text-white flex items-center gap-1.5 px-3 py-1 rounded-xl bg-cyan-950/80 border border-cyan-500/30 transition-all cursor-pointer self-start sm:self-auto"
+              >
+                <Plus className="w-3.5 h-3.5 text-cyan-400" />
+                <span>Přidat profilový fakt</span>
+              </button>
+            </div>
+
+            {/* Display Personal & Biometric Items Grid */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2 font-mono text-xs">
+              {/* Item 1: Jméno */}
+              <div className="p-2.5 rounded-xl bg-[#050c18] border border-cyan-500/20 flex flex-col justify-between">
+                <span className="text-[9px] text-slate-400 uppercase font-bold flex items-center gap-1">
+                  <User className="w-3 h-3 text-cyan-400" />
+                  Jméno & Uživatel
+                </span>
+                <span className="font-bold text-white text-xs mt-1 truncate">{userName}</span>
+              </div>
+
+              {/* Display active biometric & medical facts */}
+              {personalBiometricFacts.length > 0 ? (
+                personalBiometricFacts.map((fact) => (
+                  <div
+                    key={fact.id}
+                    className={`p-2.5 rounded-xl border flex flex-col justify-between transition-colors ${
+                      fact.isEnriched !== false ? 'bg-[#050c18] border-cyan-500/30 text-white' : 'bg-[#040812] border-slate-800 text-slate-500 opacity-60'
+                    }`}
+                  >
+                    <span className="text-[9px] text-slate-400 uppercase font-bold flex items-center gap-1 truncate">
+                      <Fingerprint className="w-3 h-3 text-cyan-400 shrink-0" />
+                      {formatValueDisplay(fact.label)}
+                    </span>
+                    <span className="font-bold text-cyan-300 text-xs mt-1 truncate">
+                      {formatValueDisplay(fact.value)}
+                    </span>
+                  </div>
+                ))
+              ) : (
+                <>
+                  <div className="p-2.5 rounded-xl bg-[#050c18] border border-slate-800/80 flex flex-col justify-between opacity-80">
+                    <span className="text-[9px] text-slate-400 uppercase font-bold flex items-center gap-1">
+                      <Fingerprint className="w-3 h-3 text-purple-400" />
+                      Biometrie & Míry
+                    </span>
+                    <span className="font-semibold text-slate-300 text-xs mt-1">Automaticky z dotazníků</span>
+                  </div>
+                  <div className="p-2.5 rounded-xl bg-[#050c18] border border-slate-800/80 flex flex-col justify-between opacity-80">
+                    <span className="text-[9px] text-slate-400 uppercase font-bold flex items-center gap-1">
+                      <Heart className="w-3 h-3 text-teal-400" />
+                      Pohybová citlivost
+                    </span>
+                    <span className="font-semibold text-slate-300 text-xs mt-1">Zapojeno v RAG paměti</span>
+                  </div>
+                </>
+              )}
+            </div>
+          </div>
+
           {/* TAB 1: HISTORIE DOKONČENÝCH ASSESMENTŮ */}
           {activeTab === 'history' && (
             <div className="space-y-4">
@@ -213,13 +308,14 @@ export const UserRAGMemoryModal: React.FC<UserRAGMemoryModalProps> = ({
                 <div className="space-y-3">
                   {(assessments || []).map((assessment) => {
                     const isExpanded = expandedAssessmentId === assessment.id;
+                    const paramCount = Object.entries(assessment.keyParameters || {}).filter(([_, val]) => val && val !== 'N/A').length;
 
                     return (
                       <div
                         key={assessment.id}
-                        className="rounded-2xl border border-cyan-500/30 bg-[#071120] overflow-hidden shadow-md"
+                        className="rounded-2xl border border-cyan-500/30 bg-[#071120] overflow-hidden shadow-md transition-all"
                       >
-                        {/* Assessment Card Header */}
+                        {/* Assessment Card Header (Clickable Accordion) */}
                         <div
                           onClick={() => setExpandedAssessmentId(isExpanded ? null : assessment.id)}
                           className="p-4 bg-[#091526] hover:bg-[#0c1c34] transition-colors cursor-pointer flex items-center justify-between gap-3"
@@ -229,13 +325,18 @@ export const UserRAGMemoryModal: React.FC<UserRAGMemoryModalProps> = ({
                               <Activity className="w-4 h-4" />
                             </div>
                             <div>
-                              <div className="flex items-center gap-2">
+                              <div className="flex items-center gap-2 flex-wrap">
                                 <span className="font-extrabold text-sm text-white">
                                   {assessment.missionName}
                                 </span>
                                 <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-cyan-950/80 text-cyan-300 border border-cyan-500/40 font-semibold">
                                   {assessment.status === 'active_prescription' ? 'Aktivní doporučení' : 'Archiv'}
                                 </span>
+                                {paramCount > 0 && (
+                                  <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-slate-900 text-slate-300 border border-slate-700/80 font-semibold">
+                                    {paramCount} specifikací
+                                  </span>
+                                )}
                               </div>
                               <div className="flex items-center gap-3 text-[10px] font-mono text-slate-400 mt-0.5">
                                 <span className="flex items-center gap-1 text-cyan-300 font-bold">
@@ -263,37 +364,37 @@ export const UserRAGMemoryModal: React.FC<UserRAGMemoryModalProps> = ({
                           </div>
                         </div>
 
-                        {/* Summary & Metrics */}
-                        <div className="p-4 space-y-3 text-xs border-t border-cyan-500/15">
-                          <div>
-                            <span className="text-[10px] font-mono text-slate-400 uppercase block mb-1">
-                              Nákupní profil & specifika:
-                            </span>
-                            <p className="font-bold text-white text-xs leading-snug">
-                              {assessment.diagnosisSummary}
-                            </p>
-                          </div>
-
-                          {/* Dynamic Key Parameters Badges */}
-                          {Object.entries(assessment.keyParameters || {}).filter(([_, val]) => val && val !== 'N/A').length > 0 && (
-                            <div className="flex flex-wrap gap-2 pt-1">
-                              {Object.entries(assessment.keyParameters || {})
-                                .filter(([_, val]) => val && val !== 'N/A')
-                                .map(([key, val]) => {
-                                  const displayKey = key === 'weight' ? 'Váha' : key === 'width' ? 'Šířka' : key === 'knee' ? 'Klouby' : key === 'dropLimit' ? 'Limit dropu' : key;
-                                  return (
-                                    <div key={key} className="px-2.5 py-1.5 rounded-xl bg-[#050c18] border border-slate-800 text-center shrink-0">
-                                      <span className="text-[9px] font-mono text-slate-400 block uppercase">{displayKey}</span>
-                                      <span className="font-mono font-bold text-cyan-300 text-xs">{val}</span>
-                                    </div>
-                                  );
-                                })}
+                        {/* Collapsible Content Body */}
+                        {isExpanded && (
+                          <div className="p-4 space-y-3 text-xs border-t border-cyan-500/15 animate-in fade-in">
+                            <div>
+                              <span className="text-[10px] font-mono text-slate-400 uppercase block mb-1">
+                                Nákupní profil & specifika:
+                              </span>
+                              <p className="font-bold text-white text-xs leading-snug">
+                                {assessment.diagnosisSummary}
+                              </p>
                             </div>
-                          )}
 
-                          {/* Recommended Models List inside Assessment */}
-                          {isExpanded && (
-                            <div className="pt-3 border-t border-cyan-500/15 space-y-2.5 animate-in fade-in">
+                            {/* Dynamic Key Parameters Badges */}
+                            {paramCount > 0 && (
+                              <div className="flex flex-wrap gap-2 pt-1">
+                                {Object.entries(assessment.keyParameters || {})
+                                  .filter(([_, val]) => val && val !== 'N/A')
+                                  .map(([key, val]) => {
+                                    const displayKey = key === 'weight' ? 'Váha' : key === 'width' ? 'Šířka' : key === 'knee' ? 'Klouby' : key === 'dropLimit' ? 'Limit dropu' : key;
+                                    return (
+                                      <div key={key} className="px-2.5 py-1.5 rounded-xl bg-[#050c18] border border-slate-800 text-center shrink-0">
+                                        <span className="text-[9px] font-mono text-slate-400 block uppercase">{displayKey}</span>
+                                        <span className="font-mono font-bold text-cyan-300 text-xs">{formatValueDisplay(val)}</span>
+                                      </div>
+                                    );
+                                  })}
+                              </div>
+                            )}
+
+                            {/* Recommended Models List inside Assessment */}
+                            <div className="pt-3 border-t border-cyan-500/15 space-y-2.5">
                               <span className="text-[10px] font-mono text-cyan-400 uppercase tracking-wider block font-bold">
                                 Vygenerovaná doporučení ({(assessment.recommendedModels || []).length} modely):
                               </span>
@@ -359,8 +460,8 @@ export const UserRAGMemoryModal: React.FC<UserRAGMemoryModalProps> = ({
                                 </div>
                               )}
                             </div>
-                          )}
-                        </div>
+                          </div>
+                        )}
                       </div>
                     );
                   })}
@@ -382,7 +483,7 @@ export const UserRAGMemoryModal: React.FC<UserRAGMemoryModalProps> = ({
                     className="text-[10px] font-mono text-rose-400 hover:text-rose-300 flex items-center gap-1 cursor-pointer transition-colors"
                   >
                     <Trash2 className="w-3 h-3" />
-                    <span>Smazat všechny prompty</span>
+                    <span>{locale === 'en' ? 'Clear All Prompts' : 'Smazat všechny prompty'}</span>
                   </button>
                 )}
               </div>
@@ -444,7 +545,7 @@ export const UserRAGMemoryModal: React.FC<UserRAGMemoryModalProps> = ({
 
                       {cp.answersSummary && (
                         <p className="text-[11px] font-mono text-cyan-300/80 bg-[#050c18] px-3 py-1.5 rounded-lg border border-slate-800/80">
-                          {cp.answersSummary}
+                          {formatValueDisplay(cp.answersSummary)}
                         </p>
                       )}
 
@@ -499,10 +600,10 @@ export const UserRAGMemoryModal: React.FC<UserRAGMemoryModalProps> = ({
                         onChange={(e) => setNewCategory(e.target.value as any)}
                         className="w-full bg-[#050c18] border border-cyan-500/30 rounded-xl px-3 py-1.5 text-xs text-white outline-none"
                       >
-                        <option value="medical">🦵 Pohybová citlivost & komfort</option>
-                        <option value="biometrics">👤 Biometrie & Rozměry</option>
-                        <option value="preference">🏷️ Značková preference</option>
-                        <option value="history">📦 Nákupní historie</option>
+                        <option value="medical">Pohybová citlivost & komfort</option>
+                        <option value="biometrics">{locale === 'en' ? 'Biometrics & Dimensions' : 'Biometrie & Rozměry'}</option>
+                        <option value="preference">Značková preference</option>
+                        <option value="history">Nákupní historie</option>
                       </select>
                     </div>
                   </div>
@@ -531,7 +632,7 @@ export const UserRAGMemoryModal: React.FC<UserRAGMemoryModalProps> = ({
                       type="submit"
                       className="px-4 py-1.5 rounded-lg bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold text-xs"
                     >
-                      Uložit do DB
+                      {locale === 'en' ? 'Save to DB' : 'Uložit do DB'}
                     </button>
                   </div>
                 </form>
@@ -550,7 +651,7 @@ export const UserRAGMemoryModal: React.FC<UserRAGMemoryModalProps> = ({
                 ) : (
                   (facts || []).map((fact) => {
                   const categoryBadge = 
-                    fact.category === 'medical' ? { label: 'Ergonomie & komfort', color: 'border-teal-500/30 text-teal-300 bg-teal-950/40' } :
+                    fact.category === 'medical' ? { label: locale === 'en' ? 'Ergonomics & Health' : 'Ergonomie & komfort', color: 'border-teal-500/30 text-teal-300 bg-teal-950/40' } :
                     fact.category === 'biometrics' ? { label: 'Biometrie', color: 'border-purple-500/30 text-purple-300 bg-purple-950/40' } :
                     fact.category === 'preference' ? { label: 'Preference', color: 'border-cyan-500/30 text-cyan-300 bg-cyan-950/40' } :
                     { label: 'Historie', color: 'border-teal-500/30 text-teal-300 bg-teal-950/40' };
@@ -575,14 +676,14 @@ export const UserRAGMemoryModal: React.FC<UserRAGMemoryModalProps> = ({
                         <div>
                           <div className="flex items-center gap-2 mb-0.5">
                             <span className="font-bold text-xs text-white">
-                              {fact.label}
+                              {formatValueDisplay(fact.label)}
                             </span>
                             <span className={`text-[9px] font-mono px-1.5 py-0.2 rounded-full border ${categoryBadge.color}`}>
                               {categoryBadge.label}
                             </span>
                           </div>
                           <p className="text-xs text-slate-300 leading-snug">
-                            {fact.value}
+                            {formatValueDisplay(fact.value)}
                           </p>
                           <div className="flex items-center gap-2 text-[10px] text-slate-500 mt-1 font-mono">
                             <span>Zdroj: {fact.source}</span>
@@ -595,7 +696,7 @@ export const UserRAGMemoryModal: React.FC<UserRAGMemoryModalProps> = ({
                       <button
                         onClick={() => onDeleteFact?.(fact.id)}
                         className="text-slate-500 hover:text-rose-400 p-1 rounded-lg transition-colors cursor-pointer"
-                        title="Smazat fakt z databáze"
+                        title="{locale === 'en' ? 'Delete fact from database' : 'Smazat fakt z databáze'}"
                       >
                         <Trash2 className="w-3.5 h-3.5" />
                       </button>

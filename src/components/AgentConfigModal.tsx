@@ -190,7 +190,7 @@ export const AgentConfigModal: React.FC<AgentConfigModalProps> = ({
                 <div className="p-3.5 rounded-xl bg-[#0b1424] border border-cyan-500/20 space-y-1.5">
                   <div className="flex items-center justify-between text-white font-bold">
                     <span className="flex items-center gap-1.5 text-cyan-300">
-                      <span>🏷️ Brand Governance (Striktní pravidlo)</span>
+                      <span>Brand Governance (Striktní pravidlo)</span>
                     </span>
                     <span className="text-[10px] font-mono text-rose-400 bg-rose-950/80 px-1.5 py-0.5 rounded">Zákaz porušení</span>
                   </div>
@@ -203,7 +203,7 @@ export const AgentConfigModal: React.FC<AgentConfigModalProps> = ({
                 <div className="p-3.5 rounded-xl bg-[#0b1424] border border-cyan-500/20 space-y-1.5">
                   <div className="flex items-center justify-between text-white font-bold">
                     <span className="flex items-center gap-1.5 text-cyan-300">
-                      <span>📏 Anatomická šířka (2E / 4E)</span>
+                      <span>Anatomická šířka (2E / 4E)</span>
                     </span>
                     <span className="text-[10px] font-mono text-cyan-400 bg-cyan-950/80 px-1.5 py-0.5 rounded">2E Certifikace</span>
                   </div>
@@ -216,7 +216,7 @@ export const AgentConfigModal: React.FC<AgentConfigModalProps> = ({
                 <div className="p-3.5 rounded-xl bg-[#0b1424] border border-cyan-500/20 space-y-1.5">
                   <div className="flex items-center justify-between text-white font-bold">
                     <span className="flex items-center gap-1.5 text-cyan-300">
-                      <span>🦵 Ochrana kolene (Artróza 1–3 st.)</span>
+                      <span>Ochrana kolene (Artróza 1–3 st.)</span>
                     </span>
                     <span className="text-[10px] font-mono text-teal-300 bg-teal-950/80 px-1.5 py-0.5 rounded">Drop 4–8 mm</span>
                   </div>
@@ -229,7 +229,7 @@ export const AgentConfigModal: React.FC<AgentConfigModalProps> = ({
                 <div className="p-3.5 rounded-xl bg-[#0b1424] border border-cyan-500/20 space-y-1.5">
                   <div className="flex items-center justify-between text-white font-bold">
                     <span className="flex items-center gap-1.5 text-cyan-300">
-                      <span>🦶 Došlap a mechanika (Supinace)</span>
+                      <span>Došlap a mechanika (Supinace)</span>
                     </span>
                     <span className="text-[10px] font-mono text-amber-400 bg-amber-950/80 px-1.5 py-0.5 rounded">Neutrální platforma</span>
                   </div>

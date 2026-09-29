@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { X, Copy, Check, Terminal, Bot, Sparkles, Sliders, ShieldCheck } from 'lucide-react';
-import { UniversalAgentDefinition } from '@/lib/agent/universal-agent-schema';
+import { UniversalAgentDefinition, resolveAgentIcon } from '@/lib/agent/universal-agent-schema';
 
 interface UniversalAgentPromptModalProps {
   isOpen: boolean;
@@ -32,9 +32,7 @@ export const UniversalAgentPromptModal: React.FC<UniversalAgentPromptModalProps>
         {/* Header */}
         <div className="p-5 sm:p-6 border-b border-cyan-500/20 bg-[#081224] flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-11 h-11 rounded-2xl bg-cyan-950 border border-cyan-500/40 flex items-center justify-center text-2xl shadow-lg shadow-cyan-950">
-              {agent.icon || '🤖'}
-            </div>
+
             <div>
               <div className="flex items-center gap-2">
                 <h2 className="text-base sm:text-lg font-extrabold text-white tracking-tight">
@@ -141,8 +139,8 @@ export const UniversalAgentPromptModal: React.FC<UniversalAgentPromptModalProps>
                     )}
                     {q.options && (
                       <div className="flex flex-wrap gap-1.5 pt-1">
-                        {q.options.map((opt) => (
-                          <span key={opt.value} className="text-[10px] font-mono px-2 py-0.5 rounded bg-[#091526] text-slate-300 border border-slate-800/80">
+                        {q.options.map((opt, optIdx) => (
+                          <span key={`${opt.value}-${optIdx}`} className="text-[10px] font-mono px-2 py-0.5 rounded bg-[#091526] text-slate-300 border border-slate-800/80">
                             {opt.label}
                           </span>
                         ))}

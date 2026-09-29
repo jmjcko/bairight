@@ -128,3 +128,8 @@ The visual identity of **bAIright** is anchored in high-precision biomedical tec
 - [ ] Shoe mileage tracker and replacement reminders (wear & tear alerts).
 - [ ] Gait video upload analysis (computer vision assessment).
 
+---
+
+## 7. 🚫 Design System Mandate: Zero-Emoji & Zero-Decorative-Icons
+- **Mandatory Brand Identity**: bAIright strictly prohibits generic emojis (🤖, 💎, 🧠, 🎯, 👟, 🏀, etc.) and decorative icon boxes/avatars across all user-facing surfaces.
+- **Clean Engineering Aesthetic**: All agents, cards, headers, and pickers must use clean typographic styling without toy-like emoticons or decorative icon containers. Visual hierarchy relies on typography, monospace chips, and refined Cyber-glass borders.

@@ -1,7 +1,8 @@
 'use client';
+import { AgentMessageRenderer } from '@/components/AgentMessageRenderer';
 
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { AgentChatMessage } from '@/lib/agent/types';
 import { ToolExecutionBadge } from '@/components/ToolExecutionBadge';
 import { Logo } from '@/components/Logo';
@@ -11,7 +12,7 @@ import { AIEngineSubscriptionModal } from '@/components/AIEngineSubscriptionModa
 import { UserRAGMemoryModal } from '@/components/UserRAGMemoryModal';
 import { AgentCategoryLauncher } from '@/components/AgentCategoryLauncher';
 import { DynamicAgentWizard } from '@/components/DynamicAgentWizard';
-import { ColorPaletteModal } from '@/components/ColorPaletteModal';
+import { TypographySwitcherModal as ColorPaletteModal } from '@/components/TypographySwitcherModal';
 import { UniversalAgentPromptModal } from '@/components/UniversalAgentPromptModal';
 import { 
   UniversalAgentDefinition 
@@ -48,48 +49,95 @@ import {
 
 export type AppTab = 'wizard' | 'chat';
 
-const INITIAL_GREETING: AgentChatMessage = {
+const INITIAL_GREETING_EN: AgentChatMessage = {
   id: 'greeting-1',
   role: 'assistant',
-  content: `### 🤖 Vítejte v bAIright: Váš univerzální nákupní rádce & prompt inženýr
+  content: `### Welcome to bAIright: Your Universal AI Shopping Advisor & Prompt Engineer
+
+I am your independent AI shopping expert powered by contextual RAG memory.
+I will help you find and configure the ideal product based on your technical, ergonomic, and budget requirements:
+
+- **Cars & Family Vehicles** (powertrains, cargo volume, total cost of ownership)
+- **Sports & Health Footwear** (biomechanics, gait, foot width, cushioning)
+- **Coffee Machines & Espresso** (extraction pressure, milk systems, burr grinders)
+- **Ergonomic Seating & Chairs** (lumbar support, synchronous mechanism, armrests)
+- **Any Custom Category on Demand**
+
+Enter your requirements below or select an agent above to start an interactive wizard.`,
+  timestamp: new Date().toISOString(),
+};
+
+const INITIAL_GREETING_CS: AgentChatMessage = {
+  id: 'greeting-1',
+  role: 'assistant',
+  content: `### Vítejte v bAIright: Váš univerzální nákupní rádce & prompt inženýr
 
 Jsem váš nezávislý nákupní expert poháněný umělou inteligencí s kontextovou RAG pamětí.
 Pomohu vám vybrat jakýkoliv produkt na základě vašich technických, ergonomických a cenových požadavků:
 
-- 🚗 **Automobily & rodinné vozy** (motorizace, prostor, provozní náklady)
-- 👟 **Sportovní & zdravotní obuv** (biomechanika, došlap, šířka kopyta, tlumení)
-- ☕ **Kávovary & příprava kávy** (espresso, mléčný systém, mlecí kameny)
-- 🪑 **Ergonomické sezení & židle** (ochrana páteře, mechanika, područky)
-- 🎯 **Jakákoliv další kategorie na míru**
+- **Automobily & rodinné vozy** (motorizace, prostor, provozní náklady)
+- **Sportovní & zdravotní obuv** (biomechanika, došlap, šířka kopyta, tlumení)
+- **Kávovary & příprava kávy** (espresso, mléčný systém, mlecí kameny)
+- **Ergonomické sezení & židle** (ochrana páteře, mechanika, područky)
+- **Jakákoliv další kategorie na míru**
 
 Zadejte své požadavky nebo vyberte agenta výše pro spuštění interaktivního průvodce.`,
   timestamp: new Date().toISOString(),
 };
 
-const SUGGESTED_PROMPTS = [
+const SUGGESTED_PROMPTS_EN = [
   {
-    label: '🚗 Rodinné SUV / kombi do 650 tis. Kč',
+    label: 'Family SUV / wagon under $30k',
+    text: 'I am looking for a reliable family car under $30,000 with a large trunk, AWD, and great fuel economy.',
+  },
+  {
+    label: 'Road running shoes for wide feet',
+    text: 'I need road running shoes with plush midsole cushioning and a wide 2E toe box.',
+  },
+  {
+    label: 'Automatic espresso & cappuccino maker',
+    text: 'Recommend a quiet espresso machine with easy maintenance and a quality milk system under $800.',
+  },
+  {
+    label: 'Ergonomic chair for full-day home office',
+    text: 'Which office chair should I choose for 8+ hours of daily sitting to prevent lower back pain?',
+  },
+];
+
+const SUGGESTED_PROMPTS_CS = [
+  {
+    label: 'Rodinné SUV / kombi do 650 tis. Kč',
     text: 'Hledám spolehlivé rodinné auto do 650 000 Kč s velkým kufrem, pohonem 4x4 a nízkou spotřebou.',
   },
   {
-    label: '👟 Běžecké boty na asfalt pro širší chodidlo',
+    label: 'Běžecké boty na asfalt pro širší chodidlo',
     text: 'Potřebuji běžecké boty na silnici s dobrým tlumením mezipodešve a širším kopytem.',
   },
   {
-    label: '☕ Automatický kávovar na espresso a cappuccino',
+    label: 'Automatický kávovar na espresso a cappuccino',
     text: 'Doporuč tichý kávovar s jednoduchou údržbou a kvalitním mléčným systémem do 18 000 Kč.',
   },
   {
-    label: '🪑 Ergonomická židle pro celodenní home office',
+    label: 'Ergonomická židle pro celodenní home office',
     text: 'Jakou kancelářskou židli zvolit při 8+ hodinách sezení denně pro prevenci bolestí beder?',
   },
 ];
 
 export default function Home() {
   const { t, locale } = useI18n();
+  const isEn = locale === 'en';
   const [activeTab, setActiveTab] = useState<AppTab>('wizard');
+
+  useEffect(() => {
+    setMessages((prev) => {
+      if (prev.length === 1 && prev[0].id === 'greeting-1') {
+        return [isEn ? INITIAL_GREETING_EN : INITIAL_GREETING_CS];
+      }
+      return prev;
+    });
+  }, [isEn]);
   const [sessionId, setSessionId] = useState<string>('');
-  const [messages, setMessages] = useState<AgentChatMessage[]>([INITIAL_GREETING]);
+  const [messages, setMessages] = useState<AgentChatMessage[]>([INITIAL_GREETING_EN]);
   const [inputValue, setInputValue] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
@@ -111,8 +159,71 @@ export default function Home() {
   const [demoRunsRemaining, setDemoRunsRemaining] = useState<number>(3);
   const [wizardInitialShowResult, setWizardInitialShowResult] = useState<boolean>(false);
 
+  const initialWizardStepIndex = useMemo(() => {
+    if (!selectedAgent || typeof window === 'undefined') return 0;
+    try {
+      const stored = localStorage.getItem('bairight_agent_wizard_states');
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        if (parsed[selectedAgent.id]) {
+          return parsed[selectedAgent.id].currentStepIndex || 0;
+        }
+      }
+    } catch {}
+    return 0;
+  }, [selectedAgent]);
+
   const activeProvider = SUPPORTED_AI_PROVIDERS.find((p) => p.id === activeProviderId) || SUPPORTED_AI_PROVIDERS[0];
   const activeFactsCount = userFacts.filter((f) => f.isEnriched).length;
+
+  const handleSelectAgent = (agent: UniversalAgentDefinition | null, forceShowResult?: boolean) => {
+    setSelectedAgent(agent);
+    setWizardMode(agent ? 'active_agent' : 'launcher');
+    if (agent) {
+      let isCompleted = forceShowResult ?? false;
+      if (forceShowResult === undefined && typeof window !== 'undefined') {
+        const storedStates = localStorage.getItem('bairight_agent_wizard_states');
+        if (storedStates) {
+          try {
+            const parsed = JSON.parse(storedStates);
+            if (parsed[agent.id]?.isCompleted) {
+              isCompleted = true;
+            }
+          } catch {}
+        }
+      }
+      setWizardInitialShowResult(isCompleted);
+    } else {
+      setWizardInitialShowResult(false);
+    }
+  };
+
+  // Load per-agent chat messages from localStorage when selectedAgent changes
+  useEffect(() => {
+    if (selectedAgent && typeof window !== "undefined") {
+      const chatKey = `bairight_chat_messages_${selectedAgent.id}`;
+      const stored = localStorage.getItem(chatKey);
+      if (stored) {
+        try {
+          const parsed = JSON.parse(stored);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            setMessages(parsed);
+            return;
+          }
+        } catch {}
+      }
+      setMessages([isEn ? INITIAL_GREETING_EN : INITIAL_GREETING_CS]);
+    } else {
+      setMessages([isEn ? INITIAL_GREETING_EN : INITIAL_GREETING_CS]);
+    }
+  }, [selectedAgent?.id]);
+
+  // Persist chat messages whenever they update for an active agent
+  useEffect(() => {
+    if (selectedAgent && messages.length > 0 && typeof window !== "undefined") {
+      localStorage.setItem(`bairight_chat_messages_${selectedAgent.id}`, JSON.stringify(messages));
+    }
+  }, [messages, selectedAgent?.id]);
   const hasActiveSubscription = Boolean(
     apiKeys['google_gemini']?.trim() ||
     apiKeys['openai_gpt4o']?.trim() ||
@@ -286,6 +397,7 @@ export default function Home() {
           ragFacts: userFacts.filter((f) => f.isEnriched),
           providerId: activeProviderId,
           apiKey: apiKeys[activeProviderId],
+          locale,
         }),
       });
 
@@ -331,7 +443,14 @@ export default function Home() {
           {/* Clean Top Navigation Tabs */}
           <div className="hidden sm:flex items-center gap-1.5 p-1 rounded-xl bg-slate-950/80 border border-slate-800 text-xs font-mono">
             <button
-              onClick={() => setActiveTab('wizard')}
+              onClick={() => {
+                const activeOrStored = selectedAgent || (typeof window !== 'undefined' ? AgentStorageService.getAllAgents()[0] : null);
+                if (activeOrStored) {
+                  handleSelectAgent(activeOrStored);
+                  setWizardMode('active_agent');
+                }
+                setActiveTab('wizard');
+              }}
               className={`px-3 py-1 rounded-lg transition-all cursor-pointer ${
                 activeTab === 'wizard'
                   ? 'bg-cyan-950 text-cyan-300 border border-cyan-500/40 font-bold'
@@ -355,7 +474,6 @@ export default function Home() {
                   : 'text-slate-400 hover:text-slate-200'
               }`}
             >
-              <MessageSquare className="w-3.5 h-3.5" />
               <span>{t.header.chatTab}</span>
               {selectedAgent ? (
                 <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-cyan-900/60 text-cyan-300 font-mono font-medium hidden md:inline">
@@ -396,9 +514,8 @@ export default function Home() {
               userName="Jan Mynář"
               currentAgent={selectedAgent}
               onSelectAgent={(agent, initialShowResult = false) => {
-                setSelectedAgent(agent);
+                handleSelectAgent(agent, initialShowResult);
                 setWizardMode('active_agent');
-                setWizardInitialShowResult(initialShowResult);
               }}
               activeProviderId={activeProviderId}
               currentApiKeys={apiKeys}
@@ -408,12 +525,45 @@ export default function Home() {
               key={selectedAgent.id}
               agent={selectedAgent}
               onBackToLauncher={() => setWizardMode('launcher')}
+              onOpenChat={(customPrompt) => {
+                setActiveTab('chat');
+                if (selectedAgent) {
+                  // Only send the initial recommendation prompt ONCE — the first time
+                  // the chat is opened after wizard completion. A dedicated per-agent flag
+                  // in localStorage prevents re-triggering on every subsequent visit.
+                  const chatInitKey = `bairight_chat_initialized_${selectedAgent.id}`;
+                  const alreadyInitialized = typeof window !== 'undefined'
+                    ? localStorage.getItem(chatInitKey) === 'true'
+                    : false;
+                  if (!alreadyInitialized) {
+                    if (typeof window !== 'undefined') {
+                      localStorage.setItem(chatInitKey, 'true');
+                    }
+                    const initialPrompt = customPrompt || (locale === 'en'
+                      ? 'Based on all parameters and rules in your instructions, please give me your top 3 specific product recommendations.'
+                      : 'Na základě všech zadaných parametrů a pravidel v instrukcích mi prosím sděl své 3 konkrétní doporučené produkty.');
+                    handleSendMessage(initialPrompt);
+                  }
+                }
+              }}
               activeProviderId={activeProviderId}
               currentApiKeys={apiKeys}
               userFacts={userFacts}
               onOpenSubscriptionModal={() => setIsSubscriptionModalOpen(true)}
               initialShowResult={wizardInitialShowResult}
+              initialStepIndex={initialWizardStepIndex}
+              locale={locale}
               onAssessmentCompleted={(answers, evalRes, completedPrompt) => {
+                // Reset the chat-initialized flag so fresh recommendations are sent
+                // when the user opens the chat after re-completing the wizard
+                if (typeof window !== 'undefined' && selectedAgent) {
+                  localStorage.removeItem(`bairight_chat_initialized_${selectedAgent.id}`);
+                }
+                if (selectedAgent && completedPrompt) {
+                  const updatedAgent = { ...selectedAgent, systemPrompt: completedPrompt };
+                  setSelectedAgent(updatedAgent);
+                  AgentStorageService.saveAgent(updatedAgent);
+                }
                 const now = new Date();
                 const dateFormatted = `${now.toLocaleDateString('cs-CZ')}, ${now.toLocaleTimeString('cs-CZ', { hour: '2-digit', minute: '2-digit' })}`;
                 const newRecord: CompletedAssessmentRecord = {
@@ -456,10 +606,11 @@ export default function Home() {
           <aside className="w-full lg:w-80 border-b lg:border-b-0 lg:border-r border-slate-800 bg-[#08101e]/90 p-4 space-y-4 overflow-y-auto shrink-0">
             <div className="space-y-2">
               <span className="text-[10px] font-mono uppercase tracking-wider text-cyan-400 font-bold flex items-center justify-between">
-                <span>Aktivní agent pro diskusi</span>
+                <span>{isEn ? 'Active Agent for Discussion' : 'Aktivní agent pro diskusi'}</span>
                 {selectedAgent && (
                   <button
                     onClick={() => setSelectedAgent(null)}
+                    title={isEn ? "Switch active agent" : "Přepnout aktivního agenta"}
                     className="text-[10px] text-cyan-400 hover:underline cursor-pointer lowercase"
                   >
                     změnit
@@ -471,7 +622,7 @@ export default function Home() {
                 <div className="p-3 rounded-2xl bg-slate-950/80 border border-cyan-500/30 space-y-1.5">
                   <div className="flex items-center gap-2">
                     <span className="text-xl p-1.5 rounded-lg bg-slate-900 border border-slate-800">
-                      {selectedAgent.icon || '🤖'}
+                      
                     </span>
                     <div className="min-w-0">
                       <h3 className="text-sm font-bold text-white truncate">{selectedAgent.name}</h3>
@@ -485,17 +636,17 @@ export default function Home() {
               ) : (
                 <div className="p-3 rounded-2xl bg-slate-950/80 border border-slate-800 space-y-2">
                   <span className="text-xs font-semibold text-slate-300 block">
-                    Uložení agenti na vašem účtu:
+                    {isEn ? 'Saved agents in your account:' : 'Uložení agenti na vašem účtu:'}
                   </span>
                   {storedAgents.length > 0 ? (
                     <div className="space-y-1.5">
                       {storedAgents.map((ag) => (
                         <button
                           key={ag.id}
-                          onClick={() => setSelectedAgent(ag)}
+                          onClick={() => handleSelectAgent(ag)}
                           className="w-full p-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-800 text-left flex items-center gap-2.5 text-xs transition-all cursor-pointer group"
                         >
-                          <span className="text-base">{ag.icon || '🤖'}</span>
+                          
                           <div className="min-w-0 flex-1">
                             <span className="text-slate-200 group-hover:text-white font-medium truncate block">{ag.name}</span>
                             <span className="text-[10px] text-slate-500 truncate block">{ag.category}</span>
@@ -505,9 +656,9 @@ export default function Home() {
                     </div>
                   ) : (
                     <div className="text-center py-4 px-2 space-y-2.5 bg-[#070e1a]/80 rounded-xl border border-slate-800/80">
-                      <Bot className="w-6 h-6 text-slate-600 mx-auto" />
+                      
                       <p className="text-[11px] text-slate-400 leading-relaxed">
-                        Na svém účtu zatím nemáte uloženého žádného nákupního agenta.
+                        {isEn ? 'No shopping agents saved in your account yet.' : 'Na svém účtu zatím nemáte uloženého žádného nákupního agenta.'}
                       </p>
                       <button
                         onClick={() => {
@@ -517,7 +668,7 @@ export default function Home() {
                         className="w-full py-1.5 px-3 rounded-xl bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-400 border border-cyan-500/30 text-xs font-medium transition-all flex items-center justify-center gap-1.5 cursor-pointer"
                       >
                         <Plus className="w-3.5 h-3.5" />
-                        <span>Vytvořit agenta v průvodci</span>
+                        <span>{isEn ? 'Create agent in wizard' : 'Vytvořit agenta v průvodci'}</span>
                       </button>
                     </div>
                   )}
@@ -525,75 +676,87 @@ export default function Home() {
               )}
             </div>
 
-            {/* Subscription & Model Status Badge */}
-            <div className={`p-3 rounded-2xl border space-y-2 ${
-              hasActiveSubscription
-                ? 'bg-emerald-950/20 border-emerald-500/30'
-                : 'bg-amber-950/20 border-amber-500/30'
-            }`}>
-              <div className="flex items-center justify-between">
-                <span className={`text-[11px] font-mono font-bold flex items-center gap-1.5 ${
-                  hasActiveSubscription ? 'text-emerald-300' : 'text-amber-300'
-                }`}>
-                  {hasActiveSubscription ? (
-                    <>
-                      <Zap className="w-3.5 h-3.5 text-emerald-400" />
-                      <span>Model propojen</span>
-                    </>
-                  ) : (
-                    <>
-                      <Lock className="w-3.5 h-3.5 text-amber-400" />
-                      <span>Model nepropojen</span>
-                    </>
-                  )}
-                </span>
+            {/* Unified System Context & Status Panel */}
+            <div className="p-3.5 rounded-2xl bg-slate-950/80 border border-slate-800/90 space-y-3 shadow-md">
+              <span className="text-[10px] font-mono uppercase font-bold tracking-wider text-slate-400 block border-b border-slate-800/80 pb-1.5">
+                {isEn ? 'System & Context Status' : 'Stav systému a kontextu'}
+              </span>
+
+              {/* Model Connection Status */}
+              <div className="flex items-start justify-between gap-2">
+                <div className="space-y-0.5">
+                  <span className={`text-[11px] font-mono font-bold flex items-center gap-1.5 ${
+                    hasActiveSubscription ? 'text-emerald-300' : 'text-amber-300'
+                  }`}>
+                    {hasActiveSubscription ? (
+                      <span>{isEn ? 'Model Connected' : 'Model propojen'}</span>
+                    ) : (
+                      <span>{isEn ? 'Model Disconnected' : 'Model nepropojen'}</span>
+                    )}
+                  </span>
+                  <p className="text-[10px] text-slate-400 leading-tight">
+                    {hasActiveSubscription
+                      ? (isEn ? `Active: ${activeProvider.name}` : `Aktivní: ${activeProvider.name}`)
+                      : (isEn ? 'BYOK Model Required' : 'Vyžadován model (BYOK)')}
+                  </p>
+                </div>
                 <button
                   onClick={() => setIsSubscriptionModalOpen(true)}
-                  className={`text-[10px] font-mono hover:underline cursor-pointer ${
+                  className={`text-[10px] font-mono hover:underline cursor-pointer shrink-0 mt-0.5 ${
                     hasActiveSubscription ? 'text-emerald-400' : 'text-amber-400'
                   }`}
                 >
-                  {hasActiveSubscription ? 'Nastavení' : 'Propojit'}
+                  {hasActiveSubscription ? (isEn ? 'Settings' : 'Nastavení') : (isEn ? 'Connect' : 'Propojit')}
                 </button>
               </div>
-              <p className="text-[11px] text-slate-400 leading-snug">
-                {hasActiveSubscription
-                  ? `Aktivní: ${activeProvider.name}. Živá diskuse běží přes vaše předplatné.`
-                  : 'Pro diskusi je vyžadováno propojení s vaším modelem (BYOK).'}
-              </p>
-            </div>
 
-            {/* RAG Memory Snapshot */}
-            <div className="p-3 rounded-2xl bg-slate-950 border border-slate-800 space-y-2">
-              <div className="flex items-center justify-between">
-                <span className="text-[11px] font-mono text-cyan-300 font-bold flex items-center gap-1.5">
-                  <Database className="w-3.5 h-3.5" />
-                  RAG paměť
-                </span>
+              {/* RAG Memory Status */}
+              <div className="flex items-start justify-between gap-2 pt-2 border-t border-slate-800/60">
+                <div className="space-y-0.5">
+                  <span className="text-[11px] font-mono text-cyan-300 font-bold flex items-center gap-1.5">
+                    <span>{isEn ? 'RAG Memory' : 'RAG paměť'}</span>
+                  </span>
+                  <p className="text-[10px] text-slate-400 leading-tight">
+                    {isEn ? <>Injected <strong>{activeFactsCount}</strong> preference facts</> : <>Zapojeno <strong>{activeFactsCount}</strong> preferenčních faktů</>}
+                  </p>
+                </div>
                 <button
                   onClick={() => setIsMemoryModalOpen(true)}
-                  className="text-[10px] font-mono text-cyan-400 hover:underline cursor-pointer"
+                  className="text-[10px] font-mono text-cyan-400 hover:underline cursor-pointer shrink-0 mt-0.5"
                 >
-                  Spravovat
+                  {isEn ? 'Manage Memory' : 'Správa paměti'}
                 </button>
               </div>
-              <p className="text-[11px] text-slate-400 leading-snug">
-                Zapojeno <strong>{activeFactsCount}</strong> preferenčních faktů do systémového kontextu.
-              </p>
-            </div>
 
-            {/* Quick Agent Actions */}
-            <div className="space-y-2 pt-2 border-t border-slate-800">
-              <button
-                onClick={() => {
-                  setWizardMode(selectedAgent ? 'active_agent' : 'launcher');
-                  setActiveTab('wizard');
-                }}
-                className="w-full py-2 px-3 rounded-xl bg-cyan-950/60 hover:bg-cyan-900/60 border border-cyan-500/30 text-cyan-300 text-xs font-mono font-bold flex items-center justify-center gap-2 transition-all cursor-pointer"
-              >
-                <Compass className="w-3.5 h-3.5" />
-                <span>Otevřít průvodce výběrem</span>
-              </button>
+              {/* Selection Wizard Action */}
+              <div className="pt-2 border-t border-slate-800/60">
+                <button
+                  onClick={() => {
+                    if (selectedAgent) {
+                      let isCompleted = false;
+                      if (typeof window !== 'undefined') {
+                        const storedStates = localStorage.getItem('bairight_agent_wizard_states');
+                        if (storedStates) {
+                          try {
+                            const parsed = JSON.parse(storedStates);
+                            if (parsed[selectedAgent.id]?.isCompleted) {
+                              isCompleted = true;
+                            }
+                          } catch {}
+                        }
+                      }
+                      setWizardInitialShowResult(isCompleted);
+                      setWizardMode('active_agent');
+                    } else {
+                      setWizardMode('launcher');
+                    }
+                    setActiveTab('wizard');
+                  }}
+                  className="w-full py-2 px-3 rounded-xl bg-cyan-950/60 hover:bg-cyan-900/60 border border-cyan-500/30 text-cyan-300 text-xs font-mono font-bold flex items-center justify-center gap-2 transition-all cursor-pointer shadow-sm"
+                >
+                  <span>{isEn ? 'Open Selection Wizard' : 'Otevřít průvodce výběrem'}</span>
+                </button>
+              </div>
             </div>
           </aside>
 
@@ -602,28 +765,23 @@ export default function Home() {
             {!hasActiveSubscription ? (
               /* Subscription Paywall Screen */
               <div className="flex-1 flex flex-col items-center justify-center p-6 text-center max-w-xl mx-auto space-y-6 animate-in fade-in zoom-in-95 duration-200 overflow-y-auto">
-                <div className="w-16 h-16 rounded-2xl bg-gradient-to-tr from-cyan-600/20 via-teal-500/20 to-cyan-400/10 border border-cyan-500/40 flex items-center justify-center text-cyan-300 shadow-xl shadow-cyan-950/60">
-                  <Lock className="w-8 h-8 text-cyan-400" />
-                </div>
+
 
                 <div className="space-y-2">
                   <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-cyan-950/80 border border-cyan-500/30 text-cyan-300 font-mono text-[11px] font-bold">
-                    <Sparkles className="w-3.5 h-3.5 text-cyan-400" />
-                    <span>Diskuse s agentem • Vyžaduje vlastní model (BYOK)</span>
+                    <span>{isEn ? 'Agent Discussion • Requires BYOK Model' : 'Diskuse s agentem • Vyžaduje vlastní model (BYOK)'}</span>
                   </div>
                   <h2 className="text-xl sm:text-2xl font-extrabold text-white">
-                    Propojte své AI předplatné pro živou diskusi
+                    {isEn ? 'Connect your AI subscription for live discussion' : 'Propojte své AI předplatné pro živou diskusi'}
                   </h2>
                   <p className="text-xs sm:text-sm text-slate-400 leading-relaxed max-w-md mx-auto">
-                    Živá konverzace a ladění probíhá přímo přes vaše vlastní AI předplatné (Google Gemini, OpenAI ChatGPT, Anthropic Claude). Agent využije vaši RAG paměť a vaše data zůstanou v bezpečí.
+                    {isEn ? 'Live conversation and tuning runs directly through your own AI subscription (Google Gemini, OpenAI ChatGPT, Anthropic Claude). The agent utilizes your RAG memory and your data stays secure.' : 'Živá konverzace a ladění probíhá přímo přes vaše vlastní AI předplatné (Google Gemini, OpenAI ChatGPT, Anthropic Claude). Agent využije vaši RAG paměť a vaše data zůstanou v bezpečí.'}
                   </p>
                 </div>
 
                 {/* Current Agent Info Card */}
                 <div className="w-full p-4 rounded-2xl bg-slate-900/90 border border-slate-800 text-left flex items-center gap-3 shadow-md">
-                  <div className="text-2xl p-2.5 rounded-xl bg-slate-950 border border-slate-800 shrink-0">
-                    {selectedAgent?.icon || '👟'}
-                  </div>
+
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between">
                       <h4 className="text-sm font-bold text-white truncate">
@@ -642,19 +800,19 @@ export default function Home() {
                 {/* Benefits Badges */}
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 w-full text-left">
                   <div className="p-3 rounded-xl bg-slate-950/70 border border-slate-800">
-                    <Zap className="w-4 h-4 text-amber-400 mb-1" />
-                    <span className="text-xs font-bold text-slate-200 block">Vlastní tokeny</span>
-                    <span className="text-[10px] text-slate-500 leading-tight">Neomezená diskuse bez kreditových stropů.</span>
+                    
+                    <span className="text-xs font-bold text-slate-200 block">{isEn ? 'Own Tokens' : 'Vlastní tokeny'}</span>
+                    <span className="text-[10px] text-slate-500 leading-tight">{isEn ? 'Unlimited discussion without token or credit limits.' : 'Neomezená diskuse bez kreditových stropů.'}</span>
                   </div>
                   <div className="p-3 rounded-xl bg-slate-950/70 border border-slate-800">
-                    <Database className="w-4 h-4 text-cyan-400 mb-1" />
-                    <span className="text-xs font-bold text-slate-200 block">RAG kontext</span>
-                    <span className="text-[10px] text-slate-500 leading-tight">Agent zná vaše uložená biometrická fakta.</span>
+                    
+                    <span className="text-xs font-bold text-slate-200 block">{isEn ? 'RAG Context' : 'RAG kontext'}</span>
+                    <span className="text-[10px] text-slate-500 leading-tight">{isEn ? 'Agent knows your stored biometric & preference facts.' : 'Agent zná vaše uložená biometrická fakta.'}</span>
                   </div>
                   <div className="p-3 rounded-xl bg-slate-950/70 border border-slate-800">
-                    <ShieldCheck className="w-4 h-4 text-teal-400 mb-1" />
-                    <span className="text-xs font-bold text-slate-200 block">100% soukromí</span>
-                    <span className="text-[10px] text-slate-500 leading-tight">Klíč se ukládá pouze ve vašem prohlížeči.</span>
+                    
+                    <span className="text-xs font-bold text-slate-200 block">{isEn ? '100% Privacy' : '100% soukromí'}</span>
+                    <span className="text-[10px] text-slate-500 leading-tight">{isEn ? 'API keys are stored exclusively in your browser.' : 'Klíč se ukládá pouze ve vašem prohlížeči.'}</span>
                   </div>
                 </div>
 
@@ -664,8 +822,7 @@ export default function Home() {
                     onClick={() => setIsSubscriptionModalOpen(true)}
                     className="w-full sm:flex-1 py-3 px-5 rounded-xl bg-gradient-to-r from-cyan-500 to-teal-500 hover:brightness-110 text-slate-950 font-bold text-sm shadow-lg shadow-cyan-950/60 flex items-center justify-center gap-2 transition-all cursor-pointer"
                   >
-                    <Key className="w-4 h-4" />
-                    <span>Propojit vlastní model / předplatné</span>
+                    <span>{isEn ? 'Connect Account / BYOK' : 'Propojit vlastní model / předplatné'}</span>
                   </button>
 
                   <button
@@ -687,7 +844,7 @@ export default function Home() {
                   <div className="flex items-center gap-2">
                     <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
                     <span className="text-slate-200 font-medium">
-                      Diskuse s agentem <strong>{selectedAgent?.name || 'Všeobecný nákupní poradce'}</strong> aktivní
+                      {isEn ? <>Discussion with agent <strong>{selectedAgent?.name || 'General Shopping Advisor'}</strong> active</> : <>Diskuse s agentem <strong>{selectedAgent?.name || 'Všeobecný nákupní poradce'}</strong> aktivní</>}
                     </span>
                     <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-cyan-900/60 text-cyan-300 border border-cyan-500/30">
                       {activeProvider.name}
@@ -708,11 +865,7 @@ export default function Home() {
                       key={msg.id}
                       className={`flex gap-3 max-w-4xl ${isUser ? 'ml-auto justify-end' : 'mr-auto justify-start'}`}
                     >
-                      {!isUser && (
-                        <div className="w-8 h-8 rounded-lg bg-cyan-950/80 border border-cyan-500/40 text-cyan-300 flex items-center justify-center shrink-0 mt-1">
-                          <Bot className="w-4 h-4" />
-                        </div>
-                      )}
+
 
                       <div className={`flex flex-col ${isUser ? 'items-end' : 'items-start'} max-w-[85%]`}>
                         <div
@@ -728,32 +881,25 @@ export default function Home() {
                               className="flex items-center gap-1.5 text-[10px] font-mono text-cyan-300 bg-cyan-950/70 border border-cyan-500/30 px-2.5 py-1 rounded-full w-fit mb-3 shadow-sm hover:border-cyan-400/60 cursor-pointer transition-all"
                               title="Klikněte pro zobrazení a správu RAG faktů z databáze"
                             >
-                              <Database className="w-3 h-3 text-cyan-400" />
-                              <span>RAG paměť: Obohaceno o {activeFactsCount} preferenčních faktů</span>
+                              <span>{isEn ? `RAG Memory: Enriched with ${activeFactsCount} preference facts` : `RAG paměť: Obohaceno o ${activeFactsCount} preferenčních faktů`}</span>
                             </div>
                           )}
 
-                          <div className="prose prose-invert prose-sm max-w-none space-y-3">
-                            {msg.content.split('\n\n').map((paragraph, idx) => {
-                              if (paragraph.startsWith('### ')) {
-                                return <h3 key={idx} className="text-base font-bold text-white mt-2 mb-1">{paragraph.replace('### ', '')}</h3>;
-                              }
-                              if (paragraph.startsWith('> ')) {
-                                return (
-                                  <blockquote key={idx} className="p-3 my-2 border-l-4 border-cyan-500 bg-cyan-950/30 rounded text-cyan-200 text-xs">
-                                    {paragraph.replace('> ', '')}
-                                  </blockquote>
-                                );
-                              }
-                              return <p key={idx} className="whitespace-pre-line">{paragraph}</p>;
-                            })}
-                          </div>
+                          {!isUser ? (
+                            <AgentMessageRenderer content={msg.content} isEn={isEn} />
+                          ) : (
+                            <div className="prose prose-invert prose-sm max-w-none space-y-3">
+                              {msg.content.split('\\n\\n').map((paragraph, idx) => (
+                                <p key={idx} className="whitespace-pre-line">{paragraph}</p>
+                              ))}
+                            </div>
+                          )}
 
                           {/* Tool Call Badges */}
                           {msg.toolCalls && msg.toolCalls.length > 0 && (
                             <div className="mt-4 pt-3 border-t border-slate-800 space-y-2">
                               <span className="text-[10px] uppercase font-bold tracking-wider text-slate-400 block">
-                                Provedené nástroje agenta
+                                {isEn ? 'Agent Executed Tools' : 'Provedené nástroje agenta'}
                               </span>
                               {msg.toolCalls.map((tc) => (
                                 <ToolExecutionBadge
@@ -772,25 +918,19 @@ export default function Home() {
                         </span>
                       </div>
 
-                      {isUser && (
-                        <div className="w-8 h-8 rounded-lg bg-slate-800 border border-slate-700 text-slate-300 flex items-center justify-center shrink-0 mt-1">
-                          <User className="w-4 h-4" />
-                        </div>
-                      )}
+
                     </div>
                   );
                 })}
 
                 {isLoading && (
                   <div className="flex gap-3 items-center text-xs text-slate-400">
-                    <div className="w-8 h-8 rounded-lg bg-cyan-950/80 border border-cyan-500/40 text-cyan-300 flex items-center justify-center shrink-0">
-                      <Bot className="w-4 h-4 animate-pulse" />
-                    </div>
+                    <div className="w-2 h-2 rounded-full bg-cyan-400 animate-ping shrink-0" />
                     <div className="flex items-center gap-2 p-3 bg-slate-900 border border-slate-800 rounded-xl">
                       <div className="w-2 h-2 rounded-full bg-cyan-400 animate-bounce" style={{ animationDelay: '0ms' }} />
                       <div className="w-2 h-2 rounded-full bg-cyan-400 animate-bounce" style={{ animationDelay: '150ms' }} />
                       <div className="w-2 h-2 rounded-full bg-cyan-400 animate-bounce" style={{ animationDelay: '300ms' }} />
-                      <span className="ml-2 font-medium">Agent přemýšlí...</span>
+                      <span className="ml-2 font-medium">{isEn ? 'Agent is thinking...' : 'Agent přemýšlí...'}</span>
                     </div>
                   </div>
                 )}
@@ -803,25 +943,22 @@ export default function Home() {
             {!hasActiveSubscription ? (
               <div className="p-4 sm:p-5 border-t border-slate-800 bg-slate-950/90 backdrop-blur-md flex flex-col sm:flex-row items-center justify-between gap-3">
                 <div className="flex items-center gap-2 text-xs text-slate-400">
-                  <Lock className="w-4 h-4 text-cyan-400 shrink-0" />
-                  <span>Pro odesílání zpráv do diskuse s agentem nejprve propojte své AI předplatné.</span>
+                  <span>{isEn ? 'Connect your AI subscription to send messages to the agent.' : 'Pro odesílání zpráv do diskuse s agentem nejprve propojte své AI předplatné.'}</span>
                 </div>
                 <button
                   onClick={() => setIsSubscriptionModalOpen(true)}
                   className="w-full sm:w-auto px-4 py-2 rounded-xl bg-cyan-950 border border-cyan-500/40 text-cyan-300 hover:text-white text-xs font-mono font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer"
                 >
-                  <Key className="w-3.5 h-3.5" />
-                  <span>Propojit model</span>
+                  <span>{isEn ? 'Connect model' : 'Propojit model'}</span>
                 </button>
               </div>
             ) : (
               <div className="p-4 sm:p-5 border-t border-slate-800 bg-slate-950/90 backdrop-blur-md">
                 <div className="flex items-center gap-2 overflow-x-auto pb-3 mb-2 no-scrollbar">
                   <span className="text-[11px] font-medium text-slate-400 shrink-0 flex items-center gap-1">
-                    <Sparkles className="w-3.5 h-3.5 text-cyan-400" />
-                    <span>Rychlé dotazy:</span>
+                    <span>{isEn ? 'Quick prompts:' : 'Rychlé dotazy:'}</span>
                   </span>
-                  {SUGGESTED_PROMPTS.map((prompt, idx) => (
+                  {(isEn ? SUGGESTED_PROMPTS_EN : SUGGESTED_PROMPTS_CS).map((prompt, idx) => (
                     <button
                       key={idx}
                       onClick={() => handleSendMessage(prompt.text)}
@@ -846,8 +983,8 @@ export default function Home() {
                     onChange={(e) => setInputValue(e.target.value)}
                     placeholder={
                       selectedAgent
-                        ? `Zeptejte se agenta ${selectedAgent.name} na parametry, značky či rozpočet...`
-                        : "Zadejte svůj nákupní záměr, specifické požadavky na produkt či rozpočet..."
+                        ? (isEn ? `Ask agent ${selectedAgent.name} about parameters, brands, or budget...` : `Zeptejte se agenta ${selectedAgent.name} na parametry, značky či rozpočet...`)
+                        : (isEn ? "Enter your purchasing intent, specific product requirements, or budget..." : "Zadejte svůj nákupní záměr, specifické požadavky na produkt či rozpočet...")
                     }
                     disabled={isLoading}
                     className="flex-1 bg-slate-900 border border-slate-800 focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 rounded-xl px-4 py-3 text-sm text-slate-100 placeholder:text-slate-500 outline-none transition-all"
@@ -862,7 +999,7 @@ export default function Home() {
                 </form>
 
                 <p className="text-[11px] text-center text-slate-400 mt-2">
-                  Diskuse s agentem běží přímo přes vaše propojené AI předplatné s plným využitím vaší RAG paměti.
+                  {isEn ? 'Discussion runs directly via your connected AI model utilizing your persistent RAG memory.' : 'Diskuse s agentem běží přímo přes vaše propojené AI předplatné s plným využitím vaší RAG paměti.'}
                 </p>
               </div>
             )}
@@ -904,6 +1041,8 @@ export default function Home() {
       <ColorPaletteModal
         isOpen={isPaletteModalOpen}
         onClose={() => setIsPaletteModalOpen(false)}
+        activeFontId={activeFontId}
+        onSelectFont={setActiveFontId}
       />
 
       {/* 5. Universal Agent Prompt & Rules Inspector */}

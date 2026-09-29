@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <!-- Background Gradient -->
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#081021" />
+      <stop offset="50%" stop-color="#070d18" />
+      <stop offset="100%" stop-color="#0a162b" />
+    </linearGradient>
+
+    <!-- Neon Cyan & Teal Gradient -->
+    <linearGradient id="cyanTeal" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#38bdf8" />
+      <stop offset="50%" stop-color="#06b6d4" />
+      <stop offset="100%" stop-color="#14b8a6" />
+    </linearGradient>
+  </defs>
+
+  <!-- Container Box with Rounded Glass Corners & Glowing Border -->
+  <rect x="24" y="24" width="464" height="464" rx="110" fill="url(#bgGrad)" stroke="url(#cyanTeal)" stroke-width="16" />
+
+  <!-- Inner Ambient Glow Circle -->
+  <circle cx="256" cy="256" r="150" fill="#06b6d4" opacity="0.15" />
+
+  <!-- bAIright Target / Sparkles Icon Centerpiece -->
+  <g transform="translate(256, 256)">
+    <!-- 4-Point Sparkle / Diamond Star -->
+    <path d="M0 -150 Q0 -30 120 0 Q0 30 0 150 Q0 30 -120 0 Q0 -30 0 -150 Z" fill="url(#cyanTeal)" />
+    
+    <!-- Outer Precision Ring -->
+    <circle cx="0" cy="0" r="130" fill="none" stroke="#38bdf8" stroke-width="10" stroke-dasharray="20 14" opacity="0.7" />
+
+    <!-- Center Bright Core -->
+    <circle cx="0" cy="0" r="30" fill="#ffffff" />
+    <circle cx="0" cy="0" r="16" fill="#06b6d4" />
+
+    <!-- Corner Accent Sparkles -->
+    <path d="M90 -90 L98 -90 L98 -98 L106 -98 L106 -90 L114 -90 L114 -82 L106 -82 L106 -74 L98 -74 L98 -82 L90 -82 Z" fill="#38bdf8" opacity="0.9" />
+    <path d="M-104 84 L-96 84 L-96 76 L-88 76 L-88 84 L-80 84 L-80 92 L-88 92 L-88 100 L-96 100 L-96 92 L-104 92 Z" fill="#14b8a6" opacity="0.9" />
+  </g>
+</svg>

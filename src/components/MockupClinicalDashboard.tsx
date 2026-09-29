@@ -210,10 +210,10 @@ export const MockupClinicalDashboard: React.FC<MockupClinicalDashboardProps> = (
           </span>
 
           {[
-            { id: 'shoes', label: isCs ? '👟 Běžecká & Tréninková obuv' : '👟 Running & Training Shoes' },
-            { id: 'ergonomics', label: isCs ? '🪑 Ergonomie sezení & Pracoviště' : '🪑 Ergonomic Workstations' },
-            { id: 'recovery', label: isCs ? '🧊 Regenerační & Kompresní pomůcky' : '🧊 Recovery & Compression' },
-            { id: 'orthotics', label: isCs ? '🦶 Ortopedické vložky na míru' : '🦶 Custom Orthotics & Insoles' },
+            { id: 'shoes', label: isCs ? 'Běžecká & Tréninková obuv' : 'Running & Training Shoes' },
+            { id: 'ergonomics', label: isCs ? 'Ergonomie sezení & Pracoviště' : 'Ergonomic Workstations' },
+            { id: 'recovery', label: isCs ? 'Regenerační & Kompresní pomůcky' : 'Recovery & Compression' },
+            { id: 'orthotics', label: isCs ? 'Ortopedické vložky na míru' : 'Custom Orthotics & Insoles' },
           ].map((cat) => (
             <button
               key={cat.id}

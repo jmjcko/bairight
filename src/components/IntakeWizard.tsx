@@ -558,7 +558,7 @@ export const IntakeWizard: React.FC<IntakeWizardProps> = ({
                     }`}
                   >
                     <Footprints className="w-4 h-4" />
-                    <span>👟 Rychlá volba velikosti (EU & šířka)</span>
+                    <span>Rychlá volba velikosti (EU & šířka)</span>
                   </button>
                   <button
                     type="button"
@@ -570,7 +570,7 @@ export const IntakeWizard: React.FC<IntakeWizardProps> = ({
                     }`}
                   >
                     <Sliders className="w-4 h-4" />
-                    <span>📐 Přesné mm měření (posuvníky)</span>
+                    <span>Přesné mm měření (posuvníky)</span>
                   </button>
                 </div>
 
@@ -933,28 +933,28 @@ export const IntakeWizard: React.FC<IntakeWizardProps> = ({
                   {[
                     {
                       level: 1,
-                      title: '🟢 Bez potíží (Plná zátěž)',
+                      title: 'Bez potíží (Plná zátěž)',
                       desc: 'Běhám bez bolesti, kolena mě po tréninku ani ze schodů nijak neomezují.',
                       badge: 'Přirozený ohyb',
                       color: 'border-cyan-500/30 text-cyan-300',
                     },
                     {
                       level: 4,
-                      title: '🟡 Mírná citlivost / Únava',
+                      title: 'Mírná citlivost / Únava',
                       desc: 'Po delším běhu (>5 km), na tvrdém asfaltu nebo z kopce cítím tlak či únavu v kolenou.',
                       badge: 'Tlumení vibrací',
                       color: 'border-teal-500/30 text-teal-300',
                     },
                     {
                       level: 7,
-                      title: '🟠 Výrazná citlivost / Artróza',
+                      title: 'Výrazná citlivost / Artróza',
                       desc: 'Pravidelná bolest při došlapu, opotřebení chrupavky, artróza či dřívější operace.',
                       badge: 'Kolébka (Rocker)',
                       color: 'border-amber-500/30 text-amber-300',
                     },
                     {
                       level: 9,
-                      title: '🔴 Maximální ochrana',
+                      title: 'Maximální ochrana',
                       desc: 'Rekonvalescence po zranění vazů/menisku, vyšší váha nebo potřeba šetřícího režimu.',
                       badge: 'Max Cushion',
                       color: 'border-rose-500/30 text-rose-300',
@@ -1201,7 +1201,7 @@ export const IntakeWizard: React.FC<IntakeWizardProps> = ({
                     disabled={isSubmitting}
                     className="flex items-center gap-2.5 px-8 py-3.5 rounded-2xl text-xs sm:text-sm font-extrabold bg-gradient-to-r from-cyan-400 via-cyan-300 to-teal-400 text-slate-950 shadow-[0_0_30px_rgba(34,211,238,0.8)] hover:scale-105 transition-all disabled:opacity-50 cursor-pointer"
                   >
-                    <Sparkles className="w-5 h-5 animate-pulse" />
+                    <Sparkles className={`w-5 h-5 ${isSubmitting ? "animate-spin" : "animate-pulse"}`} />
                     <span>{isSubmitting ? 'Vyhodnocuji profil...' : 'Vygenerovat návrhy obuvi'}</span>
                   </button>
                 </div>
@@ -1275,7 +1275,7 @@ export const IntakeWizard: React.FC<IntakeWizardProps> = ({
               <button
                 onClick={onOpenSubscriptionModal}
                 className="text-[11px] font-mono text-cyan-400 hover:text-cyan-200 px-2.5 py-1 rounded-lg bg-cyan-950/40 border border-cyan-500/30 hover:border-cyan-400 transition-colors cursor-pointer"
-                title="Spravovat AI poskytovatele a API klíče"
+                title="Správa AI poskytovatelů a API klíčů"
               >
                 Nastavit mozek (BYOK)
               </button>

@@ -10,7 +10,7 @@ describe('Bilingual Localization & Language Switcher Suite', () => {
     localStorage.clear();
   });
 
-  it('1. LanguageSwitcher renders with active Czech locale by default', () => {
+  it('1. LanguageSwitcher renders with active English locale by default', () => {
     render(
       <I18nProvider>
         <LanguageSwitcher />
@@ -22,22 +22,22 @@ describe('Bilingual Localization & Language Switcher Suite', () => {
 
     expect(czButton).toBeInTheDocument();
     expect(enButton).toBeInTheDocument();
-    expect(czButton).toHaveAttribute('aria-pressed', 'true');
-    expect(enButton).toHaveAttribute('aria-pressed', 'false');
+    expect(enButton).toHaveAttribute('aria-pressed', 'true');
+    expect(czButton).toHaveAttribute('aria-pressed', 'false');
   });
 
-  it('2. Clicking English button switches locale and persists to localStorage', () => {
+  it('2. Clicking Czech button switches locale and persists to localStorage', () => {
     render(
       <I18nProvider>
         <LanguageSwitcher />
       </I18nProvider>
     );
 
-    const enButton = screen.getByRole('button', { name: /Switch to English/i });
-    fireEvent.click(enButton);
+    const czButton = screen.getByRole('button', { name: /Přepnout do češtiny/i });
+    fireEvent.click(czButton);
 
-    expect(enButton).toHaveAttribute('aria-pressed', 'true');
-    expect(localStorage.getItem('bairight_locale')).toBe('en');
+    expect(czButton).toHaveAttribute('aria-pressed', 'true');
+    expect(localStorage.getItem('bairight_locale')).toBe('cs');
   });
 
   it('3. Toggling language in Home updates Header navigation and Hero Launcher texts', () => {
@@ -47,27 +47,25 @@ describe('Bilingual Localization & Language Switcher Suite', () => {
       </I18nProvider>
     );
 
-    // Initial state: Czech
+    // Initial state: English by default
+    expect(screen.getByRole('button', { name: /Shopping Wizard/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Agent Discussion/i })).toBeInTheDocument();
+    expect(screen.getByPlaceholderText(/Ergonomic office chair/i)).toBeInTheDocument();
+
+    // Switch to Czech
+    const czButton = screen.getByRole('button', { name: /Přepnout do češtiny/i });
+    fireEvent.click(czButton);
+
+    // Header tabs updated to Czech
     expect(screen.getByRole('button', { name: /Průvodce nákupem/i })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /Diskuse s agentem/i })).toBeInTheDocument();
     expect(screen.getByPlaceholderText(/Kancelářská ergonomická židle/i)).toBeInTheDocument();
 
-    // Switch to English
+    // Switch back to English
     const enButton = screen.getByRole('button', { name: /Switch to English/i });
     fireEvent.click(enButton);
 
-    // Header tabs updated to English
     expect(screen.getByRole('button', { name: /Shopping Wizard/i })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /Agent Discussion/i })).toBeInTheDocument();
-
-    // Hero launcher updated to English
-    expect(screen.getByPlaceholderText(/Ergonomic office chair/i)).toBeInTheDocument();
-
-    // Switch back to Czech
-    const czButton = screen.getByRole('button', { name: /Přepnout do češtiny/i });
-    fireEvent.click(czButton);
-
-    expect(screen.getByRole('button', { name: /Průvodce nákupem/i })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /Diskuse s agentem/i })).toBeInTheDocument();
   });
 });

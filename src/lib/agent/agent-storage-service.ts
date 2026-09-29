@@ -8,7 +8,8 @@ import {
   UniversalAgentDefinition, 
   INITIAL_UNIVERSAL_AGENTS, 
   serializeAgentToMarkdown, 
-  parseAgentFromMarkdown 
+  parseAgentFromMarkdown, 
+  resolveAgentIcon 
 } from './universal-agent-schema';
 
 const STORAGE_KEY = 'bairight_all_agents_v2';
@@ -29,9 +30,14 @@ export class AgentStorageService {
         const parsed = JSON.parse(stored);
         if (Array.isArray(parsed)) {
           // Filter out legacy default presets so they don't linger in localStorage
-          return parsed.filter(
-            (a) => !a.id.startsWith('preset_') && a.id !== 'running_shoes' && a.id !== 'ergo_seating' && a.id !== 'coffee_machines'
-          );
+          return parsed
+            .filter(
+              (a) => !a.id.startsWith('preset_') && a.id !== 'running_shoes' && a.id !== 'ergo_seating' && a.id !== 'coffee_machines'
+            )
+            .map((a) => ({
+              ...a,
+              icon: resolveAgentIcon(a.icon, `${a.name} ${a.category}`),
+            }));
         }
         return [];
       }
@@ -54,7 +60,7 @@ export class AgentStorageService {
       const existing = this.getAllAgents();
       const updated = [
         ...existing.filter((a) => a.id !== agent.id),
-        { ...agent, isCustom: true, updatedAt: new Date().toISOString() },
+        { ...agent, icon: resolveAgentIcon(agent.icon, `${agent.name} ${agent.category}`), isCustom: true, updatedAt: new Date().toISOString() },
       ];
       localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
     } catch (e) {
@@ -114,10 +120,10 @@ export class AgentStorageService {
   /**
    * Downloads an agent as a portable `.agent.md` file
    */
-  static downloadAgentMarkdown(agent: UniversalAgentDefinition): void {
+  static downloadAgentMarkdown(agent: UniversalAgentDefinition, answers?: Record<string, any>, locale: string = "cs"): void {
     if (typeof window === 'undefined') return;
 
-    const markdown = serializeAgentToMarkdown(agent);
+    const markdown = serializeAgentToMarkdown(agent, answers, locale);
     const blob = new Blob([markdown], { type: 'text/markdown;charset=utf-8' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');

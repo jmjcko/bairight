@@ -51,7 +51,7 @@ describe('Conversational Agent Chat & Parameter Responsiveness', () => {
           id: 'custom_coffee_agent',
           name: 'Kávovary & domácí espresso',
           category: 'Appliances & Coffee',
-          icon: '☕',
+          icon: '',
         },
         ragFacts: [
           { id: 'f1', label: 'Anatomie chodidla', value: 'širší kopyto (2E)', category: 'biometrics' },

@@ -229,13 +229,13 @@ describe('IntakeWizard Unit Test Suite', () => {
       );
       navigateToStep(4);
 
-      expect(screen.getByText(/🟢 Bez potíží/i)).toBeInTheDocument();
-      expect(screen.getByText(/🟡 Mírná citlivost/i)).toBeInTheDocument();
-      expect(screen.getByText(/🟠 Výrazná citlivost \/ Artróza/i)).toBeInTheDocument();
-      expect(screen.getByText(/🔴 Maximální ochrana/i)).toBeInTheDocument();
+      expect(screen.getByText(/Bez potíží/i)).toBeInTheDocument();
+      expect(screen.getByText(/Mírná citlivost/i)).toBeInTheDocument();
+      expect(screen.getByText(/Výrazná citlivost \/ Artróza/i)).toBeInTheDocument();
+      expect(screen.getByText(/Maximální ochrana/i)).toBeInTheDocument();
     });
 
-    it('4.3: Ověřuje, že karta 🟠 Výrazná citlivost / Artróza NEOBSAHUJE text (Doporučeno)', () => {
+    it('4.3: Ověřuje, že karta Výrazná citlivost / Artróza NEOBSAHUJE text (Doporučeno)', () => {
       render(
         <IntakeWizard onAssessmentCompleted={mockOnAssessmentCompleted} />
       );

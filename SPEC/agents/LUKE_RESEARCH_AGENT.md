@@ -56,6 +56,21 @@ Luke MUST tailor all parameters strictly to the sub-category:
 
 
 
+
+## ⚛️ Parameter Atomic Isolation Rule (CRITICAL)
+
+Agent Luke MUST NEVER combine two distinct technical or dimensional concepts into a single parameter (e.g. combining wheel rim size 29" with tire width 40-45mm into "Rozměr kol a plášťů").
+
+Each distinct physical or technical parameter MUST be isolated as its own separate step:
+- **Step 1:** Rim / Wheel Diameter (e.g., 29" wheels vs 27.5" wheels).
+- **Step 2:** Tire Width & Tubeless Technology (e.g., 40-45mm Gravel tubeless vs 28mm Smooth road vs 2.35" MTB knobby).
+
+Luke MUST generate 10-14 clean, single-concept isolated parameters rather than compounding multiple features together.
+
+## ⏭️ Skip & Multi-Select Rule
+All wizard steps support a non-intrusive **"Není důležité / Nevím (Přeskočit)"** option. Where multiple valid choices exist (usage contexts, connectivity, brand preferences), Luke MUST specify `"isMultiSelect": true`.
+
+
 ## 🚫 Anti-Jargon & Real Consumer Shopping Realism Rule (CRITICAL)
 
 Agent Luke MUST NEVER generate corporate filler, academic abstraction, or vague managerial jargon (e.g., *"konstrukční třída"*, *"procesní koncepce"*, *"technologické řešení"*, *"architektonická úroveň"*).
@@ -95,20 +110,32 @@ Luke MUST ALWAYS include the universal brand preference parameter:
 
 ---
 
-## 🛡️ High-Availability & Zero-Failure Fallback Rule (CRITICAL)
+## 🛑 Striktní Zákaz Statického Fallbacku & Ověření Historie Dotazů na Webu (Strict No Fallback & Site Search Consultation Gate)
 
-Agent Luke MUST NEVER fail a user research request or display an error card.
-- **Primary Engine**: Real-time Gemini Flash LLM parameter discovery.
-- **Fallback Engine**: Luke Heuristic Domain Discovery Engine (`discoverDomainParameters`).
-- **Behavior**: If `GOOGLE_GEMINI_API_KEY` is unconfigured, or if Gemini API quota/network call fails, Luke seamlessly falls back to the heuristic engine and returns high-yield domain parameters with 100% reliability.
+Agent Luke **NESMÍ OBSAHOVAT ŽÁDNÝ STATICKÝ GENERICKÝ FALLBACK** ani vracet korporátní náhradní šablony ("Rozměry a montáž", "Kapacita a dimenzování").
+
+1. **Striktní zákaz statických generických fallbacků**: Všechny vygenerované parametry musí být dynamicky vytvořeny z reálného výzkumu pro zadaný intent `${categoryQuery}`.
+2. **Jediná povolená kontrola před výzkumem (Kontrola historie nášho webu)**:
+   - Před zahájením nového výzkumu má Agent Luke povoleno ověřit **výhradně jednu věc**: Zda se na tento produkt/dotaz již v minulosti dříve někdo na našem webu neptal (`parameter_cache` / `DomainLearningService` / RAG paměť vyhledávání na bAIright).
+   - Pokud se na produkt na našem webu **již někdo neptal**: Luke načte dříve vygenerované a schválené parametry z historie nášho webu, zohlední to, co bylo předchozímu uživateli nabízeno, a použije/rozšíří je pro aktuální výzkum.
+   - Pokud se na produkt na našem webu **zatím nikdo neptal**: Luke zahájí čerstvý dynamický tržní výzkum z fór, recenzí a odborných specifikací.
 
 ## 📄 Prompt Specification & Template
+
+```markdown
+Jsi expertní nákupní analytik a technický specifikátor. Tvým úkolem je rozpadnout jakoukoliv uživatelem zadanou kategorii zboží na seznam 8 až 12 nejkritičtějších parametrů, které musí kupující zvážit před finálním rozhodnutím.
+
+Vstupní entita (Zboží): {{ZBOZI_OD_UZIVATELE}}
+```
+
 
 ```markdown
 Jsi Luke, špičkový produktový analytik, nezávislý nákupčí a reverzní inženýr nákupního rozhodování v expertním systému bAIright.
 
 Pravidla pro výzkum:
-1. SUB-KATEGORIE SPECIFICITA: Pokud uživatel zadá konkrétní pod-typ (např. "endurance silniční kolo"), vygeneruj parametry VÝHRADNĚ pro tento pod-typ. Nepřidávej nerelevantní parametry jiných kategorií (např. elektropohon nebo odpružení u silničního kola).
+1. CANONICAL ENGLISH META-PROMPT: Agent Luke meta-prompt is maintained exclusively in English for maximum reasoning quality and LLM instruction precision.
+2. DYNAMIC OUTPUT LANGUAGE DIRECTIVE: The target agent system prompt built via `forgeAgentPrompt` appends a dynamic CRITICAL LANGUAGE DIRECTIVE corresponding to the active browser locale (`cs` or `en`), ensuring the final recommendations, exact product model names, pros & cons, and rationale are rendered fluently in the requested UI language.
+3. SUB-KATEGORIE SPECIFICITA: Pokud uživatel zadá konkrétní pod-typ (např. "endurance silniční kolo"), vygeneruj parametry VÝHRADNĚ pro tento pod-typ. Nepřidávej nerelevantní parametry jiných kategorií (např. elektropohon nebo odpružení u silničního kola).
 2. STRUČNÉ NÁZVY: Názvy parametrů musí být krátké a výstižné (max 18 znaků, např. "Rám & Geometrie", "Sada řazení", "Šířka plášťů").
 3. IZOLACE ZNAČEK: Vždy zahrň parametr pre značky (id: "brand_preferences").
 4. KVALITA: Každý parametr musí obsahovat reálné zdůvodnění (rationale) a reprezentativní hodnoty (suggestedValues).
@@ -126,3 +153,285 @@ When the user provides feedback or requests changes, refinements, or new capabil
 2. **Synchronize Implementation**: The AI Assistant updates `buildLukeSystemPrompt()` in `src/lib/agent/luke-agent-prompt.ts` and the API route prompt in `src/app/api/agent/research-parameters/route.ts`.
 3. **Automate Verification**: The AI Assistant adds/updates governance unit tests under `src/lib/agent/__tests__/` and runs `npx vitest run` & `npx tsc --noEmit`.
 4. **End-to-End Execution**: The AI Assistant executes the complete cycle automatically without requiring manual code edits from the user.
+
+
+## 🎯 100-Category Golden Baseline & 80% Regression Stability Standard
+
+To guarantee that Agent Luke maintains high stability, parameter consistency, and non-generic performance over time, Luke is governed by an automated 100-category golden baseline regression test suite:
+
+1. **Golden Baseline Snapshot**:  (stores verified parameter outputs for 100 consumer categories).
+2. **Regression Command**: 
+================================================================
+🤖 AGENT LUKE – STRESS TEST, CACHE PREHEATER & 80% REGRESSION CHECK
+================================================================
+
+
+📁 Skupina: Elektronika a digitální zábava (25 položek)
+----------------------------------------------------------------
+  ✅ Smartphony.......................................... 12 par | 4 ot. | Shoda s dneškem: 100% [Fallback: generic]
+  ✅ Kryty, obaly a ochranná skla na mobilní telefony.... 10 par | 2 ot. | Shoda s dneškem: 100% [Doména: smartphones]
+  ✅ Chytré hodinky a fitness náramky.................... 10 par | 2 ot. | Shoda s dneškem: 100% [Doména: smartwatch]
+  ✅ Bezdrátová sluchátka (TWS).......................... 12 par | 4 ot. | Shoda s dneškem: 100% [Fallback: generic]
+  ✅ Notebooky........................................... 11 par | 4 ot. | Shoda s dneškem: 100% [Doména: laptop]
+  ✅ Tablety............................................. 12 par | 4 ot. | Shoda s dneškem: 100% [Fallback: generic]
+  ⚠️ Televize............................................ 10 par | 2 ot. | Shoda s dneškem: 100% [Doména: tv]
+  ✅ Powerbanky.......................................... 12 par | 4 ot. | Shoda s dneškem: 100% [Fallback: generic]
+  ✅ Nabíjecí kabely a síťové adaptéry................... 12 par | 4 ot. | Shoda s dneškem: 100% [Fallback: generic]
+  ✅ Herní konzole....................................... 12 par | 4 ot. | Shoda s dneškem: 100% [Fallback: generic]
+  ✅ Počítačové hry a digitální herní klíče.............. 11 par | 4 ot. | Shoda s dneškem: 100% [Doména: laptop]
+  ✅ Paměťové karty a USB flash disky.................... 12 par | 4 ot. | Shoda s dneškem: 100% [Fallback: generic]
+  ✅ Klávesnice a počítačové myši........................ 11 par | 4 ot. | Shoda s dneškem: 100% [Doména: laptop]
+  ✅ Prvky chytré domácnosti (žárovky, chytré zásuvky)... 12 par | 4 ot. | Shoda s dneškem: 100% [Fallback: generic]
+  ✅ Elektronické čtečky knih............................ 12 par | 4 ot. | Shoda s dneškem: 100% [Fallback: generic]
+  ✅ E-knihy a audioknihy................................ 11 par | 6 ot. | Shoda s dneškem: 100% [Doména: cars]
+  ✅ Předplatné streamovacích služeb (video, hudba)...... 12 par | 4 ot. | Shoda s dneškem: 100% [Fallback: generic]
+  ✅ Počítačové komponenty (grafické karty, procesory)... 11 par | 4 ot. | Shoda s dneškem: 100% [Doména: laptop]
+  ✅ Monitory............................................ 12 par | 4 ot. | Shoda s dneškem: 100% [Fallback: generic]
+  ✅ Drony............................................... 12 par | 4 ot. | Shoda s dneškem: 100% [Fallback: generic]
+  ⚠️ Bezdrátové reproduktory a soundbary................. 10 par | 2 ot. | Shoda s dneškem: 100% [Doména: tv]
+  ⚠️ Softwarové licence (antivirové programy, kancelářské balíky) 13 par | 4 ot. | Shoda s dneškem: 100% [Doména: chair]
+  ✅ Datová úložiště (externí disky, NAS)................ 12 par | 4 ot. | Shoda s dneškem: 100% [Fallback: generic]
+  ⚠️ Tiskárny a náhradní náplně.......................... 11 par | 2 ot. | Shoda s dneškem: 100% [Doména: printers]
+  ✅ Online vstupenky na kulturní a sportovní akce....... 13 par | 4 ot. | Shoda s dneškem: 100% [Fallback: generic]
+  📊 Výsledek skupiny: 21/25 splnilo kvalitu | 11/25 doménově namapováno
+
+📁 Skupina: Móda, kosmetika a péče o zdraví (25 položek)
+----------------------------------------------------------------
+  ✅ Trička a topy....................................... 10 par | 2 ot. | Shoda s dneškem: 100% [Doména: apparel_fashion]
+  ✅ Tenisky a volnočasová obuv.......................... 11 par | 6 ot. | Shoda s dneškem: 100% [Doména: shoes]
+  ✅ Spodní prádlo....................................... 10 par | 2 ot. | Shoda s dneškem: 100% [Doména: apparel_fashion]
+  ✅ Ponožky............................................. 10 par | 2 ot. | Shoda s dneškem: 100% [Doména: apparel_fashion]
+  ✅ Mikiny a svetry..................................... 10 par | 2 ot. | Shoda s dneškem: 100% [Doména: apparel_fashion]
+  ✅ Džíny a kalhoty..................................... 10 par | 2 ot. | Shoda s dneškem: 100% [Doména: apparel_fashion]
+  ✅ Sportovní a funkční oblečení........................ 10 par | 2 ot. | Shoda s dneškem: 100% [Doména: apparel_fashion]
+  ✅ Bundy a kabáty...................................... 10 par | 2 ot. | Shoda s dneškem: 100% [Doména: apparel_fashion]
+  ✅ Šaty a sukně........................................ 10 par | 2 ot. | Shoda s dneškem: 100% [Doména: apparel_fashion]
+  ✅ Sluneční brýle...................................... 12 par | 4 ot. | Shoda s dneškem: 100% [Fallback: generic]
+  ✅ Kabelky, tašky a batohy............................. 13 par | 4 ot. | Shoda s dneškem: 100% [Fallback: generic]
+  ✅ Šperky a klasické hodinky........................... 10 par | 2 ot. | Shoda s dneškem: 100% [Doména: smartwatch]
+  ✅ Parfémy a toaletní vody............................. 12 par | 4 ot. | Shoda s dneškem: 100% [Fallback: generic]
+  ✅ Pleťové krémy a vyživující séra..................... 12 par | 4 ot. | Shoda s dneškem: 100% [Fallback: generic]
+  ✅ Šampony a vlasová péče.............................. 12 par | 4 ot. | Shoda s dneškem: 100% [Fallback: generic]
+  ✅ Dekorativní kosmetika (make-up, řasenky, rtěnky).... 12 par | 4 ot. | Shoda s dneškem: 100% [Fallback: generic]
+  ✅ Vitamíny a doplňky stravy........................... 12 par | 4 ot. | Shoda s dneškem: 100% [Fallback: generic]
+  ✅ Kontaktní čočky a čisticí roztoky................... 12 par | 4 ot. | Shoda s dneškem: 100% [Fallback: generic]
+  ✅ Elektrické zubní kartáčky a náhradní hlavice........ 12 par | 4 ot. | Shoda s dneškem: 100% [Fallback: generic]
+  ✅ Zubní pasty a mezizubní kartáčky.................... 12 par | 4 ot. | Shoda s dneškem: 100% [Fallback: generic]
+  ✅ Pánská kosmetika a potřeby pro holení............... 12 par | 4 ot. | Shoda s dneškem: 100% [Fallback: generic]
+  ✅ Přípravky na a po opalování......................... 12 par | 4 ot. | Shoda s dneškem: 100% [Fallback: generic]
+  ✅ Tělová mléka a oleje................................ 12 par | 4 ot. | Shoda s dneškem: 100% [Fallback: generic]
+  ✅ Masážní přístroje a pomůcky......................... 12 par | 4 ot. | Shoda s dneškem: 100% [Fallback: generic]
+  ✅ Lékárenské produkty a volně prodejné léky........... 12 par | 4 ot. | Shoda s dneškem: 100% [Fallback: generic]
+  📊 Výsledek skupiny: 25/25 splnilo kvalitu | 10/25 doménově namapováno
+
+📁 Skupina: Domácnost, drogerie a potraviny (25 položek)
+----------------------------------------------------------------
+  ✅ Kapsle do kávovarů a zrnková káva................... 11 par | 4 ot. | Shoda s dneškem: 100% [Doména: coffee]
+  ✅ Malé kuchyňské spotřebiče (kávovary, mixéry, horkovzdušné fritézy) 11 par | 4 ot. | Shoda s dneškem: 100% [Doména: coffee]
+  ✅ Robotické a tyčové vysavače......................... 10 par | 2 ot. | Shoda s dneškem: 100% [Doména: vacuum]
+  ✅ Povlečení a prostěradla............................. 10 par | 2 ot. | Shoda s dneškem: 100% [Doména: mattress]
+  ✅ Ručníky a osušky.................................... 12 par | 4 ot. | Shoda s dneškem: 100% [Fallback: generic]
+  ✅ Čisticí prostředky pro domácnost.................... 10 par | 2 ot. | Shoda s dneškem: 100% [Doména: mattress]
+  ✅ Prací prášky, gely a prací kapsle................... 12 par | 4 ot. | Shoda s dneškem: 100% [Fallback: generic]
+  ✅ Bytové vůně a dekorační svíčky...................... 12 par | 4 ot. | Shoda s dneškem: 100% [Fallback: generic]
+  ⚠️ Nádobí, hrnce a pánve............................... 7 par | 2 ot. | Shoda s dneškem: 100% [Doména: household_drinkware]
+  ✅ Úložné boxy a organizéry............................ 12 par | 4 ot. | Shoda s dneškem: 100% [Fallback: generic]
+  ✅ Trvanlivé potraviny................................. 12 par | 4 ot. | Shoda s dneškem: 100% [Fallback: generic]
+  ✅ Prémiový alkohol (vína, rumy, gin).................. 12 par | 4 ot. | Shoda s dneškem: 100% [Fallback: generic]
+  ✅ Oříšky, semínka a sušené plody...................... 12 par | 4 ot. | Shoda s dneškem: 100% [Fallback: generic]
+  ✅ Zdravá a speciální výživa (bezlepkové, proteinové, veganské potraviny) 12 par | 4 ot. | Shoda s dneškem: 100% [Fallback: generic]
+  ✅ Rozvoz hotových jídel z restaurací.................. 12 par | 4 ot. | Shoda s dneškem: 100% [Fallback: generic]
+  ✅ Sypané a porcované čaje............................. 12 par | 4 ot. | Shoda s dneškem: 100% [Fallback: generic]
+  ✅ Čokolády a prémiové cukrovinky...................... 11 par | 3 ot. | Shoda s dneškem: 100% [Doména: bicycles]
+  ✅ Krmivo pro psy (granule, konzervy).................. 12 par | 4 ot. | Shoda s dneškem: 100% [Fallback: generic]
+  ✅ Krmivo pro kočky.................................... 12 par | 4 ot. | Shoda s dneškem: 100% [Fallback: generic]
+  ✅ Pamlsky a hračky pro domácí mazlíčky................ 12 par | 4 ot. | Shoda s dneškem: 100% [Fallback: generic]
+  ✅ Antiparazitika a veterinární přípravky.............. 12 par | 4 ot. | Shoda s dneškem: 100% [Fallback: generic]
+  ✅ Toaletní papír a papírové utěrky.................... 12 par | 4 ot. | Shoda s dneškem: 100% [Fallback: generic]
+  ✅ Čističky a zvlhčovače vzduchu....................... 12 par | 4 ot. | Shoda s dneškem: 100% [Fallback: generic]
+  ⚠️ Kancelářské potřeby pro home office................. 13 par | 4 ot. | Shoda s dneškem: 100% [Doména: chair]
+  ⚠️ Nábytek a doplňky (kancelářské židle, matrace)...... 13 par | 4 ot. | Shoda s dneškem: 100% [Doména: chair]
+  📊 Výsledek skupiny: 22/25 splnilo kvalitu | 9/25 doménově namapováno
+
+📁 Skupina: Sport, hobby a dětské zboží (25 položek)
+----------------------------------------------------------------
+  ✅ Dětské jednorázové pleny............................ 12 par | 4 ot. | Shoda s dneškem: 100% [Fallback: generic]
+  ✅ Dětská výživa a příkrmy............................. 12 par | 4 ot. | Shoda s dneškem: 100% [Fallback: generic]
+  ✅ Dětské oblečení a botičky........................... 10 par | 2 ot. | Shoda s dneškem: 100% [Doména: apparel_fashion]
+  ✅ Stavebnice (zejména LEGO)........................... 12 par | 4 ot. | Shoda s dneškem: 100% [Fallback: generic]
+  ✅ Interaktivní a edukační hračky...................... 12 par | 4 ot. | Shoda s dneškem: 100% [Fallback: generic]
+  ✅ Dětské autosedačky.................................. 11 par | 6 ot. | Shoda s dneškem: 100% [Doména: cars]
+  ⚠️ Kočárky a příslušenství............................. 10 par | 2 ot. | Shoda s dneškem: 100% [Doména: strollers]
+  ✅ Školní batohy a vybavení............................ 13 par | 4 ot. | Shoda s dneškem: 100% [Fallback: generic]
+  ✅ Běžecká a treková obuv.............................. 11 par | 6 ot. | Shoda s dneškem: 100% [Doména: shoes]
+  ✅ Sporttestery a cyklocomputery....................... 10 par | 2 ot. | Shoda s dneškem: 100% [Doména: smartwatch]
+  ✅ Outdoorové vybavení (stany, spacáky, karimatky)..... 12 par | 4 ot. | Shoda s dneškem: 100% [Fallback: generic]
+  ✅ Činky, kettlebelly a domácí fitness pomůcky......... 12 par | 4 ot. | Shoda s dneškem: 100% [Fallback: generic]
+  ✅ Proteiny a sportovní výživa......................... 13 par | 4 ot. | Shoda s dneškem: 100% [Fallback: generic]
+  ✅ Jízdní kola a elektrokola........................... 11 par | 3 ot. | Shoda s dneškem: 100% [Doména: bicycles]
+  ✅ Cyklistické příslušenství a komponenty.............. 12 par | 4 ot. | Shoda s dneškem: 100% [Fallback: generic]
+  ✅ Podložky na jógu a cvičení.......................... 12 par | 4 ot. | Shoda s dneškem: 100% [Fallback: generic]
+  ✅ Deskové a společenské hry........................... 12 par | 4 ot. | Shoda s dneškem: 100% [Fallback: generic]
+  ✅ Pneumatiky pro osobní vozy.......................... 12 par | 4 ot. | Shoda s dneškem: 100% [Fallback: generic]
+  ✅ Autokosmetika a čisticí chemie pro auta............. 11 par | 6 ot. | Shoda s dneškem: 100% [Doména: cars]
+  ✅ Motorové oleje a aditiva............................ 12 par | 4 ot. | Shoda s dneškem: 100% [Fallback: generic]
+  ✅ Stěrače a autožárovky............................... 11 par | 6 ot. | Shoda s dneškem: 100% [Doména: cars]
+  ✅ Elektrické nářadí (aku vrtačky, šroubováky)......... 12 par | 4 ot. | Shoda s dneškem: 100% [Fallback: generic]
+  ✅ Zahradní technika (sekačky, motorové pily).......... 10 par | 2 ot. | Shoda s dneškem: 100% [Doména: lawnmowers]
+  ✅ Grily a grilovací příslušenství..................... 12 par | 4 ot. | Shoda s dneškem: 100% [Fallback: generic]
+  ✅ Semena, sazenice a zahradnické potřeby.............. 12 par | 4 ot. | Shoda s dneškem: 100% [Fallback: generic]
+  📊 Výsledek skupiny: 24/25 splnilo kvalitu | 9/25 doménově namapováno
+
+================================================================
+📈 CELKOVÉ SOUHRNNÉ METRIKY & TEST SHODY (80% THRESHOLD)
+================================================================
+• Celkem testováno produktových kategorií : 100
+• Úspěšně splnilo striktní kvalitu Luke  : 92 / 100 (92%)
+• Specifická doménová registrace        : 39 / 100 (39%)
+• Generické fallbacky                   : 61 / 100
+• Celkový počet vygenerovaných parametrů : 1147
+• Průměrně parametrů na produkt         : 11.5
+• Stav keš paměti (ParameterCache)      : ✅ PREHEATED (100 položek uloženo v L1/L2 cache)
+----------------------------------------------------------------
+🎯 CELKOVÁ SHODA S ZLATOU BÁZÍ Z DNEŠKA : 100%
+🛡️ VYŽADOVANÝ PRAH SHODY (THRESHOLD)     : 80%
+✅ VÝSLEDEK TESTU AGENTA LUKE            : OK (Shoda 100% ≥ 80%)
+
+================================================================
+🔍 NÁHODNÁ INSPEKCE VYGENEROVANÝCH PARAMETRŮ (SPOT CHECK)
+================================================================
+
+--- [Ukázka 1/4] Produkt: "Smartphony" (Elektronika a digitální zábava) ---
+• Název Agenta: Specialista na Smartphony
+• Ikona a Doména: 🎯 (generic)
+• Shoda s bází: 100%
+• Popis Agenta: Inteligentní nákupní rádce pro výběr ideálního modelu v kategorii "Smartphony".
+• Vygenerované Klíčové Parametry (prvních 5 z 12):
+   - 🧭 Typ a hlavní určení (Kategorie & Typologie): Klíčové elementární zařazení na trhu, které určuje celý směr výběru. Než se začnou řešit d... -> [Možnosti: Univerzální standardní provedení, Vysoce výkonná / Profesionální varianta, Kompaktní / Odlehčené provedení pro mobilitu...]
+   - 🎯 Způsob využití (Způsob využití): Rozdíl mezi prémiovým a základním modelem spočívá v kvalitě zpracování a dimenzování pro p... -> [Možnosti: Každodenní intenzivní provoz s vysokou zátěží, Pravidelné rodinné / víkendové použití, Příležitostné / Hobby...]
+   - ⚡ Konstrukce & Zpracování (Výkon & Technologie): Kvalitnější provedení nabízí vyšší stálost, lepší odolnost a celkový uživatelský komfort. ... -> [Možnosti: Špičková profesionální třída s výkonovou rezervou, Zlatý střed (optimální poměr cena / výkon), Základní spolehlivá řada pro nenáročné nasazení...]
+   - ⚖️ Kapacita a dimenzování (Dimenzování): Poddimenzovaná kapacita vede k neustálému přetěžování stroje a frustraci uživatele. Otázka... -> [Možnosti: Velká kapacita pro rodinu či intenzivní zátěž (maximální prostorová i výkonová rezerva), Standardní střední velikost pro běžné každodenní použití, Kompaktní úsporné provedení do menších prostor či pro občasné použití...]
+   - 📐 Rozměry a montáž (Ergonomie & Umístění): Ověření rozměrů pro umístění v prostoru a manipulační prostor pro servis. Otázka pro vás: ... -> [Možnosti: Kompaktní rozměry pro snadné umístění bez nutnosti stavebních úprav, Standardní rozměry odpovídající běžným evropským normám, Velkorysé rozměry s důrazem na maximální vnitřní objem...]
+• Průvodce (První 2 Otázky):
+   - ❓ Jak budete "Smartphony" nejčastěji používat? (Pomůže určit potřebnou odolnost, výbavu a dimenzování.)
+   - ❓ Jaké jsou vaše klíčové priority a technologické požadavky? (Vyberte vlastnosti, na kterých vám nejvíce záleží.)
+
+--- [Ukázka 2/4] Produkt: "Trička a topy" (Móda, kosmetika a péče o zdraví) ---
+• Název Agenta: Specialista na Módu & Oblečení
+• Ikona a Doména: 👖 (apparel_fashion)
+• Shoda s bází: 100%
+• Popis Agenta: Expertní nákupní poradce pro výběr oblečení a džínoviny na základě střihu, pasu, gramáže denimu, materiálu a stálosti tvaru.
+• Vygenerované Klíčové Parametry (prvních 5 z 10):
+   - ✂️ Střih a silueta (Střih & Silueta): Střih určuje celkový vzhled a pohodlí. Baggy a loose fit nabízejí volný oversize styl, zat... -> [Možnosti: Baggy / Loose Fit (výrazný volný oversize střih), Straight Regular Fit (klasický rovný střih), Slim Fit (přiléhavější moderní střih)...]
+   - 📏 Výška pasu (Konstrukce pasu): Poloha pasu má zásadní vliv na proporce a komfort při sezení či pohybu.... -> [Možnosti: Vysoký pas (High rise - nad boky), Střední pas (Mid rise - klasické pohodlné nošení), Nízký pas (Low rise - snížený bokový pas)...]
+   - 🧵 Materiál & Gramáž denimu (Materiál & Kvalita): Těžký 100% bavlněný denim (14oz+) drží pevný tvar a vydrží roky, zatímco směsi s elastanem... -> [Možnosti: 100% bavlna těžká gramáž (13–15 oz, pevný autentický denim), Denim s elastanem (2–3 % spandex pro pružnost a komfort), Bio bavlna / Udržitelný recyklovaný denim...]
+   - 🧬 Velikost a dimenzování (Biometrie & Velikost): U džínoviny je klíčové přesné značení obvodu pasu (W) a délky nohavic (L) v palcích.... -> [Možnosti: Standardní sizing (odpovídající běžné velikosti), Oversize sizing (doporučeno vzít o číslo menší pro běžný fit), Přesné rozměry v cm (obvod pasu, boků a šířka stehna)...]
+   - 📐 Délka & Úprava nohavic (Střih & Délka): Správná délka nohavice zajišťuje ideální padnutí k botám bez nechtěného šlapání po lemu.... -> [Možnosti: Prodloužená délka (stacking efekt přes boty / tenisky), Standardní délka (akorát k hornímu okraji boty), Zkrácená délka / Ankle crop (nad kotníky)...]
+• Průvodce (První 2 Otázky):
+   - ❓ Jaký střih a siluetu džínoviny / kalhot preferujete? (Základní volba určující šířku nohavic a celkový styl.)
+   - ❓ Preferované a zakázané značky / výrobci (Uveďte značky, kterým důvěřujete a chcete je doporučit, a naopak ty, které si nepřejete.)
+
+--- [Ukázka 3/4] Produkt: "Tělová mléka a oleje" (Móda, kosmetika a péče o zdraví) ---
+• Název Agenta: Specialista na Tělová mléka a oleje
+• Ikona a Doména: 🎯 (generic)
+• Shoda s bází: 100%
+• Popis Agenta: Inteligentní nákupní rádce pro výběr ideálního modelu v kategorii "Tělová mléka a oleje".
+• Vygenerované Klíčové Parametry (prvních 5 z 12):
+   - 🧭 Typ a hlavní určení (Kategorie & Typologie): Klíčové elementární zařazení na trhu, které určuje celý směr výběru. Než se začnou řešit d... -> [Možnosti: Univerzální standardní provedení, Vysoce výkonná / Profesionální varianta, Kompaktní / Odlehčené provedení pro mobilitu...]
+   - 🎯 Způsob využití (Způsob využití): Rozdíl mezi prémiovým a základním modelem spočívá v kvalitě zpracování a dimenzování pro p... -> [Možnosti: Každodenní intenzivní provoz s vysokou zátěží, Pravidelné rodinné / víkendové použití, Příležitostné / Hobby...]
+   - ⚡ Konstrukce & Zpracování (Výkon & Technologie): Kvalitnější provedení nabízí vyšší stálost, lepší odolnost a celkový uživatelský komfort. ... -> [Možnosti: Špičková profesionální třída s výkonovou rezervou, Zlatý střed (optimální poměr cena / výkon), Základní spolehlivá řada pro nenáročné nasazení...]
+   - ⚖️ Kapacita a dimenzování (Dimenzování): Poddimenzovaná kapacita vede k neustálému přetěžování stroje a frustraci uživatele. Otázka... -> [Možnosti: Velká kapacita pro rodinu či intenzivní zátěž (maximální prostorová i výkonová rezerva), Standardní střední velikost pro běžné každodenní použití, Kompaktní úsporné provedení do menších prostor či pro občasné použití...]
+   - 📐 Rozměry a montáž (Ergonomie & Umístění): Ověření rozměrů pro umístění v prostoru a manipulační prostor pro servis. Otázka pro vás: ... -> [Možnosti: Kompaktní rozměry pro snadné umístění bez nutnosti stavebních úprav, Standardní rozměry odpovídající běžným evropským normám, Velkorysé rozměry s důrazem na maximální vnitřní objem...]
+• Průvodce (První 2 Otázky):
+   - ❓ Jak budete "Tělová mléka a oleje" nejčastěji používat? (Pomůže určit potřebnou odolnost, výbavu a dimenzování.)
+   - ❓ Jaké jsou vaše klíčové priority a technologické požadavky? (Vyberte vlastnosti, na kterých vám nejvíce záleží.)
+
+--- [Ukázka 4/4] Produkt: "Elektrické nářadí (aku vrtačky, šroubováky)" (Sport, hobby a dětské zboží) ---
+• Název Agenta: Specialista na Elektrické nářadí (aku vrtačky, šroubová
+• Ikona a Doména: 🎯 (generic)
+• Shoda s bází: 100%
+• Popis Agenta: Inteligentní nákupní rádce pro výběr ideálního modelu v kategorii "Elektrické nářadí (aku vrtačky, šroubová".
+• Vygenerované Klíčové Parametry (prvních 5 z 12):
+   - 🧭 Typ a hlavní určení (Kategorie & Typologie): Klíčové elementární zařazení na trhu, které určuje celý směr výběru. Než se začnou řešit d... -> [Možnosti: Univerzální standardní provedení, Vysoce výkonná / Profesionální varianta, Kompaktní / Odlehčené provedení pro mobilitu...]
+   - 🎯 Způsob využití (Způsob využití): Rozdíl mezi prémiovým a základním modelem spočívá v kvalitě zpracování a dimenzování pro p... -> [Možnosti: Každodenní intenzivní provoz s vysokou zátěží, Pravidelné rodinné / víkendové použití, Příležitostné / Hobby...]
+   - ⚡ Konstrukce & Zpracování (Výkon & Technologie): Kvalitnější provedení nabízí vyšší stálost, lepší odolnost a celkový uživatelský komfort. ... -> [Možnosti: Špičková profesionální třída s výkonovou rezervou, Zlatý střed (optimální poměr cena / výkon), Základní spolehlivá řada pro nenáročné nasazení...]
+   - ⚖️ Kapacita a dimenzování (Dimenzování): Poddimenzovaná kapacita vede k neustálému přetěžování stroje a frustraci uživatele. Otázka... -> [Možnosti: Velká kapacita pro rodinu či intenzivní zátěž (maximální prostorová i výkonová rezerva), Standardní střední velikost pro běžné každodenní použití, Kompaktní úsporné provedení do menších prostor či pro občasné použití...]
+   - 📐 Rozměry a montáž (Ergonomie & Umístění): Ověření rozměrů pro umístění v prostoru a manipulační prostor pro servis. Otázka pro vás: ... -> [Možnosti: Kompaktní rozměry pro snadné umístění bez nutnosti stavebních úprav, Standardní rozměry odpovídající běžným evropským normám, Velkorysé rozměry s důrazem na maximální vnitřní objem...]
+• Průvodce (První 2 Otázky):
+   - ❓ Jak budete "Elektrické nářadí (aku vrtačky, šroubová" nejčastěji používat? (Pomůže určit potřebnou odolnost, výbavu a dimenzování.)
+   - ❓ Jaké jsou vaše klíčové priority a technologické požadavky? (Vyberte vlastnosti, na kterých vám nejvíce záleží.)
+
+================================================================ (or 
+> orthostride-shopper@0.1.0 test
+> vitest run
+
+
+ RUN  v5.0.0 /Users/jan.mynar/Documents/GitHub/shoes
+
+ ✓ src/lib/agent/__tests__/chat-conversational.test.ts (4 tests) 340ms
+   ✓ Conversational Agent Chat & Parameter Responsiveness (4)
+     ✓ 4. Chat API strictly isolates RAG facts: footwear biomechanics (kopyto, 2E) never leak into coffee machine discussion 331ms
+ ✓ src/components/__tests__/Logo.test.tsx (3 tests) 278ms
+ ✓ src/components/__tests__/BilingualLocalization.test.tsx (3 tests) 465ms
+ ✓ src/components/__tests__/ParameterResearchWizardFlow.test.tsx (5 tests) 816ms
+   ✓ Parameter Research Agent & 3-Phase Wizard Flow (Updated PRD) (5)
+     ✓ 1. Parameter Research Agent nalezne klíčové parametry a zobrazí je s PRD titulkem 316ms
+ ✓ src/components/__tests__/AutoWizardFlow.test.tsx (1 test) 618ms
+   ✓ Auto Category Custom Wizard Flow (1)
+     ✓ 1. Entering a custom category launches wizard at Step 1 and does not skip to results 614ms
+ ✓ src/components/__tests__/AgentCategoryLauncher.test.tsx (12 tests) 1642ms
+   ✓ AgentCategoryLauncher Unit Test Suite (PRD v1) (12)
+     ✓ 3. Odeslání formuláře s vlastním záměrem zavolá generování a vytvoří agenta 488ms
+ ✓ src/components/__tests__/DynamicAgentWizard.test.tsx (8 tests) 1671ms
+   ✓ DynamicAgentWizard Unit Test Suite (PRD v1) (8)
+     ✓ 3. Po odeslání zobrazí textová doporučení dle PRD (Značka, model, reasoning, pros, cons) 322ms
+     ✓ 5. Vykreslí Agent Delivery Hub se stažením .agent.md souboru a přepínatelnými návody pro Gemini, ChatGPT a Claude 303ms
+ ✓ src/components/ui/__tests__/primitives.test.tsx (7 tests) 247ms
+stdout | src/lib/agent/__tests__/luke-stress-100.test.ts > Agent Luke 100 Categories Benchmark & Quality Suite > achieves at least 80% similarity threshold against golden baseline snapshot
+[Vitest Benchmark] Overall Similarity vs Baseline: 100% (Threshold: 80%)
+
+ ✓ src/lib/agent/__tests__/luke-stress-100.test.ts (22 tests) 62ms
+ ✓ src/lib/auth/__tests__/AuthContext.test.tsx (4 tests) 78ms
+ ✓ src/components/__tests__/AgentDiscussionGate.test.tsx (1 test) 226ms
+ ✓ src/components/__tests__/HeaderEngineSwitcher.test.tsx (2 tests) 159ms
+ ✓ src/components/__tests__/UserProfileCapsule.test.tsx (3 tests) 89ms
+ ✓ src/components/__tests__/IntakeWizard.test.tsx (25 tests) 4243ms
+   ✓ IntakeWizard Unit Test Suite (25)
+     ✓ Krok 5: Výrobci obuvi & rozpočet (7)
+       ✓ 5.1: Zobrazí všech 16 klíčových značek na trhu 584ms
+       ✓ 5.6: Kliknutí na "Zkontrolovat prompt pro AI" otevře inspekční modal s přesným zadáním 394ms
+ ✓ src/components/auth/__tests__/GoogleLoginModal.test.tsx (3 tests) 57ms
+ ✓ src/components/__tests__/directive-governance.test.ts (1 test) 51ms
+ ✓ src/lib/agent/__tests__/domain-parameter-discovery.test.ts (15 tests) 31ms
+ ✓ src/lib/agent/__tests__/prompt-storage-service.test.ts (5 tests) 49ms
+ ✓ src/lib/agent/__tests__/luke-prompt-governance.test.ts (23 tests) 28ms
+ ✓ src/lib/agent/__tests__/domain-learning-service.test.ts (5 tests) 6ms
+ ✓ src/lib/agent/__tests__/brand-isolation.test.ts (3 tests) 5ms
+ ✓ src/lib/auth/__tests__/VaultService.test.ts (5 tests) 3ms
+ ✓ src/lib/agent/__tests__/universal-agent.test.ts (5 tests) 4ms
+ ✓ src/lib/agent/__tests__/luke-agent-prompt.test.ts (2 tests) 2ms
+ ✓ src/lib/agent/__tests__/user-rag-history-service.test.ts (2 tests) 3ms
+
+ Test Files  25 passed (25)
+      Tests  169 passed (169)
+   Start at  07:50:43
+   Duration  9.94s (environment 39%, import 28%, tests 18%, setup 8%, transform 6%)
+
+Environment  jsdom was created 25 times · 24.52s total, 39% of tracked time
+             create it once per worker with pool: 'vmThreads' (keeps per-file isolation) or isolate: false (shares it across files)
+             learn more: https://vitest.dev/guide/improving-performance#test-environments via Vitest ).
+3. **80% Stability Threshold**:
+   - For every category, parameter IDs, categories, and suggested values are cross-referenced with the golden baseline.
+   - If the overall similarity score across all 100 categories is **≥ 80%**, the test passes ().
+   - If overall similarity drops below 80%, a **Regression Drift Failure** is flagged (), blocking deployment.
+
+## ⚡ Výhradní použití LLM Gemini (Zákaz offline generátoru)
+
+Agent Luke provádí výzkum parametrů pro uživatelské dotazy **VÝHRADNĚ živým dotazem přes Gemini Flash LLM**.
+- **Zákaz offline generátoru**: Systém nepoužívá žádný offline generátor parametrů ani statické šablony.
+- Každé vyhledávání (pokud již není uloženo v databázi webu `parameter_cache`) posílá dotaz přímo na Gemini Flash API.
+
+### 8. 🎯 Pravidlo přesné shody do písmene pro databázi (Letter-for-Letter Match Only)
+- Systém smí použít uložený záznam z databáze **POUZE POKUD zadaný vstup od uživatele sedí do písmene** s dotazem, který již dříve v repozitáři/databázi **prošel celým průvodcem a byl ověřen zákazníkem**.
+- Pokud dotaz nesedí do písmene s ověřeným záznamem: Systém jakoukoliv nápovědu či statický slovník ignoruje a **PROVOLÁ PROMPT PŘÍMO NA LLM GEMINI**.
+- Žádné vyhledávání podle podřetězců (jako slovo "kolo" v "tretry na kolo"), žádné odhadování kategorií z offline tabulek.

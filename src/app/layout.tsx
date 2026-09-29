@@ -3,6 +3,7 @@ import { Space_Grotesk, Inter_Tight } from "next/font/google";
 import "./globals.css";
 import { I18nProvider } from "@/lib/i18n/I18nContext";
 import { AuthProvider } from "@/lib/auth/AuthContext";
+import { ThemeProvider } from "@/lib/theme/ThemeContext";
 
 const spaceGrotesk = Space_Grotesk({
   subsets: ["latin", "latin-ext"],
@@ -21,6 +22,16 @@ const interTight = Inter_Tight({
 export const metadata: Metadata = {
   title: "bAIright | Univerzální AI nákupní poradce & prompt inženýr",
   description: "Nezávislý AI nákupní rádce, který vám pomůže vybrat ideální auto, boty, kávovar, kancelářskou židli nebo jakýkoliv produkt na míru vašim parametrům.",
+  icons: {
+    icon: [
+      { url: '/favicon.ico', sizes: '32x32' },
+      { url: '/icon.png', type: 'image/png', sizes: '32x32' },
+      { url: '/icon.svg', type: 'image/svg+xml' },
+    ],
+    apple: [
+      { url: '/apple-icon.png', sizes: '180x180', type: 'image/png' },
+    ],
+  },
 };
 
 export default function RootLayout({
@@ -29,11 +40,19 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="cs" data-theme="pixel-mint" data-design-system="executive-technical" data-font="space-grotesk" className={`dark ${spaceGrotesk.variable} ${interTight.variable}`}>
-      <body className={`min-h-screen bg-[var(--background)] text-[var(--foreground)] antialiased selection:bg-emerald-900 selection:text-white ${spaceGrotesk.className}`}>
+    <html lang="en" suppressHydrationWarning data-theme="pixel-mint" data-design-system="executive-technical" data-font="space-grotesk" className={`dark ${spaceGrotesk.variable} ${interTight.variable}`}>
+      <head>
+        <link rel="icon" href="/favicon.ico" sizes="any" />
+        <link rel="icon" href="/icon.svg" type="image/svg+xml" />
+        <link rel="icon" href="/icon.png" type="image/png" />
+        <link rel="apple-touch-icon" href="/apple-icon.png" />
+      </head>
+      <body suppressHydrationWarning className={`min-h-screen bg-[var(--background)] text-[var(--foreground)] antialiased selection:bg-emerald-900 selection:text-white ${spaceGrotesk.className}`}>
         <I18nProvider>
           <AuthProvider>
-            {children}
+            <ThemeProvider>
+              {children}
+            </ThemeProvider>
           </AuthProvider>
         </I18nProvider>
       </body>
