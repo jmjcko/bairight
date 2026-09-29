@@ -4343,6 +4343,8 @@ export function buildCustomAgentFromParameters(
       tunedQuestions.push({
         ...existing,
         step: stepIndex,
+        isMultiSelect: existing.component === 'chips' || existing.component === 'dropdown' ? true : existing.isMultiSelect,
+        component: existing.component === 'dropdown' ? 'chips' : existing.component,
       });
       stepIndex++;
       continue;
@@ -4356,6 +4358,8 @@ export function buildCustomAgentFromParameters(
       tunedQuestions.push({
         ...matchedByName,
         step: stepIndex,
+        isMultiSelect: matchedByName.component === 'chips' || matchedByName.component === 'dropdown' ? true : matchedByName.isMultiSelect,
+        component: matchedByName.component === 'dropdown' ? 'chips' : matchedByName.component,
       });
       stepIndex++;
       continue;
@@ -4424,11 +4428,9 @@ export function buildCustomAgentFromParameters(
         id: param.id,
         step: stepIndex,
         title: param.name,
-        subtitle: param.rationale || 'Vyberte variantu odpovídající vašim potřebám.',
-        component: (param.suggestedComponent === 'slider' || param.suggestedComponent === 'dropdown')
-          ? param.suggestedComponent
-          : 'chips',
-        isMultiSelect: param.suggestedComponent !== 'dropdown',
+        subtitle: param.rationale || (isEn ? 'Select options matching your criteria.' : 'Vyberte varianty odpovídající vašim potřebám.'),
+        component: param.suggestedComponent === 'slider' ? 'slider' : 'chips',
+        isMultiSelect: param.suggestedComponent !== 'slider',
         options,
         defaultValue: undefined,
         promptForgeTemplate: `- **${param.name}:** {value}`,

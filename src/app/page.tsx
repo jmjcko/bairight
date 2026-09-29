@@ -1,5 +1,6 @@
 'use client';
 import { AgentMessageRenderer } from '@/components/AgentMessageRenderer';
+import { APP_VERSION } from '@/lib/version';
 
 
 import React, { useState, useEffect, useRef, useMemo } from 'react';
@@ -15,9 +16,11 @@ import { DynamicAgentWizard } from '@/components/DynamicAgentWizard';
 import { TypographySwitcherModal as ColorPaletteModal } from '@/components/TypographySwitcherModal';
 import { UniversalAgentPromptModal } from '@/components/UniversalAgentPromptModal';
 import { 
-  UniversalAgentDefinition 
+  UniversalAgentDefinition,
+  forgeAgentPrompt
 } from '@/lib/agent/universal-agent-schema';
 import { AgentStorageService } from '@/lib/agent/agent-storage-service';
+import { PromptStorageService } from '@/lib/agent/prompt-storage-service';
 import { 
   AIProviderId, 
   SUPPORTED_AI_PROVIDERS, 
@@ -85,43 +88,84 @@ Zadejte své požadavky nebo vyberte agenta výše pro spuštění interaktivní
   timestamp: new Date().toISOString(),
 };
 
-const SUGGESTED_PROMPTS_EN = [
-  {
-    label: 'Family SUV / wagon under $30k',
-    text: 'I am looking for a reliable family car under $30,000 with a large trunk, AWD, and great fuel economy.',
-  },
-  {
-    label: 'Road running shoes for wide feet',
-    text: 'I need road running shoes with plush midsole cushioning and a wide 2E toe box.',
-  },
-  {
-    label: 'Automatic espresso & cappuccino maker',
-    text: 'Recommend a quiet espresso machine with easy maintenance and a quality milk system under $800.',
-  },
-  {
-    label: 'Ergonomic chair for full-day home office',
-    text: 'Which office chair should I choose for 8+ hours of daily sitting to prevent lower back pain?',
-  },
-];
+const isPromptDump = (content: string) => {
+  return (
+    content.includes('MANDATORY & BINDING USER REQUIREMENTS') ||
+    content.includes('STRIKTNÍ A ZÁVAZNÉ POŽADAVKY UŽIVATELE') ||
+    content.includes('You are an elite AI Product Strategist') ||
+    content.includes('Jsi expertní nákupní poradce') ||
+    content.includes('CRITICAL LANGUAGE DIRECTIVE') ||
+    content.includes('REQUIRED RESPONSE FORMAT') ||
+    content.includes('POŽADOVANÝ FORMÁT ODPOVĚDI')
+  );
+};
 
-const SUGGESTED_PROMPTS_CS = [
-  {
-    label: 'Rodinné SUV / kombi do 650 tis. Kč',
-    text: 'Hledám spolehlivé rodinné auto do 650 000 Kč s velkým kufrem, pohonem 4x4 a nízkou spotřebou.',
-  },
-  {
-    label: 'Běžecké boty na asfalt pro širší chodidlo',
-    text: 'Potřebuji běžecké boty na silnici s dobrým tlumením mezipodešve a širším kopytem.',
-  },
-  {
-    label: 'Automatický kávovar na espresso a cappuccino',
-    text: 'Doporuč tichý kávovar s jednoduchou údržbou a kvalitním mléčným systémem do 18 000 Kč.',
-  },
-  {
-    label: 'Ergonomická židle pro celodenní home office',
-    text: 'Jakou kancelářskou židli zvolit při 8+ hodinách sezení denně pro prevenci bolestí beder?',
-  },
-];
+const getAgentQuickPrompts = (agent: UniversalAgentDefinition | null, isEn: boolean) => {
+  if (!agent) {
+    return [];
+  }
+  const name = (agent.name || '').toLowerCase();
+  const cat = (agent.category || '').toLowerCase();
+  const id = (agent.id || '').toLowerCase();
+
+  // Cycling shoes
+  if (name.includes('cycling') || cat.includes('cycling') || id.includes('cycling') || name.includes('tret') || cat.includes('tret')) {
+    return isEn ? [
+      { label: 'Compare top 2 models in detail', text: 'Please provide a head-to-head comparison of the top 2 recommended cycling shoes: stiffness, fit volume, closure security, and walking stability.' },
+      { label: 'Cleat & pedal compatibility', text: 'Which pedal systems and cleat standards (Look Keo, Shimano SPD-SL, Speedplay) are directly compatible with these shoes?' },
+      { label: 'Sizing & wide fit advice', text: 'How do these brands (Specialized, Shimano, Lake, Sidi) run in terms of width and EU sizing? Should I size up?' },
+      { label: 'Alternative models under budget', text: 'Are there any great value alternatives that retain high stiffness and BOA dials at a lower price point?' },
+    ] : [
+      { label: 'Detailní porovnání 2 nejlepších modelů', text: 'Proveď přímé porovnání 2 nejlepších doporučených treter: tuhost podešve, objem v prstech, zapínání a stabilita při chůzi.' },
+      { label: 'Kompatibilita kufrů a pedálů', text: 'Které pedálové systémy a kufry (Look Keo, Shimano SPD-SL, Speedplay) jsou s těmito tretrami přímo kompatibilní?' },
+      { label: 'Doporučení k volbě velikosti a šířky', text: 'Jak sedí tyto značky z hlediska šířky kopyta a číslování? Mám brát o půl čísla větší velikost?' },
+      { label: 'Cenově dostupnější alternativy', text: 'Existují alternativy s výborným poměrem cena/výkon, které si zachovávají karbonovou podrážku a BOA zapínání?' },
+    ];
+  }
+
+  // Coffee machines
+  if (name.includes('coffee') || cat.includes('coffee') || id.includes('coffee') || name.includes('káv') || cat.includes('káv')) {
+    return isEn ? [
+      { label: 'Compare top 2 machines in detail', text: 'Compare the top 2 recommended coffee machines in detail: grinder quality, milk texture, and daily cleaning effort.' },
+      { label: 'Maintenance & descaling', text: 'What is the required maintenance and how easy is the milk system to clean on these models?' },
+      { label: 'Espresso quality vs ease of use', text: 'Which machine produces the richest crema and espresso while being simple for everyday use?' },
+      { label: 'Best value alternative', text: 'Is there a slightly cheaper model that still offers great espresso and automatic milk frothing?' },
+    ] : [
+      { label: 'Porovnání 2 nejlepších kávovarů', text: 'Porovnej 2 nejlepší doporučené kávovary v detailu: kvalita mlýnku, pěnění mléka a náročnost čištění.' },
+      { label: 'Údržba a čištění mléčných cest', text: 'Jak složitá je každodenní údržba mléčného systému a odvápňování u těchto modelů?' },
+      { label: 'Kvalita espressa vs jednoduchost', text: 'Který kávovar udělá nejhustší cremu a plnou chuť při maximální jednoduchosti obsluhy?' },
+      { label: 'Dostupnější alternativa', text: 'Doporuč alternativní model s nižší cenou, který stále splňuje mé hlavní požadavky.' },
+    ];
+  }
+
+  // Running shoes
+  if (name.includes('run') || cat.includes('run') || id.includes('run') || name.includes('běh') || cat.includes('běh')) {
+    return isEn ? [
+      { label: 'Compare top 2 shoes in detail', text: 'Compare the top 2 shoes in detail: cushioning softness, drop, stability, and lifespan.' },
+      { label: 'Knee & joint impact', text: 'How do these models help protect knees and joints during road running?' },
+      { label: 'Expected mileage lifespan', text: 'What is the expected mileage before midsole degradation on each model?' },
+      { label: 'Wide fit & sizing advice', text: 'Do these models offer a roomy toebox and how true to size are they?' },
+    ] : [
+      { label: 'Detailní porovnání 2 nejlepších bot', text: 'Porovnej 2 nejlepší boty v detailu: tlumení, drop, stabilita a celková životnost.' },
+      { label: 'Ochrana kolen a kloubů', text: 'Jak tyto modely pomáhají redukovat nárazy na kolena a šlachy při běhu po asfaltu?' },
+      { label: 'Očekávaná životnost (kilometry)', text: 'Kolik kilometrů vydrží mezipodešev a vzorek těchto bot před ztrátou tlumení?' },
+      { label: 'Šířka kopyta a velikost', text: 'Mají tyto modely dostatek prostoru pro prsty a jak sedí velikostně?' },
+    ];
+  }
+
+  // Generic for any custom agent
+  return isEn ? [
+    { label: 'Compare top 2 choices in detail', text: 'Please give me a side-by-side comparison of the top 2 recommendations: key differences, pros, and trade-offs.' },
+    { label: 'Best durability & longevity', text: 'Which of the recommended options has the highest build quality and expected lifespan?' },
+    { label: 'Value for money verdict', text: 'Considering price and features, which option delivers the absolute best value for money?' },
+    { label: 'Lower budget alternatives', text: 'Are there any alternative models at a lower price point that still meet my mandatory criteria?' },
+  ] : [
+    { label: 'Porovnej 2 nejlepší v detailu', text: 'Proveď přímé srovnání 2 nejlepších doporučení: hlavní rozdíly, klíčové výhody a kompromisy.' },
+    { label: 'Který model má nejdelší životnost?', text: 'Která z doporučených možností vyniká nejlepší kvalitou zpracování a spolehlivostí?' },
+    { label: 'Nejlepší poměr cena / výkon', text: 'Když zvážíme cenu a nabízené vlastnosti, která volba představuje nejvýhodnější investici?' },
+    { label: 'Levnější alternativy', text: 'Existují alternativní modely s nižší cenovkou, které stále splňují má nejdůležitější kritéria?' },
+  ];
+};
 
 export default function Home() {
   const { t, locale } = useI18n();
@@ -158,6 +202,10 @@ export default function Home() {
   const [assessments, setAssessments] = useState<CompletedAssessmentRecord[]>([]);
   const [demoRunsRemaining, setDemoRunsRemaining] = useState<number>(3);
   const [wizardInitialShowResult, setWizardInitialShowResult] = useState<boolean>(false);
+  const [sidebarAnswers, setSidebarAnswers] = useState<Record<string, any>>({});
+  const [isSidebarAddingParam, setIsSidebarAddingParam] = useState<boolean>(false);
+  const [sidebarParamName, setSidebarParamName] = useState<string>('');
+  const [sidebarParamValue, setSidebarParamValue] = useState<string>('');
 
   const initialWizardStepIndex = useMemo(() => {
     if (!selectedAgent || typeof window === 'undefined') return 0;
@@ -182,21 +230,47 @@ export default function Home() {
     if (agent) {
       let isCompleted = forceShowResult ?? false;
       if (forceShowResult === undefined && typeof window !== 'undefined') {
-        const storedStates = localStorage.getItem('bairight_agent_wizard_states');
-        if (storedStates) {
-          try {
+        try {
+          const storedStates = localStorage.getItem('bairight_agent_wizard_states');
+          if (storedStates) {
             const parsed = JSON.parse(storedStates);
-            if (parsed[agent.id]?.isCompleted) {
+            if (parsed[agent.id]?.isCompleted || parsed[agent.id]?.result) {
               isCompleted = true;
             }
-          } catch {}
-        }
+          }
+          if (!isCompleted) {
+            const completedPrompt = PromptStorageService.getCompletedPromptByAgentId(agent.id);
+            const chatInitialized = localStorage.getItem(`bairight_chat_initialized_${agent.id}`) === 'true';
+            if (completedPrompt || chatInitialized) {
+              isCompleted = true;
+            }
+          }
+        } catch {}
       }
       setWizardInitialShowResult(isCompleted);
     } else {
       setWizardInitialShowResult(false);
     }
   };
+
+  // Sync sidebar answers with stored wizard state when selectedAgent changes
+  useEffect(() => {
+    if (!selectedAgent || typeof window === 'undefined') {
+      setSidebarAnswers({});
+      return;
+    }
+    try {
+      const stored = localStorage.getItem('bairight_agent_wizard_states');
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        if (parsed[selectedAgent.id]?.answers) {
+          setSidebarAnswers(parsed[selectedAgent.id].answers);
+          return;
+        }
+      }
+    } catch {}
+    setSidebarAnswers({});
+  }, [selectedAgent]);
 
   // Load per-agent chat messages from localStorage when selectedAgent changes
   useEffect(() => {
@@ -367,6 +441,88 @@ export default function Home() {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, isLoading]);
 
+  const handleAddSidebarParam = () => {
+    if (!sidebarParamName.trim() || !sidebarParamValue.trim() || !selectedAgent) return;
+    const name = sidebarParamName.trim();
+    const value = sidebarParamValue.trim();
+    const existingCustom = Array.isArray(sidebarAnswers.customParameters)
+      ? sidebarAnswers.customParameters
+      : [];
+    const newCustom = [...existingCustom, { id: `param-${Date.now()}`, name, value }];
+    const updatedAnswers = { ...sidebarAnswers, customParameters: newCustom };
+    setSidebarAnswers(updatedAnswers);
+    setIsSidebarAddingParam(false);
+    setSidebarParamName('');
+    setSidebarParamValue('');
+
+    // Persist to localStorage
+    if (typeof window !== 'undefined') {
+      try {
+        const stored = localStorage.getItem('bairight_agent_wizard_states');
+        const parsed = stored ? JSON.parse(stored) : {};
+        parsed[selectedAgent.id] = {
+          ...(parsed[selectedAgent.id] || {}),
+          answers: updatedAnswers,
+        };
+        localStorage.setItem('bairight_agent_wizard_states', JSON.stringify(parsed));
+      } catch {}
+    }
+
+    // Re-forge prompt and update selectedAgent
+    const enrichedFacts = Array.isArray(userFacts)
+      ? userFacts.map((f: any) => ({ fact: f.fact || `${f.label || 'Poznámka'}: ${f.value || ''}`, category: f.category || 'preference' }))
+      : [];
+    const updatedPrompt = forgeAgentPrompt(selectedAgent, updatedAnswers, enrichedFacts, locale);
+    const updatedAgent = { ...selectedAgent, systemPrompt: updatedPrompt };
+    setSelectedAgent(updatedAgent);
+    AgentStorageService.saveAgent(updatedAgent);
+    PromptStorageService.saveCompletedPrompt({
+      agentId: selectedAgent.id,
+      agentName: selectedAgent.name,
+      category: selectedAgent.category,
+      prompt: updatedPrompt,
+      answersSummary: Object.entries(updatedAnswers)
+        .map(([k, v]) => `${k}: ${Array.isArray(v) ? v.join(', ') : v}`)
+        .join(' • '),
+    });
+
+    // Send direct instruction to chat
+    const chatMsg = isEn
+      ? `I updated my parameters with constraint: "${name}: ${value}". Please recalibrate and suggest 3 models adhering strictly to this requirement.`
+      : `Aktualizoval jsem své zadání o parametr: "${name}: ${value}". Prosím přehodnoť svá doporučení a nabídni 3 modely, které tento požadavek striktně splňují.`;
+    handleSendMessage(chatMsg);
+  };
+
+  const handleRemoveSidebarParam = (paramId: string) => {
+    if (!selectedAgent) return;
+    const existingCustom = Array.isArray(sidebarAnswers.customParameters)
+      ? sidebarAnswers.customParameters
+      : [];
+    const updatedCustom = existingCustom.filter((p: any) => p.id !== paramId);
+    const updatedAnswers = { ...sidebarAnswers, customParameters: updatedCustom };
+    setSidebarAnswers(updatedAnswers);
+
+    if (typeof window !== 'undefined') {
+      try {
+        const stored = localStorage.getItem('bairight_agent_wizard_states');
+        const parsed = stored ? JSON.parse(stored) : {};
+        parsed[selectedAgent.id] = {
+          ...(parsed[selectedAgent.id] || {}),
+          answers: updatedAnswers,
+        };
+        localStorage.setItem('bairight_agent_wizard_states', JSON.stringify(parsed));
+      } catch {}
+    }
+
+    const enrichedFacts = Array.isArray(userFacts)
+      ? userFacts.map((f: any) => ({ fact: f.fact || `${f.label || 'Poznámka'}: ${f.value || ''}`, category: f.category || 'preference' }))
+      : [];
+    const updatedPrompt = forgeAgentPrompt(selectedAgent, updatedAnswers, enrichedFacts, locale);
+    const updatedAgent = { ...selectedAgent, systemPrompt: updatedPrompt };
+    setSelectedAgent(updatedAgent);
+    AgentStorageService.saveAgent(updatedAgent);
+  };
+
   const handleSendMessage = async (textToSend?: string) => {
     const message = textToSend || inputValue.trim();
     if (!message || isLoading) return;
@@ -438,7 +594,12 @@ export default function Home() {
       <header className="h-16 border-b border-cyan-500/20 bg-[#0B121E]/95 backdrop-blur-xl px-4 sm:px-8 flex items-center justify-between shrink-0 z-20 shadow-[0_4px_30px_rgba(0,0,0,0.5)]">
         {/* Left: Brand Logo & Navigation */}
         <div className="flex items-center gap-6 shrink-0">
-          <Logo size="md" onClick={handleGoHome} />
+          <div className="flex items-center gap-2.5">
+            <Logo size="md" onClick={handleGoHome} />
+            <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded-md bg-cyan-950/80 border border-cyan-500/40 text-cyan-300 shadow-[0_0_10px_rgba(6,182,212,0.2)]">
+              {APP_VERSION}
+            </span>
+          </div>
 
           {/* Clean Top Navigation Tabs */}
           <div className="hidden sm:flex items-center gap-1.5 p-1 rounded-xl bg-slate-950/80 border border-slate-800 text-xs font-mono">
@@ -446,7 +607,27 @@ export default function Home() {
               onClick={() => {
                 const activeOrStored = selectedAgent || (typeof window !== 'undefined' ? AgentStorageService.getAllAgents()[0] : null);
                 if (activeOrStored) {
-                  handleSelectAgent(activeOrStored);
+                  let isCompleted = false;
+                  if (typeof window !== 'undefined') {
+                    try {
+                      const storedStates = localStorage.getItem('bairight_agent_wizard_states');
+                      if (storedStates) {
+                        const parsed = JSON.parse(storedStates);
+                        if (parsed[activeOrStored.id]?.isCompleted || parsed[activeOrStored.id]?.result) {
+                          isCompleted = true;
+                        }
+                      }
+                      if (!isCompleted) {
+                        const completedPrompt = PromptStorageService.getCompletedPromptByAgentId(activeOrStored.id);
+                        const chatInitialized = localStorage.getItem(`bairight_chat_initialized_${activeOrStored.id}`) === 'true';
+                        if (completedPrompt || chatInitialized) {
+                          isCompleted = true;
+                        }
+                      }
+                    } catch {}
+                  }
+                  handleSelectAgent(activeOrStored, isCompleted);
+                  setWizardInitialShowResult(isCompleted);
                   setWizardMode('active_agent');
                 }
                 setActiveTab('wizard');
@@ -528,6 +709,10 @@ export default function Home() {
               onOpenChat={(customPrompt) => {
                 setActiveTab('chat');
                 if (selectedAgent) {
+                  // Ingest live compiled prompt into agent system instructions
+                  if (customPrompt) {
+                    selectedAgent.systemPrompt = customPrompt;
+                  }
                   // Only send the initial recommendation prompt ONCE — the first time
                   // the chat is opened after wizard completion. A dedicated per-agent flag
                   // in localStorage prevents re-triggering on every subsequent visit.
@@ -539,10 +724,10 @@ export default function Home() {
                     if (typeof window !== 'undefined') {
                       localStorage.setItem(chatInitKey, 'true');
                     }
-                    const initialPrompt = customPrompt || (locale === 'en'
-                      ? 'Based on all parameters and rules in your instructions, please give me your top 3 specific product recommendations.'
-                      : 'Na základě všech zadaných parametrů a pravidel v instrukcích mi prosím sděl své 3 konkrétní doporučené produkty.');
-                    handleSendMessage(initialPrompt);
+                    const userFacingPrompt = locale === 'en'
+                      ? 'Please recommend your top 3 specific product choices based on my parameters from the wizard.'
+                      : 'Doporuč mi prosím své 3 konkrétní doporučené produkty na základě zadaných parametrů z průvodce.';
+                    handleSendMessage(userFacingPrompt);
                   }
                 }
               }}
@@ -554,9 +739,20 @@ export default function Home() {
               initialStepIndex={initialWizardStepIndex}
               locale={locale}
               onAssessmentCompleted={(answers, evalRes, completedPrompt) => {
-                // Reset the chat-initialized flag so fresh recommendations are sent
-                // when the user opens the chat after re-completing the wizard
+                // Mark wizard as completed and show results view
+                setWizardInitialShowResult(true);
                 if (typeof window !== 'undefined' && selectedAgent) {
+                  try {
+                    const storedStates = localStorage.getItem('bairight_agent_wizard_states');
+                    const parsed = storedStates ? JSON.parse(storedStates) : {};
+                    parsed[selectedAgent.id] = {
+                      ...(parsed[selectedAgent.id] || {}),
+                      answers,
+                      result: evalRes,
+                      isCompleted: true,
+                    };
+                    localStorage.setItem('bairight_agent_wizard_states', JSON.stringify(parsed));
+                  } catch (e) {}
                   localStorage.removeItem(`bairight_chat_initialized_${selectedAgent.id}`);
                 }
                 if (selectedAgent && completedPrompt) {
@@ -619,19 +815,136 @@ export default function Home() {
               </span>
 
               {selectedAgent ? (
-                <div className="p-3 rounded-2xl bg-slate-950/80 border border-cyan-500/30 space-y-1.5">
-                  <div className="flex items-center gap-2">
-                    <span className="text-xl p-1.5 rounded-lg bg-slate-900 border border-slate-800">
-                      
-                    </span>
-                    <div className="min-w-0">
-                      <h3 className="text-sm font-bold text-white truncate">{selectedAgent.name}</h3>
-                      <span className="text-[10px] font-mono text-cyan-400">{selectedAgent.category}</span>
+                <div className="space-y-2.5">
+                  <div className="p-3 rounded-2xl bg-slate-950/80 border border-cyan-500/30 space-y-1.5">
+                    <div className="flex items-center gap-2">
+                      <span className="text-xl p-1.5 rounded-lg bg-slate-900 border border-slate-800">
+                        
+                      </span>
+                      <div className="min-w-0">
+                        <h3 className="text-sm font-bold text-white truncate">{selectedAgent.name}</h3>
+                        <span className="text-[10px] font-mono text-cyan-400">{selectedAgent.category}</span>
+                      </div>
+                    </div>
+                    <p className="text-xs text-slate-400 line-clamp-2 leading-relaxed">
+                      {selectedAgent.description}
+                    </p>
+                  </div>
+
+                  {/* Agent Parameters & Active Criteria Widget */}
+                  <div className="p-3 rounded-2xl bg-slate-950/80 border border-slate-800 space-y-2.5">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[10px] font-mono uppercase tracking-wider text-slate-400 font-bold">
+                        {isEn ? 'Agent Parameters' : 'Parametry agenta'}
+                      </span>
+                      {!isSidebarAddingParam && (
+                        <button
+                          type="button"
+                          onClick={() => setIsSidebarAddingParam(true)}
+                          className="text-[10px] font-mono text-cyan-400 hover:text-cyan-300 font-semibold cursor-pointer"
+                        >
+                          + {isEn ? 'Add' : 'Přidat'}
+                        </button>
+                      )}
+                    </div>
+
+                    {/* Inline Add Parameter Input */}
+                    {isSidebarAddingParam && (
+                      <div className="p-2.5 rounded-xl bg-cyan-950/30 border border-cyan-500/40 space-y-2">
+                        <div className="flex items-center justify-between">
+                          <span className="text-[10px] font-mono text-cyan-300 font-bold">
+                            {isEn ? 'New Criterion (e.g. Budget)' : 'Nové kritérium (např. cena)'}
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setIsSidebarAddingParam(false);
+                              setSidebarParamName('');
+                              setSidebarParamValue('');
+                            }}
+                            className="text-[10px] text-slate-400 hover:text-white cursor-pointer"
+                          >
+                            {isEn ? 'Cancel' : 'Zrušit'}
+                          </button>
+                        </div>
+
+                        <div className="space-y-1.5">
+                          <input
+                            type="text"
+                            value={sidebarParamName}
+                            onChange={(e) => setSidebarParamName(e.target.value)}
+                            placeholder={isEn ? 'Criterion (e.g. Budget)' : 'Kritérium (např. Cena)'}
+                            className="w-full px-2.5 py-1.5 rounded-lg bg-slate-950 border border-slate-700 text-xs text-white placeholder-slate-500 outline-none"
+                          />
+                          <input
+                            type="text"
+                            value={sidebarParamValue}
+                            onChange={(e) => setSidebarParamValue(e.target.value)}
+                            placeholder={isEn ? 'Value (e.g. max $250)' : 'Hodnota (např. max 5 000 Kč)'}
+                            className="w-full px-2.5 py-1.5 rounded-lg bg-slate-950 border border-slate-700 text-xs text-white placeholder-slate-500 outline-none"
+                          />
+                        </div>
+
+                        <button
+                          type="button"
+                          disabled={!sidebarParamName.trim() || !sidebarParamValue.trim()}
+                          onClick={handleAddSidebarParam}
+                          className="w-full py-1.5 rounded-lg bg-gradient-to-r from-cyan-600 to-teal-600 hover:from-cyan-500 hover:to-teal-500 text-white text-xs font-bold transition-all disabled:opacity-50 cursor-pointer shadow-sm"
+                        >
+                          {isEn ? 'Save & Send to Chat' : 'Uložit a odeslat do chatu'}
+                        </button>
+                      </div>
+                    )}
+
+                    {/* List of Custom & Active Parameters */}
+                    <div className="space-y-1.5 max-h-48 overflow-y-auto pr-1">
+                      {/* Custom Parameters */}
+                      {Array.isArray(sidebarAnswers.customParameters) && sidebarAnswers.customParameters.map((cp: any) => (
+                        <div
+                          key={cp.id}
+                          className="px-2.5 py-1.5 rounded-xl bg-cyan-950/40 border border-cyan-500/40 flex items-center justify-between text-xs gap-1.5"
+                        >
+                          <div className="min-w-0">
+                            <span className="text-[10px] font-mono text-cyan-300 block truncate">{cp.name}</span>
+                            <span className="text-white font-medium block truncate">{cp.value}</span>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => handleRemoveSidebarParam(cp.id)}
+                            className="text-slate-400 hover:text-red-400 text-xs font-mono p-1 cursor-pointer shrink-0"
+                            title={isEn ? 'Remove' : 'Odebrat'}
+                          >
+                            ×
+                          </button>
+                        </div>
+                      ))}
+
+                      {/* Standard Questions Answers Summary */}
+                      {selectedAgent.questions.map((q) => {
+                        const val = sidebarAnswers[q.id];
+                        if (val === undefined || val === null || val === '' || val === '__SKIP__') return null;
+                        let displayVal = String(val);
+                        if (Array.isArray(val)) {
+                          if (val.length === 0 || (val.length === 1 && val[0] === '__SKIP__')) return null;
+                          displayVal = val.map((v) => q.options?.find((o) => o.value === v)?.label || String(v)).join(', ');
+                        } else if (typeof val === 'object') {
+                          displayVal = Object.entries(val).map(([k, v]) => `${k}: ${v}`).join('; ');
+                        } else if (q.options) {
+                          const opt = q.options.find((o) => o.value === val);
+                          if (opt?.label) displayVal = opt.label;
+                        }
+                        return (
+                          <div
+                            key={q.id}
+                            className="px-2.5 py-1.5 rounded-xl bg-slate-900 border border-slate-800 text-xs"
+                          >
+                            <span className="text-[10px] font-mono text-slate-400 block truncate">{q.title}</span>
+                            <span className="text-slate-200 block truncate">{displayVal}</span>
+                          </div>
+                        );
+                      })}
                     </div>
                   </div>
-                  <p className="text-xs text-slate-400 line-clamp-2 leading-relaxed">
-                    {selectedAgent.description}
-                  </p>
                 </div>
               ) : (
                 <div className="p-3 rounded-2xl bg-slate-950/80 border border-slate-800 space-y-2">
@@ -735,16 +1048,24 @@ export default function Home() {
                     if (selectedAgent) {
                       let isCompleted = false;
                       if (typeof window !== 'undefined') {
-                        const storedStates = localStorage.getItem('bairight_agent_wizard_states');
-                        if (storedStates) {
-                          try {
+                        try {
+                          const storedStates = localStorage.getItem('bairight_agent_wizard_states');
+                          if (storedStates) {
                             const parsed = JSON.parse(storedStates);
-                            if (parsed[selectedAgent.id]?.isCompleted) {
+                            if (parsed[selectedAgent.id]?.isCompleted || parsed[selectedAgent.id]?.result) {
                               isCompleted = true;
                             }
-                          } catch {}
-                        }
+                          }
+                          if (!isCompleted) {
+                            const completedPrompt = PromptStorageService.getCompletedPromptByAgentId(selectedAgent.id);
+                            const chatInitialized = localStorage.getItem(`bairight_chat_initialized_${selectedAgent.id}`) === 'true';
+                            if (completedPrompt || chatInitialized) {
+                              isCompleted = true;
+                            }
+                          }
+                        } catch {}
                       }
+                      handleSelectAgent(selectedAgent, isCompleted);
                       setWizardInitialShowResult(isCompleted);
                       setWizardMode('active_agent');
                     } else {
@@ -887,6 +1208,17 @@ export default function Home() {
 
                           {!isUser ? (
                             <AgentMessageRenderer content={msg.content} isEn={isEn} />
+                          ) : isPromptDump(msg.content) ? (
+                            <div className="flex flex-col gap-1 text-slate-100">
+                              <span className="font-semibold text-sm">
+                                {isEn 
+                                  ? 'Please recommend your top 3 specific product choices based on my parameters from the wizard.' 
+                                  : 'Doporuč mi prosím 3 nejlepší produkty na základě mých parametrů z průvodce.'}
+                              </span>
+                              <span className="text-[11px] font-mono text-cyan-200/80">
+                                {isEn ? 'All parameters and criteria have been loaded into agent context' : 'Všechny parametry a kritéria byla úspěšně načtena do kontextu agenta'}
+                              </span>
+                            </div>
                           ) : (
                             <div className="prose prose-invert prose-sm max-w-none space-y-3">
                               {msg.content.split('\\n\\n').map((paragraph, idx) => (
@@ -954,21 +1286,27 @@ export default function Home() {
               </div>
             ) : (
               <div className="p-4 sm:p-5 border-t border-slate-800 bg-slate-950/90 backdrop-blur-md">
-                <div className="flex items-center gap-2 overflow-x-auto pb-3 mb-2 no-scrollbar">
-                  <span className="text-[11px] font-medium text-slate-400 shrink-0 flex items-center gap-1">
-                    <span>{isEn ? 'Quick prompts:' : 'Rychlé dotazy:'}</span>
-                  </span>
-                  {(isEn ? SUGGESTED_PROMPTS_EN : SUGGESTED_PROMPTS_CS).map((prompt, idx) => (
-                    <button
-                      key={idx}
-                      onClick={() => handleSendMessage(prompt.text)}
-                      disabled={isLoading}
-                      className="px-3 py-1.5 rounded-full text-xs font-medium bg-slate-900 hover:bg-slate-800 border border-slate-800 hover:border-slate-700 text-slate-300 hover:text-white transition-all shrink-0 disabled:opacity-50 cursor-pointer"
-                    >
-                      {prompt.label}
-                    </button>
-                  ))}
-                </div>
+                {(() => {
+                  const quickPrompts = getAgentQuickPrompts(selectedAgent, isEn);
+                  if (quickPrompts.length === 0) return null;
+                  return (
+                    <div className="flex items-center gap-2 overflow-x-auto pb-3 mb-2 no-scrollbar">
+                      <span className="text-[11px] font-medium text-slate-400 shrink-0 flex items-center gap-1">
+                        <span>{isEn ? 'Suggested questions:' : 'Doporučené dotazy:'}</span>
+                      </span>
+                      {quickPrompts.map((prompt, idx) => (
+                        <button
+                          key={idx}
+                          onClick={() => handleSendMessage(prompt.text)}
+                          disabled={isLoading}
+                          className="px-3 py-1.5 rounded-full text-xs font-medium bg-slate-900 hover:bg-slate-800 border border-slate-800 hover:border-slate-700 text-slate-300 hover:text-white transition-all shrink-0 disabled:opacity-50 cursor-pointer"
+                        >
+                          {prompt.label}
+                        </button>
+                      ))}
+                    </div>
+                  );
+                })()}
 
                 <form
                   onSubmit={(e) => {

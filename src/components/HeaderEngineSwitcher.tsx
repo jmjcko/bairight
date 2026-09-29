@@ -64,9 +64,7 @@ export const HeaderEngineSwitcher: React.FC<HeaderEngineSwitcherProps> = ({
   const activeProvider = SUPPORTED_AI_PROVIDERS.find((p) => p.id === activeProviderId) || SUPPORTED_AI_PROVIDERS[0];
   const hasKeyForActive = Boolean(keysState[activeProvider.id]?.trim());
 
-  const getProviderIcon = (_id: AIProviderId) => {
-    return <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 shrink-0" />;
-  };
+
 
   return (
     <div className="relative inline-block text-left" ref={dropdownRef}>
@@ -96,9 +94,8 @@ export const HeaderEngineSwitcher: React.FC<HeaderEngineSwitcherProps> = ({
           )}
         </span>
 
-        {/* Provider Icon & Short Title */}
+        {/* Provider Short Title & BYOK Badge */}
         <div className="flex items-center gap-1.5 font-mono">
-          {getProviderIcon(activeProvider.id)}
           <span className="truncate max-w-[130px] font-semibold">
             {activeProvider.provider}
           </span>
@@ -139,9 +136,6 @@ export const HeaderEngineSwitcher: React.FC<HeaderEngineSwitcherProps> = ({
                   }`}
                 >
                   <div className="flex items-center gap-2.5 min-w-0">
-                    <div className="p-1.5 rounded-lg bg-slate-900 border border-slate-800 shrink-0">
-                      {getProviderIcon(provider.id)}
-                    </div>
                     <div className="min-w-0">
                       <div className="font-semibold truncate text-slate-200">
                         {provider.name}

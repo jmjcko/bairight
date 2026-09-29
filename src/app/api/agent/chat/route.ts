@@ -501,6 +501,7 @@ ${formattedFacts || 'Žádná předchozí data zatím nejsou evidována.'}
         model: 'gpt-4o',
         messages: formattedMessages,
         temperature: 0.7,
+        max_tokens: 4096,
       }),
     });
 
@@ -527,7 +528,7 @@ ${formattedFacts || 'Žádná předchozí data zatím nejsou evidována.'}
       },
       body: JSON.stringify({
         model: 'claude-3-5-sonnet-20241022',
-        max_tokens: 2000,
+        max_tokens: 4096,
         system: systemPrompt,
         messages: formattedMessages,
       }),
@@ -586,7 +587,7 @@ ${formattedFacts || 'Žádná předchozí data zatím nejsou evidována.'}
             contents: payloadContents,
             generationConfig: {
               temperature: 0.7,
-              maxOutputTokens: 2048,
+              maxOutputTokens: 8192,
             },
           }),
         });

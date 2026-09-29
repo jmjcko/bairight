@@ -49,14 +49,18 @@ describe('DynamicAgentWizard Unit Test Suite (PRD v1)', () => {
 
     // Header title matches agent name
     expect(screen.getByText('Ergonomické sezení & kancelář')).toBeInTheDocument();
-    expect(screen.getByText(/Denní doba strávená sezením/i)).toBeInTheDocument();
+    expect(screen.getByText(/Dosavadní zkušenosti & Stávající produkt/i)).toBeInTheDocument();
 
     // Reset button is available
     expect(screen.getByRole('button', { name: /Reset/i })).toBeInTheDocument();
 
     // Step 1 navigation button
-    const nextButton = screen.getByRole('button', { name: /Pokračovat/i });
+    const nextButton = screen.getByRole('button', { name: /^Pokračovat$/i });
     expect(nextButton).toBeInTheDocument();
+
+    // Advance to step 2 (first question)
+    fireEvent.click(nextButton);
+    expect(screen.getByText(/Denní doba strávená sezením/i)).toBeInTheDocument();
   });
 
   it('2. Umožňuje procházet kroky a v posledním kroku zobrazí tlačítka inspekce i vygenerování', () => {
@@ -69,7 +73,7 @@ describe('DynamicAgentWizard Unit Test Suite (PRD v1)', () => {
 
     // Step through the 4 steps
     for (let i = 0; i < 4; i++) {
-      const nextButton = screen.getByRole('button', { name: /Pokračovat/i });
+      const nextButton = screen.getByRole('button', { name: /^Pokračovat$/i });
       fireEvent.click(nextButton);
     }
 
@@ -95,7 +99,7 @@ describe('DynamicAgentWizard Unit Test Suite (PRD v1)', () => {
 
     // Navigate to last step
     for (let i = 0; i < 4; i++) {
-      fireEvent.click(screen.getByRole('button', { name: /Pokračovat/i }));
+      fireEvent.click(screen.getByRole('button', { name: /^Pokračovat$/i }));
     }
 
     // Click generate
@@ -119,11 +123,11 @@ describe('DynamicAgentWizard Unit Test Suite (PRD v1)', () => {
       />
     );
 
-    // Přejdeme do kroku 2 (otázka s výběrovými dlaždicemi)
-    const nextButton = screen.getByRole('button', { name: /Pokračovat/i });
-    fireEvent.click(nextButton);
+    // Přejdeme do kroku 3 (otázka s výběrovými dlaždicemi: krok 1 = baseline, krok 2 = slider, krok 3 = chips)
+    fireEvent.click(screen.getByRole('button', { name: /^Pokračovat$/i }));
+    fireEvent.click(screen.getByRole('button', { name: /^Pokračovat$/i }));
 
-    // Krok 2 obsahuje možnost napsat vlastní odpověď
+    // Krok 3 obsahuje možnost napsat vlastní odpověď
     const customButton = screen.getByRole('button', { name: /Napsat vlastní možnost/i });
     expect(customButton).toBeInTheDocument();
 
@@ -149,7 +153,7 @@ describe('DynamicAgentWizard Unit Test Suite (PRD v1)', () => {
 
     // Dokončení wizardu
     for (let i = 0; i < 4; i++) {
-      fireEvent.click(screen.getByRole('button', { name: /Pokračovat/i }));
+      fireEvent.click(screen.getByRole('button', { name: /^Pokračovat$/i }));
     }
     fireEvent.click(screen.getByRole('button', { name: /Vyhodnotit & Doporučit|Vygenerovat doporučení agenta/i }));
 
@@ -187,7 +191,7 @@ describe('DynamicAgentWizard Unit Test Suite (PRD v1)', () => {
     );
 
     for (let i = 0; i < 4; i++) {
-      fireEvent.click(screen.getByRole('button', { name: /Pokračovat/i }));
+      fireEvent.click(screen.getByRole('button', { name: /^Pokračovat$/i }));
     }
     fireEvent.click(screen.getByRole('button', { name: /Vyhodnotit & Doporučit|Vygenerovat doporučení agenta/i }));
 
@@ -231,7 +235,7 @@ describe('DynamicAgentWizard Unit Test Suite (PRD v1)', () => {
     // Clicking "Upravit wizard" switches to the intake wizard (Phase 1)
     fireEvent.click(editWizardBtn);
 
-    expect(screen.getByText(/Denní doba strávená sezením/i)).toBeInTheDocument();
+    expect(screen.getByText(/Dosavadní zkušenosti & Stávající produkt/i)).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /Zpět na výsledky/i })).toBeInTheDocument();
 
     // Clicking "Zpět na výsledky" immediately restores Phase 2
@@ -255,7 +259,7 @@ describe('DynamicAgentWizard Unit Test Suite (PRD v1)', () => {
 
     // Enter wizard editing
     fireEvent.click(screen.getByRole('button', { name: /Upravit wizard/i }));
-    expect(screen.getByText(/Denní doba strávená sezením/i)).toBeInTheDocument();
+    expect(screen.getByText(/Dosavadní zkušenosti & Stávající produkt/i)).toBeInTheDocument();
 
     // Verify close buttons exist
     const closeHeaderBtn = screen.getByRole('button', { name: /Zavřít wizard/i });
@@ -270,8 +274,54 @@ describe('DynamicAgentWizard Unit Test Suite (PRD v1)', () => {
 
     // Enter editing again and click bottom close
     fireEvent.click(screen.getByRole('button', { name: /Upravit wizard/i }));
-    expect(screen.getByText(/Denní doba strávená sezením/i)).toBeInTheDocument();
+    expect(screen.getByText(/Dosavadní zkušenosti & Stávající produkt/i)).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: /Zavřít \/ Zahodit progress/i }));
     expect(screen.getByText(/Agent připraven k použití/i)).toBeInTheDocument();
+  });
+
+  it('9. Umožňuje na stránce výsledků přidat vlastní parametr/kritérium (např. cenový limit) a promítnout ho do agenta', async () => {
+    render(
+      <DynamicAgentWizard
+        agent={PRESET_ERGO_CHAIR_AGENT}
+        initialShowResult={true}
+        onAssessmentCompleted={mockOnAssessmentCompleted}
+      />
+    );
+
+    // Wait for delivery hub
+    await waitFor(() => {
+      expect(screen.getByText(/Kritéria výběru a aktivní parametry/i)).toBeInTheDocument();
+    });
+
+    // Click Add Parameter
+    const addParamBtn = screen.getByRole('button', { name: /\+ Přidat parametr \/ cenový limit/i });
+    expect(addParamBtn).toBeInTheDocument();
+    fireEvent.click(addParamBtn);
+
+    // Form inputs should now be visible
+    expect(screen.getByText(/Přidat nový požadavek nebo omezení/i)).toBeInTheDocument();
+    const nameInput = screen.getByPlaceholderText(/např. Cenový strop \/ rozpočet/i);
+    const valInput = screen.getByPlaceholderText(/např. do 5 000 Kč včetně DPH/i);
+
+    fireEvent.change(nameInput, { target: { value: 'Cenový limit' } });
+    fireEvent.change(valInput, { target: { value: 'Do 6 000 Kč' } });
+
+    // Submit new parameter
+    const submitBtn = screen.getByRole('button', { name: /Uložit a přepočítat doporučení/i });
+    fireEvent.click(submitBtn);
+
+    // Verify parameter chip appears in the active criteria list
+    await waitFor(() => {
+      expect(screen.getByText('Cenový limit')).toBeInTheDocument();
+      expect(screen.getByText('Do 6 000 Kč')).toBeInTheDocument();
+    });
+
+    // Remove parameter
+    const removeBtn = screen.getByTitle(/Odebrat tento vlastní parametr/i);
+    fireEvent.click(removeBtn);
+
+    await waitFor(() => {
+      expect(screen.queryByText('Do 6 000 Kč')).not.toBeInTheDocument();
+    });
   });
 });

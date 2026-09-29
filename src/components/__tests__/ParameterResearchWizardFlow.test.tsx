@@ -136,16 +136,10 @@ describe('Parameter Research Agent & 3-Phase Wizard Flow (Updated PRD)', () => {
 
     render(<DynamicAgentWizard agent={customAgent} />);
 
-    // Celkem 11 kroků (10 otázek + 1 krok stávající zkušenosti)
+    // Celkem 11 kroků (1 krok stávající zkušenosti + 10 parametrů)
     expect(screen.getAllByText(/Krok 1 z 11/i).length).toBeGreaterThanOrEqual(1);
 
-    // Proklikáme se až na poslední krok (krok 11)
-    for (let i = 0; i < 10; i++) {
-      const continueBtn = screen.getByRole('button', { name: /Pokračovat/i });
-      fireEvent.click(continueBtn);
-    }
-
-    // Na 11. kroku se zobrazí obrazovka stávajících zkušeností s 2-kartovou volbou
+    // Hned na 1. kroku se zobrazí obrazovka stávajících zkušeností s 2-kartovou volbou
     expect(screen.getByText(/Dosavadní zkušenosti & Stávající produkt/i)).toBeInTheDocument();
     expect(screen.getByText(/První nákup v této kategorii/i)).toBeInTheDocument();
     expect(screen.getByText(/Vlastním \/ používal jsem produkt/i)).toBeInTheDocument();
@@ -155,7 +149,14 @@ describe('Parameter Research Agent & 3-Phase Wizard Flow (Updated PRD)', () => {
     fireEvent.click(cardB);
 
     expect(screen.getByPlaceholderText(/DeLonghi Magnifica S \/ Hoka Clifton 8/i)).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /Přeskočit & Vyhodnotit/i })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /Vyhodnotit & Doporučit/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Přeskočit na parametry/i })).toBeInTheDocument();
+
+    // Proklikáme se přes parametry až na poslední krok (krok 11)
+    for (let i = 0; i < 10; i++) {
+      const continueBtn = screen.getByRole('button', { name: /^Pokračovat$/i });
+      fireEvent.click(continueBtn);
+    }
+
+    expect(screen.getByRole('button', { name: /Vygenerovat doporučení agenta/i })).toBeInTheDocument();
   });
 });

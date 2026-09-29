@@ -22,6 +22,10 @@ export class PromptStorageService {
   /**
    * Načte všechny dokončené prompty z localStorage (seřazeno od nejnovějšího)
    */
+  static getCompletedPromptByAgentId(agentId: string): CompletedPromptRecord | undefined {
+    return this.getCompletedPrompts().find((p) => p.agentId === agentId);
+  }
+
   static getCompletedPrompts(): CompletedPromptRecord[] {
     if (typeof window === 'undefined') {
       return [];

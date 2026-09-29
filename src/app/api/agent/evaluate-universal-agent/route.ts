@@ -87,7 +87,7 @@ async function executeLiveLLMEvaluation(prompt: string, apiKey: string, provider
             contents: [{ role: 'user', parts: [{ text: prompt }] }],
             generationConfig: {
               temperature: 0.25,
-              maxOutputTokens: 2500,
+              maxOutputTokens: 8192,
               responseMimeType: 'application/json',
             },
           }),

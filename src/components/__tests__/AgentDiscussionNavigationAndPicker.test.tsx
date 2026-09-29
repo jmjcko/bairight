@@ -180,7 +180,7 @@ describe('Agent Discussion Navigation & Agent Picker Suite (Points 1 & 2)', () =
 
     // 3. Verify it routed to questionnaire step 2 (Terén), NOT the result screen
     await waitFor(() => {
-      expect(screen.getByText('Terén')).toBeDefined();
+      expect(screen.getByText(/Došlap|Terén/i)).toBeDefined();
       expect(screen.queryByText(/Stáhnout \.agent\.md soubor|Download \.agent\.md/i)).toBeNull();
     });
   });

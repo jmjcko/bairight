@@ -159,8 +159,8 @@ function ensureAllParametersHaveQuestions(
             step: existingQuestions.length + 1,
             title: param.name,
             subtitle: param.rationale || '',
-            component: (param.suggestedComponent === 'slider' || param.suggestedComponent === 'dropdown') ? param.suggestedComponent : 'chips',
-            isMultiSelect: param.suggestedComponent !== 'dropdown',
+            component: param.suggestedComponent === 'slider' ? 'slider' : 'chips',
+            isMultiSelect: param.suggestedComponent !== 'slider',
             options: rawOptions,
             defaultValue: undefined,
             promptForgeTemplate: `- **${param.name}:** {value}`,
@@ -218,7 +218,7 @@ ZAKÁZÁNO: Sloučit dva parametry do jedné otázky. Zakázáno vynechat parame
 Povolené UI komponenty:
 - "chips" (přepínací tlačítka pro 2-6 možností, isMultiSelect: true/false) — preferuj pro kategorické parametry
 - "slider" (posuvník pro čísla: rozpočet, rozměry, hodiny, váha, objem) — použij pro číselné parametry
-- "dropdown" (rozbalovací seznam) — pro parametry s více než 6 variantami
+- "chips" (přepínací tlačítka pro volby, isMultiSelect: true) — preferuj pro všechny kategorické a výběrové parametry (vždy s povoleným výběrem více možností)
 - "brands" — VÝHRADNĚ pro parametr brand_preferences (značky a výrobci)
 
 Odpověz STRIKTNĚ jako validní JSON bez jakéhokoliv markdownového obalu (\`\`\`json).

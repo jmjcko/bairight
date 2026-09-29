@@ -83,7 +83,23 @@ export const DynamicAgentWizard: React.FC<DynamicAgentWizardProps> = ({
   const initialAnswers = useMemo(() => {
     const acc: Record<string, any> = {};
     for (const q of agent.questions) {
-      acc[q.id] = q.defaultValue;
+      if (q.component === 'brands' || q.id.includes('brand')) {
+        acc[q.id] = q.defaultValue || { preferred: '', forbidden: '' };
+      } else if (q.component === 'slider') {
+        acc[q.id] = q.defaultValue ?? (q.sliderConfig?.defaultValue || 0);
+      } else if (q.component === 'text') {
+        acc[q.id] = q.defaultValue || '';
+      } else if (q.options && q.options.length > 0) {
+        if (Array.isArray(q.defaultValue)) {
+          acc[q.id] = q.defaultValue;
+        } else if (typeof q.defaultValue === 'string' && q.defaultValue && q.defaultValue !== '__SKIP__') {
+          acc[q.id] = [q.defaultValue];
+        } else {
+          acc[q.id] = [];
+        }
+      } else {
+        acc[q.id] = q.defaultValue;
+      }
     }
     return acc;
   }, [agent]);
@@ -102,10 +118,15 @@ export const DynamicAgentWizard: React.FC<DynamicAgentWizardProps> = ({
 
   const [answers, setAnswers] = useState<Record<string, any>>(() => {
     const savedAnswers = initialSavedAnswers || savedStateFromStorage?.answers;
-    if (savedAnswers && Object.keys(savedAnswers).length > 0) {
-      return { ...initialAnswers, ...savedAnswers };
+    const base = (savedAnswers && Object.keys(savedAnswers).length > 0)
+      ? { ...initialAnswers, ...savedAnswers }
+      : { ...initialAnswers };
+    for (const q of agent.questions) {
+      if (q.options && q.options.length > 0 && typeof base[q.id] === 'string' && base[q.id] !== '__SKIP__') {
+        base[q.id] = [base[q.id]];
+      }
     }
-    return initialAnswers;
+    return base;
   });
   const [currentStepIndex, setCurrentStepIndex] = useState<number>(initialStepIndex || 0);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
@@ -116,7 +137,52 @@ export const DynamicAgentWizard: React.FC<DynamicAgentWizardProps> = ({
     }
     return null;
   });
-  const [previousResult, setPreviousResult] = useState<UniversalEvaluationResult | null>(null);
+
+  // Retroactive Parameter Tuning & Custom Constraints State
+  const [isAddingCustomParam, setIsAddingCustomParam] = useState<boolean>(false);
+  const [newParamName, setNewParamName] = useState<string>('');
+  const [newParamValue, setNewParamValue] = useState<string>('');
+
+  const handleAddCustomParam = async () => {
+    if (!newParamName.trim() || !newParamValue.trim()) return;
+    const existing: Array<{ id: string; name: string; value: string }> = Array.isArray(answers.customParameters)
+      ? answers.customParameters
+      : [];
+    const newEntry = {
+      id: `param-${Date.now()}`,
+      name: newParamName.trim(),
+      value: newParamValue.trim(),
+    };
+    const updatedAnswers = {
+      ...answers,
+      customParameters: [...existing, newEntry],
+    };
+    setAnswers(updatedAnswers);
+    setIsAddingCustomParam(false);
+    setNewParamName('');
+    setNewParamValue('');
+    await handleSubmit(updatedAnswers);
+  };
+
+  const handleRemoveCustomParam = async (paramId: string) => {
+    const existing: Array<{ id: string; name: string; value: string }> = Array.isArray(answers.customParameters)
+      ? answers.customParameters
+      : [];
+    const filtered = existing.filter((p) => p.id !== paramId);
+    const updatedAnswers = {
+      ...answers,
+      customParameters: filtered,
+    };
+    setAnswers(updatedAnswers);
+    await handleSubmit(updatedAnswers);
+  };
+  const [previousResult, setPreviousResult] = useState<UniversalEvaluationResult | null>(() => {
+    if (initialSavedResult) return initialSavedResult;
+    if (initialShowResult && savedStateFromStorage?.result) {
+      return savedStateFromStorage.result;
+    }
+    return null;
+  });
   const hasAutoEvaluatedRef = useRef<boolean>(false);
 
   // Prompt Inspector Modal State
@@ -165,8 +231,10 @@ export const DynamicAgentWizard: React.FC<DynamicAgentWizardProps> = ({
   useEffect(() => {
     if (initialShowResult && initialSavedResult) {
       setResult(initialSavedResult);
+      setPreviousResult(initialSavedResult);
     } else if (initialShowResult && !result && savedStateFromStorage?.result) {
       setResult(savedStateFromStorage.result);
+      setPreviousResult(savedStateFromStorage.result);
     } else if (initialShowResult && !result && !initialSavedResult && !hasAutoEvaluatedRef.current) {
       hasAutoEvaluatedRef.current = true;
       handleSubmit();
@@ -187,7 +255,8 @@ export const DynamicAgentWizard: React.FC<DynamicAgentWizardProps> = ({
   }, [agent.questions]);
 
   const totalSteps = stepGroups.length + 1;
-  const activeQuestions = stepGroups[currentStepIndex] || [];
+  const isBaselineStep = currentStepIndex === 0;
+  const activeQuestions = !isBaselineStep ? (stepGroups[currentStepIndex - 1] || []) : [];
 
   const handleValueChange = (questionId: string, value: any) => {
     setAnswers((prev) => {
@@ -209,7 +278,8 @@ export const DynamicAgentWizard: React.FC<DynamicAgentWizardProps> = ({
     setCustomAnswerText((prev) => ({ ...prev, [question.id]: text }));
 
     setAnswers((prev) => {
-      if (question.isMultiSelect) {
+      const isMulti = question.component === "chips" || question.isMultiSelect;
+      if (isMulti) {
         const currentArr = Array.isArray(prev[question.id]) ? [...prev[question.id]] : [];
         const oldText = customAnswerText[question.id];
         const filtered = oldText ? currentArr.filter((item) => item !== oldText) : currentArr;
@@ -233,7 +303,8 @@ export const DynamicAgentWizard: React.FC<DynamicAgentWizardProps> = ({
     setActiveCustomInputs((prev) => ({ ...prev, [question.id]: false }));
 
     setAnswers((prev) => {
-      if (question.isMultiSelect) {
+      const isMulti = question.component === "chips" || question.isMultiSelect;
+      if (isMulti) {
         const currentArr = Array.isArray(prev[question.id]) ? [...prev[question.id]] : [];
         return {
           ...prev,
@@ -259,7 +330,9 @@ export const DynamicAgentWizard: React.FC<DynamicAgentWizardProps> = ({
           [question.id]: '__SKIP__',
         };
       }
-      if (question.isMultiSelect) {
+      // All chips questions strictly allow multiselect
+      const isMulti = question.component === 'chips' || question.isMultiSelect;
+      if (isMulti) {
         const arr = Array.isArray(current)
           ? [...current].filter((x) => x !== '__SKIP__')
           : typeof current === 'string' && current && current !== '__SKIP__'
@@ -416,8 +489,11 @@ export const DynamicAgentWizard: React.FC<DynamicAgentWizardProps> = ({
     }
   };
 
-  const handleSubmit = async () => {
+  const handleSubmit = async (overrideAnswers?: Record<string, any>) => {
     setIsSubmitting(true);
+    const activeAnswers = (overrideAnswers && typeof overrideAnswers === 'object' && !('nativeEvent' in overrideAnswers))
+      ? overrideAnswers
+      : answers;
     try {
       let providerId = activeProviderId || 'bairight_core';
       let apiKey: string | undefined = undefined;
@@ -454,7 +530,7 @@ export const DynamicAgentWizard: React.FC<DynamicAgentWizardProps> = ({
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           agent,
-          answers,
+          answers: activeAnswers,
           ragFacts: enrichedFacts,
           providerId,
           apiKey,
@@ -467,21 +543,39 @@ export const DynamicAgentWizard: React.FC<DynamicAgentWizardProps> = ({
       setResult(data);
       setPreviousResult(data);
 
+      // Persist completed wizard state into localStorage
+      if (typeof window !== 'undefined') {
+        try {
+          const storedStates = localStorage.getItem('bairight_agent_wizard_states');
+          const parsed = storedStates ? JSON.parse(storedStates) : {};
+          parsed[agent.id] = {
+            ...(parsed[agent.id] || {}),
+            answers: activeAnswers,
+            result: data,
+            isCompleted: true,
+            currentStepIndex: stepGroups.length,
+          };
+          localStorage.setItem('bairight_agent_wizard_states', JSON.stringify(parsed));
+        } catch (e) {
+          console.warn('Failed to save wizard state to localStorage:', e);
+        }
+      }
+
       // Sestavíme a uložíme VÝHRADNĚ HOTOVÝ prompt po dokončení posledního kroku
-      const finalCompletedPrompt = forgeAgentPrompt(agent, answers, enrichedFacts, locale);
+      const finalCompletedPrompt = forgeAgentPrompt(agent, activeAnswers, enrichedFacts, locale);
       PromptStorageService.saveCompletedPrompt({
         agentId: agent.id,
         agentName: agent.name,
         category: agent.category,
         prompt: finalCompletedPrompt,
-        answersSummary: Object.entries(answers)
+        answersSummary: Object.entries(activeAnswers)
           .map(([k, v]) => `${k}: ${Array.isArray(v) ? v.join(', ') : v}`)
           .join(' • '),
         providerId,
       });
 
       if (onAssessmentCompleted) {
-        onAssessmentCompleted(answers, data, finalCompletedPrompt);
+        onAssessmentCompleted(activeAnswers, data, finalCompletedPrompt);
       }
     } catch (err) {
       console.error('Error submitting dynamic wizard:', err);
@@ -547,7 +641,9 @@ export const DynamicAgentWizard: React.FC<DynamicAgentWizardProps> = ({
                     {agent.name}
                   </h1>
                   <p className="text-xs text-slate-400 font-mono mt-0.5">
-                    {t.dynamicWizard.stepIndicator.replace('{current}', String(currentStepIndex + 1)).replace('{total}', String(totalSteps))} • {agent.category}
+                    {isBaselineStep
+                      ? (locale === 'en' ? `Step 1 of ${totalSteps} • Optional Baseline Experience` : `Krok 1 z ${totalSteps} • Volitelná zkušenost s produktem`)
+                      : `${t.dynamicWizard.stepIndicator.replace('{current}', String(currentStepIndex + 1)).replace('{total}', String(totalSteps))} • ${agent.category}`}
                   </p>
                 </div>
               </div>
@@ -596,10 +692,13 @@ export const DynamicAgentWizard: React.FC<DynamicAgentWizardProps> = ({
               className="grid gap-2 mt-6"
               style={{ gridTemplateColumns: `repeat(${totalSteps}, minmax(0, 1fr))` }}
             >
-              {stepGroups.map((_, idx) => (
+              {Array.from({ length: totalSteps }).map((_, idx) => (
                 <button
                   key={idx}
-                  onClick={() => setCurrentStepIndex(idx)}
+                  onClick={() => {
+                    setCurrentStepIndex(idx);
+                    if (onStepChange) onStepChange(idx, answers);
+                  }}
                   className={`h-2 rounded-full transition-all cursor-pointer ${
                     idx === currentStepIndex
                       ? 'bg-gradient-to-r from-cyan-400 to-teal-400 shadow-[0_0_12px_rgba(6,182,212,0.8)]'
@@ -616,12 +715,12 @@ export const DynamicAgentWizard: React.FC<DynamicAgentWizardProps> = ({
           {/* Active Questions Container */}
           <div className="min-h-[380px] flex flex-col justify-between">
             <div className="space-y-8 animate-in fade-in duration-200">
-              {currentStepIndex === stepGroups.length ? (
-                /* BASELINE PRODUCT & EXPERIENCE STEP (VOLITELNÝ INTERAKTIVNÍ KROK VŠECH WIZARDŮ) */
+              {isBaselineStep ? (
+                /* BASELINE PRODUCT & EXPERIENCE STEP (KROK 1 - VOLITELNÁ ZKUŠENOST) */
                 <div className="p-6 rounded-2xl bg-[#060c18] border border-cyan-500/30 space-y-6 animate-in fade-in duration-300">
                   <div className="border-b border-cyan-500/20 pb-4 space-y-1">
                     <span className="text-xs font-mono font-bold uppercase tracking-wider text-cyan-400 block">
-                      {locale === 'en' ? `Step ${totalSteps} of ${totalSteps} • Optional Baseline Experience` : `Krok ${totalSteps} z ${totalSteps} • Volitelná zkušenost s produktem`}
+                      {locale === 'en' ? `Step 1 of ${totalSteps} • Optional Baseline Experience` : `Krok 1 z ${totalSteps} • Volitelná zkušenost s produktem`}
                     </span>
                     <h3 className="text-base sm:text-lg font-bold text-white tracking-wide">
                       {locale === 'en' ? 'Current Experience & Baseline Product' : 'Dosavadní zkušenosti & Stávající produkt'}
@@ -760,7 +859,7 @@ export const DynamicAgentWizard: React.FC<DynamicAgentWizardProps> = ({
                     <div>
                       <h3 className="text-base sm:text-lg font-bold text-white tracking-tight flex items-center gap-2">
                         <span>{cleanTitle}</span>
-                        {question.isMultiSelect && (
+                        {(question.component === 'chips' || question.component === 'dropdown' || (question.options && question.options.length > 0)) && (
                           <span className="text-[10px] font-mono px-2 py-0.5 rounded-md bg-cyan-950/80 text-cyan-300 border border-cyan-500/30 font-bold">
                             {locale === "en" ? "Multiple options allowed" : "Možno vybrat více"}
                           </span>
@@ -934,18 +1033,16 @@ export const DynamicAgentWizard: React.FC<DynamicAgentWizardProps> = ({
                       );
                     })()}
 
-                    {/* COMPONENT 2: SELECT CHIPS */}
-                    {question.component === 'chips' && question.options && !question.id.includes('brand') && !question.title.toLowerCase().includes('značk') && (
+                    {/* COMPONENT 2: SELECT CHIPS & MULTI-OPTION SELECTION */}
+                    {(question.component === 'chips' || question.component === 'dropdown' || (question.options && question.options.length > 0)) && question.options && !question.id.includes('brand') && !question.title.toLowerCase().includes('značk') && !question.title.toLowerCase().includes('brand') && (
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
-                        {question.isMultiSelect && (
-                          <div className="sm:col-span-2 flex items-center gap-2 text-xs font-mono text-cyan-300 font-bold bg-cyan-950/60 px-3.5 py-1.5 rounded-xl border border-cyan-500/30 w-fit">
-                            <CheckCircle2 className="w-3.5 h-3.5 text-cyan-400" />
-                            <span>{locale === 'en' ? 'You can select multiple options' : 'Můžete vybrat více možností (Multiselect)'}</span>
-                          </div>
-                        )}
+                        <div className="sm:col-span-2 flex items-center gap-2 text-xs font-mono text-cyan-300 font-bold bg-cyan-950/60 px-3.5 py-1.5 rounded-xl border border-cyan-500/30 w-fit">
+                          <CheckCircle2 className="w-3.5 h-3.5 text-cyan-400" />
+                          <span>{locale === 'en' ? 'You can select multiple options' : 'Můžete vybrat více možností (Multiselect)'}</span>
+                        </div>
                         {question.options.map((opt, optIdx) => {
-                          const isSelected = question.isMultiSelect
-                            ? Array.isArray(val) && val.includes(opt.value)
+                          const isSelected = Array.isArray(val)
+                            ? val.includes(opt.value)
                             : val === opt.value;
 
                           const hasMeaningfulDesc = opt.description && 
@@ -977,9 +1074,11 @@ export const DynamicAgentWizard: React.FC<DynamicAgentWizardProps> = ({
                                 )}
                               </div>
                               {isSelected ? (
-                                <CheckCircle2 className="w-5 h-5 text-cyan-400 shrink-0 mt-0.5" />
+                                <div className="w-5 h-5 rounded-md bg-cyan-500 border border-cyan-300 flex items-center justify-center shrink-0 mt-0.5 shadow-[0_0_10px_rgba(6,182,212,0.5)]">
+                                  <span className="text-slate-950 text-xs font-black leading-none">✓</span>
+                                </div>
                               ) : (
-                                <div className="w-5 h-5 rounded-full border border-slate-700 shrink-0 mt-0.5" />
+                                <div className="w-5 h-5 rounded-md border border-slate-700 bg-slate-950/40 shrink-0 mt-0.5" />
                               )}
                             </button>
                           );
@@ -1036,60 +1135,6 @@ export const DynamicAgentWizard: React.FC<DynamicAgentWizardProps> = ({
                       </div>
                     )}
 
-                    {/* COMPONENT 3: DROPDOWN */}
-                    {question.component === 'dropdown' && question.options && (
-                      <div className="pt-2 space-y-3">
-                        <select
-                          value={val || ''}
-                          onChange={(e) => handleValueChange(question.id, e.target.value)}
-                          className="w-full p-3.5 rounded-xl bg-slate-900 border border-cyan-500/30 text-white text-sm focus:ring-2 focus:ring-cyan-400 focus:outline-none cursor-pointer"
-                        >
-                          {question.options.map((opt, optIdx) => (
-                            <option key={`${opt.value}-${optIdx}`} value={opt.value}>
-                              {opt.label}
-                            </option>
-                          ))}
-                        </select>
-
-                        {/* Interactive Custom / Write-In Option for Dropdown */}
-                        {activeCustomInputs[question.id] || customAnswerText[question.id] ? (
-                          <div className="p-3.5 rounded-2xl bg-cyan-950/70 border-2 border-cyan-400 text-white shadow-[0_0_20px_rgba(6,182,212,0.25)] ring-1 ring-cyan-400 space-y-2 animate-in fade-in duration-200">
-                            <div className="flex items-center justify-between">
-                              <span className="text-xs font-mono font-bold text-cyan-300 flex items-center gap-1.5">
-                                <PenLine className="w-3.5 h-3.5 text-cyan-400" />
-                                {locale === "en" ? "Custom requirement:" : "Vlastní specifická volba:"}
-                              </span>
-                              <button
-                                type="button"
-                                onClick={() => handleRemoveCustomAnswer(question)}
-                                className="text-slate-400 hover:text-red-400 p-1 rounded-lg hover:bg-slate-900 transition-colors cursor-pointer"
-                                title={locale === "en" ? "Clear custom requirement" : "Zrušit vlastní volbu"}
-                              >
-                                <X className="w-4 h-4" />
-                              </button>
-                            </div>
-                            <input
-                              type="text"
-                              autoFocus
-                              value={customAnswerText[question.id] || ''}
-                              onChange={(e) => handleCustomTextChange(question, e.target.value)}
-                              placeholder={t.dynamicWizard.customChoicePlaceholder}
-                              className="w-full px-3.5 py-2.5 bg-slate-950/90 rounded-xl border border-cyan-500/40 focus:border-cyan-300 text-sm text-white placeholder-slate-500 outline-none transition-all shadow-inner"
-                            />
-                          </div>
-                        ) : (
-                          <button
-                            type="button"
-                            onClick={() => handleActivateCustomAnswer(question.id)}
-                            className="w-full p-2.5 rounded-xl border border-dashed border-cyan-500/30 bg-cyan-950/20 hover:bg-cyan-950/40 hover:border-cyan-400/60 text-slate-300 hover:text-white transition-all cursor-pointer flex items-center justify-center gap-2 text-xs font-bold group"
-                          >
-                            <PenLine className="w-3.5 h-3.5 text-cyan-400 group-hover:scale-110 transition-transform" />
-                            <span>{t.dynamicWizard.writeCustomOption}</span>
-                          </button>
-                        )}
-                      </div>
-                    )}
-
                     {/* COMPONENT: TEXT (free-form text input — no predefined options) */}
                     {question.component === 'text' && (
                       <div className="pt-2 space-y-2">
@@ -1138,17 +1183,37 @@ export const DynamicAgentWizard: React.FC<DynamicAgentWizardProps> = ({
               </div>
 
               {currentStepIndex < totalSteps - 1 ? (
-                <button
-                  onClick={() => {
-                  const nextIdx = Math.min(totalSteps - 1, currentStepIndex + 1);
-                  setCurrentStepIndex(nextIdx);
-                  if (onStepChange) onStepChange(nextIdx, answers);
-                }}
-                  className="flex items-center gap-2 px-8 py-3.5 rounded-2xl text-xs font-bold bg-gradient-to-r from-cyan-500 to-teal-400 text-slate-950 shadow-[0_0_20px_rgba(6,182,212,0.4)] hover:brightness-110 transition-all cursor-pointer"
-                >
-                  <span>{t.dynamicWizard.btnContinue}</span>
-                  <ChevronRight className="w-4 h-4" />
-                </button>
+                <div className="flex items-center gap-2.5">
+                  {isBaselineStep && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setBaselineMode('first_purchase');
+                        handleValueChange('baselineModel', '');
+                        handleValueChange('baselineLikes', '');
+                        handleValueChange('baselineDislikes', '');
+                        const nextIdx = 1;
+                        setCurrentStepIndex(nextIdx);
+                        if (onStepChange) onStepChange(nextIdx, answers);
+                      }}
+                      className="px-4 py-3.5 rounded-2xl text-xs font-bold bg-slate-900 border border-slate-800 text-slate-400 hover:text-slate-200 hover:bg-slate-800 transition-all cursor-pointer"
+                      title={locale === 'en' ? "Skip baseline step and go to parameters" : "Přeskočit stávající zkušenosti a přejít na parametry"}
+                    >
+                      <span>{locale === 'en' ? 'Skip to Parameters' : 'Přeskočit na parametry'}</span>
+                    </button>
+                  )}
+                  <button
+                    onClick={() => {
+                      const nextIdx = Math.min(totalSteps - 1, currentStepIndex + 1);
+                      setCurrentStepIndex(nextIdx);
+                      if (onStepChange) onStepChange(nextIdx, answers);
+                    }}
+                    className="flex items-center gap-2 px-8 py-3.5 rounded-2xl text-xs font-bold bg-gradient-to-r from-cyan-500 to-teal-400 text-slate-950 shadow-[0_0_20px_rgba(6,182,212,0.4)] hover:brightness-110 transition-all cursor-pointer"
+                  >
+                    <span>{t.dynamicWizard.btnContinue}</span>
+                    <ChevronRight className="w-4 h-4" />
+                  </button>
+                </div>
               ) : (
                 <div className="flex items-center gap-2.5 flex-wrap">
                   <button
@@ -1161,24 +1226,13 @@ export const DynamicAgentWizard: React.FC<DynamicAgentWizardProps> = ({
                     <span>{t.dynamicWizard.btnInspectPrompt}</span>
                   </button>
 
-                  {currentStepIndex === stepGroups.length && (
-                    <button
-                      type="button"
-                      onClick={handleSubmit}
-                      disabled={isSubmitting}
-                      className="px-4 py-3.5 rounded-2xl text-xs font-bold bg-slate-900 border border-slate-800 text-slate-400 hover:text-slate-200 hover:bg-slate-800 transition-all cursor-pointer"
-                      title={locale === 'en' ? "Skip baseline step and evaluate" : "Přeskočit stávající zkušenosti a spustit vyhodnocení"}
-                    >
-                      <span>{locale === 'en' ? 'Skip & Evaluate' : 'Přeskočit & Vyhodnotit'}</span>
-                    </button>
-                  )}
                   <button
-                    onClick={handleSubmit}
+                    onClick={() => handleSubmit()}
                     disabled={isSubmitting}
                     className="flex items-center gap-2.5 px-8 py-3.5 rounded-2xl text-xs sm:text-sm font-extrabold bg-gradient-to-r from-cyan-400 via-cyan-300 to-teal-400 text-slate-950 shadow-[0_0_30px_rgba(34,211,238,0.8)] hover:scale-105 transition-all disabled:opacity-50 cursor-pointer"
                   >
                     {isSubmitting && <div className="w-4 h-4 rounded-full border-2 border-slate-950 border-t-transparent animate-spin" />}
-                    <span>{isSubmitting ? t.dynamicWizard.btnEvaluating : (currentStepIndex === stepGroups.length ? (locale === 'en' ? 'Evaluate & Recommend' : 'Vyhodnotit & Doporučit') : t.dynamicWizard.btnEvaluate)}</span>
+                    <span>{isSubmitting ? t.dynamicWizard.btnEvaluating : (locale === 'en' ? 'Generate Agent Recommendations' : 'Vygenerovat doporučení agenta')}</span>
                   </button>
                 </div>
               )}
@@ -1211,130 +1265,37 @@ export const DynamicAgentWizard: React.FC<DynamicAgentWizardProps> = ({
       <div className="glass-panel rounded-3xl p-6 sm:p-8 border-2 border-cyan-400/60 shadow-[0_20px_60px_rgba(6,182,212,0.25)] relative overflow-hidden">
         <div className="absolute -top-24 -right-24 w-80 h-80 bg-cyan-500/20 rounded-full blur-3xl pointer-events-none" />
 
-        <div className="flex flex-wrap items-center justify-between gap-3 pb-5 border-b border-cyan-500/20 mb-6">
-          <div>
-            <div className="flex items-center gap-2 flex-wrap">
-              <h2 className="text-xl sm:text-2xl font-black text-white tracking-tight">
-                {agent.name}
-              </h2>
-                <span className="text-[11px] font-mono font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-cyan-950 text-cyan-300 border border-cyan-400/50 shadow-sm">
-                  {locale === 'en' ? 'Agent Ready for Use' : 'Agent připraven k použití'}
-                </span>
-              </div>
-              <p className="text-xs font-mono text-slate-400 mt-0.5">
-                {locale === 'en' ? 'Category:' : 'Kategorie:'} <span className="text-cyan-300 font-semibold">{agent.category}</span> • {locale === 'en' ? 'Version' : 'Verze'} {agent.version || '1.0.0'} • {locale === 'en' ? 'Calibrated for your exact requirements' : 'Zkalibrováno pro vaše míry a preference'}
-              </p>
-            </div>
+        <div className="flex flex-col md:flex-row md:items-baseline justify-between gap-3 pb-5 border-b border-slate-800/80 mb-5">
+          <div className="space-y-1 max-w-2xl">
+            <h2 className="text-2xl sm:text-3xl font-black text-white tracking-tight">
+              {agent.name}
+            </h2>
+            <p className="text-xs sm:text-sm text-slate-400 font-medium leading-relaxed">
+              {agent.description || (locale === 'en'
+                ? `Specialized advisor for ${agent.category}, calibrated strictly to your measurements and preferences.`
+                : `Specializovaný rádce pro kategorii ${agent.category}, zkalibrovaný na míru vašim požadavkům.`)}
+            </p>
+          </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 shrink-0 self-start md:self-auto text-xs font-mono">
             {result.providerUsed && (
-              <span className="text-xs font-mono font-bold px-3 py-1.5 rounded-xl border flex items-center gap-1.5 shadow-sm bg-cyan-950/90 text-cyan-300 border-cyan-400/70">
-                
-                <span>{result.providerUsed}</span>
+              <span className="text-slate-400 px-2.5 py-1 rounded-lg bg-slate-900/80 border border-slate-800">
+                {result.providerUsed}
               </span>
             )}
-
-            <button
-              type="button"
-              onClick={handleOpenPromptInspector}
-              className="text-xs font-mono text-cyan-400 hover:text-cyan-200 px-3 py-1.5 rounded-xl bg-cyan-950/40 border border-cyan-500/30 hover:border-cyan-400 transition-colors cursor-pointer flex items-center gap-1.5"
-              title={locale === 'en' ? "View full prompt sent to AI" : "Zobrazit kompletní prompt odeslaný do AI"}
-            >
-              <Eye className="w-3.5 h-3.5 text-cyan-400" />
-              <span>{t.dynamicWizard.btnInspectPrompt}</span>
-            </button>
+            <span className="text-slate-500 font-normal">•</span>
+            <span className="text-slate-400 px-2 py-0.5 rounded bg-slate-900/60 border border-slate-800/80">
+              {locale === 'en' ? 'Agent Ready for Use' : 'Agent připraven k použití'}
+            </span>
           </div>
         </div>
 
         {/* Primary Action Deliverables Bar */}
         <div className="space-y-4">
-          <p className="text-sm text-slate-300 leading-relaxed">
-            {locale === 'en'
-              ? 'Congratulations! The questionnaire was successfully evaluated and your personal shopping agent is fully configured. Below you can download the agent as a portable file, copy its instructions, or run it directly in bAIright.'
-              : 'Gratulujeme! Dotazník byl úspěšně vyhodnocen a váš osobní nákupní agent je kompletně zkonfigurován. Níže si můžete agenta stáhnout jako přenosný soubor, zkopírovat jeho instrukce nebo ho rovnou provozovat v bAIright.'}
-          </p>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 pt-2">
-            {/* Download MD file */}
-            <button
-              type="button"
-              onClick={handleDownloadAgentMarkdown}
-              className="flex flex-col items-start p-4 rounded-2xl bg-gradient-to-br from-cyan-500/20 via-teal-500/20 to-cyan-950 border-2 border-cyan-400/70 hover:border-cyan-300 text-white shadow-[0_0_25px_rgba(6,182,212,0.35)] hover:scale-[1.02] transition-all cursor-pointer group"
-              title={locale === 'en' ? "Download full agent definition in open .agent.md format" : "Stáhnout kompletní definici agenta v otevřeném formátu .agent.md"}
-            >
-              <div className="flex items-center justify-between w-full mb-1.5">
-                <span className="text-xs font-mono font-extrabold uppercase tracking-wider text-cyan-300 flex items-center gap-1.5">
-                  <Download className="w-4 h-4 text-cyan-300 group-hover:translate-y-0.5 transition-transform" />
-                  {locale === 'en' ? 'Primary Deliverable' : 'Hlavní výstup'}
-                </span>
-                <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-cyan-900/60 border border-cyan-400/40 text-cyan-200 font-bold">
-                  .agent.md
-                </span>
-              </div>
-              <span className="text-sm font-extrabold text-white">{locale === 'en' ? 'Download .agent.md File' : 'Stáhnout .agent.md soubor'}</span>
-              <span className="text-[11px] text-slate-300 mt-0.5">{locale === 'en' ? 'Portable file with all rules and weights' : 'Přenosný soubor se všemi pravidly a váhami'}</span>
-            </button>
-
-            {/* Copy Instructions */}
-            <button
-              type="button"
-              onClick={() => handleCopyText(currentLivePrompt, 'system_prompt')}
-              className="flex flex-col items-start p-4 rounded-2xl bg-[#091526] border border-cyan-500/30 hover:border-cyan-400/70 text-slate-200 hover:text-white transition-all cursor-pointer group"
-              title={locale === 'en' ? "Copy complete system instructions to clipboard" : "Zkopírovat kompletní systémové instrukce do schránky"}
-            >
-              <div className="flex items-center justify-between w-full mb-1.5">
-                <span className="text-xs font-mono font-bold uppercase tracking-wider text-cyan-400 flex items-center gap-1.5">
-                  {copiedSnippetType === 'system_prompt' ? <Check className="w-4 h-4 text-teal-300" /> : <Copy className="w-4 h-4 text-cyan-400" />}
-                  {copiedSnippetType === 'system_prompt' ? (locale === 'en' ? 'Copied!' : 'Zkopírováno!') : (locale === 'en' ? 'To Clipboard' : 'Do schránky')}
-                </span>
-              </div>
-              <span className="text-sm font-extrabold text-white">{locale === 'en' ? 'Copy Prompt Instructions' : 'Kopírovat instrukce promptu'}</span>
-              <span className="text-[11px] text-slate-400 mt-0.5">{locale === 'en' ? 'Paste directly into any LLM window' : 'Vložte přímo do jakéhokoliv LLM okna'}</span>
-            </button>
-
-            {/* Adjust Values / Edit Wizard */}
-            <button
-              type="button"
-              onClick={() => {
-                setResult(null);
-                if (onEditWizard) onEditWizard();
-              }}
-              className="flex flex-col items-start p-4 rounded-2xl bg-[#091526] border border-cyan-500/40 hover:border-cyan-300 text-slate-300 hover:text-white transition-all cursor-pointer group hover:scale-[1.02] shadow-sm"
-              title={locale === 'en' ? "Open questionnaire steps to adjust parameters" : "Otevřít kroky dotazníku a upravit zadané parametry"}
-            >
-              <div className="flex items-center justify-between w-full mb-1.5">
-                <span className="text-xs font-mono font-bold text-cyan-400 flex items-center gap-1.5">
-                  
-                  {locale === 'en' ? 'Edit Parameters' : 'Editace parametrů'}
-                </span>
-              </div>
-              <span className="text-sm font-extrabold text-white">{t.dynamicWizard.btnEdit}</span>
-              <span className="text-[11px] text-slate-400 mt-0.5">{locale === 'en' ? 'Change answers, weights, and criteria' : 'Změnit odpovědi, váhy a kritéria'}</span>
-            </button>
-
-            {/* Reset Form / Start Fresh */}
-            <button
-              type="button"
-              onClick={() => {
-                setResult(null);
-                setCurrentStepIndex(0);
-                setAnswers(initialAnswers);
-                if (onResetWizard) onResetWizard();
-              }}
-              className="flex flex-col items-start p-4 rounded-2xl bg-[#091526] border border-slate-800 hover:border-red-500/50 text-slate-300 hover:text-white transition-all cursor-pointer group hover:scale-[1.02] shadow-sm"
-              title={locale === 'en' ? "Reset questionnaire and start from step 1" : "Vynulovat dotazník a začít výběr od 1. kroku"}
-            >
-              <div className="flex items-center justify-between w-full mb-1.5">
-                <span className="text-xs font-mono font-bold text-slate-400 group-hover:text-red-400 flex items-center gap-1.5 transition-colors">
-                  <RotateCcw className="w-4 h-4 text-slate-400 group-hover:rotate-[-180deg] transition-transform duration-500" />
-                  {locale === 'en' ? 'Reset Questionnaire' : 'Vynulovat dotazník'}
-                </span>
-              </div>
-              <span className="text-sm font-extrabold text-white">{locale === 'en' ? 'Reset & Start Fresh' : 'Začít znovu od nuly'}</span>
-              <span className="text-[11px] text-slate-400 mt-0.5">{locale === 'en' ? 'Clear custom answers and restart wizard' : 'Vymazat vlastní parametry a restartovat dotazník'}</span>
-            </button>
-
-            {/* Direct Chat with AI Model */}
+          {/* TIER 1: TWO DOMINANT HERO ACTION CARDS */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
+            {/* 1. HERO CTA: LIVE DISCUSSION WITH AGENT */}
             {(onOpenChat || onOpenSubscriptionModal) && (
               <button
                 type="button"
@@ -1345,26 +1306,342 @@ export const DynamicAgentWizard: React.FC<DynamicAgentWizardProps> = ({
                     setShowBYOKHintModal(true);
                   }
                 }}
-                className="flex flex-col items-start p-4 rounded-2xl bg-gradient-to-br from-cyan-500/20 via-teal-500/20 to-slate-900 border-2 border-cyan-400/80 hover:border-cyan-300 text-white shadow-[0_0_20px_rgba(6,182,212,0.3)] hover:scale-[1.02] transition-all cursor-pointer group"
+                className="flex flex-col justify-between p-6 sm:p-7 rounded-3xl bg-gradient-to-br from-cyan-950/80 via-[#071a2e] to-[#040c18] border-2 border-cyan-400/80 hover:border-cyan-300 text-white shadow-[0_0_35px_rgba(6,182,212,0.35)] hover:shadow-[0_0_50px_rgba(6,182,212,0.5)] hover:scale-[1.015] transition-all cursor-pointer group text-left relative overflow-hidden"
                 title={locale === 'en' ? "Open live consultative chat with this agent" : "Spustit přímou interaktivní konzultaci s tímto agentem"}
               >
-                <div className="flex items-center justify-between w-full mb-1.5">
-                  <span className="text-xs font-mono font-extrabold uppercase tracking-wider text-cyan-300 flex items-center gap-1.5">
-                    {locale === 'en' ? 'Live Discussion' : 'Živá diskuse'}
-                  </span>
-                  <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-cyan-900/80 border border-cyan-400/50 text-cyan-200 font-bold">
-                    {hasApiKey
-                      ? (locale === 'en' ? 'BYOK Connected' : 'Model připojen')
-                      : (locale === 'en' ? 'Open Chat' : 'Přejít do chatu')}
-                  </span>
+                <div className="absolute top-0 right-0 w-48 h-48 bg-cyan-500/10 rounded-full blur-2xl pointer-events-none" />
+                <div className="space-y-3 relative z-10 w-full">
+                  <div className="flex items-center justify-between w-full">
+                    <span className="text-xs font-mono font-extrabold uppercase tracking-wider text-cyan-300">
+                      {locale === 'en' ? 'Interactive Consultation' : 'Interaktivní konzultace'}
+                    </span>
+                    <span className="text-[10px] font-mono px-2.5 py-1 rounded-full bg-cyan-900/80 border border-cyan-400/60 text-cyan-200 font-bold">
+                      {hasApiKey
+                        ? (locale === 'en' ? 'Model Connected' : 'Model připojen')
+                        : (locale === 'en' ? 'BYOK Available' : 'BYOK K dispozici')}
+                    </span>
+                  </div>
+
+                  <div>
+                    <h3 className="text-lg sm:text-xl font-black text-white group-hover:text-cyan-200 transition-colors flex items-center justify-between">
+                      <span>{locale === 'en' ? 'Open Live Chat & Agent Results' : 'Spustit živý chat & Výsledky agenta'}</span>
+                      <span className="text-cyan-400 group-hover:translate-x-1 transition-transform text-xl">→</span>
+                    </h3>
+                    <p className="text-xs sm:text-sm text-slate-300 mt-1 leading-relaxed">
+                      {locale === 'en'
+                        ? 'Consult recommended models directly, ask follow-up questions, and tune choices with your AI advisor.'
+                        : 'Okamžitě projděte doporučené produkty, ptejte se na detaily a laďte parametry v reálném čase se svým agentem.'}
+                    </p>
+                  </div>
                 </div>
-                <span className="text-sm font-extrabold text-white">{locale === 'en' ? 'Open Chat & Agent Results' : 'Spustit chat & Výsledky agenta'}</span>
-                <span className="text-[11px] text-slate-300 mt-0.5">{locale === 'en' ? 'Direct consultative discussion with AI model' : 'Přímá interaktivní diskuse s vaším AI modelem'}</span>
+
+                <div className="pt-4 border-t border-cyan-500/20 mt-4 flex items-center justify-between text-[11px] font-mono text-cyan-300/90 relative z-10">
+                  <span>{locale === 'en' ? 'Verified Recommendations Ready' : '3 ověřená doporučení připravena'}</span>
+                  <span className="font-bold underline group-hover:text-white transition-colors">{locale === 'en' ? 'Start Discussion' : 'Přejít do diskuze'} →</span>
+                </div>
               </button>
             )}
 
+            {/* 2. HERO CTA: DOWNLOAD .AGENT.MD DELIVERABLE */}
+            <button
+              type="button"
+              onClick={handleDownloadAgentMarkdown}
+              className="flex flex-col justify-between p-6 sm:p-7 rounded-3xl bg-gradient-to-br from-[#0c223a]/90 via-[#071728] to-[#030914] border-2 border-teal-400/70 hover:border-teal-300 text-white shadow-[0_0_30px_rgba(20,184,166,0.25)] hover:shadow-[0_0_45px_rgba(20,184,166,0.4)] hover:scale-[1.015] transition-all cursor-pointer group text-left relative overflow-hidden"
+              title={locale === 'en' ? "Download full agent definition in open .agent.md format" : "Stáhnout kompletní definici agenta v otevřeném formátu .agent.md"}
+            >
+              <div className="absolute top-0 right-0 w-48 h-48 bg-teal-500/10 rounded-full blur-2xl pointer-events-none" />
+              <div className="space-y-3 relative z-10 w-full">
+                <div className="flex items-center justify-between w-full">
+                  <span className="text-xs font-mono font-extrabold uppercase tracking-wider text-teal-300 flex items-center gap-1.5">
+                    {locale === 'en' ? 'Portable Output' : 'Přenosný výstup'}
+                  </span>
+                  <span className="text-[10px] font-mono px-2.5 py-1 rounded-full bg-teal-950/90 border border-teal-400/50 text-teal-200 font-bold">
+                    .agent.md
+                  </span>
+                </div>
 
+                <div>
+                  <h3 className="text-lg sm:text-xl font-black text-white group-hover:text-teal-200 transition-colors flex items-center justify-between">
+                    <span>{locale === 'en' ? 'Download .agent.md File' : 'Stáhnout .agent.md soubor'}</span>
+                    <span className="text-teal-400 group-hover:translate-y-0.5 transition-transform text-xl">↓</span>
+                  </h3>
+                  <p className="text-xs sm:text-sm text-slate-300 mt-1 leading-relaxed">
+                    {locale === 'en'
+                      ? 'Self-contained open file containing all domain rules, calibrated weights, and instructions for Gemini, ChatGPT, or Claude.'
+                      : 'Přenosný otevřený soubor obsahující veškerá doménová pravidla, váhy a instrukce pro Gemini, ChatGPT i Claude.'}
+                  </p>
+                </div>
+              </div>
+
+              <div className="pt-4 border-t border-teal-500/20 mt-4 flex items-center justify-between text-[11px] font-mono text-teal-300/90 relative z-10">
+                <span>{locale === 'en' ? 'Universal Open Agent Spec' : 'Otevřený standard • Trvalé vlastnictví'}</span>
+                <span className="font-bold underline group-hover:text-white transition-colors">{locale === 'en' ? 'Save File' : 'Stáhnout soubor'} ↓</span>
+              </div>
+            </button>
           </div>
+
+          {/* TIER 2: CLEAN UTILITY TOOLBAR */}
+          <div className="flex flex-wrap items-center justify-between gap-2.5 p-3 rounded-2xl bg-[#070e1c] border border-slate-800">
+            <span className="text-xs font-mono text-slate-400 px-2 font-semibold">
+              {locale === 'en' ? 'Tools:' : 'Nástroje:'}
+            </span>
+
+            <div className="flex flex-wrap items-center gap-2">
+              {/* Inspect Prompt */}
+              <button
+                type="button"
+                onClick={handleOpenPromptInspector}
+                className="px-3.5 py-1.5 rounded-xl bg-slate-900/90 hover:bg-slate-800 border border-slate-800 hover:border-slate-700 text-slate-300 hover:text-white text-xs font-mono transition-all cursor-pointer flex items-center gap-1.5"
+                title={locale === 'en' ? "View full prompt sent to AI" : "Zobrazit kompletní prompt odeslaný do AI"}
+              >
+                <Eye className="w-3.5 h-3.5 text-slate-400" />
+                <span>{t.dynamicWizard.btnInspectPrompt}</span>
+              </button>
+
+              {/* Copy Prompt Instructions */}
+              <button
+                type="button"
+                onClick={() => handleCopyText(currentLivePrompt, 'system_prompt')}
+                className="px-3.5 py-2 rounded-xl bg-slate-900/90 hover:bg-slate-800 border border-slate-700 hover:border-cyan-400/50 text-slate-200 hover:text-white text-xs font-mono font-medium transition-all cursor-pointer flex items-center gap-1.5"
+                title={locale === 'en' ? "Copy complete system instructions to clipboard" : "Zkopírovat kompletní systémové instrukce do schránky"}
+              >
+                {copiedSnippetType === 'system_prompt' ? <Check className="w-3.5 h-3.5 text-teal-300" /> : <Copy className="w-3.5 h-3.5 text-cyan-400" />}
+                <span>{copiedSnippetType === 'system_prompt' ? (locale === 'en' ? 'Prompt Copied!' : 'Prompt zkopírován!') : (locale === 'en' ? 'Copy Prompt Instructions' : 'Kopírovat instrukce promptu')}</span>
+              </button>
+
+              {/* Edit Parameters */}
+              <button
+                type="button"
+                onClick={() => {
+                  if (result) setPreviousResult(result);
+                  setResult(null);
+                  if (onEditWizard) onEditWizard();
+                }}
+                className="px-3.5 py-2 rounded-xl bg-slate-900/90 hover:bg-slate-800 border border-slate-700 hover:border-cyan-400/50 text-slate-200 hover:text-white text-xs font-mono font-medium transition-all cursor-pointer flex items-center gap-1.5"
+                title={locale === 'en' ? "Open questionnaire steps to adjust parameters" : "Otevřít kroky dotazníku a upravit zadané parametry"}
+              >
+                <span>{t.dynamicWizard.btnEdit}</span>
+              </button>
+
+              {/* Reset Questionnaire */}
+              <button
+                type="button"
+                onClick={() => {
+                  setResult(null);
+                  setCurrentStepIndex(0);
+                  setAnswers(initialAnswers);
+                  if (onResetWizard) onResetWizard();
+                }}
+                className="px-3.5 py-2 rounded-xl bg-slate-900/90 hover:bg-red-950/40 border border-slate-700 hover:border-red-500/40 text-slate-400 hover:text-red-300 text-xs font-mono font-medium transition-all cursor-pointer flex items-center gap-1.5"
+                title={locale === 'en' ? "Reset questionnaire and start from step 1" : "Vynulovat dotazník a začít výběr od 1. kroku"}
+              >
+                <RotateCcw className="w-3.5 h-3.5" />
+                <span>{locale === 'en' ? 'Reset Questionnaire' : 'Vynulovat dotazník'}</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* 1.5 ACTIVE SELECTION CRITERIA & RETROACTIVE PARAMETER TUNING */}
+      <div className="rounded-3xl bg-[#060c18] border border-cyan-500/30 p-5 sm:p-7 shadow-lg space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-cyan-500/20">
+          <div>
+            <div className="flex items-center gap-2">
+              <h3 className="text-base sm:text-lg font-extrabold text-white">
+                {locale === 'en' ? 'Selection Criteria & Active Parameters' : 'Kritéria výběru a aktivní parametry'}
+              </h3>
+              <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-cyan-950 text-cyan-300 border border-cyan-400/40">
+                {agent.questions.filter((q) => answers[q.id] !== undefined && answers[q.id] !== null && answers[q.id] !== '').length + (Array.isArray(answers.customParameters) ? answers.customParameters.length : 0)} {locale === 'en' ? 'criteria' : 'kritérií'}
+              </span>
+            </div>
+            <p className="text-xs text-slate-400 mt-0.5">
+              {locale === 'en'
+                ? 'Review parameters or add new constraints (such as budget ceiling or required features) to calibrate your recommendations.'
+                : 'Přehled zadaných kritérií z dotazníku s možností přidat další omezení (např. cenový strop nebo specifické požadavky).'}
+            </p>
+          </div>
+
+          {!isAddingCustomParam && (
+            <button
+              type="button"
+              onClick={() => setIsAddingCustomParam(true)}
+              className="px-3.5 py-1.5 rounded-xl bg-cyan-950/80 border border-cyan-400/60 hover:bg-cyan-900/60 text-cyan-300 text-xs font-mono font-bold transition-all cursor-pointer shrink-0 self-start sm:self-auto"
+            >
+              + {locale === 'en' ? 'Add Parameter / Budget' : 'Přidat parametr / cenový limit'}
+            </button>
+          )}
+        </div>
+
+        {/* Inline Add Parameter Form */}
+        {isAddingCustomParam && (
+          <div className="p-4 rounded-2xl bg-cyan-950/20 border border-cyan-500/40 space-y-3 animate-in fade-in duration-200">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-mono font-bold text-cyan-300 uppercase tracking-wider">
+                {locale === 'en' ? 'Add New Requirement or Constraint' : 'Přidat nový požadavek nebo omezení'}
+              </span>
+              <button
+                type="button"
+                onClick={() => {
+                  setIsAddingCustomParam(false);
+                  setNewParamName('');
+                  setNewParamValue('');
+                }}
+                className="text-xs text-slate-400 hover:text-white px-2 py-1 rounded cursor-pointer"
+              >
+                {locale === 'en' ? 'Cancel' : 'Zrušit'}
+              </button>
+            </div>
+
+            {/* Suggested Quick Presets */}
+            <div className="flex flex-wrap items-center gap-1.5">
+              <span className="text-[11px] font-mono text-slate-400">
+                {locale === 'en' ? 'Quick suggestions:' : 'Rychlé tipy:'}
+              </span>
+              {[
+                { name: locale === 'en' ? 'Budget / Price Cap' : 'Cenový limit / Rozpočet', val: locale === 'en' ? 'Under $250' : 'Do 6 000 Kč' },
+                { name: locale === 'en' ? 'Authorized Service' : 'Dostupnost servisu', val: locale === 'en' ? 'Official warranty service in CZ/EU' : 'Autorizovaný servis v ČR' },
+                { name: locale === 'en' ? 'Eco & Recycled' : 'Udržitelné materiály', val: locale === 'en' ? 'Certified recycled materials' : 'Udržitelné a recyklované materiály' },
+              ].map((preset, idx) => (
+                <button
+                  key={idx}
+                  type="button"
+                  onClick={() => {
+                    setNewParamName(preset.name);
+                    setNewParamValue(preset.val);
+                  }}
+                  className="text-[11px] px-2.5 py-1 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-700 text-slate-300 hover:text-cyan-300 transition-colors cursor-pointer"
+                >
+                  {preset.name}
+                </button>
+              ))}
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <label className="text-[11px] font-mono text-slate-400 block mb-1">
+                  {locale === 'en' ? 'Parameter Name / Criterion' : 'Název parametru / kritéria'}
+                </label>
+                <input
+                  type="text"
+                  value={newParamName}
+                  onChange={(e) => setNewParamName(e.target.value)}
+                  placeholder={locale === 'en' ? 'e.g. Budget ceiling' : 'např. Cenový strop / rozpočet'}
+                  className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 focus:border-cyan-400 text-xs text-white placeholder-slate-500 outline-none"
+                />
+              </div>
+              <div>
+                <label className="text-[11px] font-mono text-slate-400 block mb-1">
+                  {locale === 'en' ? 'Required Value / Constraint' : 'Hodnota / Požadavek'}
+                </label>
+                <input
+                  type="text"
+                  value={newParamValue}
+                  onChange={(e) => setNewParamValue(e.target.value)}
+                  placeholder={locale === 'en' ? 'e.g. Max $250' : 'např. do 5 000 Kč včetně DPH'}
+                  className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 focus:border-cyan-400 text-xs text-white placeholder-slate-500 outline-none"
+                />
+              </div>
+            </div>
+
+            <div className="flex items-center justify-end gap-2 pt-1">
+              <button
+                type="button"
+                disabled={!newParamName.trim() || !newParamValue.trim() || isSubmitting}
+                onClick={handleAddCustomParam}
+                className="px-4 py-2 rounded-xl bg-gradient-to-r from-cyan-600 to-teal-600 hover:from-cyan-500 hover:to-teal-500 text-white text-xs font-bold transition-all disabled:opacity-50 cursor-pointer shadow-md"
+              >
+                {isSubmitting
+                  ? (locale === 'en' ? 'Updating Agent...' : 'Aktualizuji agenta...')
+                  : (locale === 'en' ? 'Save & Recalculate Recommendations' : 'Uložit a přepočítat doporučení')}
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Active Parameters List */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2.5">
+          {/* Custom Parameters with Delete */}
+          {Array.isArray(answers.customParameters) && answers.customParameters.map((cp: any) => (
+            <div
+              key={cp.id}
+              className="p-3 rounded-2xl bg-cyan-950/30 border border-cyan-400/50 flex items-start justify-between gap-2 shadow-sm"
+            >
+              <div className="min-w-0">
+                <span className="text-[10px] font-mono uppercase tracking-wider text-cyan-300 font-bold block truncate">
+                  {cp.name}
+                </span>
+                <span className="text-xs font-semibold text-white block mt-0.5 break-words">
+                  {cp.value}
+                </span>
+              </div>
+              <button
+                type="button"
+                onClick={() => handleRemoveCustomParam(cp.id)}
+                title={locale === 'en' ? 'Remove this custom parameter' : 'Odebrat tento vlastní parametr'}
+                className="text-slate-400 hover:text-red-400 p-1 rounded-lg hover:bg-slate-900 transition-colors cursor-pointer shrink-0"
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
+            </div>
+          ))}
+
+          {/* Baseline Model Owned */}
+          {answers.baselineModel && (
+            <div className="p-3 rounded-2xl bg-slate-950/80 border border-slate-800 space-y-0.5">
+              <span className="text-[10px] font-mono text-slate-400 uppercase tracking-wider block">
+                {locale === 'en' ? 'Baseline Product Owned' : 'Dosavadní produkt'}
+              </span>
+              <span className="text-xs font-semibold text-slate-200 block truncate">
+                {String(answers.baselineModel)}
+              </span>
+            </div>
+          )}
+
+          {/* Standard Question Criteria */}
+          {agent.questions.map((q) => {
+            const val = answers[q.id];
+            if (val === undefined || val === null || val === '') return null;
+            let displayVal = String(val);
+            if (val === '__SKIP__' || (typeof val === 'string' && val.toLowerCase().includes('není důležité'))) {
+              return null;
+            }
+            if (Array.isArray(val)) {
+              if (val.length === 0 || (val.length === 1 && val[0] === '__SKIP__')) return null;
+              displayVal = val.map((v) => {
+                const opt = q.options?.find((o) => o.value === v);
+                return opt?.label || String(v);
+              }).join(', ');
+            } else if (typeof val === 'object') {
+              if ('preferred' in val || 'forbidden' in val) {
+                const pref = typeof val.preferred === 'string' ? val.preferred.trim() : '';
+                const forb = typeof val.forbidden === 'string' ? val.forbidden.trim() : '';
+                if (!pref && !forb) {
+                  displayVal = locale === 'en' ? 'Open selection (No brand restrictions)' : 'Otevřený výběr (Bez omezení značek)';
+                } else {
+                  const parts = [];
+                  if (pref) parts.push(locale === 'en' ? `Preferred: ${pref}` : `Preferované: ${pref}`);
+                  if (forb) parts.push(locale === 'en' ? `Forbidden: ${forb}` : `Vyloučené: ${forb}`);
+                  displayVal = parts.join(' • ');
+                }
+              } else {
+                displayVal = Object.entries(val).map(([k, v]) => `${k}: ${v}`).join('; ');
+              }
+            } else if (q.options) {
+              const opt = q.options.find((o) => o.value === val);
+              if (opt?.label) displayVal = opt.label;
+            }
+            return (
+              <div key={q.id} className="p-3 rounded-2xl bg-slate-950/80 border border-slate-800 space-y-0.5">
+                <span className="text-[10px] font-mono text-slate-400 uppercase tracking-wider block truncate">
+                  {q.title}
+                </span>
+                <span className="text-xs font-semibold text-slate-200 block truncate">
+                  {displayVal}
+                </span>
+              </div>
+            );
+          })}
         </div>
       </div>
 

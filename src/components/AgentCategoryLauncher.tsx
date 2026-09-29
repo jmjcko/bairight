@@ -275,15 +275,40 @@ const [researchError, setResearchError] = useState<string | null>(null);
     if (e) e.preventDefault();
     if (!query.trim() || isGenerating || isResearching) return;
 
-    setIsGenerating(true);
-    setGenerationStep('Analyzuji kategorii produktu...');
+    const effectiveSelectedParams = activeParameters.filter((p) => selectedParamIds.has(p.id));
+    const finalParamsToUse = effectiveSelectedParams.length > 0 ? effectiveSelectedParams : activeParameters;
 
-    // If parameters haven't been researched yet (edge case: user skipped research step),
-    // use curated offline knowledge base for known domains as last resort in generate flow only.
     const currentAnalysis = researchedAnalysis || discoverDomainParameters(query.trim(), locale);
     if (!researchedAnalysis) {
       setResearchedAnalysis(currentAnalysis);
     }
+
+    // Instant Zero-Latency Launch: Compile agent directly from researched parameters (0 ms latency)
+    if (currentAnalysis) {
+      const finalAgent = buildCustomAgentFromParameters(
+        currentAnalysis,
+        finalParamsToUse.length > 0 ? finalParamsToUse : currentAnalysis.parameters,
+        locale
+      );
+
+      if (finalAgent) {
+        AgentStorageService.saveAgent(finalAgent);
+        UserRAGHistoryService.saveUserSearchHistory("demo", {
+          query: currentAnalysis?.categoryName || query,
+          domainKey: currentAnalysis?.matchedDomain,
+          selectedParameters: finalParamsToUse,
+          generatedPrompt: finalAgent.systemPrompt,
+        });
+        setAgents(AgentStorageService.getAllAgents());
+        setQuery('');
+        onSelectAgent(finalAgent, false);
+        return;
+      }
+    }
+
+    // Fallback asynchronous generation if local compilation is unavailable
+    setIsGenerating(true);
+    setGenerationStep(locale === 'en' ? 'Assembling interactive wizard components...' : 'Sestavuji interaktivní komponenty wizardu...');
 
     try {
       let providerId = activeProviderId || 'bairight_core';
@@ -307,11 +332,6 @@ const [researchError, setResearchError] = useState<string | null>(null);
         apiKey = currentApiKeys[providerId];
       }
 
-      const effectiveSelectedParams = activeParameters.filter((p) => selectedParamIds.has(p.id));
-      const finalParamsToUse = effectiveSelectedParams.length > 0 ? effectiveSelectedParams : activeParameters;
-
-      setGenerationStep(locale === 'en' ? 'Deriving key decision parameters and questions...' : 'Odvozuji klíčové rozhodovací parametry a otázky...');
-
       const res = await fetch('/api/agent/generate-wizard', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -328,16 +348,8 @@ const [researchError, setResearchError] = useState<string | null>(null);
         throw new Error(locale === 'en' ? 'Wizard generation failed.' : 'Chyba při generování průvodce.');
       }
 
-      setGenerationStep(locale === 'en' ? 'Assembling interactive wizard components...' : 'Sestavuji interaktivní komponenty wizardu...');
       const data = await res.json();
-      let finalAgent = data.agent;
-
-      if (!finalAgent && currentAnalysis) {
-        finalAgent = buildCustomAgentFromParameters(
-          currentAnalysis,
-          finalParamsToUse.length > 0 ? finalParamsToUse : currentAnalysis.parameters
-        );
-      }
+      const finalAgent = data.agent;
 
       if (finalAgent) {
         AgentStorageService.saveAgent(finalAgent);

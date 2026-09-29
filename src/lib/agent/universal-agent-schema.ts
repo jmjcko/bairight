@@ -310,6 +310,15 @@ export function forgeAgentPrompt(
     }
   }
 
+  // Support dynamically added custom parameters (e.g. Budget/Price cap, extra constraints)
+  if (answers.customParameters && Array.isArray(answers.customParameters)) {
+    for (const cp of answers.customParameters) {
+      if (cp && cp.name && cp.value) {
+        answeredBlocks.push(`- **${cp.name}:** ${cp.value}`);
+      }
+    }
+  }
+
   if (answers.baselineModel || answers.baselineLikes || answers.baselineDislikes) {
     const modelText = answers.baselineModel ? String(answers.baselineModel).trim() : (isEn ? 'Not specified' : 'Nespecifikováno');
     const likesText = answers.baselineLikes ? String(answers.baselineLikes).trim() : (isEn ? 'None specified' : 'Žádné nespecifikovány');

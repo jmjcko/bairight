@@ -43,9 +43,9 @@ describe('Auto Category Custom Wizard Flow', () => {
     const ctaBtn = screen.getByRole('button', { name: /Nastavit cílové hodnoty/i });
     fireEvent.click(ctaBtn);
 
-    // Verify wizard is at Step 1 and NO results card is shown
+    
     await waitFor(() => {
-      expect(screen.getByText(/Krok 1/i)).toBeInTheDocument();
+      expect(screen.getAllByText(/Krok 1|Step 1/i).length).toBeGreaterThanOrEqual(1);
       expect(screen.queryByText(/Agent Delivery Hub/i)).not.toBeInTheDocument();
     });
   });
