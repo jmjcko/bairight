@@ -62,6 +62,10 @@ export interface UniversalAgentDefinition {
   selectedParameters?: any[];
   /** Target values configured by the user in the wizard */
   targetValues?: Record<string, any>;
+  /** Indicates if the user marked this shopping mission as completed/purchased */
+  isPurchased?: boolean;
+  /** ISO timestamp when marked as purchased */
+  purchasedAt?: string;
 }
 
 export interface UniversalRecommendationItem {
@@ -149,6 +153,8 @@ export function serializeAgentToMarkdown(
     createdAt: agent.createdAt,
     updatedAt: agent.updatedAt || new Date().toISOString(),
     isCustom: Boolean(agent.isCustom),
+    isPurchased: Boolean(agent.isPurchased),
+    purchasedAt: agent.purchasedAt,
     targetValues: effectiveAnswers,
   };
 

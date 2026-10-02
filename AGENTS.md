@@ -12,7 +12,7 @@ This repository (`bAIright` / `shoes`) operates under the **3Pillar AIRE SDLC Ag
   - **Styling:** Vanilla CSS design system (Cyber-glass aesthetic, dark mode `#070d18` with glowing cyan `#06b6d4` & teal `#14b8a6` accents).
   - **AI & Reasoning Engine:** Multi-Model Orchestration (Google Gemini 2.0 / 1.5, OpenAI GPT-4o, Anthropic Claude 3.5, Local Ollama via BYOK).
   - **Testing:** Vitest + React Testing Library (100% test pass rate required).
-  - **Localization:** Bilingual (Czech `cs` default / English `en` selectable).
+  - **Localization:** Bilingual (English `en` is the primary default, Czech `cs` is 100% supported selectable locale. Every new feature, modal, button, prompt, and test suite must always include full EN and CZ versions, guaranteeing 100% functionality and parity across both locales).
 
 ---
 
@@ -39,9 +39,12 @@ This repository (`bAIright` / `shoes`) operates under the **3Pillar AIRE SDLC Ag
    - Zero TypeScript errors (`npx tsc --noEmit`).
    - 100% passing automated unit tests (`npx vitest run`).
    - Security: CodeGuard + OWASP compliance (safe handling of API keys, no secret leakage in client bundle).
-4. **Communication & Language:**
-   - Clear, professional engineering communication in Czech (`cs`) or English (`en`) according to user preference.
-   - User-facing UI strings must be localized via `src/lib/i18n/translations.ts`.
+4. **Communication & Language (Bilingual Standard):**
+   - **Primary Default Locale**: English (`en`) is the primary system and UI default.
+   - **Full Czech Parity**: Czech (`cs`) is a 100% supported selectable locale.
+   - **Mandatory Dual-Language Coverage**: Every feature, modal, interactive button, notification, prompt, and test suite must ALWAYS be implemented and tested in both EN and CZ with 100% functional parity.
+   - User-facing UI strings must be strictly localized via `src/lib/i18n/translations.ts`.
+   - Technical communication with the user is maintained in Czech (`cs`) or English (`en`) based on user preference.
 
 
 ## 🤖 Agent Luke Specification & Maintenance Protocol

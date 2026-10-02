@@ -7,6 +7,7 @@ import {
   UniversalAgentDefinition 
 } from '@/lib/agent/universal-agent-schema';
 import { AgentStorageService } from '@/lib/agent/agent-storage-service';
+import { BuyMeACoffeeModal } from './BuyMeACoffeeModal';
 import { getLocalizedAgent } from '@/lib/agent/agent-localization';
 import { 
   discoverDomainParameters, 
@@ -49,6 +50,7 @@ interface AgentCategoryLauncherProps {
   currentApiKeys?: Record<string, string>;
   onOpenSubscriptionModal?: () => void;
   userName?: string;
+  initialTab?: 'active' | 'purchased';
 }
 
 export const AgentCategoryLauncher: React.FC<AgentCategoryLauncherProps> = ({
@@ -58,11 +60,20 @@ export const AgentCategoryLauncher: React.FC<AgentCategoryLauncherProps> = ({
   currentApiKeys,
   onOpenSubscriptionModal,
   userName = 'Jan Mynář',
+  initialTab = 'active',
 }) => {
   const { t, locale } = useI18n();
   const { isMaterialCobalt } = useTheme();
   const [query, setQuery] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
+  const [activeAgentsTab, setActiveAgentsTab] = useState<'active' | 'purchased'>(initialTab);
+  const [bmcModalAgent, setBmcModalAgent] = useState<UniversalAgentDefinition | null>(null);
+
+  useEffect(() => {
+    if (initialTab) {
+      setActiveAgentsTab(initialTab);
+    }
+  }, [initialTab]);
   const [generationStep, setGenerationStep] = useState<string>('');
   const [agents, setAgents] = useState<UniversalAgentDefinition[]>([]);
   const customInputRef = useRef<HTMLInputElement>(null);
@@ -400,6 +411,23 @@ const [researchError, setResearchError] = useState<string | null>(null);
       setAgents([]);
     }
   };
+
+  const handleMarkPurchased = (e: React.MouseEvent, agent: UniversalAgentDefinition) => {
+    e.stopPropagation();
+    AgentStorageService.markAgentAsPurchased(agent.id, true);
+    setAgents(AgentStorageService.getAllAgents());
+    setBmcModalAgent(agent);
+  };
+
+  const handleRestoreActive = (e: React.MouseEvent, agentId: string) => {
+    e.stopPropagation();
+    AgentStorageService.markAgentAsPurchased(agentId, false);
+    setAgents(AgentStorageService.getAllAgents());
+  };
+
+  const activeAgents = agents.filter((a) => !a.isPurchased);
+  const purchasedAgents = agents.filter((a) => Boolean(a.isPurchased));
+  const displayedAgents = activeAgentsTab === 'active' ? activeAgents : purchasedAgents;
 
   return (
     <div className="w-full max-w-5xl mx-auto space-y-10 py-6 animate-in fade-in duration-300">
@@ -789,7 +817,7 @@ const [researchError, setResearchError] = useState<string | null>(null);
         </div>
       )}
 
-      {/* User Custom Agents Library Grid - Only rendered when user has created custom agents */}
+      {/* User Custom Agents Library Grid */}
       {agents.length > 0 && (
         <div className="space-y-4">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
@@ -805,74 +833,150 @@ const [researchError, setResearchError] = useState<string | null>(null);
               </p>
             </div>
 
-            <button
-              type="button"
-              onClick={handleDeleteAllAgents}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-rose-950/40 hover:bg-rose-950/80 text-rose-300 border border-rose-500/30 hover:border-rose-400 text-xs font-mono transition-all cursor-pointer"
-              title={locale === 'en' ? 'Delete all agents from library' : 'Smazat všechny agenty z knihovny'}
-            >
-              <Trash2 className="w-3.5 h-3.5 text-rose-400" />
-              <span>{locale === 'en' ? 'Delete all' : 'Smazat všechny agenty'}</span>
-            </button>
+            <div className="flex items-center gap-2 flex-wrap">
+              <div className="inline-flex items-center p-1 rounded-xl bg-slate-950/80 border border-slate-800 text-xs font-mono">
+                <button
+                  type="button"
+                  onClick={() => setActiveAgentsTab('active')}
+                  className={`px-3 py-1 rounded-lg transition-all cursor-pointer font-bold ${
+                    activeAgentsTab === 'active'
+                      ? 'bg-cyan-950 text-cyan-300 border border-cyan-500/40 shadow-sm'
+                      : 'text-slate-400 hover:text-slate-200'
+                  }`}
+                >
+                  {t.launcher.tabActiveMissions} ({activeAgents.length})
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setActiveAgentsTab('purchased')}
+                  className={`px-3 py-1 rounded-lg transition-all cursor-pointer font-bold ${
+                    activeAgentsTab === 'purchased'
+                      ? 'bg-cyan-950 text-cyan-300 border border-cyan-500/40 shadow-sm'
+                      : 'text-slate-400 hover:text-slate-200'
+                  }`}
+                >
+                  {t.launcher.tabPurchasedHistory} ({purchasedAgents.length})
+                </button>
+              </div>
+
+              {activeAgentsTab === 'active' && activeAgents.length > 0 && (
+                <button
+                  type="button"
+                  onClick={handleDeleteAllAgents}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-rose-950/40 hover:bg-rose-950/80 text-rose-300 border border-rose-500/30 hover:border-rose-400 text-xs font-mono transition-all cursor-pointer"
+                  title={locale === 'en' ? 'Delete all agents from library' : 'Smazat všechny agenty z knihovny'}
+                >
+                  <Trash2 className="w-3.5 h-3.5 text-rose-400" />
+                  <span>{locale === 'en' ? 'Delete all' : 'Smazat všechny agenty'}</span>
+                </button>
+              )}
+            </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {agents.map((rawAgent) => {
-              const agent = getLocalizedAgent(rawAgent, locale) || rawAgent;
-              return (
-              <div
-                key={agent.id}
-                onClick={() => onSelectAgent(agent, true)}
-                className="group p-5 rounded-3xl bg-[#060c18] border border-cyan-500/25 hover:border-cyan-500/40 shadow-md hover:shadow-[#121e3d]/40 transition-all cursor-pointer flex flex-col justify-between space-y-4 relative overflow-hidden"
-              >
-                <div className="space-y-3">
-                  <div className="flex items-center justify-end">
-                    <div className="flex items-center gap-1.5">
-                      <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-slate-900 border border-slate-800 text-slate-400">
-                        {agent.questions.length} {locale === 'en' ? 'questions' : 'otázek'}
+          {displayedAgents.length === 0 && activeAgentsTab === 'purchased' && (
+            <div className="p-8 text-center rounded-3xl bg-[#060c18] border border-cyan-500/20 space-y-2">
+              <h3 className="text-sm font-bold text-slate-200">{t.launcher.emptyPurchasedTitle}</h3>
+              <p className="text-xs text-slate-400 max-w-md mx-auto leading-relaxed">{t.launcher.emptyPurchasedDesc}</p>
+            </div>
+          )}
+
+          {displayedAgents.length > 0 && (
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {displayedAgents.map((rawAgent) => {
+                const agent = getLocalizedAgent(rawAgent, locale) || rawAgent;
+                return (
+                  <div
+                    key={agent.id}
+                    onClick={() => onSelectAgent(agent, true)}
+                    className="group p-5 rounded-3xl bg-[#060c18] border border-cyan-500/25 hover:border-cyan-500/40 shadow-md hover:shadow-[#121e3d]/40 transition-all cursor-pointer flex flex-col justify-between space-y-4 relative overflow-hidden"
+                  >
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between gap-1">
+                        <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-slate-900 border border-slate-800 text-slate-400">
+                          {agent.questions.length} {locale === 'en' ? 'questions' : 'otázek'}
+                        </span>
+
+                        <div className="flex items-center gap-1.5">
+                          {activeAgentsTab === 'active' ? (
+                            <button
+                              type="button"
+                              onClick={(e) => handleMarkPurchased(e, rawAgent)}
+                              className="p-1.5 rounded-lg text-slate-500 hover:text-emerald-400 hover:bg-emerald-950/40 border border-transparent hover:border-emerald-500/30 transition-all cursor-pointer"
+                              title={locale === 'en' ? 'Mark as Purchased (Move to History & Support)' : 'Označit jako zakoupené (Přesunout do historie)'}
+                              aria-label={`${locale === 'en' ? 'Mark as purchased' : 'Označit jako zakoupené'} ${agent.name}`}
+                            >
+                              <Check className="w-3.5 h-3.5" />
+                            </button>
+                          ) : (
+                            <button
+                              type="button"
+                              onClick={(e) => handleRestoreActive(e, rawAgent.id)}
+                              className="p-1.5 rounded-lg text-slate-500 hover:text-cyan-400 hover:bg-cyan-950/40 border border-transparent hover:border-cyan-500/30 transition-all cursor-pointer"
+                              title={locale === 'en' ? 'Restore back to active missions' : 'Vrátit zpět mezi aktivní nákupy'}
+                              aria-label={`${locale === 'en' ? 'Restore agent' : 'Obnovit agenta'} ${agent.name}`}
+                            >
+                              <RotateCcw className="w-3.5 h-3.5" />
+                            </button>
+                          )}
+
+                          <button
+                            type="button"
+                            onClick={(e) => handleDeleteAgent(e, rawAgent.id)}
+                            className="p-1.5 rounded-lg text-slate-500 hover:text-rose-400 hover:bg-rose-950/40 border border-transparent hover:border-rose-500/30 transition-all cursor-pointer"
+                            title={locale === 'en' ? 'Remove from library' : 'Smazat agenta z knihovny'}
+                            aria-label={`${locale === 'en' ? 'Delete agent' : 'Smazat agenta'} ${agent.name}`}
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      </div>
+
+                      <div>
+                        <h3 className="font-extrabold text-base text-white group-hover:text-cyan-300 transition-colors">
+                          {agent.name}
+                        </h3>
+                        <span className="text-[11px] font-mono text-cyan-400/80">
+                          {agent.category}
+                        </span>
+                      </div>
+
+                      <p className="text-xs text-slate-400 leading-relaxed line-clamp-2">
+                        {agent.description}
+                      </p>
+                    </div>
+
+                    <div className="pt-3 border-t border-slate-800/80 flex items-center justify-between text-xs">
+                      <span className="text-[11px] font-mono text-slate-500">
+                        {rawAgent.isPurchased ? (
+                          <span className="text-cyan-400/90 font-bold">
+                            {t.launcher.purchasedBadge}
+                            {rawAgent.purchasedAt ? ` • ${new Date(rawAgent.purchasedAt).toLocaleDateString(locale === 'en' ? 'en-US' : 'cs-CZ')}` : ''}
+                          </span>
+                        ) : (
+                          locale === 'en' ? 'Custom agent' : 'Vlastní agent'
+                        )}
                       </span>
 
-                      <button
-                        type="button"
-                        onClick={(e) => handleDeleteAgent(e, agent.id)}
-                        className="p-1.5 rounded-lg text-slate-500 hover:text-rose-400 hover:bg-rose-950/40 transition-colors cursor-pointer"
-                        title={locale === 'en' ? 'Remove from library' : 'Smazat agenta z knihovny'}
-                        aria-label={`${locale === 'en' ? 'Delete agent' : 'Smazat agenta'} ${agent.name}`}
-                      >
-                        <Trash2 className="w-3.5 h-3.5" />
-                      </button>
+                      <span className="flex items-center gap-1 text-cyan-400 font-bold group-hover:translate-x-1 transition-transform">
+                        <span>{locale === 'en' ? 'Launch' : 'Spustit'}</span>
+                        <ChevronRight className="w-3.5 h-3.5" />
+                      </span>
                     </div>
                   </div>
-
-                  <div>
-                    <h3 className="font-extrabold text-base text-white group-hover:text-cyan-300 transition-colors">
-                      {agent.name}
-                    </h3>
-                    <span className="text-[11px] font-mono text-cyan-400/80">
-                      {agent.category}
-                    </span>
-                  </div>
-
-                  <p className="text-xs text-slate-400 leading-relaxed line-clamp-2">
-                    {agent.description}
-                  </p>
-                </div>
-
-                <div className="pt-3 border-t border-slate-800/80 flex items-center justify-between text-xs">
-                  <span className="text-[11px] font-mono text-slate-500">
-                    {locale === 'en' ? 'Custom agent' : 'Vlastní agent'}
-                  </span>
-
-                  <span className="flex items-center gap-1 text-cyan-400 font-bold group-hover:translate-x-1 transition-transform">
-                    <span>{locale === 'en' ? 'Launch' : 'Spustit'}</span>
-                    <ChevronRight className="w-3.5 h-3.5" />
-                  </span>
-                </div>
-              </div>
-            );})}
-          </div>
+                );
+              })}
+            </div>
+          )}
         </div>
       )}
+
+      {/* Buy Me a Coffee Modal */}
+      <BuyMeACoffeeModal
+        isOpen={Boolean(bmcModalAgent)}
+        onClose={() => setBmcModalAgent(null)}
+        agent={bmcModalAgent}
+        locale={locale}
+      />
       {toastMessage && (
         <Toast
           type={toastType}

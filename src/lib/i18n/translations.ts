@@ -230,6 +230,13 @@ export interface Translations {
     deleteAllAgents: string;
     deleteAgentConfirm: string;
     deleteAllAgentsConfirm: string;
+    tabActiveMissions: string;
+    tabPurchasedHistory: string;
+    btnMarkPurchased: string;
+    btnRestoreActive: string;
+    emptyPurchasedTitle: string;
+    emptyPurchasedDesc: string;
+    purchasedBadge: string;
   };
   brandSelector: {
     preferredTitle: string;
@@ -573,6 +580,13 @@ export const translations: Record<SupportedLocale, Translations> = {
       deleteAllAgents: 'Smazat všechny agenty',
       deleteAgentConfirm: 'Opravdu si přejete smazat tohoto agenta ze své knihovny?',
       deleteAllAgentsConfirm: 'Opravdu si přejete smazat všechny uložené nákupní agenty?',
+      tabActiveMissions: 'Aktivní nákupy',
+      tabPurchasedHistory: 'Zakoupeno & Historie',
+      btnMarkPurchased: 'Zakoupeno',
+      btnRestoreActive: 'Vrátit mezi aktivní',
+      emptyPurchasedTitle: 'Zatím žádné zakoupené položky',
+      emptyPurchasedDesc: 'Až nákup dokončíte, označte agenta tlačítkem Zakoupeno. Přesune se vám přehledně sem do historie.',
+      purchasedBadge: 'Zakoupeno',
     },
     brandSelector: {
       preferredTitle: 'Preferované značky (prioritní):',
@@ -914,6 +928,13 @@ export const translations: Record<SupportedLocale, Translations> = {
       deleteAllAgents: 'Delete All Agents',
       deleteAgentConfirm: 'Are you sure you want to delete this agent from your library?',
       deleteAllAgentsConfirm: 'Are you sure you want to delete all saved shopping agents?',
+      tabActiveMissions: 'Active Missions',
+      tabPurchasedHistory: 'Purchased & History',
+      btnMarkPurchased: 'Purchased',
+      btnRestoreActive: 'Restore to Active',
+      emptyPurchasedTitle: 'No purchased items yet',
+      emptyPurchasedDesc: 'When you complete a purchase, mark the shopping advisor as Purchased to archive it here.',
+      purchasedBadge: 'Purchased',
     },
     brandSelector: {
       preferredTitle: 'Preferred brands (prioritized):',

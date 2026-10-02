@@ -69,6 +69,52 @@ export class AgentStorageService {
   }
 
   /**
+   * Marks an agent as purchased (or restores it back to active)
+   */
+  static markAgentAsPurchased(agentId: string, isPurchased: boolean = true): UniversalAgentDefinition | null {
+    if (typeof window === 'undefined') return null;
+
+    try {
+      const existing = this.getAllAgents();
+      let targetAgent: UniversalAgentDefinition | null = null;
+      const updated = existing.map((a) => {
+        if (a.id === agentId) {
+          targetAgent = {
+            ...a,
+            isPurchased,
+            purchasedAt: isPurchased ? new Date().toISOString() : undefined,
+            updatedAt: new Date().toISOString(),
+          };
+          return targetAgent;
+        }
+        return a;
+      });
+
+      if (targetAgent) {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
+      }
+      return targetAgent;
+    } catch (e) {
+      console.error('Failed to mark agent as purchased:', e);
+      return null;
+    }
+  }
+
+  /**
+   * Retrieves active (non-purchased) agents
+   */
+  static getActiveAgents(): UniversalAgentDefinition[] {
+    return this.getAllAgents().filter((a) => !a.isPurchased);
+  }
+
+  /**
+   * Retrieves purchased agents
+   */
+  static getPurchasedAgents(): UniversalAgentDefinition[] {
+    return this.getAllAgents().filter((a) => Boolean(a.isPurchased));
+  }
+
+  /**
    * Deletes ANY agent by ID (including default presets)
    */
   static deleteAgent(agentId: string): boolean {

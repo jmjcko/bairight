@@ -14,10 +14,12 @@ interface UserProfileCapsuleProps {
   activeProvider?: AIProviderConfig;
   onOpenSubscriptionModal?: () => void;
   onOpenMemoryModal: () => void;
+  onOpenPurchaseHistory?: () => void;
 }
 
 export const UserProfileCapsule: React.FC<UserProfileCapsuleProps> = ({
   onOpenMemoryModal,
+  onOpenPurchaseHistory,
 }) => {
   const { user, logout, isLoginModalOpen, setIsLoginModalOpen, isClientIdModalOpen, setIsClientIdModalOpen } = useAuth();
   const { locale } = useI18n();
@@ -131,6 +133,18 @@ export const UserProfileCapsule: React.FC<UserProfileCapsuleProps> = ({
                 >
                   <span>{locale === "en" ? "AI Memory & History" : "Paměť AI & Historie"}</span>
                 </button>
+
+                {onOpenPurchaseHistory && (
+                  <button
+                    onClick={() => {
+                      setIsDropdownOpen(false);
+                      onOpenPurchaseHistory();
+                    }}
+                    className="w-full flex items-center gap-2 px-2.5 py-2 rounded-lg hover:bg-slate-850 text-slate-300 hover:text-cyan-300 transition-colors cursor-pointer"
+                  >
+                    <span>{locale === "en" ? "Purchase History" : "Historie nákupů"}</span>
+                  </button>
+                )}
 
                 <button
                   onClick={() => {

@@ -230,6 +230,14 @@ export default function Home() {
   }, [isEn, selectedAgent]);
   const [storedAgents, setStoredAgents] = useState<UniversalAgentDefinition[]>([]);
   const [wizardMode, setWizardMode] = useState<'launcher' | 'active_agent'>('launcher');
+  const [launcherInitialTab, setLauncherInitialTab] = useState<'active' | 'purchased'>('active');
+
+  const handleOpenPurchaseHistory = () => {
+    setActiveTab('wizard');
+    setSelectedAgent(null);
+    setWizardMode('launcher');
+    setLauncherInitialTab('purchased');
+  };
   const [activeProviderId, setActiveProviderId] = useState<AIProviderId>('google_gemini');
   const [apiKeys, setApiKeys] = useState<Record<string, string>>({});
   const [userFacts, setUserFacts] = useState<PersistentMemoryFact[]>([]);
@@ -788,6 +796,7 @@ export default function Home() {
             activeProvider={activeProvider}
             onOpenSubscriptionModal={() => setIsSubscriptionModalOpen(true)}
             onOpenMemoryModal={() => setIsMemoryModalOpen(true)}
+            onOpenPurchaseHistory={handleOpenPurchaseHistory}
           />
         </div>
       </header>
@@ -799,6 +808,7 @@ export default function Home() {
             <AgentCategoryLauncher
               userName="Jan Mynář"
               currentAgent={selectedAgent}
+              initialTab={launcherInitialTab}
               onSelectAgent={(agent, initialShowResult = false) => {
                 handleSelectAgent(agent, initialShowResult);
                 setWizardMode('active_agent');
