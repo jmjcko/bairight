@@ -616,7 +616,7 @@ const [researchError, setResearchError] = useState<string | null>(null);
 
                         <div className="min-w-0 flex-1 pr-7">
                           <div className="flex items-center gap-2 flex-wrap">
-                            <span className={`text-sm sm:text-base font-extrabold tracking-tight leading-snug line-clamp-1 break-words ${isSelected ? 'text-slate-100 group-hover:text-cyan-300' : 'text-slate-400'}`}>
+                            <span className={`text-sm sm:text-base font-extrabold tracking-tight leading-snug line-clamp-2 break-words ${isSelected ? 'text-slate-100 group-hover:text-cyan-300' : 'text-slate-400'}`}>
                               {formatConciseParameterName(param.name)}
                             </span>
                             {param.id.startsWith('learned-') && !param.id.startsWith('custom_') && (
@@ -1006,7 +1006,6 @@ export function formatShortDescription(rationale: string, locale: string = "en")
 
 export function formatConciseParameterName(name: string): string {
   if (!name) return '';
-  if (name.length <= 22) return name;
   const shortMap: Record<string, string> = {
     'Servisní dostupnost & náhradní díly v ČR': 'Servisní podpora',
     'Rozlišení a kvalita snímače fotoaparátu': 'Fotoaparát',
@@ -1018,5 +1017,6 @@ export function formatConciseParameterName(name: string): string {
     'Výdrž baterie a nabíjení': 'Baterie',
   };
   if (shortMap[name]) return shortMap[name];
-  return name.slice(0, 18) + '...';
+  if (name.length <= 65) return name;
+  return name.slice(0, 62) + '...';
 }

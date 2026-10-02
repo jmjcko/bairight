@@ -324,4 +324,46 @@ describe('DynamicAgentWizard Unit Test Suite (PRD v1)', () => {
       expect(screen.queryByText('Do 6 000 Kč')).not.toBeInTheDocument();
     });
   });
+
+  it('11. Zobrazí BYOK modal při kliknutí na Spustit živý chat bez připojeného API klíče a umožní otevřít Vault', async () => {
+    const mockOpenSubscription = vi.fn();
+    render(
+      <DynamicAgentWizard
+        agent={PRESET_ERGO_CHAIR_AGENT}
+        currentApiKeys={{}}
+        onOpenSubscriptionModal={mockOpenSubscription}
+      />
+    );
+
+    // Step through the steps to reach results
+    for (let i = 0; i < 4; i++) {
+      fireEvent.click(screen.getByRole('button', { name: /^Pokračovat$/i }));
+    }
+
+    const generateBtn = screen.getByRole('button', { name: /Vyhodnotit & Doporučit|Vygenerovat doporučení agenta/i });
+    fireEvent.click(generateBtn);
+
+    // Wait for delivery hub
+    await waitFor(() => {
+      expect(screen.getByText(/Spustit živý chat & Výsledky agenta/i)).toBeInTheDocument();
+    });
+
+    // Click on chat hero card without API key
+    const chatHeroBtn = screen.getByText(/Spustit živý chat & Výsledky agenta/i).closest('div[class*="cursor-pointer"]') || screen.getByText(/Spustit živý chat & Výsledky agenta/i);
+    fireEvent.click(chatHeroBtn);
+
+    // BYOK modal must be rendered
+    await waitFor(() => {
+      expect(screen.getByText(/Propojte svůj AI klíč pro živou diskusi s agentem/i)).toBeInTheDocument();
+      expect(screen.getByText(/Správa klíčů ve Vaultu/i)).toBeInTheDocument();
+    });
+
+    // Clicking 'Správa klíčů ve Vaultu' triggers vault modal opening
+    const vaultBtn = screen.getByRole('button', { name: /Správa klíčů ve Vaultu/i });
+    fireEvent.click(vaultBtn);
+    expect(mockOpenSubscription).toHaveBeenCalledTimes(1);
+
+    // Modal is dismissed
+    expect(screen.queryByText(/Propojte svůj AI klíč pro živou diskusi s agentem/i)).not.toBeInTheDocument();
+  });
 });

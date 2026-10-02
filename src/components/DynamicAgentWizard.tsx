@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useMemo, useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { 
   UniversalAgentDefinition, 
   UniversalEvaluationResult, 
@@ -234,6 +235,11 @@ export const DynamicAgentWizard: React.FC<DynamicAgentWizardProps> = ({
   const [isRecalculatingWithFeedback, setIsRecalculatingWithFeedback] = useState<boolean>(false);
   const [feedbackSavedNotification, setFeedbackSavedNotification] = useState<string | null>(null);
   const [showBYOKHintModal, setShowBYOKHintModal] = useState<boolean>(false);
+  const [mounted, setMounted] = useState<boolean>(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   // Baseline Product Experience Mode State ('first_purchase' | 'has_experience' | null)
   const [baselineMode, setBaselineMode] = useState<'first_purchase' | 'has_experience' | null>(() => {
@@ -2232,6 +2238,98 @@ export const DynamicAgentWizard: React.FC<DynamicAgentWizardProps> = ({
         }}
         isSubmitting={isSubmitting}
       />
+
+      {/* BYOK Required Notice Modal (Cyber-glass) */}
+      {showBYOKHintModal && mounted && typeof document !== 'undefined' && createPortal(
+        <div
+          role="dialog"
+          aria-modal="true"
+          className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-slate-950/85 backdrop-blur-md animate-in fade-in duration-200 overflow-y-auto"
+          onClick={() => setShowBYOKHintModal(false)}
+        >
+          <div
+            className="w-full max-w-lg max-h-[90vh] overflow-y-auto bg-[#070d18] border-2 border-cyan-500/40 rounded-3xl p-6 sm:p-8 shadow-[0_20px_70px_rgba(6,182,212,0.3)] relative text-left space-y-6"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Header with Monospace Tag */}
+            <div className="flex items-start justify-between gap-3 border-b border-cyan-500/20 pb-4">
+              <div>
+                <span className="inline-block text-[10px] font-mono font-bold tracking-widest text-cyan-400 uppercase bg-cyan-950/80 px-2.5 py-0.5 rounded border border-cyan-500/30 mb-2">
+                  {locale === 'en' ? 'BYOK MODEL REQUIRED • LIVE CHAT' : 'VYŽADUJE VLASTNÍ AI MODEL • ŽIVÝ CHAT'}
+                </span>
+                <h2 className="text-lg sm:text-xl font-black text-white tracking-tight">
+                  {locale === 'en'
+                    ? 'Connect your AI key for live discussion'
+                    : 'Propojte svůj AI klíč pro živou diskusi s agentem'}
+                </h2>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowBYOKHintModal(false)}
+                className="p-1.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-400 hover:text-white hover:border-cyan-400/50 transition-colors cursor-pointer shrink-0"
+                aria-label={locale === 'en' ? 'Close dialog' : 'Zavřít dialog'}
+              >
+                <span className="font-mono text-sm leading-none block">✕</span>
+              </button>
+            </div>
+
+            {/* Content Body */}
+            <div className="space-y-4 text-xs sm:text-sm text-slate-300 leading-relaxed font-sans">
+              <div className="p-4 rounded-2xl bg-cyan-950/20 border border-cyan-500/30 space-y-2">
+                <p className="text-slate-200 leading-relaxed">
+                  {locale === 'en'
+                    ? 'To start an interactive consultative discussion and tune product parameters in real-time, you need to connect your own AI API key (Google Gemini, OpenAI ChatGPT, Anthropic Claude, or local Ollama).'
+                    : 'Pro spuštění interaktivní konzultace a ladění doporučených produktů v reálném čase je potřeba připojit vlastní AI API klíč (Google Gemini, OpenAI ChatGPT, Anthropic Claude nebo lokální Ollama).'}
+                </p>
+                <div className="pt-1 flex flex-wrap gap-2 text-[11px] font-mono text-cyan-300">
+                  <span className="px-2 py-0.5 rounded bg-slate-900 border border-cyan-500/20">Google Gemini (Free tier)</span>
+                  <span className="px-2 py-0.5 rounded bg-slate-900 border border-cyan-500/20">OpenAI GPT-4o</span>
+                  <span className="px-2 py-0.5 rounded bg-slate-900 border border-cyan-500/20">Claude 3.5</span>
+                </div>
+              </div>
+
+              <div className="p-3.5 rounded-2xl bg-slate-900/70 border border-slate-800 space-y-1">
+                <span className="text-[11px] font-mono text-slate-400 font-bold block uppercase tracking-wider">
+                  {locale === 'en' ? 'Alternative: Free Download' : 'Alternativa: Stažení zdarma'}
+                </span>
+                <p className="text-xs text-slate-400 leading-relaxed">
+                  {locale === 'en'
+                    ? 'Don’t have an API key? You can download the complete .agent.md deliverable and paste it directly into your favorite AI web chat.'
+                    : 'Nemáte po ruce API klíč? Můžete si zdarma stáhnout kompletní soubor .agent.md a vložit ho přímo do webového rozhraní ChatGPT, Gemini nebo Claude.'}
+                </p>
+              </div>
+            </div>
+
+            {/* Actions */}
+            <div className="flex flex-col sm:flex-row items-center justify-end gap-3 pt-2">
+              <button
+                type="button"
+                onClick={() => setShowBYOKHintModal(false)}
+                className="w-full sm:w-auto px-5 py-2.5 rounded-xl text-xs font-semibold text-slate-400 hover:text-white bg-slate-900 hover:bg-slate-800 border border-slate-800 transition-colors cursor-pointer text-center"
+              >
+                <span>{locale === 'en' ? 'Dismiss' : 'Zavřít'}</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setShowBYOKHintModal(false);
+                  if (onOpenSubscriptionModal) {
+                    onOpenSubscriptionModal();
+                  } else if (onOpenChat) {
+                    onOpenChat(currentLivePrompt, result || previousResult, answers);
+                  }
+                }}
+                className="w-full sm:w-auto flex items-center justify-center gap-2 px-6 py-2.5 rounded-xl text-xs font-bold bg-gradient-to-r from-cyan-500 to-teal-400 text-slate-950 hover:brightness-110 shadow-[0_0_20px_rgba(6,182,212,0.35)] transition-all cursor-pointer text-center"
+              >
+                <span>{locale === 'en' ? 'Manage Keys in Vault' : 'Správa klíčů ve Vaultu'}</span>
+                <span className="text-sm">→</span>
+              </button>
+            </div>
+          </div>
+        </div>,
+        document.body
+      )}
     </div>
   );
 };

@@ -1,6 +1,7 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { UniversalAgentDefinition } from '@/lib/agent/universal-agent-schema';
 import { SupportedLocale } from '@/lib/i18n/translations';
 import { X, ExternalLink } from 'lucide-react';
@@ -20,6 +21,12 @@ export const BuyMeACoffeeModal: React.FC<BuyMeACoffeeModalProps> = ({
   locale,
   buyMeACoffeeUrl,
 }) => {
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   if (!isOpen || !agent) return null;
 
   const effectiveUrl =
@@ -29,16 +36,16 @@ export const BuyMeACoffeeModal: React.FC<BuyMeACoffeeModalProps> = ({
 
   const isEn = locale === 'en';
 
-  return (
+  const modalContent = (
     <div
       role="dialog"
       aria-modal="true"
       aria-labelledby="bmc-modal-title"
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/85 backdrop-blur-md animate-in fade-in duration-200"
+      className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-slate-950/85 backdrop-blur-md animate-in fade-in duration-200 overflow-y-auto"
       onClick={onClose}
     >
       <div
-        className="w-full max-w-lg bg-[#070d18] border-2 border-cyan-500/40 rounded-3xl p-6 sm:p-8 shadow-[0_20px_70px_rgba(6,182,212,0.3)] relative text-left space-y-6"
+        className="w-full max-w-lg max-h-[90vh] overflow-y-auto bg-[#070d18] border-2 border-cyan-500/40 rounded-3xl p-6 sm:p-8 shadow-[0_20px_70px_rgba(6,182,212,0.3)] relative text-left space-y-6"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
@@ -118,4 +125,8 @@ export const BuyMeACoffeeModal: React.FC<BuyMeACoffeeModalProps> = ({
       </div>
     </div>
   );
+
+  return mounted && typeof document !== 'undefined'
+    ? createPortal(modalContent, document.body)
+    : null;
 };
