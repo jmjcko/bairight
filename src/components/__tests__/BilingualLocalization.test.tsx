@@ -8,6 +8,9 @@ import Home from '@/app/page';
 describe('Bilingual Localization & Language Switcher Suite', () => {
   beforeEach(() => {
     localStorage.clear();
+    if (typeof document !== 'undefined') {
+      document.cookie = 'bairight_locale=; path=/; max-age=0';
+    }
   });
 
   it('1. LanguageSwitcher renders with active English locale by default', () => {

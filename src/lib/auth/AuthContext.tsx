@@ -2,6 +2,7 @@
 
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
+import { getSavedLocale, persistLocale } from "@/lib/i18n/I18nContext";
 
 export interface UserProfile {
   id: string;
@@ -9,6 +10,7 @@ export interface UserProfile {
   name: string;
   avatarUrl?: string;
   provider: "google" | "supabase";
+  preferredLocale?: "cs" | "en";
 }
 
 interface AuthContextType {
@@ -62,7 +64,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       const savedSession = localStorage.getItem(LOCAL_STORAGE_KEY);
       if (savedSession) {
-        setUser(JSON.parse(savedSession));
+        const parsed = JSON.parse(savedSession);
+        setUser(parsed);
+        if (parsed && (parsed.preferredLocale === 'cs' || parsed.preferredLocale === 'en')) {
+          persistLocale(parsed.preferredLocale);
+        }
       }
     } catch {
       // Ignore
@@ -128,6 +134,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       name: payload.name || payload.email.split("@")[0],
       avatarUrl: payload.picture,
       provider: "google",
+      preferredLocale: getSavedLocale(),
     };
 
     setUser(realGoogleProfile);
@@ -183,6 +190,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                         name: userInfo.name || userInfo.email.split("@")[0],
                         avatarUrl: userInfo.picture,
                         provider: "google",
+                        preferredLocale: getSavedLocale(),
                       };
                       setUser(realGoogleProfile);
                       if (typeof window !== "undefined") {
