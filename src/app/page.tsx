@@ -5,6 +5,7 @@ import { APP_VERSION } from '@/lib/version';
 
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { AgentChatMessage } from '@/lib/agent/types';
+import { RecommendedProductRankingItem, extractRecommendedProductsFromMessages } from '@/lib/agent/ranking-parser';
 import { ToolExecutionBadge } from '@/components/ToolExecutionBadge';
 import { Logo } from '@/components/Logo';
 import { UserProfileCapsule } from '@/components/UserProfileCapsule';
@@ -52,40 +53,33 @@ import {
 
 export type AppTab = 'wizard' | 'chat';
 
-const INITIAL_GREETING_EN: AgentChatMessage = {
-  id: 'greeting-1',
-  role: 'assistant',
-  content: `### Welcome to bAIright: Your Universal AI Shopping Advisor & Prompt Engineer
+const getAgentInitialGreeting = (agent: UniversalAgentDefinition | null, isEn: boolean): AgentChatMessage => {
+  if (!agent) {
+    return {
+      id: 'greeting-root',
+      role: 'assistant',
+      content: isEn
+        ? `### Welcome to bAIright\n\nI am your independent AI shopping expert. Select an agent or type your requirements to get started.`
+        : `### Vítejte v bAIright\n\nJsem váš nezávislý nákupní rádce. Vyberte si agenta nebo zadejte své požadavky pro zahájení.`,
+      timestamp: new Date().toISOString(),
+    };
+  }
 
-I am your independent AI shopping expert powered by contextual RAG memory.
-I will help you find and configure the ideal product based on your technical, ergonomic, and budget requirements:
+  let displayName = agent.name;
+  if (displayName.toLowerCase().startsWith('specialist:')) {
+    const topic = displayName.replace(/^specialist:\s*/i, '').trim();
+    const capitalizedTopic = topic.charAt(0).toUpperCase() + topic.slice(1);
+    displayName = isEn ? `${capitalizedTopic} Specialist Advisor` : `Specialista: ${capitalizedTopic}`;
+  }
 
-- **Cars & Family Vehicles** (powertrains, cargo volume, total cost of ownership)
-- **Sports & Health Footwear** (biomechanics, gait, foot width, cushioning)
-- **Coffee Machines & Espresso** (extraction pressure, milk systems, burr grinders)
-- **Ergonomic Seating & Chairs** (lumbar support, synchronous mechanism, armrests)
-- **Any Custom Category on Demand**
-
-Enter your requirements below or select an agent above to start an interactive wizard.`,
-  timestamp: new Date().toISOString(),
-};
-
-const INITIAL_GREETING_CS: AgentChatMessage = {
-  id: 'greeting-1',
-  role: 'assistant',
-  content: `### Vítejte v bAIright: Váš univerzální nákupní rádce & prompt inženýr
-
-Jsem váš nezávislý nákupní expert poháněný umělou inteligencí s kontextovou RAG pamětí.
-Pomohu vám vybrat jakýkoliv produkt na základě vašich technických, ergonomických a cenových požadavků:
-
-- **Automobily & rodinné vozy** (motorizace, prostor, provozní náklady)
-- **Sportovní & zdravotní obuv** (biomechanika, došlap, šířka kopyta, tlumení)
-- **Kávovary & příprava kávy** (espresso, mléčný systém, mlecí kameny)
-- **Ergonomické sezení & židle** (ochrana páteře, mechanika, područky)
-- **Jakákoliv další kategorie na míru**
-
-Zadejte své požadavky nebo vyberte agenta výše pro spuštění interaktivního průvodce.`,
-  timestamp: new Date().toISOString(),
+  return {
+    id: `greeting-${agent.id}`,
+    role: 'assistant',
+    content: isEn
+      ? `### ${displayName}\n\nI am your specialized AI advisor. Feel free to ask me anything regarding product selection, technical specifications, or model comparisons.`
+      : `### ${displayName}\n\nJsem váš specializovaný AI nákupní rádce. Zeptejte se mě na cokoliv ohledně výběru, technických parametrů nebo porovnání modelů.`,
+    timestamp: new Date().toISOString(),
+  };
 };
 
 const isPromptDump = (content: string) => {
@@ -100,9 +94,35 @@ const isPromptDump = (content: string) => {
   );
 };
 
+const isLegacyGenericGreeting = (content: string) => {
+  return (
+    content.includes('Cars & Family Vehicles') ||
+    content.includes('Automobily & rodinné vozy') ||
+    content.includes('YOUR UNIVERSAL AI SHOPPING ADVISOR') ||
+    content.includes('Váš univerzální nákupní rádce') ||
+    content.includes('Welcome to bAIright: Your Universal') ||
+    content.includes('Any Custom Category on Demand')
+  );
+};
+
 const getAgentQuickPrompts = (agent: UniversalAgentDefinition | null, isEn: boolean) => {
+  const rerunAction = isEn
+    ? { label: 'Re-run research', text: 'Please re-run the market research based on my active parameters and recommend 3 current top models.' }
+    : { label: 'Provést průzkum znovu', text: 'Proveď prosím průzkum trhu znovu na základě mých aktuálních parametrů a doporuč 3 nejlepší modely.' };
+
   if (!agent) {
-    return [];
+    return [
+      rerunAction,
+      ...(isEn ? [
+        { label: 'Compare top 2 choices in detail', text: 'Please give me a side-by-side comparison of the top 2 recommendations: key differences, pros, and trade-offs.' },
+        { label: 'Value for money verdict', text: 'Considering price and features, which option delivers the absolute best value for money?' },
+        { label: 'Lower budget alternatives', text: 'Are there any alternative models at a lower price point that still meet my mandatory criteria?' },
+      ] : [
+        { label: 'Porovnej 2 nejlepší v detailu', text: 'Proveď přímé srovnání 2 nejlepších doporučení: hlavní rozdíly, klíčové výhody a kompromisy.' },
+        { label: 'Nejlepší poměr cena / výkon', text: 'Když zvážíme cenu a nabízené vlastnosti, která volba představuje nejvýhodnější investici?' },
+        { label: 'Levnější alternativy', text: 'Existují alternativní modely s nižší cenovkou, které stále splňují má nejdůležitější kritéria?' },
+      ])
+    ];
   }
   const name = (agent.name || '').toLowerCase();
   const cat = (agent.category || '').toLowerCase();
@@ -110,60 +130,72 @@ const getAgentQuickPrompts = (agent: UniversalAgentDefinition | null, isEn: bool
 
   // Cycling shoes
   if (name.includes('cycling') || cat.includes('cycling') || id.includes('cycling') || name.includes('tret') || cat.includes('tret')) {
-    return isEn ? [
-      { label: 'Compare top 2 models in detail', text: 'Please provide a head-to-head comparison of the top 2 recommended cycling shoes: stiffness, fit volume, closure security, and walking stability.' },
-      { label: 'Cleat & pedal compatibility', text: 'Which pedal systems and cleat standards (Look Keo, Shimano SPD-SL, Speedplay) are directly compatible with these shoes?' },
-      { label: 'Sizing & wide fit advice', text: 'How do these brands (Specialized, Shimano, Lake, Sidi) run in terms of width and EU sizing? Should I size up?' },
-      { label: 'Alternative models under budget', text: 'Are there any great value alternatives that retain high stiffness and BOA dials at a lower price point?' },
-    ] : [
-      { label: 'Detailní porovnání 2 nejlepších modelů', text: 'Proveď přímé porovnání 2 nejlepších doporučených treter: tuhost podešve, objem v prstech, zapínání a stabilita při chůzi.' },
-      { label: 'Kompatibilita kufrů a pedálů', text: 'Které pedálové systémy a kufry (Look Keo, Shimano SPD-SL, Speedplay) jsou s těmito tretrami přímo kompatibilní?' },
-      { label: 'Doporučení k volbě velikosti a šířky', text: 'Jak sedí tyto značky z hlediska šířky kopyta a číslování? Mám brát o půl čísla větší velikost?' },
-      { label: 'Cenově dostupnější alternativy', text: 'Existují alternativy s výborným poměrem cena/výkon, které si zachovávají karbonovou podrážku a BOA zapínání?' },
+    return [
+      rerunAction,
+      ...(isEn ? [
+        { label: 'Compare top 2 models in detail', text: 'Please provide a head-to-head comparison of the top 2 recommended cycling shoes: stiffness, fit volume, closure security, and walking stability.' },
+        { label: 'Cleat & pedal compatibility', text: 'Which pedal systems and cleat standards (Look Keo, Shimano SPD-SL, Speedplay) are directly compatible with these shoes?' },
+        { label: 'Sizing & wide fit advice', text: 'How do these brands (Specialized, Shimano, Lake, Sidi) run in terms of width and EU sizing? Should I size up?' },
+        { label: 'Alternative models under budget', text: 'Are there any great value alternatives that retain high stiffness and BOA dials at a lower price point?' },
+      ] : [
+        { label: 'Detailní porovnání 2 nejlepších modelů', text: 'Proveď přímé porovnání 2 nejlepších doporučených treter: tuhost podešve, objem v prstech, zapínání a stabilita při chůzi.' },
+        { label: 'Kompatibilita kufrů a pedálů', text: 'Které pedálové systémy a kufry (Look Keo, Shimano SPD-SL, Speedplay) jsou s těmito tretrami přímo kompatibilní?' },
+        { label: 'Doporučení k volbě velikosti a šířky', text: 'Jak sedí tyto značky z hlediska šířky kopyta a číslování? Mám brát o půl čísla větší velikost?' },
+        { label: 'Cenově dostupnější alternativy', text: 'Existují alternativy s výborným poměrem cena/výkon, které si zachovávají karbonovou podrážku a BOA zapínání?' },
+      ])
     ];
   }
 
   // Coffee machines
   if (name.includes('coffee') || cat.includes('coffee') || id.includes('coffee') || name.includes('káv') || cat.includes('káv')) {
-    return isEn ? [
-      { label: 'Compare top 2 machines in detail', text: 'Compare the top 2 recommended coffee machines in detail: grinder quality, milk texture, and daily cleaning effort.' },
-      { label: 'Maintenance & descaling', text: 'What is the required maintenance and how easy is the milk system to clean on these models?' },
-      { label: 'Espresso quality vs ease of use', text: 'Which machine produces the richest crema and espresso while being simple for everyday use?' },
-      { label: 'Best value alternative', text: 'Is there a slightly cheaper model that still offers great espresso and automatic milk frothing?' },
-    ] : [
-      { label: 'Porovnání 2 nejlepších kávovarů', text: 'Porovnej 2 nejlepší doporučené kávovary v detailu: kvalita mlýnku, pěnění mléka a náročnost čištění.' },
-      { label: 'Údržba a čištění mléčných cest', text: 'Jak složitá je každodenní údržba mléčného systému a odvápňování u těchto modelů?' },
-      { label: 'Kvalita espressa vs jednoduchost', text: 'Který kávovar udělá nejhustší cremu a plnou chuť při maximální jednoduchosti obsluhy?' },
-      { label: 'Dostupnější alternativa', text: 'Doporuč alternativní model s nižší cenou, který stále splňuje mé hlavní požadavky.' },
+    return [
+      rerunAction,
+      ...(isEn ? [
+        { label: 'Compare top 2 machines in detail', text: 'Compare the top 2 recommended coffee machines in detail: grinder quality, milk texture, and daily cleaning effort.' },
+        { label: 'Maintenance & descaling', text: 'What is the required maintenance and how easy is the milk system to clean on these models?' },
+        { label: 'Espresso quality vs ease of use', text: 'Which machine produces the richest crema and espresso while being simple for everyday use?' },
+        { label: 'Best value alternative', text: 'Is there a slightly cheaper model that still offers great espresso and automatic milk frothing?' },
+      ] : [
+        { label: 'Porovnání 2 nejlepších kávovarů', text: 'Porovnej 2 nejlepší doporučené kávovary v detailu: kvalita mlýnku, pěnění mléka a náročnost čištění.' },
+        { label: 'Údržba a čištění mléčných cest', text: 'Jak složitá je každodenní údržba mléčného systému a odvápňování u těchto modelů?' },
+        { label: 'Kvalita espressa vs jednoduchost', text: 'Který kávovar udělá nejhustší cremu a plnou chuť při maximální jednoduchosti obsluhy?' },
+        { label: 'Dostupnější alternativa', text: 'Doporuč alternativní model s nižší cenou, který stále splňuje mé hlavní požadavky.' },
+      ])
     ];
   }
 
   // Running shoes
   if (name.includes('run') || cat.includes('run') || id.includes('run') || name.includes('běh') || cat.includes('běh')) {
-    return isEn ? [
-      { label: 'Compare top 2 shoes in detail', text: 'Compare the top 2 shoes in detail: cushioning softness, drop, stability, and lifespan.' },
-      { label: 'Knee & joint impact', text: 'How do these models help protect knees and joints during road running?' },
-      { label: 'Expected mileage lifespan', text: 'What is the expected mileage before midsole degradation on each model?' },
-      { label: 'Wide fit & sizing advice', text: 'Do these models offer a roomy toebox and how true to size are they?' },
-    ] : [
-      { label: 'Detailní porovnání 2 nejlepších bot', text: 'Porovnej 2 nejlepší boty v detailu: tlumení, drop, stabilita a celková životnost.' },
-      { label: 'Ochrana kolen a kloubů', text: 'Jak tyto modely pomáhají redukovat nárazy na kolena a šlachy při běhu po asfaltu?' },
-      { label: 'Očekávaná životnost (kilometry)', text: 'Kolik kilometrů vydrží mezipodešev a vzorek těchto bot před ztrátou tlumení?' },
-      { label: 'Šířka kopyta a velikost', text: 'Mají tyto modely dostatek prostoru pro prsty a jak sedí velikostně?' },
+    return [
+      rerunAction,
+      ...(isEn ? [
+        { label: 'Compare top 2 shoes in detail', text: 'Compare the top 2 shoes in detail: cushioning softness, drop, stability, and lifespan.' },
+        { label: 'Knee & joint impact', text: 'How do these models help protect knees and joints during road running?' },
+        { label: 'Expected mileage lifespan', text: 'What is the expected mileage before midsole degradation on each model?' },
+        { label: 'Wide fit & sizing advice', text: 'Do these models offer a roomy toebox and how true to size are they?' },
+      ] : [
+        { label: 'Detailní porovnání 2 nejlepších bot', text: 'Porovnej 2 nejlepší boty v detailu: tlumení, drop, stabilita a celková životnost.' },
+        { label: 'Ochrana kolen a kloubů', text: 'Jak tyto modely pomáhají redukovat nárazy na kolena a šlachy při běhu po asfaltu?' },
+        { label: 'Očekávaná životnost (kilometry)', text: 'Kolik kilometrů vydrží mezipodešev a vzorek těchto bot před ztrátou tlumení?' },
+        { label: 'Šířka kopyta a velikost', text: 'Mají tyto modely dostatek prostoru pro prsty a jak sedí velikostně?' },
+      ])
     ];
   }
 
   // Generic for any custom agent
-  return isEn ? [
-    { label: 'Compare top 2 choices in detail', text: 'Please give me a side-by-side comparison of the top 2 recommendations: key differences, pros, and trade-offs.' },
-    { label: 'Best durability & longevity', text: 'Which of the recommended options has the highest build quality and expected lifespan?' },
-    { label: 'Value for money verdict', text: 'Considering price and features, which option delivers the absolute best value for money?' },
-    { label: 'Lower budget alternatives', text: 'Are there any alternative models at a lower price point that still meet my mandatory criteria?' },
-  ] : [
-    { label: 'Porovnej 2 nejlepší v detailu', text: 'Proveď přímé srovnání 2 nejlepších doporučení: hlavní rozdíly, klíčové výhody a kompromisy.' },
-    { label: 'Který model má nejdelší životnost?', text: 'Která z doporučených možností vyniká nejlepší kvalitou zpracování a spolehlivostí?' },
-    { label: 'Nejlepší poměr cena / výkon', text: 'Když zvážíme cenu a nabízené vlastnosti, která volba představuje nejvýhodnější investici?' },
-    { label: 'Levnější alternativy', text: 'Existují alternativní modely s nižší cenovkou, které stále splňují má nejdůležitější kritéria?' },
+  return [
+    rerunAction,
+    ...(isEn ? [
+      { label: 'Compare top 2 choices in detail', text: 'Please give me a side-by-side comparison of the top 2 recommendations: key differences, pros, and trade-offs.' },
+      { label: 'Best durability & longevity', text: 'Which of the recommended options has the highest build quality and expected lifespan?' },
+      { label: 'Value for money verdict', text: 'Considering price and features, which option delivers the absolute best value for money?' },
+      { label: 'Lower budget alternatives', text: 'Are there any alternative models at a lower price point that still meet my mandatory criteria?' },
+    ] : [
+      { label: 'Porovnej 2 nejlepší v detailu', text: 'Proveď přímé srovnání 2 nejlepších doporučení: hlavní rozdíly, klíčové výhody a kompromisy.' },
+      { label: 'Který model má nejdelší životnost?', text: 'Která z doporučených možností vyniká nejlepší kvalitou zpracování a spolehlivostí?' },
+      { label: 'Nejlepší poměr cena / výkon', text: 'Když zvážíme cenu a nabízené vlastnosti, která volba představuje nejvýhodnější investici?' },
+      { label: 'Levnější alternativy', text: 'Existují alternativní modely s nižší cenovkou, které stále splňují má nejdůležitější kritéria?' },
+    ])
   ];
 };
 
@@ -172,16 +204,8 @@ export default function Home() {
   const isEn = locale === 'en';
   const [activeTab, setActiveTab] = useState<AppTab>('wizard');
 
-  useEffect(() => {
-    setMessages((prev) => {
-      if (prev.length === 1 && prev[0].id === 'greeting-1') {
-        return [isEn ? INITIAL_GREETING_EN : INITIAL_GREETING_CS];
-      }
-      return prev;
-    });
-  }, [isEn]);
   const [sessionId, setSessionId] = useState<string>('');
-  const [messages, setMessages] = useState<AgentChatMessage[]>([INITIAL_GREETING_EN]);
+  const [messages, setMessages] = useState<AgentChatMessage[]>([]);
   const [inputValue, setInputValue] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
@@ -194,6 +218,16 @@ export default function Home() {
 
   // Universal Agent & BYOK State
   const [selectedAgent, setSelectedAgent] = useState<UniversalAgentDefinition | null>(null);
+
+  useEffect(() => {
+    setMessages((prev) => {
+      const cleaned = prev.filter((m) => !isLegacyGenericGreeting(m.content || '') && !isPromptDump(m.content || ''));
+      if (cleaned.length !== prev.length) {
+        return cleaned;
+      }
+      return prev;
+    });
+  }, [isEn, selectedAgent]);
   const [storedAgents, setStoredAgents] = useState<UniversalAgentDefinition[]>([]);
   const [wizardMode, setWizardMode] = useState<'launcher' | 'active_agent'>('launcher');
   const [activeProviderId, setActiveProviderId] = useState<AIProviderId>('google_gemini');
@@ -269,6 +303,10 @@ export default function Home() {
         }
       }
     } catch {}
+    if (selectedAgent.targetValues && Object.keys(selectedAgent.targetValues).length > 0) {
+      setSidebarAnswers(selectedAgent.targetValues);
+      return;
+    }
     setSidebarAnswers({});
   }, [selectedAgent]);
 
@@ -281,16 +319,21 @@ export default function Home() {
         try {
           const parsed = JSON.parse(stored);
           if (Array.isArray(parsed) && parsed.length > 0) {
-            setMessages(parsed);
-            return;
+            const cleaned = parsed.filter((m) => !isLegacyGenericGreeting(m.content || '') && !isPromptDump(m.content || ''));
+            if (cleaned.length > 0) {
+              setMessages(cleaned);
+              return;
+            } else {
+              localStorage.removeItem(chatKey);
+            }
           }
         } catch {}
       }
-      setMessages([isEn ? INITIAL_GREETING_EN : INITIAL_GREETING_CS]);
+      setMessages([getAgentInitialGreeting(selectedAgent, isEn)]);
     } else {
-      setMessages([isEn ? INITIAL_GREETING_EN : INITIAL_GREETING_CS]);
+      setMessages([]);
     }
-  }, [selectedAgent?.id]);
+  }, [selectedAgent?.id, isEn]);
 
   // Persist chat messages whenever they update for an active agent
   useEffect(() => {
@@ -438,7 +481,7 @@ export default function Home() {
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    messagesEndRef.current?.scrollIntoView?.({ behavior: 'smooth' });
   }, [messages, isLoading]);
 
   const handleAddSidebarParam = () => {
@@ -523,7 +566,60 @@ export default function Home() {
     AgentStorageService.saveAgent(updatedAgent);
   };
 
-  const handleSendMessage = async (textToSend?: string) => {
+  // Dynamic recommendations leaderboard (žebříček) for active agent
+  // Dynamically parses the latest assistant recommendation from chat turns, or falls back to wizard states
+  const dynamicLeaderboard = useMemo<RecommendedProductRankingItem[]>(() => {
+    if (!selectedAgent) return [];
+
+    const fromChat = extractRecommendedProductsFromMessages(messages);
+    if (fromChat.length > 0) {
+      return fromChat;
+    }
+
+    if (typeof window !== 'undefined') {
+      try {
+        const storedStates = localStorage.getItem('bairight_agent_wizard_states');
+        if (storedStates) {
+          const parsed = JSON.parse(storedStates);
+          const recs = parsed[selectedAgent.id]?.result?.recommendations;
+          if (Array.isArray(recs)) {
+            const valid = recs
+              .filter((r: any) => (r.model && r.model.trim()) || (r.brand && r.brand.trim()))
+              .map((r: any, idx: number) => {
+                const name = [r.brand, r.model].filter(Boolean).join(' ').trim();
+                return {
+                  id: `wizard-rec-${idx}`,
+                  rank: idx + 1,
+                  fullName: name,
+                  matchScore: typeof r.matchScore === 'number' ? `${r.matchScore}%` : r.matchScore,
+                };
+              });
+            if (valid.length > 0) return valid.slice(0, 3);
+          }
+        }
+      } catch {}
+    }
+
+    const assessment = assessments.find((a) => a.missionId === selectedAgent.id);
+    if (assessment && Array.isArray(assessment.recommendedModels)) {
+      const valid = assessment.recommendedModels
+        .filter((m: any) => (m.model && m.model.trim()) || (m.brand && m.brand.trim()))
+        .map((m: any, idx: number) => {
+          const name = [m.brand, m.model].filter(Boolean).join(' ').trim();
+          return {
+            id: m.id || `asmt-rec-${idx}`,
+            rank: idx + 1,
+            fullName: name,
+            matchScore: typeof m.matchScore === 'number' ? `${m.matchScore}%` : m.matchScore,
+          };
+        });
+      if (valid.length > 0) return valid.slice(0, 3);
+    }
+
+    return [];
+  }, [selectedAgent?.id, messages, assessments]);
+
+    const handleSendMessage = async (textToSend?: string, isFreshStart?: boolean) => {
     const message = textToSend || inputValue.trim();
     if (!message || isLoading) return;
 
@@ -538,10 +634,19 @@ export default function Home() {
       timestamp: new Date().toISOString(),
     };
 
-    setMessages((prev) => [...prev, userMessage]);
+    setMessages((prev) => {
+      const cleanPrev = isFreshStart
+        ? []
+        : prev.filter((m) => !m.id.startsWith('greeting-'));
+      return [...cleanPrev, userMessage];
+    });
     setIsLoading(true);
 
     try {
+      const cleanHistory = isFreshStart
+        ? []
+        : messages.filter((m) => !m.id.startsWith('greeting-'));
+
       const response = await fetch('/api/agent/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -549,7 +654,7 @@ export default function Home() {
           sessionId: sessionId || 'default-session',
           message,
           agent: selectedAgent,
-          history: [...messages, userMessage].slice(-8),
+          history: [...cleanHistory, userMessage].slice(-8),
           ragFacts: userFacts.filter((f) => f.isEnriched),
           providerId: activeProviderId,
           apiKey: apiKeys[activeProviderId],
@@ -714,33 +819,56 @@ export default function Home() {
                     selectedAgent.systemPrompt = customPrompt;
                   }
                   // Only send the initial recommendation prompt ONCE — the first time
-                  // the chat is opened after wizard completion. A dedicated per-agent flag
-                  // in localStorage prevents re-triggering on every subsequent visit.
+                  // the chat is opened after wizard completion.
                   const chatInitKey = `bairight_chat_initialized_${selectedAgent.id}`;
                   const alreadyInitialized = typeof window !== 'undefined'
                     ? localStorage.getItem(chatInitKey) === 'true'
                     : false;
-                  if (!alreadyInitialized) {
+
+                  let hasExistingChat = alreadyInitialized;
+                  if (!hasExistingChat && typeof window !== 'undefined') {
+                    try {
+                      const storedMessages = localStorage.getItem(`bairight_chat_messages_${selectedAgent.id}`);
+                      if (storedMessages) {
+                        const parsed = JSON.parse(storedMessages);
+                        if (Array.isArray(parsed) && parsed.some((m: any) => m.role === 'user')) {
+                          hasExistingChat = true;
+                        }
+                      }
+                    } catch {}
+                  }
+
+                  if (!hasExistingChat) {
                     if (typeof window !== 'undefined') {
                       localStorage.setItem(chatInitKey, 'true');
                     }
                     const userFacingPrompt = locale === 'en'
                       ? 'Please recommend your top 3 specific product choices based on my parameters from the wizard.'
                       : 'Doporuč mi prosím své 3 konkrétní doporučené produkty na základě zadaných parametrů z průvodce.';
-                    handleSendMessage(userFacingPrompt);
+                    handleSendMessage(userFacingPrompt, true);
                   }
+                }
+              }}
+              onResetWizard={() => {
+                if (selectedAgent && typeof window !== 'undefined') {
+                  localStorage.removeItem(`bairight_chat_initialized_${selectedAgent.id}`);
+                  localStorage.removeItem(`bairight_chat_messages_${selectedAgent.id}`);
+                  setMessages([]);
                 }
               }}
               activeProviderId={activeProviderId}
               currentApiKeys={apiKeys}
               userFacts={userFacts}
               onOpenSubscriptionModal={() => setIsSubscriptionModalOpen(true)}
+              initialSavedAnswers={sidebarAnswers && Object.keys(sidebarAnswers).length > 0 ? sidebarAnswers : selectedAgent?.targetValues}
+              onEditWizard={() => setWizardInitialShowResult(false)}
               initialShowResult={wizardInitialShowResult}
               initialStepIndex={initialWizardStepIndex}
               locale={locale}
               onAssessmentCompleted={(answers, evalRes, completedPrompt) => {
                 // Mark wizard as completed and show results view
                 setWizardInitialShowResult(true);
+                setSidebarAnswers(answers);
                 if (typeof window !== 'undefined' && selectedAgent) {
                   try {
                     const storedStates = localStorage.getItem('bairight_agent_wizard_states');
@@ -753,10 +881,13 @@ export default function Home() {
                     };
                     localStorage.setItem('bairight_agent_wizard_states', JSON.stringify(parsed));
                   } catch (e) {}
-                  localStorage.removeItem(`bairight_chat_initialized_${selectedAgent.id}`);
                 }
-                if (selectedAgent && completedPrompt) {
-                  const updatedAgent = { ...selectedAgent, systemPrompt: completedPrompt };
+                if (selectedAgent) {
+                  const updatedAgent = {
+                    ...selectedAgent,
+                    targetValues: answers,
+                    systemPrompt: completedPrompt || selectedAgent.systemPrompt,
+                  };
                   setSelectedAgent(updatedAgent);
                   AgentStorageService.saveAgent(updatedAgent);
                 }
@@ -801,18 +932,21 @@ export default function Home() {
           {/* Left: Agent Selection & Context Sidebar */}
           <aside className="w-full lg:w-80 border-b lg:border-b-0 lg:border-r border-slate-800 bg-[#08101e]/90 p-4 space-y-4 overflow-y-auto shrink-0">
             <div className="space-y-2">
-              <span className="text-[10px] font-mono uppercase tracking-wider text-cyan-400 font-bold flex items-center justify-between">
-                <span>{isEn ? 'Active Agent for Discussion' : 'Aktivní agent pro diskusi'}</span>
+              <div className="flex items-center justify-between gap-2">
+                <span className="text-[10px] font-mono uppercase tracking-wider text-cyan-400 font-bold truncate">
+                  {isEn ? 'Active Agent for Discussion' : 'Aktivní agent pro diskusi'}
+                </span>
                 {selectedAgent && (
                   <button
+                    type="button"
                     onClick={() => setSelectedAgent(null)}
                     title={isEn ? "Switch active agent" : "Přepnout aktivního agenta"}
-                    className="text-[10px] text-cyan-400 hover:underline cursor-pointer lowercase"
+                    className="px-2.5 py-1 rounded-lg bg-cyan-950/80 hover:bg-cyan-900 border border-cyan-400/60 hover:border-cyan-300 text-cyan-300 hover:text-white text-[10px] font-mono font-bold tracking-wider uppercase transition-all cursor-pointer shadow-[0_0_12px_rgba(6,182,212,0.2)] hover:shadow-[0_0_18px_rgba(6,182,212,0.35)] hover:scale-105 active:scale-95 shrink-0"
                   >
-                    změnit
+                    {isEn ? 'Switch Agent' : 'Změnit agenta'}
                   </button>
                 )}
-              </span>
+              </div>
 
               {selectedAgent ? (
                 <div className="space-y-2.5">
@@ -829,6 +963,78 @@ export default function Home() {
                     <p className="text-xs text-slate-400 line-clamp-2 leading-relaxed">
                       {selectedAgent.description}
                     </p>
+                  </div>
+
+                  {/* Star Component: Dynamic Top 3 Recommendations Leaderboard (Žebříček) */}
+                  <div className="p-3.5 rounded-2xl bg-[#060e1d]/90 border border-cyan-500/50 shadow-[0_0_25px_rgba(6,182,212,0.12)] space-y-3">
+                    <div className="flex items-center justify-between border-b border-cyan-500/30 pb-2">
+                      <div className="flex items-center gap-1.5">
+                        <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse" />
+                        <span className="text-[10px] font-mono uppercase tracking-wider text-cyan-300 font-extrabold">
+                          {isEn ? 'Top 3 Recommendations' : 'Aktuální žebříček top 3'}
+                        </span>
+                      </div>
+                      <span className="text-[9px] font-mono px-1.5 py-0.5 rounded bg-cyan-950 border border-cyan-500/40 text-cyan-300 font-bold uppercase tracking-wider">
+                        {isEn ? 'Live Sync' : 'Živý stav'}
+                      </span>
+                    </div>
+
+                    {dynamicLeaderboard.length > 0 ? (
+                      <div className="space-y-2">
+                        {dynamicLeaderboard.map((item, idx) => {
+                          const isTop = idx === 0;
+                          const isSecond = idx === 1;
+                          return (
+                            <div
+                              key={item.id || idx}
+                              className={`p-2.5 rounded-xl flex items-center justify-between gap-2 transition-all ${
+                                isTop
+                                  ? 'bg-gradient-to-r from-cyan-950/90 to-slate-900 border border-cyan-400/80 shadow-[0_0_12px_rgba(6,182,212,0.25)]'
+                                  : isSecond
+                                  ? 'bg-slate-900/90 border border-teal-500/40'
+                                  : 'bg-slate-950/90 border border-slate-800'
+                              }`}
+                            >
+                              <div className="min-w-0 flex items-center gap-2">
+                                <span
+                                  className={`text-[10px] font-mono font-black px-1.5 py-0.5 rounded shrink-0 ${
+                                    isTop
+                                      ? 'text-cyan-200 bg-cyan-900/90 border border-cyan-400/80'
+                                      : isSecond
+                                      ? 'text-teal-200 bg-teal-950 border border-teal-500/50'
+                                      : 'text-slate-400 bg-slate-900 border border-slate-700'
+                                  }`}
+                                >
+                                  #{idx + 1}
+                                </span>
+                                <span className={`text-xs truncate ${isTop ? 'font-black text-white' : isSecond ? 'font-bold text-slate-100' : 'font-medium text-slate-300'}`}>
+                                  {item.fullName}
+                                </span>
+                              </div>
+                              {item.matchScore && (
+                                <span
+                                  className={`text-[10px] font-mono px-1.5 py-0.5 rounded-full font-bold shrink-0 ${
+                                    isTop
+                                      ? 'text-cyan-200 bg-cyan-950 border border-cyan-400/50'
+                                      : 'text-teal-300 bg-slate-900 border border-slate-800'
+                                  }`}
+                                >
+                                  {item.matchScore}
+                                </span>
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    ) : (
+                      <div className="py-2.5 text-center bg-slate-950/60 rounded-xl border border-slate-800/80 px-2">
+                        <p className="text-[11px] text-slate-400 italic leading-relaxed">
+                          {isEn
+                            ? 'Awaiting agent recommendations in chat...'
+                            : 'Čekám na doporučení produktů agentem v chatu...'}
+                        </p>
+                      </div>
+                    )}
                   </div>
 
                   {/* Agent Parameters & Active Criteria Widget */}
@@ -989,61 +1195,43 @@ export default function Home() {
               )}
             </div>
 
-            {/* Unified System Context & Status Panel */}
-            <div className="p-3.5 rounded-2xl bg-slate-950/80 border border-slate-800/90 space-y-3 shadow-md">
-              <span className="text-[10px] font-mono uppercase font-bold tracking-wider text-slate-400 block border-b border-slate-800/80 pb-1.5">
-                {isEn ? 'System & Context Status' : 'Stav systému a kontextu'}
-              </span>
+            {/* Unified System Context & Status Panel (Secondary / Low-contrast Footer) */}
+            <div className="p-3 rounded-xl bg-slate-950/40 border border-slate-800/40 space-y-2 text-slate-400">
+              <div className="flex items-center justify-between text-[10px] font-mono uppercase tracking-wider text-slate-400 border-b border-slate-800/40 pb-1">
+                <span>{isEn ? 'System Status' : 'Stav systému'}</span>
+                <span className={`flex items-center gap-1 ${hasActiveSubscription ? 'text-emerald-400' : 'text-amber-400'}`}>
+                  <span className="w-1.5 h-1.5 rounded-full bg-current" />
+                  <span>{hasActiveSubscription ? (isEn ? 'Online' : 'Připojeno') : 'Offline'}</span>
+                </span>
+              </div>
 
-              {/* Model Connection Status */}
-              <div className="flex items-start justify-between gap-2">
-                <div className="space-y-0.5">
-                  <span className={`text-[11px] font-mono font-bold flex items-center gap-1.5 ${
-                    hasActiveSubscription ? 'text-emerald-300' : 'text-amber-300'
-                  }`}>
-                    {hasActiveSubscription ? (
-                      <span>{isEn ? 'Model Connected' : 'Model propojen'}</span>
-                    ) : (
-                      <span>{isEn ? 'Model Disconnected' : 'Model nepropojen'}</span>
-                    )}
-                  </span>
-                  <p className="text-[10px] text-slate-400 leading-tight">
-                    {hasActiveSubscription
-                      ? (isEn ? `Active: ${activeProvider.name}` : `Aktivní: ${activeProvider.name}`)
-                      : (isEn ? 'BYOK Model Required' : 'Vyžadován model (BYOK)')}
-                  </p>
-                </div>
+              {/* Model & RAG summary */}
+              <div className="flex items-center justify-between text-[10px] text-slate-400">
+                <span className="truncate">{activeProvider.name}</span>
                 <button
+                  type="button"
                   onClick={() => setIsSubscriptionModalOpen(true)}
-                  className={`text-[10px] font-mono hover:underline cursor-pointer shrink-0 mt-0.5 ${
-                    hasActiveSubscription ? 'text-emerald-400' : 'text-amber-400'
-                  }`}
+                  className="text-cyan-400 hover:underline cursor-pointer font-mono"
                 >
-                  {hasActiveSubscription ? (isEn ? 'Settings' : 'Nastavení') : (isEn ? 'Connect' : 'Propojit')}
+                  {isEn ? 'Change' : 'Změnit'}
                 </button>
               </div>
 
-              {/* RAG Memory Status */}
-              <div className="flex items-start justify-between gap-2 pt-2 border-t border-slate-800/60">
-                <div className="space-y-0.5">
-                  <span className="text-[11px] font-mono text-cyan-300 font-bold flex items-center gap-1.5">
-                    <span>{isEn ? 'RAG Memory' : 'RAG paměť'}</span>
-                  </span>
-                  <p className="text-[10px] text-slate-400 leading-tight">
-                    {isEn ? <>Injected <strong>{activeFactsCount}</strong> preference facts</> : <>Zapojeno <strong>{activeFactsCount}</strong> preferenčních faktů</>}
-                  </p>
-                </div>
+              <div className="flex items-center justify-between text-[10px] text-slate-400 pt-1 border-t border-slate-800/30">
+                <span>{isEn ? `RAG Facts: ${userFacts.length}` : `RAG Fakta: ${userFacts.length}`}</span>
                 <button
+                  type="button"
                   onClick={() => setIsMemoryModalOpen(true)}
-                  className="text-[10px] font-mono text-cyan-400 hover:underline cursor-pointer shrink-0 mt-0.5"
+                  className="text-cyan-400 hover:underline cursor-pointer font-mono"
                 >
-                  {isEn ? 'Manage Memory' : 'Správa paměti'}
+                  {isEn ? 'Memory' : 'Paměť'}
                 </button>
               </div>
 
-              {/* Selection Wizard Action */}
-              <div className="pt-2 border-t border-slate-800/60">
+              {/* Selection Wizard Action (Sleek Low-contrast Ghost Button) */}
+              <div className="pt-1.5">
                 <button
+                  type="button"
                   onClick={() => {
                     if (selectedAgent) {
                       let isCompleted = false;
@@ -1073,7 +1261,7 @@ export default function Home() {
                     }
                     setActiveTab('wizard');
                   }}
-                  className="w-full py-2 px-3 rounded-xl bg-cyan-950/60 hover:bg-cyan-900/60 border border-cyan-500/30 text-cyan-300 text-xs font-mono font-bold flex items-center justify-center gap-2 transition-all cursor-pointer shadow-sm"
+                  className="w-full py-1.5 px-3 rounded-lg bg-slate-900/60 hover:bg-slate-800/80 border border-slate-800 text-slate-400 hover:text-white text-xs font-mono font-medium flex items-center justify-center gap-1.5 transition-all cursor-pointer"
                 >
                   <span>{isEn ? 'Open Selection Wizard' : 'Otevřít průvodce výběrem'}</span>
                 </button>
@@ -1153,7 +1341,7 @@ export default function Home() {
                     }}
                     className="w-full sm:w-auto py-3 px-4 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-300 hover:text-white text-xs font-mono font-medium transition-all cursor-pointer"
                   >
-                    Otevřít průvodce nákupem
+                    {isEn ? 'Open Shopping Wizard' : 'Otevřít průvodce nákupem'}
                   </button>
                 </div>
               </div>
@@ -1175,9 +1363,85 @@ export default function Home() {
                     onClick={() => setIsSubscriptionModalOpen(true)}
                     className="text-[10px] font-mono text-cyan-400 hover:underline cursor-pointer"
                   >
-                    Změnit model
+                    {isEn ? 'Switch Model' : 'Změnit model'}
                   </button>
                 </div>
+
+                {/* Dynamic Recommendations Ranking Bar (Live Chat Sync, Non-Clickable Podium) */}
+                {dynamicLeaderboard.length > 0 && (
+                  <div className="p-3.5 rounded-2xl bg-gradient-to-r from-[#060e1d] via-slate-900 to-[#060e1d] border border-cyan-500/40 shadow-[0_4px_20px_rgba(6,182,212,0.12)] space-y-2.5">
+                    <div className="flex items-center justify-between text-[10px] font-mono uppercase tracking-wider">
+                      <span className="text-cyan-300 font-black flex items-center gap-2">
+                        <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse" />
+                        <span>{isEn ? 'Current Top 3 Ranking (Chat Sync)' : 'Aktuální žebříček top 3 (Synchronizováno s chatem)'}</span>
+                      </span>
+                      <span className="text-slate-400 font-medium">
+                        {dynamicLeaderboard.length} {isEn ? (dynamicLeaderboard.length === 1 ? 'model' : 'models') : (dynamicLeaderboard.length === 1 ? 'model' : 'modely')}
+                      </span>
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                      {dynamicLeaderboard.map((item, idx) => {
+                        const isTop = idx === 0;
+                        const isSecond = idx === 1;
+                        return (
+                          <div
+                            key={item.id || idx}
+                            className={`px-3 py-2 rounded-xl flex items-center justify-between gap-2 ${
+                              isTop
+                                ? 'bg-cyan-950/80 border border-cyan-400/80 shadow-[0_0_12px_rgba(6,182,212,0.2)]'
+                                : isSecond
+                                ? 'bg-slate-900/90 border border-teal-500/40'
+                                : 'bg-slate-950/90 border border-slate-800'
+                            }`}
+                          >
+                            <div className="min-w-0 flex items-center gap-2">
+                              <span
+                                className={`text-[10px] font-mono font-black px-1.5 py-0.5 rounded shrink-0 ${
+                                  isTop
+                                    ? 'text-cyan-200 bg-cyan-900 border border-cyan-400/80'
+                                    : isSecond
+                                    ? 'text-teal-200 bg-teal-950 border border-teal-500/40'
+                                    : 'text-slate-400 bg-slate-900 border border-slate-700'
+                                }`}
+                              >
+                                #{idx + 1}
+                              </span>
+                              <span className={`text-xs truncate ${isTop ? 'font-black text-white' : isSecond ? 'font-bold text-slate-100' : 'font-medium text-slate-300'}`}>
+                                {item.fullName}
+                              </span>
+                            </div>
+                            {item.matchScore && (
+                              <span
+                                className={`text-[10px] font-mono px-1.5 py-0.5 rounded-full font-bold shrink-0 ${
+                                  isTop
+                                    ? 'text-cyan-200 bg-cyan-950 border border-cyan-400/50'
+                                    : 'text-teal-300 bg-slate-900 border border-slate-800'
+                                }`}
+                              >
+                                {item.matchScore}
+                              </span>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+
+                {messages.length === 0 && (
+                  <div className="flex flex-col items-center justify-center py-16 text-center text-slate-500 space-y-2">
+                    <div className="text-xs font-mono tracking-wider uppercase text-cyan-400/80">
+                      {selectedAgent
+                        ? (isEn ? "Discussion with " + selectedAgent.name + " active" : "Diskuse s agentem " + selectedAgent.name + " aktivní")
+                        : (isEn ? 'Universal Shopping Consultant ready' : 'Univerzální nákupní rádce připraven')}
+                    </div>
+                    <p className="text-xs text-slate-400 max-w-md">
+                      {isEn
+                        ? 'Ask any product question below or select a suggested action to begin.'
+                        : 'Zadejte svůj nákupní dotaz níže nebo zvolte jednu z doporučených akcí.'}
+                    </p>
+                  </div>
+                )}
 
                 {messages.map((msg) => {
                   const isUser = msg.role === 'user';
@@ -1292,7 +1556,7 @@ export default function Home() {
                   return (
                     <div className="flex items-center gap-2 overflow-x-auto pb-3 mb-2 no-scrollbar">
                       <span className="text-[11px] font-medium text-slate-400 shrink-0 flex items-center gap-1">
-                        <span>{isEn ? 'Suggested questions:' : 'Doporučené dotazy:'}</span>
+                        <span>{isEn ? 'Suggested actions:' : 'Doporučené akce:'}</span>
                       </span>
                       {quickPrompts.map((prompt, idx) => (
                         <button

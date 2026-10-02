@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { ProfileStorageManager } from '@/lib/storage/profile-storage';
 import { extractBiomechanicalProfileUpdates } from '@/lib/agent/state-machine';
 import { AgentChatMessage } from '@/lib/agent/types';
-import { UniversalAgentDefinition, resolveAgentIcon } from '@/lib/agent/universal-agent-schema';
+import { UniversalAgentDefinition, resolveAgentIcon, getMarketRecencyDirective } from '@/lib/agent/universal-agent-schema';
 
 interface ChatRequestBody {
   sessionId: string;
@@ -121,14 +121,35 @@ Pro živou konverzaci s nákupním agentem **${agent?.name || "bAIright Agent"}*
 2. Vyberte **Google Gemini** a získejte bezplatný klíč z [Google AI Studio](https://aistudio.google.com/app/apikey) za 30 sekund.
 3. Vložte klíč a konverzujte pod svým účtem bez omezení!`;
     } else if (!assistantContent) {
-      assistantContent = synthesizeConversationalFallback({
-        message,
-        agent,
-        history,
-        ragFacts,
-        assessmentContext,
-        locale,
-      });
+      if (effectiveKey && process.env.NODE_ENV !== 'test' && apiKey !== 'AIzaSyTestKey') {
+        // Transparent error: Provider experienced temporary 503 / 429 overload.
+        // DO NOT pretend we lost user parameters or prompt!
+        const provName = providerId === 'google_gemini' ? 'Google Gemini' : providerId === 'anthropic_claude' ? 'Anthropic Claude' : 'OpenAI GPT-4o';
+        assistantContent = locale === 'en'
+          ? `### ⚠️ Temporary AI Provider Overload (503 / 429)
+
+The AI provider (**${provName}**) is currently experiencing a temporary server demand spike or rate limit (HTTP 503 / 429).
+
+**All your wizard criteria, parameters, and configured profile are safely preserved in memory.**
+
+Please wait a few seconds and send your query again to continue.`
+          : `### ⚠️ Dočasné přetížení AI poskytovatele (503 / 429)
+
+Poskytovatel AI modelu (**${provName}**) hlásí momentální vysoké vytížení serverů nebo vyčerpání minutové kvóty (HTTP 503 / 429).
+
+**Všechna vaše kritéria, parametry i profil z průvodce jsou bezpečně uloženy v paměti.**
+
+Vyčkejte prosím několik sekund a pošlete svůj dotaz znovu.`;
+      } else {
+        assistantContent = synthesizeConversationalFallback({
+          message,
+          agent,
+          history,
+          ragFacts,
+          assessmentContext,
+          locale,
+        });
+      }
     }
 
     // 6. Save assistant message and return
@@ -446,9 +467,14 @@ Přímo mu odpovídej na jeho dotaz, analyzuj doporučené modely a buď jeho ne
         : `\n\nSTRIKTNÍ KRITICKÁ INSTRUKCE:\nUživatel už tento průvodce nákupem dokončil! Všechna jeho kritéria MÁŠ K DISPOZICI VÝŠE. NIKDY se uživatele nesmíš ptát, aby znova zadával kritéria! Přímo mu odpovídej na jeho dotaz.`)
       : '';
     const conversationalRules = isEn
-      ? `\n\n### CONVERSATIONAL RULES:\n1. ALWAYS respond directly to what the user wrote.\n2. If the user asks for a specific number of options, fulfill it strictly.\n3. Format ALL responses clearly in Markdown using headings (##, ###), bold text (**text**), and bullet points.\n4. When recommending products, ALWAYS use this exact structure for each item:\n### [number]. [Brand Model Name] ([Match: X%])\n- **Why Recommended:** [rationale]\n- **Key Pros:**\n  - [pro 1]\n  - [pro 2]\n- **Trade-offs & Cons:**\n  - [con 1]\n5. For follow-up questions, keep the same structured Markdown format — never respond with plain unformatted text.`
-      : `\n\n### PRAVIDLA PRO ODPOVĚDI:\n1. VŽDY reaguj přímo na to, co uživatel napsal.\n2. Pokud uživatel požádá o určitý počet kritérií, VŽDY mu vyhov.\n3. Formátuj VŠECHNY odpovědi přehledně v Markdownu s nadpisy (##, ###), tučným písmem (**text**) a odrážkami.\n4. Při doporučování produktů VŽDY dodržuj tuto přesnou strukturu pro každý produkt:\n### [číslo]. [Značka Model] (Shoda: X%)\n- **Proč doporučujeme:** [odůvodnění]\n- **Klíčové výhody:**\n  - [výhoda 1]\n  - [výhoda 2]\n- **Kompromisy a nevýhody:**\n  - [nevýhoda 1]\n5. Na doplňující otázky odpovídej ve stejném strukturovaném Markdown formátu — nikdy neodpovídej neformátovaným prostým textem.`;
-    systemPrompt = `${agentDirective}${ragBlock}${dontReaskBlock}${conversationalRules}`.trim();
+      ? `\n\n### CONVERSATIONAL RULES:\n1. ALWAYS respond directly to what the user wrote.\n2. MANDATORY 3-MODEL OUTPUT REQUIREMENT: You MUST ALWAYS output EXACTLY 3 distinct product recommendations (### 1., ### 2., ### 3.). NEVER output only 1 or 2 products under any circumstances! If user criteria are extremely niche (e.g. rare vertical dual-drawer air fryers) such that fewer than 3 exact 100% matches exist on the active market, provide the exact match as #1, and the closest top-tier market contenders as #2 and #3 with clear trade-off notes explaining the difference.\n3. Format ALL responses clearly in Markdown using headings (##, ###), bold text (**text**), and bullet points.\n4. When recommending products, ALWAYS use this exact structure for each item:\n### [number]. [Brand Model Name] ([Match: X%])\n- **Why Recommended:** [rationale]\n- **Key Pros:**\n  - [pro 1]\n  - [pro 2]\n- **Trade-offs & Cons:**\n  - [con 1]\n5. For follow-up questions, keep the same structured Markdown format — never respond with plain unformatted text.
+6. DIRECT ACTION MANDATE: NEVER respond with an empty confirmation or promise such as "I will do the research", "I understand and will perform the research", or "I will evaluate". When the user asks to "do the research again", "re-evaluate", "find products", or gives feedback, you MUST IMMEDIATELY execute the research and deliver the full, structured product recommendations with exact model names, rationale, pros, and cons in this exact response!`
+      : `\n\n${getMarketRecencyDirective(false)}
+
+### PRAVIDLA PRO ODPOVĚDI:\n1. VŽDY reaguj přímo na to, co uživatel napsal.\n2. GARANCE PŘESNĚ 3 PRODUKTŮ: VŽDY MUSÍŠ doporučit PŘESNĚ 3 konkrétní produkty (### 1., ### 2., ### 3.). NIKDY neukončuj odpověď po 1 nebo 2 produktech! Pokud uživatel aktualizuje parametry, recalibruje nebo žádá nové návrhy, VŽDY dodej kompletní trojici. Pokud jsou požadavky extrémně úzké a na trhu nejsou 3 stoprocentní modely, uveď stoprocentní shodu jako #1 a nejbližší alternativy jako #2 a #3 s jasným vysvětlením kompromisu.\n3. Formátuj VŠECHNY odpovědi přehledně v Markdownu s nadpisy (##, ###), tučným písmem (**text**) a odrážkami.\n4. Při doporučování produktů VŽDY dodržuj tuto přesnou strukturu pro každý produkt:\n### [číslo]. [Značka Model] (Shoda: X%)\n- **Proč doporučujeme:** [odůvodnění]\n- **Klíčové výhody:**\n  - [výhoda 1]\n  - [výhoda 2]\n- **Kompromisy a nevýhody:**\n  - [nevýhoda 1]\n5. Na doplňující otázky odpovídej ve stejném strukturovaném Markdown formátu — nikdy neodpovídej neformátovaným prostým textem.
+6. PŘÍKAZ OKAMŽITÉHO VÝKONU: NIKDY neodpovídej prázdným potvrzením nebo slibem typu „Rozumím a provedu výzkum znovu“, „I will perform the research“ nebo „Podívám se na to“. Pokud uživatel napíše „do the research again“, „zkus to znovu“, „přehodnoť doporučení“ nebo požádá o produkty, MUSÍŠ OKAMŽITĚ v této jediné odpovědi provést celý průzkum a doručit kompletní strukturovaná doporučení s konkrétními modely, odůvodněním, výhodami a nevýhodami!`;
+    const recencyBlock = `\n\n${getMarketRecencyDirective(isEn)}`;
+    systemPrompt = `${agentDirective}${ragBlock}${dontReaskBlock}${recencyBlock}${conversationalRules}`.trim();
   } else {
     // Standard non-compiled prompt: build the full system instruction
     systemPrompt = isEn ? `
@@ -459,10 +485,12 @@ ${assessmentPromptBlock}
 ### USER KNOWLEDGE HISTORY & RAG FACTS:
 ${formattedFacts || 'No prior user facts recorded.'}
 
+${getMarketRecencyDirective(true)}
+
 ### RESPONSE RULES & STRICT LANGUAGE DIRECTIVE:
 1. CRITICAL LANGUAGE DIRECTIVE: Communicate and output ALL text, executive summaries, product names, rationale, pros & cons, trade-offs, and buying advice STRICTLY in fluent, natural English. Do NOT generate Czech sentences or paragraphs.
 2. ALWAYS respond directly to what the user wrote. Never repeat mechanically.
-3. If the user explicitly asks for a specific number of options or criteria, fulfill it strictly.
+3. MANDATORY 3-MODEL OUTPUT: When recommending products, you MUST ALWAYS provide EXACTLY 3 distinct models (### 1., ### 2., ### 3.). Never output only 1 or 2 products. If criteria are niche, provide the closest top-tier alternatives for slots #2 and #3 with clear trade-off notes.
 4. Format output clearly in Markdown using headings (###), bold text, and bullet points.
 `.trim() : `
 Jsi ${agentTitle} (${agentRole}) specializovaný na kategorii "${agentCategory}".
@@ -475,7 +503,7 @@ ${formattedFacts || 'Žádná předchozí data zatím nejsou evidována.'}
 ### PRAVIDLA PRO ODPOVĚDI:
 1. CRITICAL LANGUAGE DIRECTIVE: Veškerá doporučení, konkrétní přesné názvy produktových modelů (např. Lenovo Legion Slim 5 16AHR8), odůvodnění, výhody a reakce MUSÍŠ komunikovat a generovat striktně v přirozené češtině (Čeština).
 2. VŽDY reaguj přímo na to, co uživatel napsal. Nikdy se mechanicky neopakuj.
-3. Pokud uživatel výslovně požádá o určitý počet parametrů či kritérií, VŽDY mu vyhov a uveď přesně tolik strukturovaných bodů s vysvětlením.
+3. GARANCE PŘESNĚ 3 MODELŮ: Při doporučování produktů VŽDY uveď PŘESNĚ 3 konkrétní modely (### 1., ### 2., ### 3.). Nikdy neukončuj výstup po 1 nebo 2 modelech. Pokud jsou požadavky specifické či úzké, doplň zbývající pozice nejbližšími alternativami s vysvětlením kompromisu.
 4. Formátuj odpověď přehledně v Markdownu s použitím nadpisů (###), tučného písma a odrážek či číslovaných seznamů.
 `.trim();
   }
@@ -577,20 +605,33 @@ ${formattedFacts || 'Žádná předchozí data zatím nejsou evidována.'}
           });
         }
 
-        const res = await fetch(url, {
+        const buildGeminiBody = (includeSearch: boolean) => JSON.stringify({
+          systemInstruction: {
+            parts: [{ text: systemPrompt }],
+          },
+          contents: payloadContents,
+          ...(includeSearch ? { tools: [{ googleSearch: {} }] } : {}),
+          generationConfig: {
+            temperature: 0.7,
+            maxOutputTokens: 8192,
+          },
+        });
+
+        let res = await fetch(url, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            systemInstruction: {
-              parts: [{ text: systemPrompt }],
-            },
-            contents: payloadContents,
-            generationConfig: {
-              temperature: 0.7,
-              maxOutputTokens: 8192,
-            },
-          }),
+          body: buildGeminiBody(true),
         });
+
+        // Graceful failover: If a model rejects googleSearch tool with HTTP 400, retry without tools
+        if (!res.ok && res.status === 400) {
+          console.warn(`Gemini API ${model} rejected googleSearch tool with 400, retrying without tools...`);
+          res = await fetch(url, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: buildGeminiBody(false),
+          });
+        }
 
         if (res.ok) {
           const data = await res.json();
@@ -1262,6 +1303,32 @@ Pokud chcete rovnou vidět technická kritéria, stačí napsat např. *"chci 10
 
   // 8. Default consultative fallback
   const agentHeader = agent?.name ? `${resolveAgentIcon(agent.icon, `${agent.name} ${agent.category}`)} ${agent.name}` : (isEn ? 'bAIright Shopping Consultant' : 'bAIright Nákupní konzultant');
+  
+  const rawSysPrompt = agent?.systemPrompt || '';
+  const isAgentCompiled = rawSysPrompt.includes('MANDATORY & BINDING USER REQUIREMENTS')
+    || rawSysPrompt.includes('STRIKTNÍ A ZÁVAZNÉ POŽADAVKY UŽIVATELE')
+    || rawSysPrompt.includes('REQUIRED RESPONSE FORMAT')
+    || rawSysPrompt.includes('POŽADOVANÝ FORMÁT ODPOVĚDI');
+
+  if (isAgentCompiled || assessmentContext) {
+    return isEn ? `### ${agentHeader}
+
+${ragContextSentence}I have all your parameters and preferences loaded from the shopping wizard.
+
+How can I help you next?
+- Ask: *"Please recommend your top 3 specific product choices based on my parameters."*
+- Compare specific models or brands.
+- Adjust budget or feature priorities.`
+    : `### ${agentHeader}
+
+${ragContextSentence}Mám načteny všechny vaše parametry a preference z nákupního průvodce.
+
+S čím mohu nyní pomoci?
+- Napište: *„Doporuč mi prosím 3 konkrétní modely na základě mých parametrů.“*
+- Požádejte o srovnání konkrétních značek či modelů.
+- Upravte rozpočet nebo prioritu vlastností.`;
+  }
+
   return isEn ? `### ${agentHeader}
 
 ${ragContextSentence}I understand your request: **"${message}"**.

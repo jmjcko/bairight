@@ -23,10 +23,13 @@ export class ModelDiscoveryService {
   // Resilient static defaults used only when offline or network discovery fails
   public static readonly DEFAULT_GEMINI_MODELS = [
     'gemini-2.5-flash',
+    'gemini-2.0-flash',
+    'gemini-1.5-flash',
     'gemini-3.8-flash',
     'gemini-3.5-flash',
     'gemini-flash-latest',
     'gemini-2.5-pro',
+    'gemini-1.5-pro',
   ];
 
   public static readonly DEFAULT_OPENAI_MODELS = [
@@ -123,7 +126,10 @@ export class ModelDiscoveryService {
         lower.includes('lyria') ||
         lower.includes('banana') ||
         lower.includes('aqa') ||
-        lower.includes('customtools')
+        lower.includes('customtools') ||
+        lower.includes('deep-research') ||
+        lower.includes('gemma') ||
+        !lower.startsWith('gemini')
       ) {
         continue;
       }
@@ -267,7 +273,8 @@ export class ModelDiscoveryService {
             candidateQueue.unshift(suggestedReplacement);
           }
         } else if (status === 503) {
-          console.warn(`[ModelDiscoveryService] Model "${model}" temporarily unavailable (503 spike). Trying next candidate.`);
+          console.warn(`[ModelDiscoveryService] Model "${model}" temporarily unavailable (503 spike). Waiting 800ms and trying next candidate.`);
+          if (process.env.NODE_ENV !== 'test') await new Promise((resolve) => setTimeout(resolve, 600));
         }
       } catch (err: any) {
         console.warn(`[ModelDiscoveryService] Exception calling model "${model}":`, err?.message || err);

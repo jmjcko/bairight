@@ -254,6 +254,7 @@ export interface Translations {
     btnEdit: string;
     btnInspectPrompt: string;
     btnDownloadMarkdown: string;
+    btnSave: string;
     summaryTitle: string;
     prosTitle: string;
     consTitle: string;
@@ -596,6 +597,7 @@ export const translations: Record<SupportedLocale, Translations> = {
       btnEdit: 'Upravit wizard',
       btnInspectPrompt: 'Zkontrolovat prompt pro AI',
       btnDownloadMarkdown: 'Stáhnout agenta (.md)',
+      btnSave: 'Uložit',
       summaryTitle: 'Souhrn & Expertní posudek',
       prosTitle: 'Klíčové výhody & Proč koupit',
       consTitle: 'Kompromisy & Na co si dát pozor',
@@ -936,6 +938,7 @@ export const translations: Record<SupportedLocale, Translations> = {
       btnEdit: 'Edit Wizard',
       btnInspectPrompt: 'Inspect Prompt',
       btnDownloadMarkdown: 'Download Agent (.md)',
+      btnSave: 'Save',
       summaryTitle: 'Summary & Expert Assessment',
       prosTitle: 'Key Advantages & Why Buy',
       consTitle: 'Trade-offs & What to Watch Out For',

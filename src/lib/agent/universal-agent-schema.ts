@@ -138,6 +138,7 @@ export function serializeAgentToMarkdown(
   answers?: Record<string, any>,
   locale: string = 'cs'
 ): string {
+  const effectiveAnswers = answers && Object.keys(answers).length > 0 ? answers : (agent.targetValues || {});
   const frontmatterObj: Record<string, any> = {
     id: agent.id,
     name: agent.name,
@@ -148,10 +149,10 @@ export function serializeAgentToMarkdown(
     createdAt: agent.createdAt,
     updatedAt: agent.updatedAt || new Date().toISOString(),
     isCustom: Boolean(agent.isCustom),
+    targetValues: effectiveAnswers,
   };
 
   const yamlString = JSON.stringify(frontmatterObj, null, 2);
-  const effectiveAnswers = answers && Object.keys(answers).length > 0 ? answers : (agent.targetValues || {});
   const executablePrompt = forgeAgentPrompt(agent, effectiveAnswers, [], locale);
 
   return `---
@@ -214,6 +215,43 @@ export function parseAgentFromMarkdown(content: string): UniversalAgentDefinitio
 /**
  * Forges the structured prompt from the agent's questions and user's answers
  */
+/**
+ * Generates the Market Recency Directive enforcing the "Current Year - 2 Max" rule.
+ * Eliminates outdated, EOL, and discontinued product recommendations across all models.
+ */
+export function getMarketRecencyDirective(isEn: boolean): string {
+  const currentYear = new Date().getFullYear();
+  const minAllowedYear = currentYear - 2;
+
+  if (isEn) {
+    return `### MARKET RECENCY DIRECTIVE (STRICT MANDATORY CONSTRAINT — CURRENT YEAR - 2 MAX):
+- **Current Calendar / Market Year:** ${currentYear}
+- **Earliest Allowed Release / Model Year:** ${minAllowedYear} (${currentYear} minus 2 max).
+- **STRICT PROHIBITION ON OUTDATED / DISCONTINUED MODELS:**
+  1. You are STRICTLY FORBIDDEN from recommending any products, hardware, or models released or introduced prior to ${minAllowedYear} (e.g. from ${minAllowedYear - 1}, ${minAllowedYear - 2} or older).
+  2. You are STRICTLY FORBIDDEN from recommending discontinued, End-of-Life (EOL), or phased-out models that are no longer actively produced and widely stocked in major retail distribution.
+  3. If user parameters or baseline experience reference a legacy model from before ${minAllowedYear}, you MUST automatically upgrade to its modern active generation/successor (${minAllowedYear}–${currentYear}).
+  4. Every single recommended product MUST be verified to be in active production and currently available for purchase in retail as a modern model (${minAllowedYear}–${currentYear}).
+
+### DIRECT ACTION MANDATE (NO EMPTY PROMISES):
+- NEVER respond with an empty confirmation or future promise such as "I will do the research", "I understand and will perform the research", or "I will evaluate".
+- When asked to "do the research again", "re-evaluate", "give recommendations", or "find products", you MUST IMMEDIATELY execute the research and deliver the full, structured product recommendations in this exact turn!`;
+  }
+
+  return `### ZÁVAZNÉ PRAVIDLO AKTUÁLNOSTI NABÍDKY (STRIKTNÍ LIMIT: SOUČASNÝ ROK - 2 MAX):
+- **Aktuální rok trhu:** ${currentYear}
+- **Nejstarší povolený modelový rok / datum uvedení:** ${minAllowedYear} (maximálně současný rok mínus 2).
+- **STRIKTNÍ ZÁKAZ STARÝCH A VYBĚHOVÝCH PRODUKTŮ:**
+  1. Je PŘÍSNĚ ZAKÁZÁNO doporučovat jakékoliv produkty, modely či hardware uvedené na trh před rokem ${minAllowedYear} (tj. modely z roku ${minAllowedYear - 1}, ${minAllowedYear - 2} a starší).
+  2. Je PŘÍSNĚ ZAKÁZÁNO doporučovat výběhové (End-of-Life / EOL), doprodávané nebo již nevyráběné modely, které se již běžně neprodávají v maloobchodní síti.
+  3. Pokud uživatel nebo parametry zmiňují starší modelovou řadu z dřívějších let, MUSÍŠ provést automatický generační posun a doporučit aktuálního nástupce z let ${minAllowedYear}–${currentYear}.
+  4. Každý doporučený produkt MUSÍ být z aktuální produkce a v běžném prodeji na trhu (${minAllowedYear}–${currentYear}).
+
+### PŘÍKAZ OKAMŽITÉHO VÝKONU (ZÁKAZ PRÁZDNÝCH SLIBŮ):
+- NIKDY neodpovídej pouhým zdvořilostním potvrzením či budoucím slibem (např. NIKDY nepiš „Rozumím a provedu výzkum znovu“, „I will perform the research“ nebo „Podívám se na to“).
+- Pokud uživatel napíše „do the research again“, „zkus to znovu“, „přehodnoť doporučení“ nebo zadá upřesnění, MUSÍŠ OKAMŽITĚ v této jediné odpovědi provést kompletní průzkum a doručit plně strukturovaná doporučení s konkrétními modely, odůvodněním, výhodami a kompromisy!`;
+}
+
 export function forgeAgentPrompt(
   agent: UniversalAgentDefinition,
   answers: Record<string, any>,
@@ -353,8 +391,18 @@ ${baseSystemPrompt}
 ### MANDATORY & BINDING USER REQUIREMENTS:
 All user-specified parameters and values listed below are STRICTLY BINDING. As an expert advisor, you MUST 100% adhere to every single parameter and value. You are strictly forbidden from recommending products that violate specified preferences, forbidden brands, budget caps, or biometric/health constraints!
 
+### MANDATORY 3-MODEL OUTPUT REQUIREMENT:
+You MUST ALWAYS recommend and output EXACTLY 3 distinct product models (Model 1, Model 2, Model 3). Under NO circumstances are you allowed to output only 1 or 2 products!
+
+### NICHE CONSTRAINT RELAXATION PROTOCOL:
+If user requirements are extremely narrow or niche such that fewer than 3 exact 100% matches exist on the active market (e.g. rare vertical dual-drawer air fryers, specific combinations of rare materials or capacity):
+1. Recommend the exact 100% match(es) for slot #1 (and slot #2 if available).
+2. For remaining slots (#2 and/or #3), provide the closest top-tier market contenders (e.g. closest form-factor, closest volume, or nearest premium alternative), and explicitly explain the trade-off in the rationale (e.g. "Alternative note: While this model features vertical stacked dual baskets, its capacity is 9.5L instead of 10L+"). NEVER omit models #2 or #3!
+
 ${answeredBlocks.join('\n')}
 ${ragSection}
+
+${getMarketRecencyDirective(true)}
 
 ### CRITICAL LANGUAGE DIRECTIVE:
 You MUST communicate and output all recommendations, rationale, exact product model names, key advantages, trade-offs, and user responses strictly in fluent, natural English.
@@ -379,10 +427,20 @@ A concise 2-paragraph expert evaluation explaining how the chosen models fulfill
   - Consideration 1
 
 ### 2. [Brand & Exact Model Name #2] (Match: XX %)
-...
+- **Why this model fits:** Detailed rationale directly referencing the user's specified parameters (or closest alternative with clear trade-off note).
+- **Key Pros & Advantages:**
+  - Advantage 1
+  - Advantage 2
+- **Potential Trade-offs & Cons:**
+  - Consideration 1
 
 ### 3. [Brand & Exact Model Name #3] (Match: XX %)
-...
+- **Why this model fits:** Detailed rationale directly referencing the user's specified parameters (or closest alternative with clear trade-off note).
+- **Key Pros & Advantages:**
+  - Advantage 1
+  - Advantage 2
+- **Potential Trade-offs & Cons:**
+  - Consideration 1
 
 ## Important Considerations & Buying Advice
 Key warnings regarding sizing, compatibility, or specific purchasing nuances to verify before buying.
@@ -395,8 +453,18 @@ ${baseSystemPrompt}
 ### STRIKTNÍ A ZÁVAZNÉ POŽADAVKY UŽIVATELE:
 Všechny níže uvedené parametry a hodnoty zadané uživatelem v průvodci jsou ZÁVAZNÉ A NEKOMPROMISNÍ. Jako expertní poradce je MUSÍŠ 100% respektovat. Je přísně zakázáno doporučovat produkty, které porušují zadané preference, zakázané značky, rozpočtové limity nebo biometrická a zdravotní omezení!
 
+### GARANCE PŘESNĚ 3 DOPORUČENÝCH PRODUKTŮ:
+VŽDY MUSÍŠ doporučit a vygenerovat PŘESNĚ 3 konkrétní produktové modely (Model 1, Model 2, Model 3). Za ŽÁDNÝCH okolností nesmíš vygenerovat pouze 1 nebo 2 modely!
+
+### PROTOKOL PRO ÚZKÉ / NICHE POŽADAVKY:
+Pokud jsou požadavky uživatele tak specifické či úzké, že na aktivním trhu neexistují 3 stoprocentní modely (např. vzácné vertikální horkovzdušné fritézy s koši nad sebou, specifické kombinace materiálů a objemu):
+1. Stoprocentní shodu (shody) uveď na pozici #1 (a případně #2).
+2. Na zbývající pozici/pozice (#2 a #3) doplň nejbližší špičkové tržní alternativy (např. nejbližší konstrukční form-factor nebo objem) a v odůvodnění transparentně vysvětli kompromis (např. „Poznámka k alternativě: Model nabízí vertikální uspořádání košů nad sebou, avšak s objemem 9.5 L namísto požadovaných 10+ L“). NIKDY položky #2 a #3 nevynechávej!
+
 ${answeredBlocks.join('\n')}
 ${ragSection}
+
+${getMarketRecencyDirective(false)}
 
 ### CRITICAL LANGUAGE DIRECTIVE:
 Directivně ukládám: Veškerá doporučení, konkrétní přesné názvy produktových modelů (např. Lenovo Legion Slim 5 16AHR8), odůvodnění, výhody a reakce MUSÍŠ komunikovat a generovat striktně v přirozené češtině (Čeština).
@@ -420,10 +488,20 @@ Stručné expertní shrnutí (2 odstavce), jak vybrané modely přesně řeší 
   - Nevýhoda / kompromis 1
 
 ### 2. [Značka a přesný název modelu #2] (Shoda: XX %)
-...
+- **Proč právě tento model:** Detailní odůvodnění s přímým odkazem na zadané parametry (nebo nejbližší alternativa s vysvětlením kompromisu).
+- **Klíčové výhody:**
+  - Výhoda 1
+  - Výhoda 2
+- **Potenciální kompromisy a nevýhody:**
+  - Nevýhoda / kompromis 1
 
 ### 3. [Značka a přesný název modelu #3] (Shoda: XX %)
-...
+- **Proč právě tento model:** Detailní odůvodnění s přímým odkazem na zadané parametry (nebo nejbližší alternativa s vysvětlením kompromisu).
+- **Klíčové výhody:**
+  - Výhoda 1
+  - Výhoda 2
+- **Potenciální kompromisy a nevýhody:**
+  - Nevýhoda / kompromis 1
 
 ## Důležitá upozornění a doporučení před nákupem
 Doporučení a varování týkající se dimenzování, kompatibility nebo specifik před finálním nákupem.
@@ -667,3 +745,6 @@ export function resolveAgentIcon(_icon?: string, _contextText?: string): string 
   // Emojis and generic icons are strictly prohibited across the user interface.
   return '';
 }
+
+
+export const compileAgentSystemPrompt = forgeAgentPrompt;
