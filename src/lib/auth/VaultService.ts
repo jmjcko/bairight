@@ -7,6 +7,16 @@ import { AIProviderId } from "@/lib/agent/engine-config";
 
 const VAULT_STORAGE_KEY = "bairight_ai_vault_v2";
 
+const VERIFICATION_STORAGE_KEY = "bairight_ai_keys_verification_v1";
+
+export interface KeyVerificationRecord {
+  isValid: boolean;
+  lastTestedAt: string;
+  errorMessage?: string;
+  testedModel?: string;
+}
+
+
 export interface ProviderConnectionState {
   providerId: AIProviderId;
   connectionType: "api_key" | "oauth_subscription";
@@ -73,6 +83,62 @@ export class VaultService {
     }
   }
 
+
+  public static getVerificationStatus(providerId: string): KeyVerificationRecord | null {
+    if (typeof window === "undefined") return null;
+    try {
+      const raw = localStorage.getItem(VERIFICATION_STORAGE_KEY);
+      if (!raw) return null;
+      const parsed = JSON.parse(raw);
+      return parsed[providerId] || null;
+    } catch {
+      return null;
+    }
+  }
+
+  public static getAllVerificationStatuses(): Record<string, KeyVerificationRecord> {
+    if (typeof window === "undefined") return {};
+    try {
+      const raw = localStorage.getItem(VERIFICATION_STORAGE_KEY);
+      if (!raw) return {};
+      return JSON.parse(raw) || {};
+    } catch {
+      return {};
+    }
+  }
+
+  public static setKeyVerificationStatus(
+    providerId: string,
+    isValid: boolean,
+    errorMessage?: string,
+    testedModel?: string
+  ): void {
+    if (typeof window === "undefined") return;
+    try {
+      const all = VaultService.getAllVerificationStatuses();
+      all[providerId] = {
+        isValid,
+        lastTestedAt: new Date().toISOString(),
+        errorMessage: isValid ? undefined : errorMessage,
+        testedModel,
+      };
+      localStorage.setItem(VERIFICATION_STORAGE_KEY, JSON.stringify(all));
+    } catch (e) {
+      console.warn("Failed to save key verification status:", e);
+    }
+  }
+
+  public static clearKeyVerificationStatus(providerId: string): void {
+    if (typeof window === "undefined") return;
+    try {
+      const all = VaultService.getAllVerificationStatuses();
+      delete all[providerId];
+      localStorage.setItem(VERIFICATION_STORAGE_KEY, JSON.stringify(all));
+    } catch (e) {
+      console.warn("Failed to clear key verification status:", e);
+    }
+  }
+
   public static getApiKey(providerId: string): string {
     const store = VaultService.getStore();
     return store[providerId] || "";
@@ -82,10 +148,15 @@ export class VaultService {
     if (typeof window === "undefined") return;
     const store = VaultService.getStore();
     const trimmed = apiKey.trim();
+    const oldKey = store[providerId];
     if (trimmed) {
       store[providerId] = trimmed;
+      if (oldKey !== trimmed) {
+        VaultService.clearKeyVerificationStatus(providerId);
+      }
     } else {
       delete store[providerId];
+      VaultService.clearKeyVerificationStatus(providerId);
     }
     const ob = obfuscate(JSON.stringify(store));
     localStorage.setItem(VAULT_STORAGE_KEY, ob);
@@ -97,6 +168,7 @@ export class VaultService {
     if (typeof window === "undefined") return;
     const store = VaultService.getStore();
     delete store[providerId];
+    VaultService.clearKeyVerificationStatus(providerId);
     const ob = obfuscate(JSON.stringify(store));
     localStorage.setItem(VAULT_STORAGE_KEY, ob);
     localStorage.setItem("bairight_ai_keys", JSON.stringify(store));

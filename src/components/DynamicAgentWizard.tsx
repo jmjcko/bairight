@@ -476,8 +476,18 @@ export const DynamicAgentWizard: React.FC<DynamicAgentWizardProps> = ({
     return [...base, ...sessionFeedbackFacts];
   }, [userFacts, sessionFeedbackFacts]);
 
+  const purchasedHistory = useMemo(() => {
+    return AgentStorageService.getPurchasedAgents()
+      .filter((a) => a.id !== agent.id)
+      .map((a) => ({
+        name: a.name,
+        category: a.category,
+        targetValues: a.targetValues,
+      }));
+  }, [agent.id]);
+
   const currentLivePrompt = useMemo(() => {
-    return forgeAgentPrompt(agent, answers, enrichedFacts, locale);
+    return forgeAgentPrompt(agent, answers, enrichedFacts, locale, purchasedHistory);
   }, [agent, answers, enrichedFacts, locale]);
 
   const handleOpenPromptInspector = () => {
@@ -559,7 +569,7 @@ export const DynamicAgentWizard: React.FC<DynamicAgentWizardProps> = ({
         if (data && data.recommendations) {
           setResult(data);
           if (onAssessmentCompleted) {
-            const completedPrompt = forgeAgentPrompt(agent, answers, updatedFacts, locale);
+            const completedPrompt = forgeAgentPrompt(agent, answers, updatedFacts, locale, purchasedHistory);
             onAssessmentCompleted(answers, data, completedPrompt);
           }
         }
@@ -594,7 +604,7 @@ export const DynamicAgentWizard: React.FC<DynamicAgentWizardProps> = ({
           }))
       : [];
     const allFacts = [...currentFacts, ...sessionFeedbackFacts];
-    const finalCompletedPrompt = forgeAgentPrompt(agent, activeAnswers, allFacts, locale);
+    const finalCompletedPrompt = forgeAgentPrompt(agent, activeAnswers, allFacts, locale, purchasedHistory);
 
     // Persist compiled prompt into PromptStorageService
     PromptStorageService.saveCompletedPrompt({
@@ -728,7 +738,7 @@ export const DynamicAgentWizard: React.FC<DynamicAgentWizardProps> = ({
       }
 
       // Sestavíme a uložíme VÝHRADNĚ HOTOVÝ prompt po dokončení posledního kroku
-      const finalCompletedPrompt = forgeAgentPrompt(agent, activeAnswers, enrichedFacts, locale);
+      const finalCompletedPrompt = forgeAgentPrompt(agent, activeAnswers, enrichedFacts, locale, purchasedHistory);
       PromptStorageService.saveCompletedPrompt({
         agentId: agent.id,
         agentName: agent.name,

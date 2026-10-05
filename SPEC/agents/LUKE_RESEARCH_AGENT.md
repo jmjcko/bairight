@@ -120,6 +120,21 @@ Agent Luke **NESMÍ OBSAHOVAT ŽÁDNÝ STATICKÝ GENERICKÝ FALLBACK** ani vrace
    - Pokud se na produkt na našem webu **již někdo neptal**: Luke načte dříve vygenerované a schválené parametry z historie nášho webu, zohlední to, co bylo předchozímu uživateli nabízeno, a použije/rozšíří je pro aktuální výzkum.
    - Pokud se na produkt na našem webu **zatím nikdo neptal**: Luke zahájí čerstvý dynamický tržní výzkum z fór, recenzí a odborných specifikací.
 
+
+
+## 🧠 Cross-Category Purchase History & Multi-Product Transfer Rule (CRITICAL)
+
+Agent Luke is fully aware of the user's complete purchase history, previously evaluated agents, and active RAG memory across all product domains:
+
+1. **Cross-Category Transferability**:
+   - **Footwear & Apparel**: If the user previously bought or configured running shoes, trail shoes, or cycling shoes with specific size (e.g. EU 44) or foot anatomy (e.g. 2E wide foot, high instep, bunion relief), Luke automatically transfers these anatomical requirements when generating parameters for new footwear (e.g. cycling shoes, hiking boots, work boots).
+   - **Ergonomics & Workspaces**: If a user configured an ergonomic chair or height-adjustable desk, Luke transfers posture data and dimension constraints to monitor arms, keyboards, or bicycle fit.
+   - **Ecosystem & Technical Preferences**: If a user purchased items from a specific battery platform or wireless ecosystem, Luke reflects compatible ecosystem parameters.
+
+2. **Prompt & Parameter Integration**:
+   - When the user searches for a product, Luke injects known purchase history into the research meta-prompt.
+   - Luke tailors suggested values and rationales so that pre-selected market options respect established user constraints without forcing the user to re-explain their anatomy or baseline choices.
+
 ## 📄 Prompt Specification & Template
 
 ```markdown

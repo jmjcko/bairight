@@ -50,6 +50,26 @@ export function decodeGoogleJwt(token: string): { email?: string; name?: string;
   }
 }
 
+
+export const syncUserProfileToDatabase = async (profile: UserProfile) => {
+  if (!profile?.id || !profile.email || !supabase) return;
+  try {
+    await supabase.from("users").upsert(
+      {
+        id: profile.id,
+        email: profile.email,
+        name: profile.name || profile.email.split("@")[0],
+        avatar_url: profile.avatarUrl || null,
+        preferred_locale: profile.preferredLocale || "cs",
+        last_active_at: new Date().toISOString(),
+      },
+      { onConflict: "id" }
+    );
+  } catch (err) {
+    console.warn("Could not sync user profile to database:", err);
+  }
+};
+
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<UserProfile | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -69,6 +89,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         if (parsed && (parsed.preferredLocale === 'cs' || parsed.preferredLocale === 'en')) {
           persistLocale(parsed.preferredLocale);
         }
+        void syncUserProfileToDatabase(parsed);
       }
     } catch {
       // Ignore
@@ -141,6 +162,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (typeof window !== "undefined") {
       localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(realGoogleProfile));
     }
+    void syncUserProfileToDatabase(realGoogleProfile);
     setIsLoginModalOpen(false);
   };
 
@@ -196,6 +218,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                       if (typeof window !== "undefined") {
                         localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(realGoogleProfile));
                       }
+                      void syncUserProfileToDatabase(realGoogleProfile);
                       setIsLoginModalOpen(false);
                       return;
                     }

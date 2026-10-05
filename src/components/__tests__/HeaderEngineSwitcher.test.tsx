@@ -42,4 +42,38 @@ describe("HeaderEngineSwitcher Unit Tests", () => {
 
     expect(onSelect).toHaveBeenCalledWith("google_gemini");
   });
+
+  it("3. Renders Bez klíče badge when active provider has no API key", () => {
+    const onSelect = vi.fn();
+    const onOpenVault = vi.fn();
+
+    render(
+      <HeaderEngineSwitcher
+        activeProviderId="google_gemini"
+        onSelectProvider={onSelect}
+        onOpenVaultModal={onOpenVault}
+        currentApiKeys={{}}
+      />
+    );
+
+    expect(screen.getByText("Google AI")).toBeInTheDocument();
+    expect(screen.getByText("Bez klíče")).toBeInTheDocument();
+  });
+
+  it("4. Renders ! Neplatný klíč badge on trigger button when key is verified invalid", async () => {
+    const { VaultService } = await import("@/lib/auth/VaultService");
+    VaultService.saveApiKey("google_gemini", "bad_key");
+    VaultService.setKeyVerificationStatus("google_gemini", false, "Bad key");
+
+    render(
+      <HeaderEngineSwitcher
+        activeProviderId="google_gemini"
+        onSelectProvider={vi.fn()}
+        onOpenVaultModal={vi.fn()}
+        currentApiKeys={{ google_gemini: "bad_key" }}
+      />
+    );
+
+    expect(screen.getByText("! Neplatný klíč")).toBeInTheDocument();
+  });
 });

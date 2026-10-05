@@ -262,7 +262,8 @@ export function forgeAgentPrompt(
   agent: UniversalAgentDefinition,
   answers: Record<string, any>,
   ragFacts?: Array<{ fact: string; category: string }>,
-  locale: string = 'cs'
+  locale: string = 'cs',
+  purchasedHistory?: Array<{ name: string; category: string; targetValues?: Record<string, any> }>
 ): string {
   const isEn = locale === 'en';
   const answeredBlocks: string[] = [];
@@ -389,6 +390,17 @@ export function forgeAgentPrompt(
   const ragSection = ragFacts && ragFacts.length > 0
     ? `${ragHeader}\n${ragFacts.map((f) => `- [${f.category}] ${f.fact}`).join('\n')}\n`
     : '';
+
+  let historySection = '';
+  if (purchasedHistory && purchasedHistory.length > 0) {
+    const list = purchasedHistory.map((item) => {
+      const specs = item.targetValues ? Object.entries(item.targetValues).slice(0, 4).map(([k, v]) => `${k}: ${v}`).join(', ') : '';
+      return `- ${item.name} (${item.category})${specs ? ` [${specs}]` : ''}`;
+    }).join('\n');
+    historySection = isEn
+      ? `\n### COMPLETE USER PURCHASE HISTORY & CROSS-CATEGORY CONTEXT:\n${list}\n- **CROSS-CATEGORY MANDATE:** You have access to the user's complete purchase history. You must maintain cross-category consistency (e.g. transfer foot shape/size from cycling shoes to running shoes, transfer ergonomic preferences across workspaces).\n`
+      : `\n### KOMPLETNÍ HISTORIE NÁKUPŮ & KŘÍŽOVÝ KONTEXT UŽIVATELE:\n${list}\n- **ZÁVAZNÁ KŘÍŽOVÁ HARMONIZACE:** Máš k dispozici kompletní historii předchozích nákupů uživatele. Zachovej kontinuitu parametrů napříč kategoriemi (např. přenes šířku a velikost chodidla z bot na kolo do běžeckých bot, zohledni ergonomické nároky z kanceláře do domácího vybavení).\n`;
+  }
 
   if (isEn) {
     return `

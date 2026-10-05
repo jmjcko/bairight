@@ -36,4 +36,23 @@ describe("VaultService Unit Tests", () => {
     VaultService.saveApiKey("openai_gpt4o", "");
     expect(VaultService.getApiKey("openai_gpt4o")).toBe("");
   });
+
+  it("6. Records and clears key verification status", () => {
+    VaultService.saveApiKey("google_gemini", "AIzaSyTest123");
+    VaultService.setKeyVerificationStatus("google_gemini", true, undefined, "gemini-2.5-flash");
+
+    const status = VaultService.getVerificationStatus("google_gemini");
+    expect(status?.isValid).toBe(true);
+    expect(status?.testedModel).toBe("gemini-2.5-flash");
+
+    // Changing key clears verification
+    VaultService.saveApiKey("google_gemini", "AIzaSyDifferentKey");
+    expect(VaultService.getVerificationStatus("google_gemini")).toBeNull();
+
+    // Marking invalid
+    VaultService.setKeyVerificationStatus("google_gemini", false, "Invalid API key");
+    const invalidStatus = VaultService.getVerificationStatus("google_gemini");
+    expect(invalidStatus?.isValid).toBe(false);
+    expect(invalidStatus?.errorMessage).toBe("Invalid API key");
+  });
 });

@@ -75,7 +75,7 @@ function ensureBrandParameter(params: ExtractedDomainParameter[], locale: string
 // ————————————————————————————————————————————————
 export async function POST(req: NextRequest) {
   try {
-    const { query, locale = 'en', apiKey: bodyApiKey, providerId } = await req.json();
+    const { query, locale = 'en', apiKey: bodyApiKey, providerId, purchasedHistory, userFacts } = await req.json();
 
     if (!query || typeof query !== 'string' || query.trim().length === 0) {
       return NextResponse.json(
@@ -116,7 +116,7 @@ export async function POST(req: NextRequest) {
     if (effectiveKey) {
       try {
         console.log(`[Luke] Calling Gemini Flash research for: "${trimmedQuery}"`);
-        analysis = await researchParametersWithLuke(trimmedQuery, effectiveKey, providerId || 'google_gemini', locale);
+        analysis = await researchParametersWithLuke(trimmedQuery, effectiveKey, providerId || 'google_gemini', locale, purchasedHistory, userFacts);
         if (analysis && analysis.parameters && analysis.parameters.length >= 8) {
           source = 'luke_gemini_flash';
         }
@@ -159,7 +159,9 @@ async function researchParametersWithLuke(
   categoryQuery: string,
   apiKey: string,
   providerId?: string,
-  locale: string = 'en'
+  locale: string = 'en',
+  purchasedHistory?: Array<{ name: string; category: string; targetValues?: Record<string, any> }>,
+  userFacts?: Array<{ label?: string; factKey?: string; value?: string; factValue?: string }>
 ): Promise<DomainAnalysisResult | null> {
   const isEn = locale === 'en';
   const languageInstruction = isEn
@@ -170,12 +172,30 @@ async function researchParametersWithLuke(
     ? `MANDATORY BRAND GOVERNANCE: You MUST ALWAYS INCLUDE a brand preferences parameter ("Brand & Manufacturers (Preferred vs. Forbidden)", id: "brand_preferences", suggestedComponent: "brands"). This parameter enables the user to explicitly specify which brands they want (preferred) and which they reject (forbidden).`
     : `POVINNÁ IZOLACE ZNAČEK: Mezi vygenerovanými parametry MUSÍŠ VŽDY ZAHRNOUT parametr pro značky a výrobce ("Značka & Výrobci (Preferované vs. Zakázané)", id: "brand_preferences", suggestedComponent: "brands"). Tento parametr slouží k tomu, aby si uživatel mohl explicitně napsat, které konkrétní značky chce (preferuje) a které nechce (zakazuje doporučit).`;
 
+
+  let historySection = '';
+  if (purchasedHistory && purchasedHistory.length > 0) {
+    const list = purchasedHistory.map((item) => {
+      const specs = item.targetValues ? Object.entries(item.targetValues).slice(0, 4).map(([k, v]) => `${k}: ${v}`).join(', ') : '';
+      return `- ${item.name} (${item.category})${specs ? ` [Specs: ${specs}]` : ''}`;
+    }).join('\n');
+    historySection += isEn
+      ? `\n\nUSER PURCHASE HISTORY & CROSS-CATEGORY CONTEXT:\nThe user has previously purchased/configured:\n${list}\nCross-Category Directive: If the user specified personal sizes, foot anatomy (e.g., width 2E), or ergonomic constraints in past purchases, align the parameters and suggested options for "${categoryQuery}" to respect these traits.`
+      : `\n\nKOMPLETNÍ HISTORIE NÁKUPŮ & KŘÍŽOVÝ KONTEXT:\nUživatel dříve zakoupil/nakonfiguroval:\n${list}\nZávazná instrukce: Pokud uživatel v předchozích nákupech zadal osobní míry, velikosti, biomechaniku (např. šířka chodidla 2E, citlivost kloubů) nebo ergonomické návyky, zohledni to v navržených parametrech a doporučených hodnotách pro "${categoryQuery}".`;
+  }
+  if (userFacts && userFacts.length > 0) {
+    const factsList = userFacts.map((f) => `- ${f.label || f.factKey}: ${f.value || f.factValue}`).join('\n');
+    historySection += isEn
+      ? `\n\nESTABLISHED PERSONAL RAG FACTS:\n${factsList}`
+      : `\n\nOVĚŘENÁ OSOBNÍ RAG FAKTA:\n${factsList}`;
+  }
+
   const metaPrompt = isEn ? `
 ${languageInstruction}
 
 You are an expert purchase analyst and technical specification writer in the bAIright system. Your task is to break down any user-specified product category into a list of 8 to 12 most critical parameters that a buyer must consider before making a final decision.
 
-Input entity (Product): "${categoryQuery}"
+Input entity (Product): "${categoryQuery}"${historySection}
 
 Parameter generation rules:
 
@@ -220,7 +240,7 @@ ${languageInstruction}
 
 Jsi expertní nákupní analytik a technický specifikátor v expertním systému bAIright. Tvým úkolem je rozpadnout jakoukoliv uživatelem zadanou kategorii zboží na seznam 8 až 12 nejkritičtějších parametrů, které musí kupující zvážit před finálním rozhodnutím.
 
-Vstupní entita (Zboží): "${categoryQuery}"
+Vstupní entita (Zboží): "${categoryQuery}"${historySection}
 
 Pravidla pro generování parametrů:
 

@@ -8,7 +8,10 @@
     "start": "next start",
     "lint": "next lint",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "test:sanity": "vitest run src/security/__tests__/release-security-and-sanity.test.tsx",
+    "test:security": "vitest run src/security/__tests__/release-security-and-sanity.test.tsx",
+    "test:all": "tsc --noEmit && vitest run"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.49.1",

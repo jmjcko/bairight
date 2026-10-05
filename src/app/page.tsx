@@ -21,7 +21,10 @@ import {
   forgeAgentPrompt
 } from '@/lib/agent/universal-agent-schema';
 import { AgentStorageService } from '@/lib/agent/agent-storage-service';
+import { ChatStorageService } from '@/lib/agent/chat-storage-service';
+import { MemoryStorageService } from '@/lib/agent/memory-storage-service';
 import { PromptStorageService } from '@/lib/agent/prompt-storage-service';
+import { useAuth } from '@/lib/auth/AuthContext';
 import { 
   AIProviderId, 
   SUPPORTED_AI_PROVIDERS, 
@@ -201,6 +204,7 @@ const getAgentQuickPrompts = (agent: UniversalAgentDefinition | null, isEn: bool
 
 export default function Home() {
   const { t, locale } = useI18n();
+  const { user } = useAuth();
   const isEn = locale === 'en';
   const [activeTab, setActiveTab] = useState<AppTab>('wizard');
 
@@ -318,37 +322,37 @@ export default function Home() {
     setSidebarAnswers({});
   }, [selectedAgent]);
 
-  // Load per-agent chat messages from localStorage when selectedAgent changes
+  // Load per-agent chat messages from localStorage / cloud when selectedAgent changes
   useEffect(() => {
+    let isCurrent = true;
     if (selectedAgent && typeof window !== "undefined") {
-      const chatKey = `bairight_chat_messages_${selectedAgent.id}`;
-      const stored = localStorage.getItem(chatKey);
-      if (stored) {
-        try {
-          const parsed = JSON.parse(stored);
-          if (Array.isArray(parsed) && parsed.length > 0) {
-            const cleaned = parsed.filter((m) => !isLegacyGenericGreeting(m.content || '') && !isPromptDump(m.content || ''));
-            if (cleaned.length > 0) {
-              setMessages(cleaned);
-              return;
-            } else {
-              localStorage.removeItem(chatKey);
-            }
+      ChatStorageService.loadMessages(selectedAgent.id, user?.id, selectedAgent.name).then((loaded) => {
+        if (!isCurrent) return;
+        if (loaded && loaded.length > 0) {
+          const cleaned = loaded.filter(
+            (m) => !isLegacyGenericGreeting(m.content || '') && !isPromptDump(m.content || '')
+          );
+          if (cleaned.length > 0) {
+            setMessages(cleaned);
+            return;
           }
-        } catch {}
-      }
-      setMessages([getAgentInitialGreeting(selectedAgent, isEn)]);
+        }
+        setMessages([getAgentInitialGreeting(selectedAgent, isEn)]);
+      });
     } else {
       setMessages([]);
     }
-  }, [selectedAgent?.id, isEn]);
+    return () => {
+      isCurrent = false;
+    };
+  }, [selectedAgent?.id, user?.id, isEn]);
 
   // Persist chat messages whenever they update for an active agent
   useEffect(() => {
     if (selectedAgent && messages.length > 0 && typeof window !== "undefined") {
-      localStorage.setItem(`bairight_chat_messages_${selectedAgent.id}`, JSON.stringify(messages));
+      void ChatStorageService.saveMessages(selectedAgent.id, messages, user?.id, selectedAgent.name);
     }
-  }, [messages, selectedAgent?.id]);
+  }, [messages, selectedAgent?.id, user?.id]);
   const hasActiveSubscription = Boolean(
     apiKeys['google_gemini']?.trim() ||
     apiKeys['openai_gpt4o']?.trim() ||
@@ -434,6 +438,22 @@ export default function Home() {
     localStorage.setItem('bairight_session_id', sid);
     setSessionId(sid);
   }, []);
+  // Cloud sync for authenticated users (Supabase agents & memory facts)
+  useEffect(() => {
+    if (user?.id) {
+      AgentStorageService.syncWithCloud(user.id).then((synced) => {
+        if (synced && synced.length > 0) {
+          setStoredAgents(synced);
+        }
+      });
+      MemoryStorageService.syncWithCloud(user.id).then((syncedFacts) => {
+        if (syncedFacts && syncedFacts.length > 0) {
+          setUserFacts(syncedFacts);
+        }
+      });
+    }
+  }, [user?.id]);
+
 
   const handleSelectFont = (fontId: string) => {
     setActiveFontId(fontId);
@@ -442,11 +462,8 @@ export default function Home() {
   };
 
   const handleToggleFact = (factId: string) => {
-    setUserFacts((prev) => {
-      const updated = prev.map((f) => (f.id === factId ? { ...f, isEnriched: !f.isEnriched } : f));
-      localStorage.setItem('bairight_user_facts', JSON.stringify(updated));
-      return updated;
-    });
+    const updated = MemoryStorageService.toggleFact(factId, user?.id);
+    setUserFacts(updated);
   };
 
   const handleAddFact = (
@@ -463,19 +480,14 @@ export default function Home() {
       updatedAt: new Date().toLocaleDateString('cs-CZ'),
       isEnriched: true,
     };
-    setUserFacts((prev) => {
-      const updated = [newFact, ...prev];
-      localStorage.setItem('bairight_user_facts', JSON.stringify(updated));
-      return updated;
-    });
+    const updated = MemoryStorageService.saveFact(newFact, user?.id);
+    setUserFacts(updated);
   };
 
   const handleDeleteFact = (factId: string) => {
-    setUserFacts((prev) => {
-      const updated = prev.filter((f) => f.id !== factId);
-      localStorage.setItem('bairight_user_facts', JSON.stringify(updated));
-      return updated;
-    });
+    const target = userFacts.find((f) => f.id === factId);
+    const updated = MemoryStorageService.deleteFact(factId, target?.label || '', user?.id);
+    setUserFacts(updated);
   };
 
   const handleDeleteAssessment = (assessmentId: string) => {
@@ -523,10 +535,15 @@ export default function Home() {
     const enrichedFacts = Array.isArray(userFacts)
       ? userFacts.map((f: any) => ({ fact: f.fact || `${f.label || 'Poznámka'}: ${f.value || ''}`, category: f.category || 'preference' }))
       : [];
-    const updatedPrompt = forgeAgentPrompt(selectedAgent, updatedAnswers, enrichedFacts, locale);
+    const purchasedHistory = AgentStorageService.getPurchasedAgents().map((a) => ({
+      name: a.name,
+      category: a.category,
+      targetValues: a.targetValues,
+    }));
+    const updatedPrompt = forgeAgentPrompt(selectedAgent, updatedAnswers, enrichedFacts, locale, purchasedHistory);
     const updatedAgent = { ...selectedAgent, systemPrompt: updatedPrompt };
     setSelectedAgent(updatedAgent);
-    AgentStorageService.saveAgent(updatedAgent);
+    AgentStorageService.saveAgent(updatedAgent, user?.id);
     PromptStorageService.saveCompletedPrompt({
       agentId: selectedAgent.id,
       agentName: selectedAgent.name,
@@ -568,10 +585,15 @@ export default function Home() {
     const enrichedFacts = Array.isArray(userFacts)
       ? userFacts.map((f: any) => ({ fact: f.fact || `${f.label || 'Poznámka'}: ${f.value || ''}`, category: f.category || 'preference' }))
       : [];
-    const updatedPrompt = forgeAgentPrompt(selectedAgent, updatedAnswers, enrichedFacts, locale);
+    const purchasedHistory = AgentStorageService.getPurchasedAgents().map((a) => ({
+      name: a.name,
+      category: a.category,
+      targetValues: a.targetValues,
+    }));
+    const updatedPrompt = forgeAgentPrompt(selectedAgent, updatedAnswers, enrichedFacts, locale, purchasedHistory);
     const updatedAgent = { ...selectedAgent, systemPrompt: updatedPrompt };
     setSelectedAgent(updatedAgent);
-    AgentStorageService.saveAgent(updatedAgent);
+    AgentStorageService.saveAgent(updatedAgent, user?.id);
   };
 
   // Dynamic recommendations leaderboard (žebříček) for active agent
@@ -899,7 +921,7 @@ export default function Home() {
                     systemPrompt: completedPrompt || selectedAgent.systemPrompt,
                   };
                   setSelectedAgent(updatedAgent);
-                  AgentStorageService.saveAgent(updatedAgent);
+                  AgentStorageService.saveAgent(updatedAgent, user?.id);
                 }
                 const now = new Date();
                 const dateFormatted = `${now.toLocaleDateString('cs-CZ')}, ${now.toLocaleTimeString('cs-CZ', { hour: '2-digit', minute: '2-digit' })}`;

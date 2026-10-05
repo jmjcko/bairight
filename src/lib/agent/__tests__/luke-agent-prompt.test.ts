@@ -13,4 +13,25 @@ describe("Agent Luke System Prompt Specification", () => {
     expect(promptEn).toContain("expert shopping analyst");
     expect(promptEn).toContain("brand_preferences");
   });
+
+  it("incorporates complete user purchase history and cross-category intelligence when provided", () => {
+    const purchaseHistory = [
+      {
+        name: "Boty na horské kolo",
+        category: "Cyklistika",
+        targetValues: { "Velikost": "EU 44", "Šířka chodidla": "2E široké" },
+      },
+    ];
+    const userFacts = [
+      { label: "Anatomie chodidla", value: "Široké klenuté chodidlo 2E" },
+    ];
+
+    const prompt = buildLukeSystemPrompt("Silniční běžecké boty", "cs", purchaseHistory, userFacts);
+    expect(prompt).toContain("User Purchase History & Cross-Category Context:");
+    expect(prompt).toContain("Boty na horské kolo (Cyklistika)");
+    expect(prompt).toContain("EU 44");
+    expect(prompt).toContain("2E široké");
+    expect(prompt).toContain("Anatomie chodidla: Široké klenuté chodidlo 2E");
+    expect(prompt).toContain("Cross-Category Intelligence");
+  });
 });

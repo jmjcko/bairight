@@ -7,6 +7,7 @@ import {
   UniversalAgentDefinition 
 } from '@/lib/agent/universal-agent-schema';
 import { AgentStorageService } from '@/lib/agent/agent-storage-service';
+import { useAuth } from '@/lib/auth/AuthContext';
 import { BuyMeACoffeeModal } from './BuyMeACoffeeModal';
 import { getLocalizedAgent } from '@/lib/agent/agent-localization';
 import { 
@@ -64,6 +65,7 @@ export const AgentCategoryLauncher: React.FC<AgentCategoryLauncherProps> = ({
 }) => {
   const { t, locale } = useI18n();
   const { isMaterialCobalt } = useTheme();
+  const { user } = useAuth();
   const [query, setQuery] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
   const [activeAgentsTab, setActiveAgentsTab] = useState<'active' | 'purchased'>(initialTab);
@@ -134,6 +136,21 @@ const [researchError, setResearchError] = useState<string | null>(null);
           locale,
           apiKey: currentApiKeys?.[activeProviderId || 'bairight_core'],
           providerId: activeProviderId,
+          purchasedHistory: AgentStorageService.getPurchasedAgents().map((a) => ({
+            name: a.name,
+            category: a.category,
+            targetValues: a.targetValues,
+          })),
+          userFacts: typeof window !== 'undefined'
+            ? (() => {
+                try {
+                  const raw = localStorage.getItem('bairight_user_facts');
+                  return raw ? JSON.parse(raw) : [];
+                } catch {
+                  return [];
+                }
+              })()
+            : [],
         }),
       });
 
@@ -400,28 +417,28 @@ const [researchError, setResearchError] = useState<string | null>(null);
   const handleDeleteAgent = (e: React.MouseEvent, agentId: string) => {
     e.stopPropagation();
     if (confirm('Opravdu chcete smazat tohoto agenta z knihovny?')) {
-      AgentStorageService.deleteAgent(agentId);
+      AgentStorageService.deleteAgent(agentId, user?.id);
       setAgents(AgentStorageService.getAllAgents());
     }
   };
 
   const handleDeleteAllAgents = () => {
     if (confirm(locale === 'en' ? 'Are you sure you want to delete all your agents?' : 'Opravdu chcete smazat všechny vaše agenty?')) {
-      AgentStorageService.deleteAllAgents();
+      AgentStorageService.deleteAllAgents(user?.id);
       setAgents([]);
     }
   };
 
   const handleMarkPurchased = (e: React.MouseEvent, agent: UniversalAgentDefinition) => {
     e.stopPropagation();
-    AgentStorageService.markAgentAsPurchased(agent.id, true);
+    AgentStorageService.markAgentAsPurchased(agent.id, true, user?.id);
     setAgents(AgentStorageService.getAllAgents());
     setBmcModalAgent(agent);
   };
 
   const handleRestoreActive = (e: React.MouseEvent, agentId: string) => {
     e.stopPropagation();
-    AgentStorageService.markAgentAsPurchased(agentId, false);
+    AgentStorageService.markAgentAsPurchased(agentId, false, user?.id);
     setAgents(AgentStorageService.getAllAgents());
   };
 
