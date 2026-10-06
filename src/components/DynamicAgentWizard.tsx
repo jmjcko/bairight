@@ -225,12 +225,13 @@ export const DynamicAgentWizard: React.FC<DynamicAgentWizardProps> = ({
   // Prompt Inspector Modal State
   const [isPromptInspectorOpen, setIsPromptInspectorOpen] = useState<boolean>(false);
   const [inspectorPromptText, setInspectorPromptText] = useState<string>('');
-  const [copiedFinalPrompt, setCopiedFinalPrompt] = useState<boolean>(false);
   const [showLivePromptPreview, setShowLivePromptPreview] = useState<boolean>(false);
 
   // Deployment Guides & RAG Memory State (Phase 2 Deliverable)
   const [activeGuideTab, setActiveGuideTab] = useState<'gemini' | 'chatgpt' | 'claude'>('gemini');
   const [isGuidesExpanded, setIsGuidesExpanded] = useState<boolean>(false);
+  const [isParametersExpanded, setIsParametersExpanded] = useState<boolean>(false);
+  const [isRAGMemoryExpanded, setIsRAGMemoryExpanded] = useState<boolean>(false);
   const [copiedSnippetType, setCopiedSnippetType] = useState<string | null>(null);
   const [sessionFeedbackFacts, setSessionFeedbackFacts] = useState<Array<{ fact: string; category: string }>>([]);
   const [isRecalculatingWithFeedback, setIsRecalculatingWithFeedback] = useState<boolean>(false);
@@ -1747,33 +1748,60 @@ export const DynamicAgentWizard: React.FC<DynamicAgentWizardProps> = ({
       </div>
 
       {/* 1.5 ACTIVE SELECTION CRITERIA & RETROACTIVE PARAMETER TUNING */}
-      <div className="rounded-2xl bg-white border border-slate-200 p-6 shadow-xs space-y-4 text-left">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-200">
-          <div>
-            <div className="flex items-center gap-2">
-              <h3 className="text-base sm:text-lg font-black text-[#263238]">
-                {locale === 'en' ? 'Selection Criteria & Active Parameters' : 'Kritéria výběru a aktivní parametry'}
-              </h3>
-            </div>
-            <p className="text-xs text-[#546e7a] mt-0.5">
+      <div className="rounded-2xl bg-white border border-slate-200 shadow-xs overflow-hidden transition-all text-left">
+        {/* Collapsible Header Accordion Toggle */}
+        <div className="w-full p-4 sm:p-5 flex items-center justify-between text-left hover:bg-slate-50 transition-colors">
+          <div
+            onClick={() => setIsParametersExpanded((prev) => !prev)}
+            className="min-w-0 cursor-pointer flex-1"
+          >
+            <h3 className="text-sm sm:text-base font-black text-[#263238] flex items-center gap-2 flex-wrap">
+              <span>{locale === 'en' ? 'Selection Criteria & Active Parameters' : 'Kritéria výběru a aktivní parametry'}</span>
+              <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded-md bg-slate-100 border border-slate-200 text-[#0099cc]">
+                {(Array.isArray(answers.customParameters) ? answers.customParameters.length : 0) + (answers.baselineModel ? 1 : 0) + agent.questions.filter(q => { const val = answers[q.id]; return val !== undefined && val !== null && val !== "" && val !== "__SKIP__"; }).length}
+              </span>
+            </h3>
+            <p className="text-xs text-[#546e7a] mt-0.5 truncate">
               {locale === 'en'
-                ? 'Review parameters or add new constraints (such as budget ceiling or required features) to calibrate your recommendations.'
-                : 'Přehled zadaných kritérií z dotazníku s možností přidat další omezení (např. cenový strop nebo specifické požadavky).'}
+                ? 'Review parameters or add new constraints (such as budget ceiling or required features).'
+                : 'Přehled zadaných kritérií z dotazníku s možností přidat další omezení.'}
             </p>
           </div>
 
-          {!isAddingCustomParam && (
+          <div className="flex items-center gap-2 shrink-0 ml-3">
+            {!isAddingCustomParam && (
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setIsParametersExpanded(true);
+                  setIsAddingCustomParam(true);
+                }}
+                className="px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 border border-slate-300 text-[#263238] text-xs font-mono font-bold transition-all cursor-pointer"
+              >
+                + {locale === 'en' ? 'Add Parameter / Budget' : 'Přidat parametr / cenový limit'}
+              </button>
+            )}
             <button
               type="button"
-              onClick={() => setIsAddingCustomParam(true)}
-              className="px-3.5 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 border border-slate-300 text-[#263238] text-xs font-mono font-bold transition-all cursor-pointer shrink-0 self-start sm:self-auto"
+              onClick={() => setIsParametersExpanded((prev) => !prev)}
+              aria-expanded={isParametersExpanded}
+              className="flex items-center gap-2 cursor-pointer group"
             >
-              + {locale === 'en' ? 'Add Parameter / Budget' : 'Přidat parametr / cenový limit'}
+              <span className="text-xs font-mono text-[#0099cc] font-bold hidden md:inline">
+                {isParametersExpanded
+                  ? (locale === 'en' ? 'Hide parameters' : 'Skrýt parametry')
+                  : (locale === 'en' ? 'Show parameters' : 'Zobrazit parametry')}
+              </span>
+              <div className="p-1.5 rounded-lg bg-slate-100 border border-slate-200 text-[#263238] group-hover:border-slate-300 transition-colors">
+                {isParametersExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+              </div>
             </button>
-          )}
+          </div>
         </div>
 
-        {/* Inline Add Parameter Form */}
+        <div className={isParametersExpanded ? "p-5 sm:p-6 border-t border-slate-200 space-y-4" : "hidden"}>
+          {/* Inline Add Parameter Form */}
         {isAddingCustomParam && (
           <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-3 animate-in fade-in duration-200">
             <div className="flex items-center justify-between">
@@ -1942,6 +1970,7 @@ export const DynamicAgentWizard: React.FC<DynamicAgentWizardProps> = ({
               </div>
             );
           })}
+        </div>
         </div>
       </div>
 
@@ -2210,25 +2239,42 @@ export const DynamicAgentWizard: React.FC<DynamicAgentWizardProps> = ({
       )}
 
       {/* 4. THE ULTIMATE VALUE PROPOSITION: PERSISTENT RAG MEMORY & FEEDBACK LOOP */}
-      <div className="rounded-2xl bg-white border border-slate-200 p-6 sm:p-8 shadow-xs relative overflow-hidden space-y-6 text-left">
-        {/* Header of the Value Proposition */}
-        <div className="space-y-1.5">
-          <div className="flex items-center gap-2">
-            <span className="text-[11px] font-mono font-bold uppercase tracking-wider text-[#01579b] bg-[#e1f5fe] px-2.5 py-0.5 rounded-md border border-[#b3e5fc]">
-              {locale === 'en' ? 'Key Advantage of bAIright Architecture' : 'Klíčová výhoda bAIright architektury'}
-            </span>
+      <div className="rounded-2xl bg-white border border-slate-200 shadow-xs overflow-hidden transition-all text-left">
+        {/* Collapsible Header Accordion Toggle */}
+        <button
+          type="button"
+          onClick={() => setIsRAGMemoryExpanded((prev) => !prev)}
+          className="w-full p-4 sm:p-5 flex items-center justify-between text-left hover:bg-slate-50 transition-colors cursor-pointer group"
+          aria-expanded={isRAGMemoryExpanded}
+        >
+          <div className="min-w-0">
+            <h3 className="text-sm sm:text-base font-black text-[#263238] flex items-center gap-2 flex-wrap">
+              <span>{locale === 'en' ? 'Persistent RAG Memory: An Agent that Learns With Every Purchase' : 'Permanentní RAG paměť: Agent, který se s každým nákupem učí'}</span>
+              <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded-md bg-[#e1f5fe] border border-[#b3e5fc] text-[#01579b]">
+                {locale === 'en' ? 'Key Advantage' : 'Klíčová výhoda bAIright architektury'}
+              </span>
+            </h3>
+            <p className="text-xs text-[#546e7a] mt-0.5 truncate">
+              {locale === 'en'
+                ? 'Why an agent with profile memory is 10× more valuable than one-off anonymous chat.'
+                : 'Proč je agent s profilovou pamětí 10× hodnotnější než jednorázový anonymní chat.'}
+            </p>
           </div>
-          <h2 className="text-xl sm:text-2xl font-black text-[#263238] tracking-tight">
-            {locale === 'en' ? 'Persistent RAG Memory: An Agent that Learns With Every Purchase' : 'Permanentní RAG paměť: Agent, který se s každým nákupem učí'}
-          </h2>
-          <p className="text-xs sm:text-sm text-[#546e7a] leading-relaxed max-w-3xl">
-            {locale === 'en'
-              ? 'Why is an agent with profile memory 10× more valuable than a one-off anonymous chat in ChatGPT or Claude?'
-              : 'Proč je agent s profilovou pamětí 10× hodnotnější než jednorázový anonymní chat v ChatGPT nebo Claude?'}
-          </p>
-        </div>
 
-        {/* Contrast Grid: Generic LLM vs bAIright RAG */}
+          <div className="flex items-center gap-2 shrink-0 ml-3">
+            <span className="text-xs font-mono text-[#0099cc] font-bold hidden md:inline">
+              {isRAGMemoryExpanded
+                ? (locale === 'en' ? 'Hide overview' : 'Skrýt přehled')
+                : (locale === 'en' ? 'Show overview' : 'Zobrazit přehled')}
+            </span>
+            <div className="p-1.5 rounded-lg bg-slate-100 border border-slate-200 text-[#263238] group-hover:border-slate-300 transition-colors">
+              {isRAGMemoryExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+            </div>
+          </div>
+        </button>
+
+        <div className={isRAGMemoryExpanded ? "p-6 sm:p-8 border-t border-slate-200 space-y-6 block" : "hidden"}>
+          {/* Contrast Grid: Generic LLM vs bAIright RAG */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-2">
             <span className="text-xs font-bold text-slate-700 flex items-center gap-1.5 font-mono">
@@ -2293,30 +2339,6 @@ export const DynamicAgentWizard: React.FC<DynamicAgentWizardProps> = ({
             </div>
           </div>
         )}
-
-      </div>
-
-      {/* Raw Prompt Accordion */}
-      <div className="p-5 rounded-2xl bg-white border border-slate-200 text-xs space-y-3 shadow-xs text-left">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2 text-[#263238] font-bold font-mono">
-            <span>{locale === 'en' ? 'Full Generated Agent Prompt' : 'Kompletní vygenerovaný prompt agenta'}</span>
-          </div>
-          <button
-            type="button"
-            onClick={() => {
-              navigator.clipboard.writeText(currentLivePrompt);
-              setCopiedFinalPrompt(true);
-              setTimeout(() => setCopiedFinalPrompt(false), 2000);
-            }}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-50 hover:bg-slate-100 border border-slate-200 text-[#263238] text-xs font-mono transition-colors cursor-pointer"
-          >
-            <Copy className="w-3.5 h-3.5" />
-            <span>{copiedFinalPrompt ? (locale === 'en' ? 'Copied!' : 'Zkopírováno!') : (locale === 'en' ? 'Copy Final Prompt' : 'Kopírovat finální prompt')}</span>
-          </button>
-        </div>
-        <div className="rounded-xl bg-slate-50 p-3.5 font-mono text-xs text-[#263238] max-h-48 overflow-y-auto border border-slate-200 leading-relaxed whitespace-pre-wrap">
-          {currentLivePrompt}
         </div>
       </div>
 

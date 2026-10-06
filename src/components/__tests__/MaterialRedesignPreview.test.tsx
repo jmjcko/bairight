@@ -12,7 +12,7 @@ describe("Google Material Design 3 (M3) Material Admin Redesign Suite", () => {
   it("1. Renders Material Admin header with Logo, search bar, and Classic mode link", () => {
     render(<MaterialRedesignPreviewPage />);
 
-    expect(screen.getByText("Material Advisor")).toBeInTheDocument();
+    expect(screen.getByLabelText(/bAIright/i)).toBeInTheDocument();
     expect(screen.getByPlaceholderText(/Search shopping advisors|Hledat nákupní rádce/i)).toBeInTheDocument();
     expect(screen.getByText(/Classic Dark|Původní Dark/i)).toBeInTheDocument();
   });
