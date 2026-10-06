@@ -70,6 +70,10 @@ describe('Agent Discussion Navigation & Agent Picker Suite (Points 1 & 2)', () =
   it('1. Bod č. 1: In chat view, shows active agent card and clicking "Přepnout" opens dropdown to switch agent', async () => {
     render(<Home />);
 
+    // Select agent to activate mode switcher
+    const agentCards = await screen.findAllByText('Běžecká obuv');
+    fireEvent.click(agentCards[0]);
+
     // 1. Switch to Chat tab
     const chatTabBtn = screen.getByRole('button', { name: /Diskuse s agentem|Agent Discussion/i });
     fireEvent.click(chatTabBtn);
@@ -119,6 +123,10 @@ describe('Agent Discussion Navigation & Agent Picker Suite (Points 1 & 2)', () =
 
     render(<Home />);
 
+    // Select agent to activate mode switcher
+    const agentCards = await screen.findAllByText('Běžecká obuv');
+    fireEvent.click(agentCards[0]);
+
     // 1. Go to Chat tab and select agent_shoes_test
     const chatTabBtn = screen.getByRole('button', { name: /Diskuse s agentem|Agent Discussion/i });
     fireEvent.click(chatTabBtn);
@@ -160,6 +168,10 @@ describe('Agent Discussion Navigation & Agent Picker Suite (Points 1 & 2)', () =
     );
 
     render(<Home />);
+
+    // Select agent to activate mode switcher
+    const agentCards = await screen.findAllByText('Běžecká obuv');
+    fireEvent.click(agentCards[0]);
 
     // 1. Go to Chat tab and select agent_shoes_test
     const chatTabBtn = screen.getByRole('button', { name: /Diskuse s agentem|Agent Discussion/i });

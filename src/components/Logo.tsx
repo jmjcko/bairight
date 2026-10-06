@@ -16,8 +16,8 @@ export const Logo: React.FC<LogoProps> = ({
   variant = 'material',
   onClick,
 }) => {
-  const heightPx = size === 'sm' ? 36 : size === 'lg' ? 52 : 44;
-  const widthPx = Math.round(heightPx * (998 / 317));
+  const heightPx = size === 'sm' ? 40 : size === 'lg' ? 60 : 52;
+  const widthPx = Math.round(heightPx * (926 / 381));
 
   return (
     <div 
@@ -29,16 +29,16 @@ export const Logo: React.FC<LogoProps> = ({
       className={`group flex items-center select-none transition-all duration-200 ${onClick ? 'cursor-pointer' : ''} ${className}`}
       title="bAIright — Návrat na hlavní stránku"
     >
-      {/* Horizontal Neural AI Knowledge Graph & bAIright Logo */}
+      {/* bAIright Capsule Brand Logo */}
       <div 
         className="relative shrink-0 transition-transform group-hover:scale-105" 
         style={{ height: `${heightPx}px`, width: `${widthPx}px` }}
       >
         <Image
-          src="/images/bairight-horizontal-logo.png"
+          src="/images/bairight-shopping-bag-logo.png"
           alt="bAIright"
-          width={998}
-          height={317}
+          width={926}
+          height={381}
           className="object-contain w-full h-full"
           priority
         />

@@ -453,7 +453,7 @@ const [researchError, setResearchError] = useState<string | null>(null);
 
 
         <div className="max-w-2xl mx-auto space-y-3 relative z-10">
-          <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-[#e1f5fe] border border-[#b3e5fc] text-[#01579b] text-xs font-mono font-bold shadow-xs">
+          <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-[#e1f5fe] border border-[#b3e5fc] text-[#01579b] text-xs font-sans font-semibold tracking-wide shadow-xs">
             <span>{t.launcher.badge}</span>
           </div>
 
@@ -851,7 +851,7 @@ const [researchError, setResearchError] = useState<string | null>(null);
             </div>
 
             <div className="flex items-center gap-2 flex-wrap">
-              <div className="segmented-tabs-container inline-flex items-center gap-1.5 p-1 rounded-xl bg-[#f4f6f8] border border-slate-200 text-xs font-mono shadow-xs">
+              <div className="segmented-tabs-container inline-flex items-center gap-1.5 p-1 rounded-xl bg-[#f4f6f8] border border-slate-200 text-xs font-sans shadow-xs">
                 <button
                   type="button"
                   onClick={() => setActiveAgentsTab('active')}
@@ -880,7 +880,7 @@ const [researchError, setResearchError] = useState<string | null>(null);
                 <button
                   type="button"
                   onClick={handleDeleteAllAgents}
-                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-rose-950/40 hover:bg-rose-950/80 text-rose-300 border border-rose-500/30 hover:border-rose-400 text-xs font-mono transition-all cursor-pointer"
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-rose-950/40 hover:bg-rose-950/80 text-rose-300 border border-rose-500/30 hover:border-rose-400 text-xs font-sans font-medium transition-all cursor-pointer"
                   title={locale === 'en' ? 'Delete all agents from library' : 'Smazat všechny agenty z knihovny'}
                 >
                   <Trash2 className="w-3.5 h-3.5 text-rose-400" />
@@ -912,7 +912,7 @@ const [researchError, setResearchError] = useState<string | null>(null);
                   >
                     <div className="space-y-3">
                       <div className="flex items-center justify-between gap-1">
-                        <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-[#f4f6f8] border border-slate-200 text-[#607d8b] font-medium">
+                        <span className="text-[11px] font-sans px-2.5 py-0.5 rounded-full bg-[#f4f6f8] border border-slate-200 text-[#546e7a] font-semibold">
                           {agent.questions.length} {locale === 'en' ? 'questions' : 'otázek'}
                         </span>
 
@@ -955,7 +955,7 @@ const [researchError, setResearchError] = useState<string | null>(null);
                         <h3 className="font-extrabold text-base text-[#263238] group-hover:text-[#0099cc] transition-colors leading-snug">
                           {agent.name}
                         </h3>
-                        <span className="text-[11px] font-mono text-[#0099cc] font-bold">
+                        <span className="text-[11px] font-sans text-[#0277bd] font-bold tracking-wide">
                           {agent.category}
                         </span>
                       </div>
@@ -966,9 +966,9 @@ const [researchError, setResearchError] = useState<string | null>(null);
                     </div>
 
                     <div className="pt-3 border-t border-slate-100 flex items-center justify-between text-xs">
-                      <span className="text-[11px] font-mono text-[#607d8b]">
+                      <span className="text-[11px] font-sans text-[#546e7a] font-medium">
                         {rawAgent.isPurchased ? (
-                          <span className="text-[#0099cc] font-bold">
+                          <span className="text-[#0277bd] font-bold">
                             {t.launcher.purchasedBadge}
                             {rawAgent.purchasedAt ? ` • ${new Date(rawAgent.purchasedAt).toLocaleDateString(locale === 'en' ? 'en-US' : 'cs-CZ')}` : ''}
                           </span>
@@ -977,7 +977,7 @@ const [researchError, setResearchError] = useState<string | null>(null);
                         )}
                       </span>
 
-                      <span className="flex items-center gap-1 text-[#0099cc] font-bold group-hover:translate-x-1 transition-transform">
+                      <span className="flex items-center gap-1 text-[#0277bd] group-hover:text-[#01579b] font-bold group-hover:translate-x-1 transition-transform">
                         <span>{locale === 'en' ? 'Launch' : 'Spustit'}</span>
                         <ChevronRight className="w-3.5 h-3.5" />
                       </span>

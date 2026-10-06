@@ -69,6 +69,10 @@ describe('Dynamic Leaderboard, Chat Resume and Prominent Switch Agent Suite', ()
 
     render(<Home />);
 
+    // Select agent to activate mode switcher
+    const agentCard = (await screen.findAllByText('Cycling Shoes Expert Advisor'))[0];
+    fireEvent.click(agentCard);
+
     // Switch to Chat tab
     const chatTabBtn = screen.getByRole('button', { name: /Diskuse s agentem|Agent Discussion/i });
     fireEvent.click(chatTabBtn);
@@ -105,6 +109,10 @@ describe('Dynamic Leaderboard, Chat Resume and Prominent Switch Agent Suite', ()
     localStorage.setItem('bairight_chat_initialized_agent_cycling_test', 'true');
 
     render(<Home />);
+
+    // Select agent to activate mode switcher
+    const agentCard = (await screen.findAllByText('Cycling Shoes Expert Advisor'))[0];
+    fireEvent.click(agentCard);
 
     const chatTabBtn = screen.getByRole('button', { name: /Diskuse s agentem|Agent Discussion/i });
     fireEvent.click(chatTabBtn);
@@ -189,6 +197,10 @@ Nejdostupnější model s 3-děrovým systémem.
 
   it('4. Renders agent-specific greeting for empty chat and never shows generic Cars/Coffee/Footwear greeting', async () => {
     render(<Home />);
+
+    // Select agent to activate mode switcher
+    const agentCard = (await screen.findAllByText('Cycling Shoes Expert Advisor'))[0];
+    fireEvent.click(agentCard);
 
     const chatTabBtn = screen.getByRole('button', { name: /Diskuse s agentem|Agent Discussion/i });
     fireEvent.click(chatTabBtn);

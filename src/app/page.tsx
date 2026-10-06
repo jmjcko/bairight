@@ -1042,18 +1042,19 @@ export default function Home() {
   return (
     <div className="flex h-screen flex-col bg-[#f4f6f8] text-[#263238] overflow-hidden font-sans">
       {/* Top Navbar: Clean Executive Header */}
-      <header className="h-14 sm:h-16 border-b border-slate-200/80 bg-white px-3 sm:px-8 flex items-center justify-between shrink-0 z-20 shadow-xs">
-        {/* Left: Brand Logo & Navigation */}
-        <div className="flex items-center gap-6 shrink-0">
-          <div className="flex items-center gap-2.5">
-            <Logo size="md" onClick={handleGoHome} />
-            <span className="hidden xs:inline-block text-[10px] font-mono font-bold px-2 py-0.5 rounded-md bg-[#e1f5fe] border border-[#b3e5fc] text-[#01579b]">
-              {APP_VERSION}
-            </span>
-          </div>
+      <header className="h-14 sm:h-16 border-b border-slate-200/80 bg-white px-3 sm:px-8 flex items-center justify-between shrink-0 z-20 shadow-xs relative">
+        {/* Left: Brand Logo & Version */}
+        <div className="flex items-center gap-2.5 shrink-0">
+          <Logo size="md" onClick={handleGoHome} />
+          <span className="hidden xs:inline-block text-[10px] font-mono font-bold px-2 py-0.5 rounded-md bg-[#e1f5fe] border border-[#b3e5fc] text-[#01579b]">
+            {APP_VERSION}
+          </span>
+        </div>
 
-          {/* Clean Top Navigation Tabs */}
-          <div className="segmented-tabs-container hidden sm:flex items-center gap-1.5 p-1 rounded-xl bg-[#f4f6f8] border border-slate-200 text-xs font-mono">
+        {/* Center: Centered Mode Switcher (Contextual — only visible when inside an active agent, Result Hub or Chat) */}
+        {(wizardMode === "active_agent" || activeTab === "chat" || selectedAgent !== null) && (
+          <div className="segmented-tabs-wrapper hidden sm:flex items-center justify-center absolute left-1/2 -translate-x-1/2 pointer-events-auto">
+          <div className="segmented-tabs-container flex items-center gap-1.5 p-1 rounded-xl bg-[#f4f6f8] border border-slate-200 text-xs font-sans">
             <button
               onClick={() => {
                 const activeOrStored = selectedAgent || (typeof window !== 'undefined' ? AgentStorageService.getAllAgents()[0] : null);
@@ -1083,10 +1084,11 @@ export default function Home() {
                 }
                 setActiveTab('wizard');
               }}
-              className={`segmented-tab-btn px-3 py-1 rounded-lg transition-all cursor-pointer font-bold ${
-                activeTab === 'wizard'
-                  ? 'segmented-tab-active bg-[#0099cc] text-white shadow-xs'
-                  : 'text-[#607d8b] hover:text-[#263238]'
+              style={activeTab === "wizard" ? { backgroundColor: "#0099cc", color: "#ffffff" } : undefined}
+              className={`segmented-tab-btn px-4 py-1.5 rounded-lg transition-all cursor-pointer font-semibold ${
+                activeTab === "wizard"
+                  ? "segmented-tab-active !bg-[#0099cc] !text-white shadow-xs"
+                  : "text-[#607d8b] hover:text-[#263238]"
               }`}
             >
               {t.header.wizardTab}
@@ -1100,21 +1102,23 @@ export default function Home() {
                   setSelectedAgent(null);
                 }
               }}
-              className={`segmented-tab-btn px-3 py-1 rounded-lg transition-all cursor-pointer flex items-center gap-1.5 font-bold ${
-                activeTab === 'chat'
-                  ? 'segmented-tab-active bg-[#0099cc] text-white shadow-xs'
-                  : 'text-[#607d8b] hover:text-[#263238]'
+              style={activeTab === "chat" ? { backgroundColor: "#0099cc", color: "#ffffff" } : undefined}
+              className={`segmented-tab-btn px-4 py-1.5 rounded-lg transition-all cursor-pointer flex items-center gap-1.5 font-semibold ${
+                activeTab === "chat"
+                  ? "segmented-tab-active !bg-[#0099cc] !text-white shadow-xs"
+                  : "text-[#607d8b] hover:text-[#263238]"
               }`}
             >
               <span>{t.header.chatTab}</span>
               {selectedAgent ? (
-                <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-[#e1f5fe] text-[#01579b] border border-[#b3e5fc] font-mono font-bold hidden md:inline">
+                <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-[#e1f5fe] text-[#01579b] border border-[#b3e5fc] font-sans font-bold hidden md:inline">
                   {selectedAgent.name}
                 </span>
               ) : null}
             </button>
           </div>
         </div>
+        )}
 
         {/* Right: User Profile & Customization Capsules */}
         <div className="flex items-center gap-1.5 sm:gap-3 shrink-0">

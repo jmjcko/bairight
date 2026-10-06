@@ -1046,23 +1046,23 @@ body.material-mode .segmented-tab-active:hover {
 }
 
 /* Dropdown menus in header */
-[data-theme="google-material"] header .absolute,
-body.material-mode header .absolute {
+[data-theme="google-material"] header .absolute:not(.segmented-tabs-wrapper),
+body.material-mode header .absolute:not(.segmented-tabs-wrapper) {
   background-color: #ffffff !important;
   border-color: #cfd8dc !important;
   color: #263238 !important;
   box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.05) !important;
 }
 
-[data-theme="google-material"] header .absolute button,
-body.material-mode header .absolute button {
+[data-theme="google-material"] header .absolute:not(.segmented-tabs-wrapper) button,
+body.material-mode header .absolute:not(.segmented-tabs-wrapper) button {
   background-color: transparent !important;
   color: #263238 !important;
   border: none !important;
 }
 
-[data-theme="google-material"] header .absolute button:hover,
-body.material-mode header .absolute button:hover {
+[data-theme="google-material"] header .absolute:not(.segmented-tabs-wrapper) button:hover,
+body.material-mode header .absolute:not(.segmented-tabs-wrapper) button:hover {
   background-color: #f4f6f8 !important;
 }
 

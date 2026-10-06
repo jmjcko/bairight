@@ -1493,10 +1493,13 @@ export const DynamicAgentWizard: React.FC<DynamicAgentWizardProps> = ({
   // =========================================================================
   return (
     <div className="w-full max-w-5xl mx-auto space-y-7 py-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
-      {/* 1. HERO DELIVERABLE: THE AGENT CARD (MATERIAL DESIGN 3 - VARIANTA A) */}
-      <div className="rounded-2xl bg-white border border-slate-200 border-t-4 border-t-[#0099cc] p-6 sm:p-8 shadow-xs relative overflow-hidden text-left">
+      {/* 1. HERO DELIVERABLE: THE AGENT CARD (MATERIAL DESIGN 3 - HIGHLIGHTED MASTER CARD) */}
+      <div className="rounded-2xl bg-white border-2 border-slate-300 shadow-md p-6 sm:p-8 shadow-slate-200/60 relative overflow-hidden text-left space-y-6">
+        {/* Top vibrant Material cyan-blue accent bar */}
+        <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-[#0099cc] via-[#0288d1] to-[#0099cc]" />
+
         {/* Success status & Agent Identity */}
-        <div className="pb-5 border-b border-slate-200 mb-6 space-y-1.5">
+        <div className="pb-5 border-b border-slate-200 space-y-1.5">
           <div className="flex items-center gap-2">
             <span className="text-[11px] font-mono font-bold uppercase tracking-wider text-[#01579b] bg-[#e1f5fe] px-2.5 py-0.5 rounded-md border border-[#b3e5fc]">
               {locale === 'en' ? 'Calibration Complete' : 'Kalibrace dokončena'}
@@ -1517,11 +1520,12 @@ export const DynamicAgentWizard: React.FC<DynamicAgentWizardProps> = ({
 
           {/* TIER 1: TWO DOMINANT HERO ACTION CARDS (SIDE BY SIDE - VARIANTA A) */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5 pt-1">
-            {/* CARD 1 (LEFT): LIVE CHAT IN BAIRIGHT */}
+            {/* CARD 1 (LEFT): LIVE CHAT IN BAIRIGHT (PRIMARY HIGHLIGHTED OPTION) */}
             {(onOpenChat || onOpenSubscriptionModal) && (
               <div
-                className="flex flex-col justify-between p-6 sm:p-7 rounded-2xl bg-white border border-slate-200 border-t-4 border-t-[#0099cc] text-[#263238] shadow-xs hover:shadow-md transition-all text-left"
+                className="flex flex-col justify-between p-6 sm:p-7 rounded-2xl bg-[#f0f9ff] border-2 border-[#b3e5fc] text-[#263238] shadow-xs hover:shadow-md transition-all text-left relative overflow-hidden"
               >
+                <div className="absolute top-0 left-0 right-0 h-1 bg-[#0099cc]" />
                 <div className="space-y-4">
                   <div className="flex items-center justify-between gap-2 w-full">
                     <span className="text-[11px] font-mono font-bold uppercase tracking-wider text-[#01579b] bg-[#e1f5fe] px-2.5 py-1 rounded-md border border-[#b3e5fc] shrink-0">
@@ -1596,10 +1600,11 @@ export const DynamicAgentWizard: React.FC<DynamicAgentWizardProps> = ({
               </div>
             )}
 
-            {/* CARD 2 (RIGHT): COPY PROMPT TO CLIPBOARD (INVERSE DARK SLATE) */}
+            {/* CARD 2 (RIGHT): COPY PROMPT TO CLIPBOARD (SECONDARY OPTION) */}
             <div
-              className="flex flex-col justify-between p-6 sm:p-7 rounded-2xl bg-white border border-slate-200 border-t-4 border-t-[#1e293b] text-[#263238] shadow-xs hover:shadow-md transition-all text-left"
+              className="flex flex-col justify-between p-6 sm:p-7 rounded-2xl bg-slate-50 border-2 border-slate-200 text-[#263238] shadow-xs hover:shadow-md transition-all text-left relative overflow-hidden"
             >
+              <div className="absolute top-0 left-0 right-0 h-1 bg-[#1e293b]" />
               <div className="space-y-4">
                 <div className="flex items-center justify-between gap-2 w-full">
                   <span className="text-[11px] font-mono font-bold uppercase tracking-wider text-[#1e293b] bg-slate-100 px-2.5 py-1 rounded-md border border-slate-300 shrink-0">
@@ -1653,7 +1658,7 @@ export const DynamicAgentWizard: React.FC<DynamicAgentWizardProps> = ({
                   <button
                     type="button"
                     onClick={handleOpenPromptInspector}
-                    className="text-[#0099cc] hover:underline cursor-pointer font-bold shrink-0 lowercase text-[10px]"
+                    className="text-[#0277bd] hover:text-[#01579b] hover:underline cursor-pointer font-bold shrink-0 lowercase text-[10px]"
                   >
                     {locale === 'en' ? 'view full prompt' : 'zobrazit celý prompt'}
                   </button>
@@ -1788,7 +1793,7 @@ export const DynamicAgentWizard: React.FC<DynamicAgentWizardProps> = ({
               aria-expanded={isParametersExpanded}
               className="flex items-center gap-2 cursor-pointer group"
             >
-              <span className="text-xs font-mono text-[#0099cc] font-bold hidden md:inline">
+              <span className="text-xs font-sans text-[#0277bd] hover:text-[#01579b] font-semibold hidden md:inline">
                 {isParametersExpanded
                   ? (locale === 'en' ? 'Hide parameters' : 'Skrýt parametry')
                   : (locale === 'en' ? 'Show parameters' : 'Zobrazit parametry')}
@@ -1998,7 +2003,7 @@ export const DynamicAgentWizard: React.FC<DynamicAgentWizardProps> = ({
           </div>
 
           <div className="flex items-center gap-2 shrink-0 ml-3">
-            <span className="text-xs font-mono text-[#0099cc] font-bold hidden md:inline">
+            <span className="text-xs font-sans text-[#0277bd] hover:text-[#01579b] font-semibold hidden md:inline">
               {isGuidesExpanded
                 ? (locale === 'en' ? 'Hide instructions' : 'Skrýt návod')
                 : (locale === 'en' ? 'Show instructions' : 'Zobrazit návod')}
@@ -2076,9 +2081,9 @@ export const DynamicAgentWizard: React.FC<DynamicAgentWizardProps> = ({
                   <ol className="space-y-2 text-[#546e7a] pl-5 list-decimal leading-relaxed">
                     <li>
                       {locale === 'en' ? (
-                        <>Open <a href="https://gemini.google.com" target="_blank" rel="noreferrer" className="text-[#0099cc] underline font-semibold inline-flex items-center gap-0.5">Google Gemini <ExternalLink className="w-3 h-3 inline" /></a> and in the left sidebar click <strong>Gem Manager</strong> → <strong>+ New Gem</strong>.</>
+                        <>Open <a href="https://gemini.google.com" target="_blank" rel="noreferrer" className="text-[#0277bd] hover:text-[#01579b] underline font-semibold inline-flex items-center gap-0.5">Google Gemini <ExternalLink className="w-3 h-3 inline" /></a> and in the left sidebar click <strong>Gem Manager</strong> → <strong>+ New Gem</strong>.</>
                       ) : (
-                        <>Otevřete <a href="https://gemini.google.com" target="_blank" rel="noreferrer" className="text-[#0099cc] underline font-semibold inline-flex items-center gap-0.5">Google Gemini <ExternalLink className="w-3 h-3 inline" /></a> a v levém menu klikněte na <strong>Správce Gemů (Gem Manager)</strong> → <strong>+ Nový Gem</strong>.</>
+                        <>Otevřete <a href="https://gemini.google.com" target="_blank" rel="noreferrer" className="text-[#0277bd] hover:text-[#01579b] underline font-semibold inline-flex items-center gap-0.5">Google Gemini <ExternalLink className="w-3 h-3 inline" /></a> a v levém menu klikněte na <strong>Správce Gemů (Gem Manager)</strong> → <strong>+ Nový Gem</strong>.</>
                       )}
                     </li>
                     <li>
@@ -2120,9 +2125,9 @@ export const DynamicAgentWizard: React.FC<DynamicAgentWizardProps> = ({
                   <ol className="space-y-2 text-[#546e7a] pl-5 list-decimal leading-relaxed">
                     <li>
                       {locale === 'en' ? (
-                        <>Open <a href="https://chatgpt.com" target="_blank" rel="noreferrer" className="text-[#0099cc] underline font-semibold inline-flex items-center gap-0.5">ChatGPT <ExternalLink className="w-3 h-3 inline" /></a>, select <strong>Explore GPTs</strong> in the left sidebar and click <strong>+ Create</strong>.</>
+                        <>Open <a href="https://chatgpt.com" target="_blank" rel="noreferrer" className="text-[#0277bd] hover:text-[#01579b] underline font-semibold inline-flex items-center gap-0.5">ChatGPT <ExternalLink className="w-3 h-3 inline" /></a>, select <strong>Explore GPTs</strong> in the left sidebar and click <strong>+ Create</strong>.</>
                       ) : (
-                        <>Otevřete <a href="https://chatgpt.com" target="_blank" rel="noreferrer" className="text-[#0099cc] underline font-semibold inline-flex items-center gap-0.5">ChatGPT <ExternalLink className="w-3 h-3 inline" /></a>, v levém sloupci zvolte <strong>Explore GPTs</strong> a klikněte na <strong>+ Create</strong> (vpravo nahoře).</>
+                        <>Otevřete <a href="https://chatgpt.com" target="_blank" rel="noreferrer" className="text-[#0277bd] hover:text-[#01579b] underline font-semibold inline-flex items-center gap-0.5">ChatGPT <ExternalLink className="w-3 h-3 inline" /></a>, v levém sloupci zvolte <strong>Explore GPTs</strong> a klikněte na <strong>+ Create</strong> (vpravo nahoře).</>
                       )}
                     </li>
                     <li>
@@ -2164,9 +2169,9 @@ export const DynamicAgentWizard: React.FC<DynamicAgentWizardProps> = ({
                   <ol className="space-y-2 text-[#546e7a] pl-5 list-decimal leading-relaxed">
                     <li>
                       {locale === 'en' ? (
-                        <>Open <a href="https://claude.ai" target="_blank" rel="noreferrer" className="text-[#0099cc] underline font-semibold inline-flex items-center gap-0.5">Claude.ai <ExternalLink className="w-3 h-3 inline" /></a> and select <strong>Projects</strong> → <strong>New Project</strong> named <strong className="text-[#263238]">„{agent.name}“</strong>.</>
+                        <>Open <a href="https://claude.ai" target="_blank" rel="noreferrer" className="text-[#0277bd] hover:text-[#01579b] underline font-semibold inline-flex items-center gap-0.5">Claude.ai <ExternalLink className="w-3 h-3 inline" /></a> and select <strong>Projects</strong> → <strong>New Project</strong> named <strong className="text-[#263238]">„{agent.name}“</strong>.</>
                       ) : (
-                        <>Otevřete <a href="https://claude.ai" target="_blank" rel="noreferrer" className="text-[#0099cc] underline font-semibold inline-flex items-center gap-0.5">Claude.ai <ExternalLink className="w-3 h-3 inline" /></a> a v levém menu zvolte <strong>Projects</strong> → <strong>New Project</strong> s názvem <strong className="text-[#263238]">„{agent.name}“</strong>.</>
+                        <>Otevřete <a href="https://claude.ai" target="_blank" rel="noreferrer" className="text-[#0277bd] hover:text-[#01579b] underline font-semibold inline-flex items-center gap-0.5">Claude.ai <ExternalLink className="w-3 h-3 inline" /></a> a v levém menu zvolte <strong>Projects</strong> → <strong>New Project</strong> s názvem <strong className="text-[#263238]">„{agent.name}“</strong>.</>
                       )}
                     </li>
                     <li>
@@ -2262,7 +2267,7 @@ export const DynamicAgentWizard: React.FC<DynamicAgentWizardProps> = ({
           </div>
 
           <div className="flex items-center gap-2 shrink-0 ml-3">
-            <span className="text-xs font-mono text-[#0099cc] font-bold hidden md:inline">
+            <span className="text-xs font-sans text-[#0277bd] hover:text-[#01579b] font-semibold hidden md:inline">
               {isRAGMemoryExpanded
                 ? (locale === 'en' ? 'Hide overview' : 'Skrýt přehled')
                 : (locale === 'en' ? 'Show overview' : 'Zobrazit přehled')}
