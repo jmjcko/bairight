@@ -81,12 +81,12 @@ export const HeaderEngineSwitcher: React.FC<HeaderEngineSwitcherProps> = ({
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className={`flex items-center gap-2 px-3 h-8 rounded-lg text-xs font-medium border transition-all cursor-pointer shadow-sm backdrop-blur-md ${
+        className={`flex items-center gap-1.5 sm:gap-2 px-2 sm:px-3 h-8 rounded-lg text-xs font-medium border transition-all cursor-pointer shadow-sm backdrop-blur-md ${
           !hasKeyForActive
             ? "bg-amber-950/40 border-amber-500/50 text-amber-200 hover:border-amber-400"
             : isActiveInvalid
             ? "bg-rose-950/50 border-rose-500/60 text-rose-200 hover:border-rose-400 shadow-[0_0_12px_rgba(244,63,94,0.2)]"
-            : "bg-[#081224]/90 border-cyan-500/30 text-slate-200 hover:border-cyan-400 hover:shadow-[0_0_15px_rgba(6,182,212,0.25)]"
+            : "bg-[#f4f6f8] border-slate-200 text-[#263238] hover:bg-[#eceff1]"
         }`}
         title={locale === "en" ? "Switch AI Engine & Manage Keys (BYOK)" : "Přepnout AI Engine & Správu Klíčů (BYOK)"}
       >
@@ -112,19 +112,19 @@ export const HeaderEngineSwitcher: React.FC<HeaderEngineSwitcherProps> = ({
 
         {/* Provider Short Title & BYOK Badge */}
         <div className="flex items-center gap-1.5 font-mono">
-          <span className="truncate max-w-[130px] font-semibold">
+          <span className="truncate max-w-[75px] sm:max-w-[130px] font-semibold">
             {activeProvider.provider}
           </span>
           {!hasKeyForActive ? (
-            <span className="text-[10px] px-1.5 py-0.5 rounded bg-amber-950/80 border border-amber-500/60 text-amber-300 font-mono font-semibold tracking-wide">
+            <span className="hidden sm:inline-block text-[10px] px-1.5 py-0.5 rounded bg-amber-950/80 border border-amber-500/60 text-amber-300 font-mono font-semibold tracking-wide">
               {locale === "en" ? "No key" : "Bez klíče"}
             </span>
           ) : isActiveInvalid ? (
-            <span className="text-[10px] px-1.5 py-0.5 rounded bg-rose-950/90 border border-rose-500/70 text-rose-300 font-mono font-bold tracking-wide">
+            <span className="hidden sm:inline-block text-[10px] px-1.5 py-0.5 rounded bg-rose-950/90 border border-rose-500/70 text-rose-300 font-mono font-bold tracking-wide">
               {locale === "en" ? "! Invalid key" : "! Neplatný klíč"}
             </span>
           ) : (
-            <span className="text-[10px] px-1.5 py-0.5 rounded bg-[#08101d]/98 border border-cyan-500/40 text-cyan-400 font-mono font-medium">
+            <span className="hidden sm:inline-block text-[10px] px-1.5 py-0.5 rounded bg-[#e1f5fe] border border-[#b3e5fc] text-[#01579b] font-mono font-bold">
               BYOK
             </span>
           )}
@@ -135,12 +135,12 @@ export const HeaderEngineSwitcher: React.FC<HeaderEngineSwitcherProps> = ({
 
       {/* Dropdown Menu */}
       {isOpen && (
-        <div className="absolute right-0 mt-2 w-72 rounded-2xl bg-[#08101d]/98 border border-cyan-500/40 shadow-[0_10px_40px_rgba(0,0,0,0.8)] z-[120] p-2 space-y-1 backdrop-blur-xl animate-in fade-in duration-150">
-          <div className="px-3 py-2 border-b border-slate-800/80 flex items-center justify-between">
-            <span className="text-[11px] font-mono text-slate-400 font-semibold tracking-wider uppercase">
+        <div className="absolute right-0 mt-2 w-72 rounded-2xl bg-white border border-slate-200 shadow-xl z-[120] p-2 space-y-1 backdrop-blur-xl animate-in fade-in duration-150">
+          <div className="px-3 py-2 border-b border-slate-100 flex items-center justify-between">
+            <span className="text-[11px] font-mono text-[#607d8b] font-semibold tracking-wider uppercase">
               {locale === "en" ? "Select AI Model (BYOK)" : "Výběr AI Modelu (BYOK)"}
             </span>
-            <span className="text-[10px] text-cyan-400 font-mono">Real-Time Proxy</span>
+            <span className="text-[10px] text-[#0099cc] font-mono">Real-Time Proxy</span>
           </div>
 
           <div className="space-y-0.5 max-h-[280px] overflow-y-auto py-1">
@@ -157,16 +157,16 @@ export const HeaderEngineSwitcher: React.FC<HeaderEngineSwitcherProps> = ({
                   }}
                   className={`w-full flex items-center justify-between p-2.5 rounded-xl text-left text-xs transition-all cursor-pointer ${
                     isSelected
-                      ? "bg-cyan-950/60 border border-cyan-500/50 text-cyan-200 shadow-sm"
-                      : "hover:bg-slate-900/80 border border-transparent text-slate-300 hover:text-slate-100"
+                      ? "bg-[#e1f5fe] border border-[#b3e5fc] text-[#01579b] shadow-xs"
+                      : "hover:bg-[#f4f6f8] border border-transparent text-[#263238] hover:text-[#0277bd]"
                   }`}
                 >
                   <div className="flex items-center gap-2.5 min-w-0">
                     <div className="min-w-0">
-                      <div className="font-semibold truncate text-slate-200">
+                      <div className={`font-bold truncate ${isSelected ? "text-[#01579b]" : "text-[#263238]"}`}>
                         {provider.name}
                       </div>
-                      <div className="text-[10px] text-slate-400 font-mono truncate">
+                      <div className="text-[10px] text-[#607d8b] font-mono truncate">
                         {provider.modelName}
                       </div>
                     </div>
@@ -177,27 +177,27 @@ export const HeaderEngineSwitcher: React.FC<HeaderEngineSwitcherProps> = ({
                       const verif = verificationStatuses[provider.id];
                       if (!hasKey) {
                         return (
-                          <span className="inline-flex items-center gap-1 text-[10px] text-amber-400 font-mono bg-amber-950/50 border border-amber-500/30 px-1.5 py-0.5 rounded">
+                          <span className="inline-flex items-center gap-1 text-[10px] text-amber-800 font-mono bg-amber-50 border border-amber-300 px-1.5 py-0.5 rounded font-semibold">
                             <AlertCircle className="w-3 h-3" /> {locale === "en" ? "No Key" : "Bez klíče"}
                           </span>
                         );
                       }
                       if (verif && !verif.isValid) {
                         return (
-                          <span className="inline-flex items-center gap-1 text-[10px] text-rose-400 font-mono bg-rose-950/70 border border-rose-500/50 px-1.5 py-0.5 rounded font-semibold">
+                          <span className="inline-flex items-center gap-1 text-[10px] text-rose-800 font-mono bg-rose-50 border border-rose-300 px-1.5 py-0.5 rounded font-bold">
                             ! {locale === "en" ? "Invalid" : "Neplatný"}
                           </span>
                         );
                       }
                       if (verif && verif.isValid) {
                         return (
-                          <span className="inline-flex items-center gap-1 text-[10px] text-emerald-400 font-mono bg-emerald-950/50 border border-emerald-500/30 px-1.5 py-0.5 rounded font-medium">
+                          <span className="inline-flex items-center gap-1 text-[10px] text-emerald-800 font-mono bg-emerald-50 border border-emerald-300 px-1.5 py-0.5 rounded font-semibold">
                             <Check className="w-3 h-3" /> OK
                           </span>
                         );
                       }
                       return (
-                        <span className="inline-flex items-center gap-1 text-[10px] text-cyan-300 font-mono bg-cyan-950/40 border border-cyan-500/30 px-1.5 py-0.5 rounded">
+                        <span className="inline-flex items-center gap-1 text-[10px] text-[#01579b] font-mono bg-[#e1f5fe] border border-[#b3e5fc] px-1.5 py-0.5 rounded font-semibold">
                           {locale === "en" ? "Entered" : "Zadán"}
                         </span>
                       );
@@ -210,13 +210,13 @@ export const HeaderEngineSwitcher: React.FC<HeaderEngineSwitcherProps> = ({
 
 
 
-          <div className="pt-1.5 border-t border-slate-800/80">
+          <div className="pt-1.5 border-t border-slate-100">
             <button
               onClick={() => {
                 setIsOpen(false);
                 onOpenVaultModal();
               }}
-              className="w-full flex items-center justify-center gap-2 py-2 px-3 rounded-xl bg-gradient-to-r from-[#1d4ed8] to-[#1e345e] hover:from-[#2563eb] hover:to-[#1d4ed8] border border-[#2563eb] text-[#dbeafe] font-semibold text-xs transition-all shadow-sm"
+              className="w-full flex items-center justify-center gap-2 py-2 px-3 rounded-xl bg-[#0099cc] hover:bg-[#0088b8] border border-[#0088b8] text-white font-semibold text-xs transition-all shadow-xs cursor-pointer"
             >
               <span>{locale === "en" ? "Manage API Keys & Vault" : "Správa API klíčů & Vault"}</span>
             </button>

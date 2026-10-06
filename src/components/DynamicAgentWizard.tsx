@@ -40,6 +40,7 @@ import {
   History
 } from 'lucide-react';
 import { PromptStorageService } from '@/lib/agent/prompt-storage-service';
+import { SUPPORTED_AI_PROVIDERS } from '@/lib/agent/engine-config';
 import { useI18n } from '@/lib/i18n/I18nContext';
 
 interface DynamicAgentWizardProps {
@@ -249,6 +250,28 @@ export const DynamicAgentWizard: React.FC<DynamicAgentWizardProps> = ({
     }
     return null;
   });
+
+  const activeProvider = useMemo(() => {
+    return SUPPORTED_AI_PROVIDERS.find((p) => p.id === activeProviderId) || SUPPORTED_AI_PROVIDERS[0];
+  }, [activeProviderId]);
+  const activeProviderName = activeProvider?.name || 'Google Gemini';
+
+  const displayAgentName = useMemo(() => {
+    let name = cleanAgentTitle || agent.name;
+    if (locale === 'cs') {
+      name = name
+        .replace(/Buying Expert/i, 'Nákupní expert')
+        .replace(/Shopping Expert/i, 'Nákupní expert')
+        .replace(/Expert/i, 'expert')
+        .replace(/^Specialist:\s*/i, 'Specialista: ')
+        .replace(/^Specialist in\s*/i, 'Specialista na ');
+    } else if (locale === 'en') {
+      name = name
+        .replace(/^Specialista:\s*/i, 'Specialist: ')
+        .replace(/^Specialista na\s*/i, 'Specialist in ');
+    }
+    return name;
+  }, [agent.name, cleanAgentTitle, locale]);
 
   const hasApiKey = useMemo(() => {
     if (currentApiKeys && Object.values(currentApiKeys).some((k) => typeof k === "string" && k.trim().length > 0)) {
@@ -1469,129 +1492,212 @@ export const DynamicAgentWizard: React.FC<DynamicAgentWizardProps> = ({
   // =========================================================================
   return (
     <div className="w-full max-w-5xl mx-auto space-y-7 py-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
-      {/* 1. HERO DELIVERABLE: THE AGENT CARD */}
-      <div className="glass-panel rounded-3xl p-6 sm:p-8 border-2 border-cyan-400/60 shadow-[0_20px_60px_rgba(6,182,212,0.25)] relative overflow-hidden">
-        <div className="absolute -top-24 -right-24 w-80 h-80 bg-cyan-500/20 rounded-full blur-3xl pointer-events-none" />
-
-        <div className="flex flex-col md:flex-row md:items-baseline justify-between gap-3 pb-5 border-b border-slate-800/80 mb-5">
-          <div className="space-y-1 max-w-2xl">
-            <h2 className="text-2xl sm:text-3xl font-black text-white tracking-tight">
-              {agent.name}
-            </h2>
-            <p className="text-xs sm:text-sm text-slate-400 font-medium leading-relaxed">
-              {agent.description || (locale === 'en'
-                ? `Specialized advisor for ${agent.category}, calibrated strictly to your measurements and preferences.`
-                : `Specializovaný rádce pro kategorii ${agent.category}, zkalibrovaný na míru vašim požadavkům.`)}
-            </p>
-          </div>
-
-          <div className="flex items-center gap-2 shrink-0 self-start md:self-auto text-xs font-mono">
-            {result.providerUsed && (
-              <span className="text-slate-400 px-2.5 py-1 rounded-lg bg-slate-900/80 border border-slate-800">
-                {result.providerUsed}
-              </span>
-            )}
-            <span className="text-slate-500 font-normal">•</span>
-            <span className="text-slate-400 px-2 py-0.5 rounded bg-slate-900/60 border border-slate-800/80">
-              {locale === 'en' ? 'Agent Ready for Use' : 'Agent připraven k použití'}
+      {/* 1. HERO DELIVERABLE: THE AGENT CARD (MATERIAL DESIGN 3 - VARIANTA A) */}
+      <div className="rounded-2xl bg-white border border-slate-200 border-t-4 border-t-[#0099cc] p-6 sm:p-8 shadow-xs relative overflow-hidden text-left">
+        {/* Success status & Agent Identity */}
+        <div className="pb-5 border-b border-slate-200 mb-6 space-y-1.5">
+          <div className="flex items-center gap-2">
+            <span className="text-[11px] font-mono font-bold uppercase tracking-wider text-[#01579b] bg-[#e1f5fe] px-2.5 py-0.5 rounded-md border border-[#b3e5fc]">
+              {locale === 'en' ? 'Calibration Complete' : 'Kalibrace dokončena'}
             </span>
           </div>
+          <h2 className="text-2xl sm:text-3xl font-black text-[#263238] tracking-tight">
+            {displayAgentName}
+          </h2>
+          <p className="text-xs sm:text-sm text-[#546e7a]">
+            {locale === 'en'
+              ? 'Choose how you want to run this agent:'
+              : 'Vyberte způsob, jak chcete agenta použít:'}
+          </p>
         </div>
 
         {/* Primary Action Deliverables Bar */}
-        <div className="space-y-4">
+        <div className="space-y-5">
 
-          {/* TIER 1: TWO DOMINANT HERO ACTION CARDS */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
-            {/* 1. HERO CTA: LIVE DISCUSSION WITH AGENT */}
+          {/* TIER 1: TWO DOMINANT HERO ACTION CARDS (SIDE BY SIDE - VARIANTA A) */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5 pt-1">
+            {/* CARD 1 (LEFT): LIVE CHAT IN BAIRIGHT */}
             {(onOpenChat || onOpenSubscriptionModal) && (
-              <button
-                type="button"
-                onClick={() => {
-                  if (hasApiKey && onOpenChat) {
-                    onOpenChat(currentLivePrompt, result || previousResult, answers);
-                  } else {
-                    setShowBYOKHintModal(true);
-                  }
-                }}
-                className="flex flex-col justify-between p-6 sm:p-7 rounded-3xl bg-gradient-to-br from-cyan-950/80 via-[#071a2e] to-[#040c18] border-2 border-cyan-400/80 hover:border-cyan-300 text-white shadow-[0_0_35px_rgba(6,182,212,0.35)] hover:shadow-[0_0_50px_rgba(6,182,212,0.5)] hover:scale-[1.015] transition-all cursor-pointer group text-left relative overflow-hidden"
-                title={locale === 'en' ? "Open live consultative chat with this agent" : "Spustit přímou interaktivní konzultaci s tímto agentem"}
+              <div
+                className="flex flex-col justify-between p-6 sm:p-7 rounded-2xl bg-white border border-slate-200 border-t-4 border-t-[#0099cc] text-[#263238] shadow-xs hover:shadow-md transition-all text-left"
               >
-                <div className="absolute top-0 right-0 w-48 h-48 bg-cyan-500/10 rounded-full blur-2xl pointer-events-none" />
-                <div className="space-y-3 relative z-10 w-full">
-                  <div className="flex items-center justify-between w-full">
-                    <span className="text-xs font-mono font-extrabold uppercase tracking-wider text-cyan-300">
-                      {locale === 'en' ? 'Interactive Consultation' : 'Interaktivní konzultace'}
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between gap-2 w-full">
+                    <span className="text-[11px] font-mono font-bold uppercase tracking-wider text-[#01579b] bg-[#e1f5fe] px-2.5 py-1 rounded-md border border-[#b3e5fc] shrink-0">
+                      {locale === 'en' ? 'Option 1' : 'Možnost 1'}
                     </span>
-                    <span className="text-[10px] font-mono px-2.5 py-1 rounded-full bg-cyan-900/80 border border-cyan-400/60 text-cyan-200 font-bold">
+                    <span className={`text-[10px] font-mono px-2 py-0.5 rounded font-bold shrink-0 ${
+                      hasApiKey 
+                        ? 'bg-[#e1f5fe] text-[#01579b] border border-[#b3e5fc]' 
+                        : 'bg-slate-100 text-slate-600 border border-slate-200'
+                    }`}>
                       {hasApiKey
-                        ? (locale === 'en' ? 'Model Connected' : 'Model připojen')
-                        : (locale === 'en' ? 'BYOK Available' : 'BYOK K dispozici')}
+                        ? (locale === 'en' ? '✓ Model Connected' : '✓ Model připojen')
+                        : (locale === 'en' ? 'Requires API Key' : 'Vyžaduje API klíč')}
                     </span>
                   </div>
 
                   <div>
-                    <h3 className="text-lg sm:text-xl font-black text-white group-hover:text-cyan-200 transition-colors flex items-center justify-between">
-                      <span>{locale === 'en' ? 'Open Live Chat & Agent Results' : 'Spustit živý chat & Výsledky agenta'}</span>
-                      <span className="text-cyan-400 group-hover:translate-x-1 transition-transform text-xl">→</span>
+                    <h3 className="text-lg sm:text-xl font-black text-[#263238]">
+                      {locale === 'en' ? 'Chat in bAIright' : 'Spustit chat přímo v bAIright'}
                     </h3>
-                    <p className="text-xs sm:text-sm text-slate-300 mt-1 leading-relaxed">
+                    <p className="text-xs sm:text-sm text-[#546e7a] mt-1 leading-relaxed">
                       {locale === 'en'
-                        ? 'Consult recommended models directly, ask follow-up questions, and tune choices with your AI advisor.'
-                        : 'Okamžitě projděte doporučené produkty, ptejte se na detaily a laďte parametry v reálném čase se svým agentem.'}
+                        ? 'Direct interactive discussion and tailored recommendations directly in this window.'
+                        : 'Interaktivní diskuze a výběr produktů na míru přímo v tomto okně.'}
+                    </p>
+                  </div>
+
+                  {/* Action Button & single concise caption */}
+                  <div className="pt-2 space-y-2">
+                    {hasApiKey ? (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (onOpenChat) {
+                            onOpenChat(currentLivePrompt, result || previousResult, answers);
+                          }
+                        }}
+                        className="w-full flex items-center justify-center gap-2 py-3.5 px-4 rounded-xl bg-[#0099cc] hover:bg-[#0088b8] text-white font-bold text-xs sm:text-sm shadow-xs transition-colors cursor-pointer"
+                      >
+                        <span>{locale === 'en' ? 'Open Chat with Agent' : 'Otevřít chat s agentem'}</span>
+                        <span>→</span>
+                      </button>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (onOpenSubscriptionModal) {
+                            onOpenSubscriptionModal();
+                          } else {
+                            setShowBYOKHintModal(true);
+                          }
+                        }}
+                        className="w-full flex items-center justify-center gap-2 py-3.5 px-4 rounded-xl bg-white hover:bg-slate-50 border border-slate-300 text-[#263238] font-bold text-xs sm:text-sm shadow-xs transition-colors cursor-pointer"
+                      >
+                        <span>{locale === 'en' ? 'Connect API Key in Vault' : 'Připojit API klíč v Trezoru'}</span>
+                        <span>→</span>
+                      </button>
+                    )}
+
+                    <p className="text-[11px] font-mono text-center text-[#546e7a]">
+                      {hasApiKey
+                        ? (locale === 'en' ? `✓ Model ${activeProviderName} is ready` : `✓ Model ${activeProviderName} je připraven`)
+                        : (locale === 'en' ? 'Supports Gemini, GPT-4o, Claude & Ollama' : 'Podpora Gemini, GPT-4o, Claude i Ollama')}
                     </p>
                   </div>
                 </div>
 
-                <div className="pt-4 border-t border-cyan-500/20 mt-4 flex items-center justify-between text-[11px] font-mono text-cyan-300/90 relative z-10">
-                  <span>{locale === 'en' ? 'Verified Recommendations Ready' : '3 ověřená doporučení připravena'}</span>
-                  <span className="font-bold underline group-hover:text-white transition-colors">{locale === 'en' ? 'Start Discussion' : 'Přejít do diskuze'} →</span>
+                <div className="pt-3 border-t border-slate-100 mt-5 text-[11px] font-mono text-[#546e7a] flex items-center justify-between">
+                  <span>{locale === 'en' ? 'Interactive consultant' : 'Interaktivní konzultant'}</span>
+                  <span className="font-bold text-[#01579b]">bAIright Chat</span>
                 </div>
-              </button>
+              </div>
             )}
 
-            {/* 2. HERO CTA: DOWNLOAD .AGENT.MD DELIVERABLE */}
-            <button
-              type="button"
-              onClick={handleDownloadAgentMarkdown}
-              className="flex flex-col justify-between p-6 sm:p-7 rounded-3xl bg-gradient-to-br from-[#0c223a]/90 via-[#071728] to-[#030914] border-2 border-teal-400/70 hover:border-teal-300 text-white shadow-[0_0_30px_rgba(20,184,166,0.25)] hover:shadow-[0_0_45px_rgba(20,184,166,0.4)] hover:scale-[1.015] transition-all cursor-pointer group text-left relative overflow-hidden"
-              title={locale === 'en' ? "Download full agent definition in open .agent.md format" : "Stáhnout kompletní definici agenta v otevřeném formátu .agent.md"}
+            {/* CARD 2 (RIGHT): COPY PROMPT TO CLIPBOARD (INVERSE DARK SLATE) */}
+            <div
+              className="flex flex-col justify-between p-6 sm:p-7 rounded-2xl bg-white border border-slate-200 border-t-4 border-t-[#1e293b] text-[#263238] shadow-xs hover:shadow-md transition-all text-left"
             >
-              <div className="absolute top-0 right-0 w-48 h-48 bg-teal-500/10 rounded-full blur-2xl pointer-events-none" />
-              <div className="space-y-3 relative z-10 w-full">
-                <div className="flex items-center justify-between w-full">
-                  <span className="text-xs font-mono font-extrabold uppercase tracking-wider text-teal-300 flex items-center gap-1.5">
-                    {locale === 'en' ? 'Portable Output' : 'Přenosný výstup'}
+              <div className="space-y-4">
+                <div className="flex items-center justify-between gap-2 w-full">
+                  <span className="text-[11px] font-mono font-bold uppercase tracking-wider text-[#1e293b] bg-slate-100 px-2.5 py-1 rounded-md border border-slate-300 shrink-0">
+                    {locale === 'en' ? 'Option 2' : 'Možnost 2'}
                   </span>
-                  <span className="text-[10px] font-mono px-2.5 py-1 rounded-full bg-teal-950/90 border border-teal-400/50 text-teal-200 font-bold">
-                    .agent.md
+                  <span className="text-[10px] font-mono px-2 py-0.5 rounded font-bold bg-[#e1f5fe] text-[#01579b] border border-[#b3e5fc] shrink-0">
+                    {locale === 'en' ? 'No API Key Needed' : 'Bez API klíče'}
                   </span>
                 </div>
 
                 <div>
-                  <h3 className="text-lg sm:text-xl font-black text-white group-hover:text-teal-200 transition-colors flex items-center justify-between">
-                    <span>{locale === 'en' ? 'Download .agent.md File' : 'Stáhnout .agent.md soubor'}</span>
-                    <span className="text-teal-400 group-hover:translate-y-0.5 transition-transform text-xl">↓</span>
+                  <h3 className="text-lg sm:text-xl font-black text-[#263238]">
+                    {locale === 'en' ? 'Copy Prompt to Clipboard' : 'Zkopírovat prompt do schránky'}
                   </h3>
-                  <p className="text-xs sm:text-sm text-slate-300 mt-1 leading-relaxed">
+                  <p className="text-xs sm:text-sm text-[#546e7a] mt-1 leading-relaxed">
                     {locale === 'en'
-                      ? 'Self-contained open file containing all domain rules, calibrated weights, and instructions for Gemini, ChatGPT, or Claude.'
-                      : 'Přenosný otevřený soubor obsahující veškerá doménová pravidla, váhy a instrukce pro Gemini, ChatGPT i Claude.'}
+                      ? 'Calibrated prompt ready to paste into ChatGPT, Claude, Gemini, or Perplexity.'
+                      : 'Kompletní vyladěný prompt pro vložení do ChatGPT, Claude, Gemini či Perplexity.'}
                   </p>
+                </div>
+
+                {/* Big Action Button & Subtext */}
+                <div className="pt-2 space-y-2">
+                  <button
+                    type="button"
+                    onClick={() => handleCopyText(currentLivePrompt, 'system_prompt')}
+                    className={`w-full flex items-center justify-center gap-2 py-3.5 px-4 rounded-xl font-bold text-xs sm:text-sm shadow-xs transition-all cursor-pointer ${
+                      copiedSnippetType === 'system_prompt'
+                        ? 'bg-[#0099cc] hover:bg-[#0088b8] text-white'
+                        : 'bg-[#1e293b] hover:bg-[#0f172a] text-white'
+                    }`}
+                  >
+                    <span>{copiedSnippetType === 'system_prompt' ? '✓' : '⧉'}</span>
+                    <span>
+                      {copiedSnippetType === 'system_prompt'
+                        ? (locale === 'en' ? 'Prompt Copied to Clipboard!' : 'Prompt zkopírován do schránky!')
+                        : (locale === 'en' ? 'Copy Prompt' : 'Zkopírovat prompt')}
+                    </span>
+                  </button>
+
+                  <p className="text-[11px] font-mono text-center text-[#546e7a]">
+                    {locale === 'en' ? 'Paste with Ctrl+V / Cmd+V into any AI chat' : 'Vložte zkratkou Ctrl+V / Cmd+V do libovolného chatu'}
+                  </p>
+                </div>
+
+                {/* Single-line prompt preview with inspector link */}
+                <div className="px-3 py-2 rounded-lg bg-slate-50 border border-slate-200 text-[11px] font-mono text-slate-600 flex items-center justify-between gap-2">
+                  <span className="truncate text-slate-500 max-w-[220px]">
+                    {currentLivePrompt.slice(0, 45)}...
+                  </span>
+                  <button
+                    type="button"
+                    onClick={handleOpenPromptInspector}
+                    className="text-[#0099cc] hover:underline cursor-pointer font-bold shrink-0 lowercase text-[10px]"
+                  >
+                    {locale === 'en' ? 'view full prompt' : 'zobrazit celý prompt'}
+                  </button>
                 </div>
               </div>
 
-              <div className="pt-4 border-t border-teal-500/20 mt-4 flex items-center justify-between text-[11px] font-mono text-teal-300/90 relative z-10">
-                <span>{locale === 'en' ? 'Universal Open Agent Spec' : 'Otevřený standard • Trvalé vlastnictví'}</span>
-                <span className="font-bold underline group-hover:text-white transition-colors">{locale === 'en' ? 'Save File' : 'Stáhnout soubor'} ↓</span>
+              <div className="pt-3 border-t border-slate-100 mt-5 text-[11px] font-mono text-[#546e7a] flex items-center justify-between">
+                <span>{locale === 'en' ? 'Free tier ready' : 'Funguje i ve free verzích'}</span>
+                <span className="font-bold text-[#1e293b]">ChatGPT • Claude • Gemini</span>
               </div>
+            </div>
+          </div>
+
+          {/* TIER 2: SECONDARY ACTIONS & PORTABLE EXPORT (.AGENT.MD) */}
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 p-4 rounded-xl bg-slate-50 border border-slate-200 text-left">
+            <div className="space-y-0.5">
+              <div className="flex items-center gap-2">
+                <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-slate-600 bg-white px-2 py-0.5 rounded border border-slate-200">
+                  {locale === 'en' ? 'Portable File' : 'Soubor'}
+                </span>
+                <span className="text-xs font-bold text-[#263238]">
+                  {locale === 'en' ? 'Download .agent.md Configuration' : 'Uložit konfiguraci agenta (.agent.md)'}
+                </span>
+              </div>
+              <p className="text-xs text-[#546e7a]">
+                {locale === 'en'
+                  ? 'Markdown specification with all rules for Custom GPTs, Claude Projects, or local agents.'
+                  : 'Otevřená specifikace se všemi pravidly pro Custom GPTs, Claude Projects nebo lokální agenty.'}
+              </p>
+            </div>
+
+            <button
+              type="button"
+              onClick={handleDownloadAgentMarkdown}
+              className="px-3.5 py-2 rounded-lg bg-white hover:bg-slate-100 border border-slate-300 text-[#263238] text-xs font-mono font-bold transition-all cursor-pointer shrink-0 shadow-xs flex items-center gap-1.5"
+            >
+              <span>{locale === 'en' ? 'Download .agent.md' : 'Stáhnout .agent.md soubor'}</span>
+              <span>↓</span>
             </button>
           </div>
 
-          {/* TIER 2: CLEAN UTILITY TOOLBAR */}
-          <div className="flex flex-wrap items-center justify-between gap-2.5 p-3 rounded-2xl bg-[#070e1c] border border-slate-800">
-            <span className="text-xs font-mono text-slate-400 px-2 font-semibold">
-              {locale === 'en' ? 'Tools:' : 'Nástroje:'}
+          {/* TIER 3: CLEAN UTILITY TOOLBAR (MATERIAL DESIGN 3, ZERO ICONS) */}
+          <div className="flex flex-wrap items-center justify-between gap-2.5 p-3 rounded-xl bg-white border border-slate-200">
+            <span className="text-xs font-mono text-[#546e7a] px-2 font-semibold">
+              {locale === 'en' ? 'Wizard Tools:' : 'Nástroje průvodce:'}
             </span>
 
             <div className="flex flex-wrap items-center gap-2">
@@ -1599,22 +1705,10 @@ export const DynamicAgentWizard: React.FC<DynamicAgentWizardProps> = ({
               <button
                 type="button"
                 onClick={handleOpenPromptInspector}
-                className="px-3.5 py-1.5 rounded-xl bg-slate-900/90 hover:bg-slate-800 border border-slate-800 hover:border-slate-700 text-slate-300 hover:text-white text-xs font-mono transition-all cursor-pointer flex items-center gap-1.5"
-                title={locale === 'en' ? "View full prompt sent to AI" : "Zobrazit kompletní prompt odeslaný do AI"}
+                className="px-3.5 py-1.5 rounded-lg bg-slate-50 hover:bg-slate-100 border border-slate-200 text-[#263238] text-xs font-mono transition-all cursor-pointer flex items-center gap-1.5"
+                title={locale === 'en' ? "View full prompt sent to AI" : "Zobrazit kompletní prompt"}
               >
-                <Eye className="w-3.5 h-3.5 text-slate-400" />
-                <span>{t.dynamicWizard.btnInspectPrompt}</span>
-              </button>
-
-              {/* Copy Prompt Instructions */}
-              <button
-                type="button"
-                onClick={() => handleCopyText(currentLivePrompt, 'system_prompt')}
-                className="px-3.5 py-2 rounded-xl bg-slate-900/90 hover:bg-slate-800 border border-slate-700 hover:border-cyan-400/50 text-slate-200 hover:text-white text-xs font-mono font-medium transition-all cursor-pointer flex items-center gap-1.5"
-                title={locale === 'en' ? "Copy complete system instructions to clipboard" : "Zkopírovat kompletní systémové instrukce do schránky"}
-              >
-                {copiedSnippetType === 'system_prompt' ? <Check className="w-3.5 h-3.5 text-teal-300" /> : <Copy className="w-3.5 h-3.5 text-cyan-400" />}
-                <span>{copiedSnippetType === 'system_prompt' ? (locale === 'en' ? 'Prompt Copied!' : 'Prompt zkopírován!') : (locale === 'en' ? 'Copy Prompt Instructions' : 'Kopírovat instrukce promptu')}</span>
+                <span>{locale === 'en' ? 'View Full Prompt' : 'Zobrazit celý prompt'}</span>
               </button>
 
               {/* Edit Parameters */}
@@ -1627,10 +1721,10 @@ export const DynamicAgentWizard: React.FC<DynamicAgentWizardProps> = ({
                   setCurrentStepIndex(0);
                   if (onEditWizard) onEditWizard();
                 }}
-                className="px-3.5 py-2 rounded-xl bg-slate-900/90 hover:bg-slate-800 border border-slate-700 hover:border-cyan-400/50 text-slate-200 hover:text-white text-xs font-mono font-medium transition-all cursor-pointer flex items-center gap-1.5"
-                title={locale === 'en' ? "Open questionnaire steps to adjust parameters" : "Otevřít kroky dotazníku a upravit zadané parametry"}
+                className="px-3.5 py-1.5 rounded-lg bg-slate-50 hover:bg-slate-100 border border-slate-200 text-[#263238] text-xs font-mono transition-all cursor-pointer flex items-center gap-1.5"
+                title={locale === 'en' ? "Adjust entered parameters" : "Upravit zadané parametry"}
               >
-                <span>{t.dynamicWizard.btnEdit}</span>
+                <span>{locale === 'en' ? 'Edit Wizard' : 'Upravit wizard'}</span>
               </button>
 
               {/* Reset Questionnaire */}
@@ -1642,10 +1736,9 @@ export const DynamicAgentWizard: React.FC<DynamicAgentWizardProps> = ({
                   setAnswers(initialAnswers);
                   if (onResetWizard) onResetWizard();
                 }}
-                className="px-3.5 py-2 rounded-xl bg-slate-900/90 hover:bg-red-950/40 border border-slate-700 hover:border-red-500/40 text-slate-400 hover:text-red-300 text-xs font-mono font-medium transition-all cursor-pointer flex items-center gap-1.5"
-                title={locale === 'en' ? "Reset questionnaire and start from step 1" : "Vynulovat dotazník a začít výběr od 1. kroku"}
+                className="px-3.5 py-1.5 rounded-lg bg-slate-50 hover:bg-red-50 border border-slate-200 hover:border-red-200 text-[#546e7a] hover:text-red-700 text-xs font-mono transition-all cursor-pointer flex items-center gap-1.5"
+                title={locale === 'en' ? "Reset questionnaire" : "Vynulovat dotazník"}
               >
-                <RotateCcw className="w-3.5 h-3.5" />
                 <span>{locale === 'en' ? 'Reset Questionnaire' : 'Vynulovat dotazník'}</span>
               </button>
             </div>
@@ -1654,18 +1747,15 @@ export const DynamicAgentWizard: React.FC<DynamicAgentWizardProps> = ({
       </div>
 
       {/* 1.5 ACTIVE SELECTION CRITERIA & RETROACTIVE PARAMETER TUNING */}
-      <div className="rounded-3xl bg-[#060c18] border border-cyan-500/30 p-5 sm:p-7 shadow-lg space-y-4">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-cyan-500/20">
+      <div className="rounded-2xl bg-white border border-slate-200 p-6 shadow-xs space-y-4 text-left">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-200">
           <div>
             <div className="flex items-center gap-2">
-              <h3 className="text-base sm:text-lg font-extrabold text-white">
+              <h3 className="text-base sm:text-lg font-black text-[#263238]">
                 {locale === 'en' ? 'Selection Criteria & Active Parameters' : 'Kritéria výběru a aktivní parametry'}
               </h3>
-              <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-cyan-950 text-cyan-300 border border-cyan-400/40">
-                {agent.questions.filter((q) => answers[q.id] !== undefined && answers[q.id] !== null && answers[q.id] !== '').length + (Array.isArray(answers.customParameters) ? answers.customParameters.length : 0)} {locale === 'en' ? 'criteria' : 'kritérií'}
-              </span>
             </div>
-            <p className="text-xs text-slate-400 mt-0.5">
+            <p className="text-xs text-[#546e7a] mt-0.5">
               {locale === 'en'
                 ? 'Review parameters or add new constraints (such as budget ceiling or required features) to calibrate your recommendations.'
                 : 'Přehled zadaných kritérií z dotazníku s možností přidat další omezení (např. cenový strop nebo specifické požadavky).'}
@@ -1676,7 +1766,7 @@ export const DynamicAgentWizard: React.FC<DynamicAgentWizardProps> = ({
             <button
               type="button"
               onClick={() => setIsAddingCustomParam(true)}
-              className="px-3.5 py-1.5 rounded-xl bg-cyan-950/80 border border-cyan-400/60 hover:bg-cyan-900/60 text-cyan-300 text-xs font-mono font-bold transition-all cursor-pointer shrink-0 self-start sm:self-auto"
+              className="px-3.5 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 border border-slate-300 text-[#263238] text-xs font-mono font-bold transition-all cursor-pointer shrink-0 self-start sm:self-auto"
             >
               + {locale === 'en' ? 'Add Parameter / Budget' : 'Přidat parametr / cenový limit'}
             </button>
@@ -1685,9 +1775,9 @@ export const DynamicAgentWizard: React.FC<DynamicAgentWizardProps> = ({
 
         {/* Inline Add Parameter Form */}
         {isAddingCustomParam && (
-          <div className="p-4 rounded-2xl bg-cyan-950/20 border border-cyan-500/40 space-y-3 animate-in fade-in duration-200">
+          <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-3 animate-in fade-in duration-200">
             <div className="flex items-center justify-between">
-              <span className="text-xs font-mono font-bold text-cyan-300 uppercase tracking-wider">
+              <span className="text-xs font-mono font-bold text-[#01579b] uppercase tracking-wider">
                 {locale === 'en' ? 'Add New Requirement or Constraint' : 'Přidat nový požadavek nebo omezení'}
               </span>
               <button
@@ -1697,7 +1787,7 @@ export const DynamicAgentWizard: React.FC<DynamicAgentWizardProps> = ({
                   setNewParamName('');
                   setNewParamValue('');
                 }}
-                className="text-xs text-slate-400 hover:text-white px-2 py-1 rounded cursor-pointer"
+                className="text-xs text-[#546e7a] hover:text-[#263238] px-2 py-1 rounded cursor-pointer"
               >
                 {locale === 'en' ? 'Cancel' : 'Zrušit'}
               </button>
@@ -1705,7 +1795,7 @@ export const DynamicAgentWizard: React.FC<DynamicAgentWizardProps> = ({
 
             {/* Suggested Quick Presets */}
             <div className="flex flex-wrap items-center gap-1.5">
-              <span className="text-[11px] font-mono text-slate-400">
+              <span className="text-[11px] font-mono text-[#546e7a]">
                 {locale === 'en' ? 'Quick suggestions:' : 'Rychlé tipy:'}
               </span>
               {[
@@ -1720,7 +1810,7 @@ export const DynamicAgentWizard: React.FC<DynamicAgentWizardProps> = ({
                     setNewParamName(preset.name);
                     setNewParamValue(preset.val);
                   }}
-                  className="text-[11px] px-2.5 py-1 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-700 text-slate-300 hover:text-cyan-300 transition-colors cursor-pointer"
+                  className="text-[11px] px-2.5 py-1 rounded-lg bg-white hover:bg-slate-100 border border-slate-200 text-[#263238] transition-colors cursor-pointer"
                 >
                   {preset.name}
                 </button>
@@ -1729,7 +1819,7 @@ export const DynamicAgentWizard: React.FC<DynamicAgentWizardProps> = ({
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
-                <label className="text-[11px] font-mono text-slate-400 block mb-1">
+                <label className="text-[11px] font-mono text-[#546e7a] block mb-1">
                   {locale === 'en' ? 'Parameter Name / Criterion' : 'Název parametru / kritéria'}
                 </label>
                 <input
@@ -1737,11 +1827,11 @@ export const DynamicAgentWizard: React.FC<DynamicAgentWizardProps> = ({
                   value={newParamName}
                   onChange={(e) => setNewParamName(e.target.value)}
                   placeholder={locale === 'en' ? 'e.g. Budget ceiling' : 'např. Cenový strop / rozpočet'}
-                  className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 focus:border-cyan-400 text-xs text-white placeholder-slate-500 outline-none"
+                  className="w-full px-3 py-2 rounded-lg bg-white border border-slate-300 focus:border-[#0099cc] text-xs text-[#263238] placeholder-slate-400 outline-none"
                 />
               </div>
               <div>
-                <label className="text-[11px] font-mono text-slate-400 block mb-1">
+                <label className="text-[11px] font-mono text-[#546e7a] block mb-1">
                   {locale === 'en' ? 'Required Value / Constraint' : 'Hodnota / Požadavek'}
                 </label>
                 <input
@@ -1749,7 +1839,7 @@ export const DynamicAgentWizard: React.FC<DynamicAgentWizardProps> = ({
                   value={newParamValue}
                   onChange={(e) => setNewParamValue(e.target.value)}
                   placeholder={locale === 'en' ? 'e.g. Max $250' : 'např. do 5 000 Kč včetně DPH'}
-                  className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 focus:border-cyan-400 text-xs text-white placeholder-slate-500 outline-none"
+                  className="w-full px-3 py-2 rounded-lg bg-white border border-slate-300 focus:border-[#0099cc] text-xs text-[#263238] placeholder-slate-400 outline-none"
                 />
               </div>
             </div>
@@ -1759,7 +1849,7 @@ export const DynamicAgentWizard: React.FC<DynamicAgentWizardProps> = ({
                 type="button"
                 disabled={!newParamName.trim() || !newParamValue.trim() || isSubmitting}
                 onClick={handleAddCustomParam}
-                className="px-4 py-2 rounded-xl bg-gradient-to-r from-cyan-600 to-teal-600 hover:from-cyan-500 hover:to-teal-500 text-white text-xs font-bold transition-all disabled:opacity-50 cursor-pointer shadow-md"
+                className="px-4 py-2 rounded-lg bg-[#0099cc] hover:bg-[#0088b8] text-white text-xs font-bold transition-all disabled:opacity-50 cursor-pointer shadow-xs"
               >
                 {isSubmitting
                   ? (locale === 'en' ? 'Updating Agent...' : 'Aktualizuji agenta...')
@@ -1775,13 +1865,13 @@ export const DynamicAgentWizard: React.FC<DynamicAgentWizardProps> = ({
           {Array.isArray(answers.customParameters) && answers.customParameters.map((cp: any) => (
             <div
               key={cp.id}
-              className="p-3 rounded-2xl bg-cyan-950/30 border border-cyan-400/50 flex items-start justify-between gap-2 shadow-sm"
+              className="p-3 rounded-xl bg-[#e1f5fe] border border-[#b3e5fc] flex items-start justify-between gap-2 shadow-xs"
             >
               <div className="min-w-0">
-                <span className="text-[10px] font-mono uppercase tracking-wider text-cyan-300 font-bold block truncate">
+                <span className="text-[10px] font-mono uppercase tracking-wider text-[#01579b] font-bold block truncate">
                   {cp.name}
                 </span>
-                <span className="text-xs font-semibold text-white block mt-0.5 break-words">
+                <span className="text-xs font-semibold text-[#263238] block mt-0.5 break-words">
                   {cp.value}
                 </span>
               </div>
@@ -1789,7 +1879,7 @@ export const DynamicAgentWizard: React.FC<DynamicAgentWizardProps> = ({
                 type="button"
                 onClick={() => handleRemoveCustomParam(cp.id)}
                 title={locale === 'en' ? 'Remove this custom parameter' : 'Odebrat tento vlastní parametr'}
-                className="text-slate-400 hover:text-red-400 p-1 rounded-lg hover:bg-slate-900 transition-colors cursor-pointer shrink-0"
+                className="text-[#546e7a] hover:text-red-600 p-1 rounded-lg hover:bg-slate-200 transition-colors cursor-pointer shrink-0"
               >
                 <X className="w-3.5 h-3.5" />
               </button>
@@ -1798,11 +1888,11 @@ export const DynamicAgentWizard: React.FC<DynamicAgentWizardProps> = ({
 
           {/* Baseline Model Owned */}
           {answers.baselineModel && (
-            <div className="p-3 rounded-2xl bg-slate-950/80 border border-slate-800 space-y-0.5">
-              <span className="text-[10px] font-mono text-slate-400 uppercase tracking-wider block">
+            <div className="p-3 rounded-xl bg-slate-50 border border-slate-200 space-y-0.5">
+              <span className="text-[10px] font-mono text-[#546e7a] uppercase tracking-wider block">
                 {locale === 'en' ? 'Baseline Product Owned' : 'Dosavadní produkt'}
               </span>
-              <span className="text-xs font-semibold text-slate-200 block truncate">
+              <span className="text-xs font-semibold text-[#263238] block truncate">
                 {String(answers.baselineModel)}
               </span>
             </div>
@@ -1842,11 +1932,11 @@ export const DynamicAgentWizard: React.FC<DynamicAgentWizardProps> = ({
               if (opt?.label) displayVal = opt.label;
             }
             return (
-              <div key={q.id} className="p-3 rounded-2xl bg-slate-950/80 border border-slate-800 space-y-0.5">
-                <span className="text-[10px] font-mono text-slate-400 uppercase tracking-wider block truncate">
+              <div key={q.id} className="p-3 rounded-xl bg-slate-50 border border-slate-200 space-y-0.5">
+                <span className="text-[10px] font-mono text-[#546e7a] uppercase tracking-wider block truncate">
                   {q.title}
                 </span>
-                <span className="text-xs font-semibold text-slate-200 block truncate">
+                <span className="text-xs font-semibold text-[#263238] block truncate">
                   {displayVal}
                 </span>
               </div>
@@ -1856,22 +1946,22 @@ export const DynamicAgentWizard: React.FC<DynamicAgentWizardProps> = ({
       </div>
 
       {/* 2. PLATFORM DEPLOYMENT GUIDES (GEMINI GEMS, CHATGPT CUSTOM GPTS, CLAUDE PROJECTS) */}
-      <div className="rounded-3xl bg-[#060c18] border border-cyan-500/30 shadow-lg overflow-hidden transition-all">
+      <div className="rounded-2xl bg-white border border-slate-200 shadow-xs overflow-hidden transition-all text-left">
         {/* Collapsible Header Accordion Toggle */}
         <button
           type="button"
           onClick={() => setIsGuidesExpanded((prev) => !prev)}
-          className="w-full p-4 sm:p-5 flex items-center justify-between text-left hover:bg-cyan-950/20 transition-colors cursor-pointer group"
+          className="w-full p-4 sm:p-5 flex items-center justify-between text-left hover:bg-slate-50 transition-colors cursor-pointer group"
           aria-expanded={isGuidesExpanded}
         >
           <div className="min-w-0">
-            <h3 className="text-sm sm:text-base font-extrabold text-white flex items-center gap-2 flex-wrap">
+            <h3 className="text-sm sm:text-base font-black text-[#263238] flex items-center gap-2 flex-wrap">
               <span>{locale === 'en' ? 'How to create your own agent from this file' : 'Jak si z tohoto souboru vytvořit vlastního agenta'}</span>
-              <span className="text-[10px] font-mono font-normal px-2 py-0.5 rounded-full bg-slate-900 border border-slate-800 text-cyan-300 hidden sm:inline">
+              <span className="text-[10px] font-mono font-normal px-2 py-0.5 rounded-md bg-slate-100 border border-slate-200 text-[#546e7a] hidden sm:inline">
                 Google Gemini • ChatGPT • Claude
               </span>
             </h3>
-            <p className="text-xs text-slate-400 mt-0.5 truncate">
+            <p className="text-xs text-[#546e7a] mt-0.5 truncate">
               {locale === 'en'
                 ? 'Step-by-step guides for Gem Manager, Custom GPTs, and Claude Projects.'
                 : 'Návody krok za krokem pro Gem Manager, Custom GPTs a Claude Projects.'}
@@ -1879,12 +1969,12 @@ export const DynamicAgentWizard: React.FC<DynamicAgentWizardProps> = ({
           </div>
 
           <div className="flex items-center gap-2 shrink-0 ml-3">
-            <span className="text-xs font-mono text-cyan-400 font-semibold hidden md:inline">
+            <span className="text-xs font-mono text-[#0099cc] font-bold hidden md:inline">
               {isGuidesExpanded
                 ? (locale === 'en' ? 'Hide instructions' : 'Skrýt návod')
                 : (locale === 'en' ? 'Show instructions' : 'Zobrazit návod')}
             </span>
-            <div className="p-1.5 rounded-lg bg-slate-900 border border-slate-800 text-cyan-400 group-hover:border-cyan-500/40 transition-colors">
+            <div className="p-1.5 rounded-lg bg-slate-100 border border-slate-200 text-[#263238] group-hover:border-slate-300 transition-colors">
               {isGuidesExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
             </div>
           </div>
@@ -1892,21 +1982,21 @@ export const DynamicAgentWizard: React.FC<DynamicAgentWizardProps> = ({
 
         {/* Collapsible Content */}
         {isGuidesExpanded && (
-          <div className="p-5 sm:p-6 pt-0 border-t border-slate-800/80 space-y-4 animate-in fade-in duration-200">
+          <div className="p-5 sm:p-6 pt-0 border-t border-slate-200 space-y-4 animate-in fade-in duration-200">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-4">
-              <p className="text-xs text-slate-400">
+              <p className="text-xs text-[#546e7a]">
                 {locale === 'en' ? 'Choose your preferred AI platform and follow the steps below:' : 'Vyberte svou oblíbenou AI platformu a postupujte podle návodu níže:'}
               </p>
 
               {/* Guide Platform Switcher Tabs */}
-              <div className="flex items-center p-1 rounded-2xl bg-slate-950 border border-slate-800 shrink-0">
+              <div className="flex items-center p-1 rounded-xl bg-slate-100 border border-slate-200 shrink-0">
                 <button
                   type="button"
                   onClick={() => setActiveGuideTab('gemini')}
-                  className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
                     activeGuideTab === 'gemini'
-                      ? 'bg-cyan-950 text-cyan-300 border border-cyan-400/60 shadow-sm'
-                      : 'text-slate-400 hover:text-white'
+                      ? 'bg-white text-[#263238] border border-slate-200 shadow-xs'
+                      : 'text-[#546e7a] hover:text-[#263238]'
                   }`}
                 >
                   Google Gemini (Gems)
@@ -1914,10 +2004,10 @@ export const DynamicAgentWizard: React.FC<DynamicAgentWizardProps> = ({
                 <button
                   type="button"
                   onClick={() => setActiveGuideTab('chatgpt')}
-                  className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
                     activeGuideTab === 'chatgpt'
-                  ? 'bg-cyan-950 text-cyan-300 border border-cyan-400/60 shadow-sm'
-                  : 'text-slate-400 hover:text-white'
+                      ? 'bg-white text-[#263238] border border-slate-200 shadow-xs'
+                      : 'text-[#546e7a] hover:text-[#263238]'
                   }`}
                 >
                   ChatGPT (Custom GPTs)
@@ -1925,10 +2015,10 @@ export const DynamicAgentWizard: React.FC<DynamicAgentWizardProps> = ({
                 <button
                   type="button"
                   onClick={() => setActiveGuideTab('claude')}
-                  className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
                     activeGuideTab === 'claude'
-                  ? 'bg-cyan-950 text-cyan-300 border border-cyan-400/60 shadow-sm'
-                  : 'text-slate-400 hover:text-white'
+                      ? 'bg-white text-[#263238] border border-slate-200 shadow-xs'
+                      : 'text-[#546e7a] hover:text-[#263238]'
                   }`}
                 >
                   Claude (Projects)
@@ -1936,151 +2026,151 @@ export const DynamicAgentWizard: React.FC<DynamicAgentWizardProps> = ({
               </div>
             </div>
 
-        {/* Tab Content: Google Gemini Gems */}
-        {activeGuideTab === 'gemini' && (
-          <div className="space-y-4 animate-in fade-in duration-200">
-            <div className="p-4 rounded-2xl bg-cyan-950/20 border border-cyan-500/20 text-xs text-slate-300 space-y-3">
-              <div className="flex items-center justify-between">
-                <span className="font-bold text-cyan-300 text-sm flex items-center gap-1.5">
-                  {locale === 'en' ? 'Instructions for Google Gemini (Gem Manager):' : 'Návod pro Google Gemini (Gem Manager):'}
-                </span>
-                <button
-                  type="button"
-                  onClick={() => handleCopyText(currentLivePrompt, 'gemini_prompt')}
-                  className="flex items-center gap-1.5 px-3 py-1 rounded-xl bg-cyan-950 border border-cyan-400/40 text-cyan-300 text-xs font-mono font-bold hover:bg-cyan-900/50 transition-colors cursor-pointer"
-                >
-                  {copiedSnippetType === 'gemini_prompt' ? <Check className="w-3.5 h-3.5 text-teal-300" /> : <Copy className="w-3.5 h-3.5" />}
-                  <span>{copiedSnippetType === 'gemini_prompt' ? (locale === 'en' ? 'Copied!' : 'Zkopírováno!') : (locale === 'en' ? 'Copy Instructions for Gem' : 'Kopírovat instrukce pro Gem')}</span>
-                </button>
+            {/* Tab Content: Google Gemini Gems */}
+            {activeGuideTab === 'gemini' && (
+              <div className="space-y-4 animate-in fade-in duration-200">
+                <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 text-xs text-[#263238] space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="font-bold text-[#01579b] text-sm flex items-center gap-1.5">
+                      {locale === 'en' ? 'Instructions for Google Gemini (Gem Manager):' : 'Návod pro Google Gemini (Gem Manager):'}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => handleCopyText(currentLivePrompt, 'gemini_prompt')}
+                      className="flex items-center gap-1.5 px-3 py-1 rounded-lg bg-white border border-slate-300 text-[#263238] text-xs font-mono font-bold hover:bg-slate-100 transition-colors cursor-pointer"
+                    >
+                      {copiedSnippetType === 'gemini_prompt' ? <Check className="w-3.5 h-3.5 text-teal-600" /> : <Copy className="w-3.5 h-3.5 text-slate-500" />}
+                      <span>{copiedSnippetType === 'gemini_prompt' ? (locale === 'en' ? 'Copied!' : 'Zkopírováno!') : (locale === 'en' ? 'Copy Instructions for Gem' : 'Kopírovat instrukce pro Gem')}</span>
+                    </button>
+                  </div>
+
+                  <ol className="space-y-2 text-[#546e7a] pl-5 list-decimal leading-relaxed">
+                    <li>
+                      {locale === 'en' ? (
+                        <>Open <a href="https://gemini.google.com" target="_blank" rel="noreferrer" className="text-[#0099cc] underline font-semibold inline-flex items-center gap-0.5">Google Gemini <ExternalLink className="w-3 h-3 inline" /></a> and in the left sidebar click <strong>Gem Manager</strong> → <strong>+ New Gem</strong>.</>
+                      ) : (
+                        <>Otevřete <a href="https://gemini.google.com" target="_blank" rel="noreferrer" className="text-[#0099cc] underline font-semibold inline-flex items-center gap-0.5">Google Gemini <ExternalLink className="w-3 h-3 inline" /></a> a v levém menu klikněte na <strong>Správce Gemů (Gem Manager)</strong> → <strong>+ Nový Gem</strong>.</>
+                      )}
+                    </li>
+                    <li>
+                      {locale === 'en' ? 'Set the Gem name to' : 'Jako název Gemu zadejte'} <strong className="text-[#263238]">„{agent.name}“</strong>.
+                    </li>
+                    <li>
+                      {locale === 'en' ? (
+                        <>In the <strong>Instructions</strong> text area, paste the copied prompt, or upload the downloaded file <code className="text-[#01579b] bg-slate-200 px-1 py-0.5 rounded">{agent.id}.agent.md</code>.</>
+                      ) : (
+                        <>Do textového pole <strong>Instrukce (Instructions)</strong> vložte zkopírované instrukce z tlačítka výše, případně nahrajte stažený soubor <code className="text-[#01579b] bg-slate-200 px-1 py-0.5 rounded">{agent.id}.agent.md</code>.</>
+                      )}
+                    </li>
+                    <li>
+                      {locale === 'en' ? 'Click Create. Your Gem is immediately ready to give personalized recommendations!' : 'Klikněte na Vytvořit. Váš Gem je okamžitě připraven odpovídat s veškerou vaší doménovou logikou a preferencemi!'}
+                    </li>
+                  </ol>
+                </div>
               </div>
+            )}
 
-              <ol className="space-y-2 text-slate-300 pl-5 list-decimal leading-relaxed">
-                <li>
-                  {locale === 'en' ? (
-                    <>Open <a href="https://gemini.google.com" target="_blank" rel="noreferrer" className="text-cyan-400 underline font-semibold inline-flex items-center gap-0.5">Google Gemini <ExternalLink className="w-3 h-3 inline" /></a> and in the left sidebar click <strong>Gem Manager</strong> → <strong>+ New Gem</strong>.</>
-                  ) : (
-                    <>Otevřete <a href="https://gemini.google.com" target="_blank" rel="noreferrer" className="text-cyan-400 underline font-semibold inline-flex items-center gap-0.5">Google Gemini <ExternalLink className="w-3 h-3 inline" /></a> a v levém menu klikněte na <strong>Správce Gemů (Gem Manager)</strong> → <strong>+ Nový Gem</strong>.</>
-                  )}
-                </li>
-                <li>
-                  {locale === 'en' ? 'Set the Gem name to' : 'Jako název Gemu zadejte'} <strong className="text-white">„{agent.name}“</strong>.
-                </li>
-                <li>
-                  {locale === 'en' ? (
-                    <>In the <strong>Instructions</strong> text area, paste the copied prompt, or upload the downloaded file <code className="text-cyan-300 bg-slate-900 px-1 py-0.5 rounded">{agent.id}.agent.md</code>.</>
-                  ) : (
-                    <>Do textového pole <strong>Instrukce (Instructions)</strong> vložte zkopírované instrukce z tlačítka výše, případně nahrajte stažený soubor <code className="text-cyan-300 bg-slate-900 px-1 py-0.5 rounded">{agent.id}.agent.md</code>.</>
-                  )}
-                </li>
-                <li>
-                  {locale === 'en' ? 'Click Create. Your Gem is immediately ready to give personalized recommendations!' : 'Klikněte na Vytvořit. Váš Gem je okamžitě připraven odpovídat s veškerou vaší doménovou logikou a preferencemi!'}
-                </li>
-              </ol>
-            </div>
-          </div>
-        )}
+            {/* Tab Content: OpenAI ChatGPT Custom GPTs */}
+            {activeGuideTab === 'chatgpt' && (
+              <div className="space-y-4 animate-in fade-in duration-200">
+                <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 text-xs text-[#263238] space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="font-bold text-[#01579b] text-sm flex items-center gap-1.5">
+                      {locale === 'en' ? 'Instructions for OpenAI ChatGPT (Custom GPT):' : 'Návod pro OpenAI ChatGPT (Custom GPT):'}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => handleCopyText(currentLivePrompt, 'chatgpt_prompt')}
+                      className="flex items-center gap-1.5 px-3 py-1 rounded-lg bg-white border border-slate-300 text-[#263238] text-xs font-mono font-bold hover:bg-slate-100 transition-colors cursor-pointer"
+                    >
+                      {copiedSnippetType === 'chatgpt_prompt' ? <Check className="w-3.5 h-3.5 text-teal-600" /> : <Copy className="w-3.5 h-3.5 text-slate-500" />}
+                      <span>{copiedSnippetType === 'chatgpt_prompt' ? (locale === 'en' ? 'Copied!' : 'Zkopírováno!') : (locale === 'en' ? 'Copy Instructions for GPT' : 'Kopírovat instrukce pro GPT')}</span>
+                    </button>
+                  </div>
 
-        {/* Tab Content: OpenAI ChatGPT Custom GPTs */}
-        {activeGuideTab === 'chatgpt' && (
-          <div className="space-y-4 animate-in fade-in duration-200">
-            <div className="p-4 rounded-2xl bg-teal-950/20 border border-teal-500/20 text-xs text-slate-300 space-y-3">
-              <div className="flex items-center justify-between">
-                <span className="font-bold text-teal-300 text-sm flex items-center gap-1.5">
-                  {locale === 'en' ? 'Instructions for OpenAI ChatGPT (Custom GPT):' : 'Návod pro OpenAI ChatGPT (Custom GPT):'}
-                </span>
-                <button
-                  type="button"
-                  onClick={() => handleCopyText(currentLivePrompt, 'chatgpt_prompt')}
-                  className="flex items-center gap-1.5 px-3 py-1 rounded-xl bg-teal-950 border border-teal-400/40 text-teal-300 text-xs font-mono font-bold hover:bg-teal-900/50 transition-colors cursor-pointer"
-                >
-                  {copiedSnippetType === 'chatgpt_prompt' ? <Check className="w-3.5 h-3.5 text-teal-300" /> : <Copy className="w-3.5 h-3.5" />}
-                  <span>{copiedSnippetType === 'chatgpt_prompt' ? (locale === 'en' ? 'Copied!' : 'Zkopírováno!') : (locale === 'en' ? 'Copy Instructions for GPT' : 'Kopírovat instrukce pro GPT')}</span>
-                </button>
+                  <ol className="space-y-2 text-[#546e7a] pl-5 list-decimal leading-relaxed">
+                    <li>
+                      {locale === 'en' ? (
+                        <>Open <a href="https://chatgpt.com" target="_blank" rel="noreferrer" className="text-[#0099cc] underline font-semibold inline-flex items-center gap-0.5">ChatGPT <ExternalLink className="w-3 h-3 inline" /></a>, select <strong>Explore GPTs</strong> in the left sidebar and click <strong>+ Create</strong>.</>
+                      ) : (
+                        <>Otevřete <a href="https://chatgpt.com" target="_blank" rel="noreferrer" className="text-[#0099cc] underline font-semibold inline-flex items-center gap-0.5">ChatGPT <ExternalLink className="w-3 h-3 inline" /></a>, v levém sloupci zvolte <strong>Explore GPTs</strong> a klikněte na <strong>+ Create</strong> (vpravo nahoře).</>
+                      )}
+                    </li>
+                    <li>
+                      {locale === 'en' ? 'Switch to Configure tab and enter name' : 'Přepněte se do záložky Configure a zadejte jméno'} <strong className="text-[#263238]">„{agent.name}“</strong>.
+                    </li>
+                    <li>
+                      {locale === 'en' ? (
+                        <>In <strong>Instructions</strong> paste the copied prompt and under <strong>Knowledge</strong> upload <code className="text-[#01579b] bg-slate-200 px-1 py-0.5 rounded">{agent.id}.agent.md</code>.</>
+                      ) : (
+                        <>Do pole <strong>Instructions</strong> vložte zkopírovaný prompt a v sekci <strong>Knowledge</strong> nahrajte stažený soubor <code className="text-[#01579b] bg-slate-200 px-1 py-0.5 rounded">{agent.id}.agent.md</code>.</>
+                      )}
+                    </li>
+                    <li>
+                      {locale === 'en' ? 'Click Save / Confirm. Your tailored shopping advisor is ready.' : 'Klikněte vpravo nahoře na Save / Confirm. Váš specializovaný rádce je vám trvale k dispozici.'}
+                    </li>
+                  </ol>
+                </div>
               </div>
+            )}
 
-              <ol className="space-y-2 text-slate-300 pl-5 list-decimal leading-relaxed">
-                <li>
-                  {locale === 'en' ? (
-                    <>Open <a href="https://chatgpt.com" target="_blank" rel="noreferrer" className="text-teal-400 underline font-semibold inline-flex items-center gap-0.5">ChatGPT <ExternalLink className="w-3 h-3 inline" /></a>, select <strong>Explore GPTs</strong> in the left sidebar and click <strong>+ Create</strong>.</>
-                  ) : (
-                    <>Otevřete <a href="https://chatgpt.com" target="_blank" rel="noreferrer" className="text-teal-400 underline font-semibold inline-flex items-center gap-0.5">ChatGPT <ExternalLink className="w-3 h-3 inline" /></a>, v levém sloupci zvolte <strong>Explore GPTs</strong> a klikněte na <strong>+ Create</strong> (vpravo nahoře).</>
-                  )}
-                </li>
-                <li>
-                  {locale === 'en' ? 'Switch to Configure tab and enter name' : 'Přepněte se do záložky Configure a zadejte jméno'} <strong className="text-white">„{agent.name}“</strong>.
-                </li>
-                <li>
-                  {locale === 'en' ? (
-                    <>In <strong>Instructions</strong> paste the copied prompt and under <strong>Knowledge</strong> upload <code className="text-teal-300 bg-slate-900 px-1 py-0.5 rounded">{agent.id}.agent.md</code>.</>
-                  ) : (
-                    <>Do pole <strong>Instructions</strong> vložte zkopírovaný prompt a v sekci <strong>Knowledge</strong> nahrajte stažený soubor <code className="text-teal-300 bg-slate-900 px-1 py-0.5 rounded">{agent.id}.agent.md</code>.</>
-                  )}
-                </li>
-                <li>
-                  {locale === 'en' ? 'Click Save / Confirm. Your tailored shopping advisor is ready.' : 'Klikněte vpravo nahoře na Save / Confirm. Váš specializovaný rádce je vám trvale k dispozici.'}
-                </li>
-              </ol>
-            </div>
-          </div>
-        )}
+            {/* Tab Content: Anthropic Claude Projects */}
+            {activeGuideTab === 'claude' && (
+              <div className="space-y-4 animate-in fade-in duration-200">
+                <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 text-xs text-[#263238] space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="font-bold text-[#01579b] text-sm flex items-center gap-1.5">
+                      {locale === 'en' ? 'Instructions for Anthropic Claude (Projects):' : 'Návod pro Anthropic Claude (Projects):'}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => handleCopyText(currentLivePrompt, 'claude_prompt')}
+                      className="flex items-center gap-1.5 px-3 py-1 rounded-lg bg-white border border-slate-300 text-[#263238] text-xs font-mono font-bold hover:bg-slate-100 transition-colors cursor-pointer"
+                    >
+                      {copiedSnippetType === 'claude_prompt' ? <Check className="w-3.5 h-3.5 text-teal-600" /> : <Copy className="w-3.5 h-3.5 text-slate-500" />}
+                      <span>{copiedSnippetType === 'claude_prompt' ? (locale === 'en' ? 'Copied!' : 'Zkopírováno!') : (locale === 'en' ? 'Copy Instructions for Claude' : 'Kopírovat instrukce pro Claude')}</span>
+                    </button>
+                  </div>
 
-        {/* Tab Content: Anthropic Claude Projects */}
-        {activeGuideTab === 'claude' && (
-          <div className="space-y-4 animate-in fade-in duration-200">
-            <div className="p-4 rounded-2xl bg-amber-950/20 border border-amber-500/20 text-xs text-slate-300 space-y-3">
-              <div className="flex items-center justify-between">
-                <span className="font-bold text-amber-300 text-sm flex items-center gap-1.5">
-                  {locale === 'en' ? 'Instructions for Anthropic Claude (Projects):' : 'Návod pro Anthropic Claude (Projects):'}
-                </span>
-                <button
-                  type="button"
-                  onClick={() => handleCopyText(currentLivePrompt, 'claude_prompt')}
-                  className="flex items-center gap-1.5 px-3 py-1 rounded-xl bg-amber-950 border border-amber-400/40 text-amber-300 text-xs font-mono font-bold hover:bg-amber-900/50 transition-colors cursor-pointer"
-                >
-                  {copiedSnippetType === 'claude_prompt' ? <Check className="w-3.5 h-3.5 text-teal-300" /> : <Copy className="w-3.5 h-3.5" />}
-                  <span>{copiedSnippetType === 'claude_prompt' ? (locale === 'en' ? 'Copied!' : 'Zkopírováno!') : (locale === 'en' ? 'Copy Instructions for Claude' : 'Kopírovat instrukce pro Claude')}</span>
-                </button>
+                  <ol className="space-y-2 text-[#546e7a] pl-5 list-decimal leading-relaxed">
+                    <li>
+                      {locale === 'en' ? (
+                        <>Open <a href="https://claude.ai" target="_blank" rel="noreferrer" className="text-[#0099cc] underline font-semibold inline-flex items-center gap-0.5">Claude.ai <ExternalLink className="w-3 h-3 inline" /></a> and select <strong>Projects</strong> → <strong>New Project</strong> named <strong className="text-[#263238]">„{agent.name}“</strong>.</>
+                      ) : (
+                        <>Otevřete <a href="https://claude.ai" target="_blank" rel="noreferrer" className="text-[#0099cc] underline font-semibold inline-flex items-center gap-0.5">Claude.ai <ExternalLink className="w-3 h-3 inline" /></a> a v levém menu zvolte <strong>Projects</strong> → <strong>New Project</strong> s názvem <strong className="text-[#263238]">„{agent.name}“</strong>.</>
+                      )}
+                    </li>
+                    <li>
+                      {locale === 'en' ? 'In project settings click Set custom instructions and paste the prompt.' : 'V nastavení projektu klikněte na Set custom instructions a vložte zkopírované instrukce z bAIright.'}
+                    </li>
+                    <li>
+                      {locale === 'en' ? (
+                        <>In <strong>Project Knowledge</strong> upload <code className="text-[#01579b] bg-slate-200 px-1 py-0.5 rounded">{agent.id}.agent.md</code>.</>
+                      ) : (
+                        <>V sekci <strong>Project Knowledge</strong> nahrajte soubor <code className="text-[#01579b] bg-slate-200 px-1 py-0.5 rounded">{agent.id}.agent.md</code>.</>
+                      )}
+                    </li>
+                    <li>
+                      {locale === 'en' ? 'Claude will automatically apply all your custom rules and constraints in each thread.' : 'Claude v každém novém vláknu v tomto projektu automaticky aplikuje veškerá vámi zadaná pravidla, kriteria a vyloučení.'}
+                    </li>
+                  </ol>
+                </div>
               </div>
-
-              <ol className="space-y-2 text-slate-300 pl-5 list-decimal leading-relaxed">
-                <li>
-                  {locale === 'en' ? (
-                    <>Open <a href="https://claude.ai" target="_blank" rel="noreferrer" className="text-amber-400 underline font-semibold inline-flex items-center gap-0.5">Claude.ai <ExternalLink className="w-3 h-3 inline" /></a> and select <strong>Projects</strong> → <strong>New Project</strong> named <strong className="text-white">„{agent.name}“</strong>.</>
-                  ) : (
-                    <>Otevřete <a href="https://claude.ai" target="_blank" rel="noreferrer" className="text-amber-400 underline font-semibold inline-flex items-center gap-0.5">Claude.ai <ExternalLink className="w-3 h-3 inline" /></a> a v levém menu zvolte <strong>Projects</strong> → <strong>New Project</strong> s názvem <strong className="text-white">„{agent.name}“</strong>.</>
-                  )}
-                </li>
-                <li>
-                  {locale === 'en' ? 'In project settings click Set custom instructions and paste the prompt.' : 'V nastavení projektu klikněte na Set custom instructions a vložte zkopírované instrukce z bAIright.'}
-                </li>
-                <li>
-                  {locale === 'en' ? (
-                    <>In <strong>Project Knowledge</strong> upload <code className="text-amber-300 bg-slate-900 px-1 py-0.5 rounded">{agent.id}.agent.md</code>.</>
-                  ) : (
-                    <>V sekci <strong>Project Knowledge</strong> nahrajte soubor <code className="text-amber-300 bg-slate-900 px-1 py-0.5 rounded">{agent.id}.agent.md</code>.</>
-                  )}
-                </li>
-                <li>
-                  {locale === 'en' ? 'Claude will automatically apply all your custom rules and constraints in each thread.' : 'Claude v každém novém vláknu v tomto projektu automaticky aplikuje veškerá vámi zadaná pravidla, kriteria a vyloučení.'}
-                </li>
-              </ol>
-            </div>
-          </div>
-        )}
+            )}
           </div>
         )}
       </div>
 
       {/* 3. DIRECT CONNECTION UI: PROPOJIT SE SVÝM MODELEM / PŘEDPLATNÝM (BYOK) - ONLY RENDER IF NO KEY */}
       {!hasApiKey && (
-      <div className="rounded-3xl bg-gradient-to-r from-[#081324] via-[#060c18] to-[#040812] border border-cyan-500/30 p-6 sm:p-7 shadow-lg space-y-4">
+      <div className="rounded-2xl bg-[#1e293b] border border-slate-700 p-6 shadow-xs space-y-4 text-left text-white">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="space-y-1">
             <div className="flex items-center gap-2">
-              <span className="text-xs font-mono font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-cyan-950 text-cyan-300 border border-cyan-500/40">
+              <span className="text-[10px] font-mono font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-slate-800 text-[#81d4fa] border border-slate-700">
                 {locale === 'en' ? 'Upcoming Integration' : 'Připravovaná integrace'}
               </span>
-              <h3 className="text-base sm:text-lg font-extrabold text-white">
+              <h3 className="text-base sm:text-lg font-bold text-white">
                 {locale === 'en' ? 'Run directly in bAIright with your own model / subscription' : 'Spouštět přímo v bAIright přes vlastní model / předplatné'}
               </h3>
             </div>
@@ -2096,23 +2186,22 @@ export const DynamicAgentWizard: React.FC<DynamicAgentWizardProps> = ({
               <button
                 type="button"
                 onClick={onOpenSubscriptionModal}
-                className="flex items-center gap-2 px-5 py-2.5 rounded-2xl text-xs font-bold bg-cyan-950 hover:bg-cyan-900/60 border border-cyan-400/50 text-cyan-300 transition-all cursor-pointer shadow-[0_0_15px_rgba(6,182,212,0.2)]"
+                className="flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold bg-[#0099cc] hover:bg-[#0088b8] text-white transition-all cursor-pointer shadow-xs"
               >
-                
                 <span>{locale === 'en' ? 'Connect account / token (BYOK)' : 'Propojit účet / token (BYOK)'}</span>
               </button>
             ) : (
-              <div className="px-4 py-2 rounded-xl bg-slate-900 border border-slate-800 text-xs font-mono text-slate-400">
+              <div className="px-3 py-1.5 rounded-lg bg-slate-800 border border-slate-700 text-xs font-mono text-slate-300">
                 {locale === 'en' ? 'Active:' : 'Aktivní:'} {result.providerUsed || 'bAIright Universal Engine'}
               </div>
             )}
           </div>
         </div>
 
-        <div className="flex flex-wrap items-center gap-2 pt-1">
+        <div className="flex flex-wrap items-center gap-2 pt-1 border-t border-slate-800">
           <span className="text-[11px] font-mono text-slate-400">{locale === 'en' ? 'Supported models:' : 'Podporované modely:'}</span>
           {['Claude 3.5 Sonnet', 'GPT-4o', 'Gemini 1.5 Pro', 'DeepSeek V3', 'Ollama Local'].map((m) => (
-            <span key={m} className="text-[11px] font-mono px-2.5 py-0.5 rounded-full bg-slate-900 text-slate-300 border border-slate-800">
+            <span key={m} className="text-[10px] font-mono px-2 py-0.5 rounded bg-slate-800 text-slate-300 border border-slate-700">
               {m}
             </span>
           ))}
@@ -2121,21 +2210,18 @@ export const DynamicAgentWizard: React.FC<DynamicAgentWizardProps> = ({
       )}
 
       {/* 4. THE ULTIMATE VALUE PROPOSITION: PERSISTENT RAG MEMORY & FEEDBACK LOOP */}
-      <div className="rounded-3xl bg-gradient-to-b from-[#0c1f38] via-[#071325] to-[#040913] border-2 border-cyan-400/50 p-6 sm:p-8 shadow-[0_15px_50px_rgba(6,182,212,0.2)] relative overflow-hidden space-y-6">
-        <div className="absolute top-0 right-0 w-96 h-96 bg-cyan-500/10 rounded-full blur-3xl pointer-events-none" />
-
+      <div className="rounded-2xl bg-white border border-slate-200 p-6 sm:p-8 shadow-xs relative overflow-hidden space-y-6 text-left">
         {/* Header of the Value Proposition */}
-        <div className="space-y-2">
+        <div className="space-y-1.5">
           <div className="flex items-center gap-2">
-            
-            <span className="text-xs font-mono font-bold uppercase tracking-wider text-cyan-300">
+            <span className="text-[11px] font-mono font-bold uppercase tracking-wider text-[#01579b] bg-[#e1f5fe] px-2.5 py-0.5 rounded-md border border-[#b3e5fc]">
               {locale === 'en' ? 'Key Advantage of bAIright Architecture' : 'Klíčová výhoda bAIright architektury'}
             </span>
           </div>
-          <h2 className="text-xl sm:text-2xl font-black text-white tracking-tight">
+          <h2 className="text-xl sm:text-2xl font-black text-[#263238] tracking-tight">
             {locale === 'en' ? 'Persistent RAG Memory: An Agent that Learns With Every Purchase' : 'Permanentní RAG paměť: Agent, který se s každým nákupem učí'}
           </h2>
-          <p className="text-sm text-slate-300 leading-relaxed max-w-3xl">
+          <p className="text-xs sm:text-sm text-[#546e7a] leading-relaxed max-w-3xl">
             {locale === 'en'
               ? 'Why is an agent with profile memory 10× more valuable than a one-off anonymous chat in ChatGPT or Claude?'
               : 'Proč je agent s profilovou pamětí 10× hodnotnější než jednorázový anonymní chat v ChatGPT nebo Claude?'}
@@ -2144,22 +2230,22 @@ export const DynamicAgentWizard: React.FC<DynamicAgentWizardProps> = ({
 
         {/* Contrast Grid: Generic LLM vs bAIright RAG */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="p-4 rounded-2xl bg-red-950/20 border border-red-500/30 space-y-2">
-            <span className="text-xs font-bold text-red-300 flex items-center gap-1.5 font-mono">
+          <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-2">
+            <span className="text-xs font-bold text-slate-700 flex items-center gap-1.5 font-mono">
               {locale === 'en' ? 'Standard Chat (ChatGPT / Claude / Gemini):' : 'Běžný chat (ChatGPT / Claude / Gemini):'}
             </span>
-            <ul className="text-xs text-slate-300 space-y-1.5 leading-relaxed">
+            <ul className="text-xs text-[#546e7a] space-y-1.5 leading-relaxed">
               <li>{locale === 'en' ? '• Total amnesia: When you start a new chat in 3 months, it remembers nothing from before.' : '• Totální amnézie: Když za 3 měsíce otevřete nový chat, model si nepamatuje vůbec nic z minula.'}</li>
               <li>{locale === 'en' ? '• Continuous repetition: You have to re-enter all your preferences and budget every single time.' : '• Neustálé opakování: Pokaždé musíte znova vypisovat své rozměry nohy, rozpočet a značky, které nesnášíte.'}</li>
               <li>{locale === 'en' ? '• Zero learning from mistakes: If it suggested an ill-fitting item last time, it will happily recommend it again.' : '• Nulové poučení z chyb: Pokud vám minule doporučil botu, co vás tlačila v nártu, klidně vám ji doporučí znovu.'}</li>
             </ul>
           </div>
 
-          <div className="p-4 rounded-2xl bg-teal-950/25 border border-teal-500/40 space-y-2 shadow-inner">
-            <span className="text-xs font-bold text-teal-300 flex items-center gap-1.5 font-mono">
+          <div className="p-4 rounded-xl bg-[#e1f5fe] border border-[#b3e5fc] space-y-2">
+            <span className="text-xs font-bold text-[#01579b] flex items-center gap-1.5 font-mono">
               {locale === 'en' ? 'bAIright Agent with persistent RAG memory:' : 'bAIright Agent s permanentní RAG pamětí:'}
             </span>
-            <ul className="text-xs text-slate-200 space-y-1.5 leading-relaxed">
+            <ul className="text-xs text-[#014377] space-y-1.5 leading-relaxed">
               <li>{locale === 'en' ? '• Remembers every recommendation: All previous choices and feedback are stored in your profile.' : '• Pamatuje si každé doporučení: Všechny předchozí volby i váš feedback jsou trvale uloženy ve vaší profilové databázi.'}</li>
               <li>{locale === 'en' ? '• Automatic injection into every prompt: Past context is loaded without retyping.' : '• Automatická injekce do každého promptu: Při každém dalším probuzení agenta se kontext z minulosti automaticky promítne do dotazu bez vašeho přepisování.'}</li>
               <li>{locale === 'en' ? '• Learning feedback loop: Provide feedback and the agent remembers it forever!' : '• Učící se smyčka: Zadáte feedback (např. „Hoka byly moc úzké v nártu“) a agent si to navždy pamatuje pro všechny příští nákupy!'}</li>
@@ -2168,23 +2254,22 @@ export const DynamicAgentWizard: React.FC<DynamicAgentWizardProps> = ({
         </div>
 
         {/* Step-by-Step Scenario Example */}
-        <div className="p-4 sm:p-5 rounded-2xl bg-slate-950/80 border border-cyan-500/30 space-y-3">
-          <span className="text-xs font-mono font-bold uppercase tracking-wider text-cyan-300 flex items-center gap-1.5">
-            <History className="w-4 h-4 text-cyan-400" />
+        <div className="p-4 sm:p-5 rounded-xl bg-slate-50 border border-slate-200 space-y-3">
+          <span className="text-xs font-mono font-bold uppercase tracking-wider text-[#263238] flex items-center gap-1.5">
             {locale === 'en' ? 'Practical Example: How Continuous Memory Works' : 'Příklad z praxe: Jak funguje kontinuální paměť agenta'}
           </span>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
-            <div className="p-3 rounded-xl bg-slate-900/80 border border-slate-800 space-y-1">
-              <span className="font-bold text-slate-300">{locale === 'en' ? '1. Today (First Launch)' : '1. Dnes (První spuštění)'}</span>
-              <p className="text-slate-400">{locale === 'en' ? 'Agent recommends shoes. You give feedback: "Hoka pinched my instep, keep budget under $150."' : 'Agent doporučí boty. Dáte mu feedback: „Hoka mě tlačily v nártu a chci strop do 3 500 Kč.“'}</p>
+            <div className="p-3 rounded-lg bg-white border border-slate-200 space-y-1">
+              <span className="font-bold text-[#263238]">{locale === 'en' ? '1. Today (First Launch)' : '1. Dnes (První spuštění)'}</span>
+              <p className="text-[#546e7a]">{locale === 'en' ? 'Agent recommends shoes. You give feedback: "Hoka pinched my instep, keep budget under $150."' : 'Agent doporučí boty. Dáte mu feedback: „Hoka mě tlačily v nártu a chci strop do 3 500 Kč.“'}</p>
             </div>
-            <div className="p-3 rounded-xl bg-cyan-950/40 border border-cyan-500/30 space-y-1">
-              <span className="font-bold text-cyan-300">{locale === 'en' ? '2. RAG Indexing' : '2. RAG Uložení'}</span>
-              <p className="text-slate-300">{locale === 'en' ? 'Information is indexed into your profile database as a verified shopping fact.' : 'Informace se indexuje do vaší profilové databáze jako ověřený nákupní fakt.'}</p>
+            <div className="p-3 rounded-lg bg-white border border-slate-200 space-y-1">
+              <span className="font-bold text-[#01579b]">{locale === 'en' ? '2. RAG Indexing' : '2. RAG Uložení'}</span>
+              <p className="text-[#546e7a]">{locale === 'en' ? 'Information is indexed into your profile database as a verified shopping fact.' : 'Informace se indexuje do vaší profilové databázi jako ověřený nákupní fakt.'}</p>
             </div>
-            <div className="p-3 rounded-xl bg-teal-950/40 border border-teal-500/30 space-y-1">
-              <span className="font-bold text-teal-300">{locale === 'en' ? '3. In 6 Months (Next Launch)' : '3. Za půl roku (Další probuzení)'}</span>
-              <p className="text-slate-300">{locale === 'en' ? 'Agent autonomously loads: "User has wide instep, exclude narrow lasts, budget under $150."' : 'Agent si sám načte: „Uživatel má široký nárt, vyřadit úzká kopyta Hoka a držet rozpočet 3 500 Kč.“'}</p>
+            <div className="p-3 rounded-lg bg-white border border-slate-200 space-y-1">
+              <span className="font-bold text-[#01579b]">{locale === 'en' ? '3. In 6 Months (Next Launch)' : '3. Za půl roku (Další probuzení)'}</span>
+              <p className="text-[#546e7a]">{locale === 'en' ? 'Agent autonomously loads: "User has wide instep, exclude narrow lasts, budget under $150."' : 'Agent si sám načte: „Uživatel má široký nárt, vyřadit úzká kopyta Hoka a držet rozpočet 3 500 Kč.“'}</p>
             </div>
           </div>
         </div>
@@ -2192,17 +2277,16 @@ export const DynamicAgentWizard: React.FC<DynamicAgentWizardProps> = ({
         {/* Current Active RAG Facts for this Agent */}
         {enrichedFacts.length > 0 && (
           <div className="space-y-2 pt-1">
-            <span className="text-xs font-mono font-semibold text-slate-400 flex items-center gap-1.5">
-              
-              {locale === 'en' ? `Active RAG facts in this agent's prompt (${enrichedFacts.length}):` : `Aktuálně načtená RAG fakta v promptu tohoto agenta (${enrichedFacts.length}):`}
+            <span className="text-xs font-mono font-semibold text-[#546e7a] flex items-center gap-1.5">
+              {locale === 'en' ? `Active RAG facts in this agent\'s prompt (${enrichedFacts.length}):` : `Aktuálně načtená RAG fakta v promptu tohoto agenta (${enrichedFacts.length}):`}
             </span>
             <div className="flex flex-wrap gap-2">
               {enrichedFacts.map((f, fIdx) => (
                 <span
                   key={fIdx}
-                  className="text-xs px-3 py-1 rounded-xl bg-slate-900 border border-cyan-500/20 text-slate-300 flex items-center gap-1.5"
+                  className="text-xs px-3 py-1 rounded-lg bg-slate-50 border border-slate-200 text-[#263238] flex items-center gap-1.5 font-mono"
                 >
-                  <span className="w-1.5 h-1.5 rounded-full bg-cyan-400" />
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#0099cc]" />
                   <span>{f.fact}</span>
                 </span>
               ))}
@@ -2213,9 +2297,9 @@ export const DynamicAgentWizard: React.FC<DynamicAgentWizardProps> = ({
       </div>
 
       {/* Raw Prompt Accordion */}
-      <div className="p-5 rounded-2xl bg-[#060c18] border border-cyan-500/30 text-xs space-y-3">
+      <div className="p-5 rounded-2xl bg-white border border-slate-200 text-xs space-y-3 shadow-xs text-left">
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2 text-cyan-300 font-bold font-mono">
+          <div className="flex items-center gap-2 text-[#263238] font-bold font-mono">
             <span>{locale === 'en' ? 'Full Generated Agent Prompt' : 'Kompletní vygenerovaný prompt agenta'}</span>
           </div>
           <button
@@ -2225,13 +2309,13 @@ export const DynamicAgentWizard: React.FC<DynamicAgentWizardProps> = ({
               setCopiedFinalPrompt(true);
               setTimeout(() => setCopiedFinalPrompt(false), 2000);
             }}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 border border-cyan-500/30 text-cyan-300 text-xs font-mono transition-colors cursor-pointer"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-50 hover:bg-slate-100 border border-slate-200 text-[#263238] text-xs font-mono transition-colors cursor-pointer"
           >
             <Copy className="w-3.5 h-3.5" />
             <span>{copiedFinalPrompt ? (locale === 'en' ? 'Copied!' : 'Zkopírováno!') : (locale === 'en' ? 'Copy Final Prompt' : 'Kopírovat finální prompt')}</span>
           </button>
         </div>
-        <div className="rounded-xl bg-slate-950 p-3.5 font-mono text-xs text-slate-300 max-h-48 overflow-y-auto border border-slate-800/80 leading-relaxed whitespace-pre-wrap selection:bg-cyan-500/30">
+        <div className="rounded-xl bg-slate-50 p-3.5 font-mono text-xs text-[#263238] max-h-48 overflow-y-auto border border-slate-200 leading-relaxed whitespace-pre-wrap">
           {currentLivePrompt}
         </div>
       </div>

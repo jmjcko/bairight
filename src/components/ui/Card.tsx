@@ -15,13 +15,13 @@ export const Card: React.FC<CardProps> = ({
   children,
   className = '',
 }) => {
-  let borderStyle = 'border-slate-800 hover:border-slate-600 bg-slate-900/60';
+  let borderStyle = 'border-slate-200/80 hover:border-slate-300 bg-white shadow-xs text-[#263238]';
 
   if (error) {
     borderStyle = 'border-red-500/50 bg-red-950/20 shadow-[0_0_15px_rgba(239,68,68,0.2)]';
   } else if (active) {
     borderStyle =
-      'border-cyan-500/60 bg-cyan-950/20 shadow-[0_0_20px_rgba(6,182,212,0.25)]';
+      'border-[#0099cc] bg-[#f0f9ff] shadow-xs text-[#263238]';
   }
 
   return (

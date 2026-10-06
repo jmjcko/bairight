@@ -34,14 +34,14 @@ export const BiomechanicalHUD: React.FC<BiomechanicalHUDProps> = ({
   const isWide4E = formData.foot_width === 'extra_wide_4e';
 
   return (
-    <div className="glass-panel rounded-2xl p-5 sm:p-6 flex flex-col justify-between border border-cyan-500/25 shadow-[0_0_30px_rgba(6,182,212,0.12)] relative overflow-hidden">
+    <div className="glass-panel rounded-2xl p-5 sm:p-6 flex flex-col justify-between border border-slate-200 shadow-[0_0_30px_rgba(6,182,212,0.12)] relative overflow-hidden">
       {/* Background radial glow */}
       <div className="absolute top-0 right-0 w-48 h-48 bg-cyan-500/10 rounded-full blur-3xl pointer-events-none" />
       <div className="absolute bottom-0 left-0 w-48 h-48 bg-teal-500/10 rounded-full blur-3xl pointer-events-none" />
 
       <div>
         {/* Telemetry Header */}
-        <div className="flex items-center justify-between pb-3.5 mb-4 border-b border-cyan-500/20">
+        <div className="flex items-center justify-between pb-3.5 mb-4 border-b border-slate-200">
           <div className="flex items-center gap-2.5">
             <div className="w-8 h-8 rounded-lg bg-cyan-950/80 border border-cyan-500/40 flex items-center justify-center text-cyan-400">
               <Cpu className="w-4 h-4 animate-pulse" />
@@ -51,7 +51,7 @@ export const BiomechanicalHUD: React.FC<BiomechanicalHUDProps> = ({
                 <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-ping" />
                 <span>{isCs ? 'TELEMETRIE CHODIDLA' : 'FOOT TELEMETRY'}</span>
               </div>
-              <h3 className="text-sm font-extrabold text-white tracking-tight">
+              <h3 className="text-sm font-extrabold text-[#263238] tracking-tight">
                 {isCs ? 'Biomechanický monitor' : 'Biomechanical Monitor'}
               </h3>
             </div>
@@ -62,7 +62,7 @@ export const BiomechanicalHUD: React.FC<BiomechanicalHUDProps> = ({
         </div>
 
         {/* 3D Holographic Medical Visual of Knee & Foot from Mockup B */}
-        <div className="relative w-full h-36 rounded-xl overflow-hidden bg-[#040812] border border-cyan-500/25 mb-4 shadow-inner">
+        <div className="relative w-full h-36 rounded-xl overflow-hidden bg-[#f4f6f8] border border-slate-200 mb-4 shadow-inner">
           <Image 
             src="/images/knee-foot-telemetry.jpg"
             alt="Knee and Foot Biomechanical Telemetry"
@@ -79,28 +79,28 @@ export const BiomechanicalHUD: React.FC<BiomechanicalHUDProps> = ({
         <div className="space-y-2.5 mb-4">
           <div>
             <div className="flex justify-between text-[11px] font-mono mb-1">
-              <span className="text-slate-300">{isCs ? 'Biomechanická analýza' : 'Analysis Score'}</span>
+              <span className="text-[#455a64]">{isCs ? 'Biomechanická analýza' : 'Analysis Score'}</span>
               <span className="text-cyan-400 font-bold">8.5 / 10</span>
             </div>
-            <div className="w-full h-1.5 rounded-full bg-[#050c18] overflow-hidden border border-cyan-500/20">
+            <div className="w-full h-1.5 rounded-full bg-[#e0e0e0] overflow-hidden border border-slate-200">
               <div className="h-full w-[85%] bg-gradient-to-r from-cyan-500 to-teal-400 rounded-full shadow-[0_0_8px_#06b6d4]" />
             </div>
           </div>
 
           <div>
             <div className="flex justify-between text-[11px] font-mono mb-1">
-              <span className="text-slate-300">{isCs ? 'Ochrana kolene (Knee Health)' : 'Knee Protection'}</span>
+              <span className="text-[#455a64]">{isCs ? 'Ochrana kolene (Knee Health)' : 'Knee Protection'}</span>
               <span className="text-teal-400 font-bold">8.5 / 10</span>
             </div>
-            <div className="w-full h-1.5 rounded-full bg-[#050c18] overflow-hidden border border-cyan-500/20">
+            <div className="w-full h-1.5 rounded-full bg-[#e0e0e0] overflow-hidden border border-slate-200">
               <div className="h-full w-[85%] bg-gradient-to-r from-cyan-400 to-teal-400 rounded-full shadow-[0_0_8px_rgba(34,211,238,0.6)]" />
             </div>
           </div>
         </div>
 
         {/* Dynamic Foot Outline & Heatmap */}
-        <div className="bg-[#040812]/80 rounded-xl p-3.5 border border-cyan-500/20 mb-4 relative">
-          <div className="flex items-center justify-between text-[11px] font-mono text-slate-400 mb-1.5">
+        <div className="bg-[#f4f6f8]/80 rounded-xl p-3.5 border border-slate-200 mb-4 relative">
+          <div className="flex items-center justify-between text-[11px] font-mono text-[#607d8b] mb-1.5">
             <span>{isCs ? 'TLAKOVÁ MAPA & KOPYTO' : 'PRESSURE MAP & LAST'}</span>
             <span className="text-cyan-400 font-bold">
               {formData.foot_width === 'wide_2e' ? '2E (ŠIROKÉ)' : formData.foot_width === 'extra_wide_4e' ? '4E (EXTRA)' : 'STANDARD (D)'}
@@ -208,15 +208,15 @@ export const BiomechanicalHUD: React.FC<BiomechanicalHUDProps> = ({
             </div>
           )}
 
-          <div className="p-2.5 rounded-xl bg-[#081220] border border-cyan-500/20 text-xs space-y-1">
+          <div className="p-2.5 rounded-xl bg-white shadow-xs border border-slate-200 text-xs space-y-1">
             <div className="flex items-center justify-between text-[11px]">
-              <span className="text-slate-400">Zakázané značky:</span>
+              <span className="text-[#607d8b]">Zakázané značky:</span>
               <span className="font-mono text-rose-400 font-bold">
                 {formData.forbidden_brands.length > 0 ? formData.forbidden_brands.join(', ') : 'Žádné'}
               </span>
             </div>
             <div className="flex items-center justify-between text-[11px]">
-              <span className="text-slate-400">Preferované značky:</span>
+              <span className="text-[#607d8b]">Preferované značky:</span>
               <span className="font-mono text-cyan-300 font-bold">
                 {formData.preferred_brands.length > 0 ? formData.preferred_brands.join(', ') : 'Žádné'}
               </span>
@@ -226,9 +226,9 @@ export const BiomechanicalHUD: React.FC<BiomechanicalHUDProps> = ({
       </div>
 
       {/* Profile Readiness Bar */}
-      <div className="pt-3.5 mt-3.5 border-t border-cyan-500/20">
+      <div className="pt-3.5 mt-3.5 border-t border-slate-200">
         <div className="flex items-center justify-between text-xs mb-1">
-          <span className="text-slate-400 text-[11px]">{isCs ? 'Kompletnost profilu' : 'Profile Progress'}</span>
+          <span className="text-[#607d8b] text-[11px]">{isCs ? 'Kompletnost profilu' : 'Profile Progress'}</span>
           <span className="font-mono font-bold text-cyan-400">{Math.round((currentStep / 6) * 100)}%</span>
         </div>
         <div className="w-full h-2 rounded-full bg-slate-900 overflow-hidden border border-cyan-500/30">

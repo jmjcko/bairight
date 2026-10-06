@@ -157,6 +157,6 @@ describe('Parameter Research Agent & 3-Phase Wizard Flow (Updated PRD)', () => {
       fireEvent.click(continueBtn);
     }
 
-    expect(screen.getByRole('button', { name: /Vygenerovat doporučení agenta/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Dokončit a sestavit agenta|Vygenerovat doporučení agenta/i })).toBeInTheDocument();
   });
 });

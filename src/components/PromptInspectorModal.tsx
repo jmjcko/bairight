@@ -41,24 +41,24 @@ export const PromptInspectorModal: React.FC<PromptInspectorModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-black/85 backdrop-blur-md animate-in fade-in duration-200">
-      <div className="relative w-full max-w-4xl bg-[#060c18] border border-cyan-500/30 rounded-3xl shadow-2xl shadow-cyan-950/70 flex flex-col max-h-[90vh] overflow-hidden">
+      <div className="relative w-full max-w-4xl bg-white border border-slate-200 rounded-2xl shadow-2xl shadow-cyan-950/70 flex flex-col max-h-[90vh] overflow-hidden">
         
         {/* Modal Header */}
-        <div className="p-5 sm:p-6 border-b border-cyan-500/20 bg-[#081224] flex items-center justify-between">
+        <div className="p-5 sm:p-6 border-b border-slate-200 bg-white flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-2xl bg-cyan-950 border border-cyan-500/40 flex items-center justify-center text-cyan-300 shadow-lg shadow-cyan-950">
+            <div className="w-10 h-10 rounded-xl bg-[#e1f5fe] border border-[#b3e5fc] flex items-center justify-center text-[#01579b] shadow-xs">
               <Terminal className="w-5 h-5" />
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h2 className="text-base sm:text-lg font-extrabold text-white tracking-tight">
+                <h2 className="text-base sm:text-lg font-extrabold text-[#263238] tracking-tight">
                   {locale === "en" ? "AI Prompt Inspection (Transparent Input)" : "Inspekce AI Promptu (Transparentní zadání)"}
                 </h2>
-                <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-cyan-950 border border-cyan-500/40 text-cyan-300 font-bold">
+                <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-[#e1f5fe] border border-[#b3e5fc] text-[#01579b] font-bold">
                   Zero Hallucinations
                 </span>
               </div>
-              <p className="text-xs text-slate-400 mt-0.5">
+              <p className="text-xs text-[#607d8b] mt-0.5">
                 {locale === "en" ? "Exact instructions and parameters sent to the LLM model." : "Přesná instrukce a biometrická data odesílaná do LLM modelu."}
               </p>
             </div>
@@ -66,26 +66,26 @@ export const PromptInspectorModal: React.FC<PromptInspectorModalProps> = ({
 
           <button
             onClick={onClose}
-            className="p-2 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800/60 transition-colors cursor-pointer"
+            className="p-2 rounded-xl text-[#607d8b] hover:text-[#263238] hover:bg-slate-800/60 transition-colors cursor-pointer"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
         {/* Quick Rules Summary Bar */}
-        <div className="px-5 py-3 bg-[#050A14] border-b border-slate-800/80 flex flex-wrap items-center justify-between gap-3 text-xs">
+        <div className="px-5 py-3 bg-[#f4f6f8] border-b border-slate-200 flex flex-wrap items-center justify-between gap-3 text-xs">
           <div className="flex items-center gap-2 flex-wrap">
-            <span className="text-[11px] font-mono text-slate-400">{locale === "en" ? "Brand rules:" : "Pravidla značek:"}</span>
+            <span className="text-[11px] font-mono text-[#607d8b]">{locale === "en" ? "Brand rules:" : "Pravidla značek:"}</span>
             {preferredList.length > 0 ? (
-              <span className="px-2 py-0.5 rounded-md bg-cyan-950 text-cyan-300 border border-cyan-500/40 font-mono text-[10px] font-bold">
+              <span className="px-2 py-0.5 rounded-md bg-[#e1f5fe] text-[#01579b] border border-[#b3e5fc] font-mono text-[10px] font-bold">
                 Povoleno: {preferredList.join(', ')}
               </span>
             ) : (
-              <span className="text-[11px] text-slate-400 italic">{locale === "en" ? "All brands" : "Všechny značky"}</span>
+              <span className="text-[11px] text-[#607d8b] italic">{locale === "en" ? "All brands" : "Všechny značky"}</span>
             )}
 
             {forbiddenList.length > 0 && (
-              <span className="px-2 py-0.5 rounded-md bg-rose-950/80 text-rose-300 border border-rose-500/40 font-mono text-[10px] font-bold flex items-center gap-1">
+              <span className="px-2 py-0.5 rounded-md bg-rose-50 text-rose-800 border border-rose-300 font-mono text-[10px] font-bold flex items-center gap-1">
                 <ShieldAlert className="w-3 h-3" />
                 {locale === "en" ? "Excluded:" : "Vyloučeno:"} {forbiddenList.slice(0, 4).join(', ')}{forbiddenList.length > 4 ? ` +${forbiddenList.length - 4}` : ''}
               </span>
@@ -94,12 +94,12 @@ export const PromptInspectorModal: React.FC<PromptInspectorModalProps> = ({
 
           {/* Tab Switcher & Copy Action */}
           <div className="flex items-center gap-2">
-            <div className="flex items-center p-1 rounded-xl bg-slate-900 border border-slate-800">
+            <div className="segmented-tabs-container inline-flex items-center gap-1.5 p-1 rounded-xl bg-[#f4f6f8] border border-slate-200">
               <button
                 type="button"
                 onClick={() => setActiveTab('prompt')}
-                className={`px-3 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
-                  activeTab === 'prompt' ? 'bg-cyan-950 text-cyan-300 border border-cyan-500/40 shadow-sm' : 'text-slate-400 hover:text-white'
+                className={`segmented-tab-btn px-3 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                  activeTab === 'prompt' ? 'segmented-tab-active bg-[#0099cc] text-white shadow-xs' : 'text-[#607d8b] hover:text-[#263238]'
                 }`}
               >
                 Kompletní Prompt (LLM)
@@ -107,8 +107,8 @@ export const PromptInspectorModal: React.FC<PromptInspectorModalProps> = ({
               <button
                 type="button"
                 onClick={() => setActiveTab('payload')}
-                className={`px-3 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
-                  activeTab === 'payload' ? 'bg-cyan-950 text-cyan-300 border border-cyan-500/40 shadow-sm' : 'text-slate-400 hover:text-white'
+                className={`segmented-tab-btn px-3 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                  activeTab === 'payload' ? 'segmented-tab-active bg-[#0099cc] text-white shadow-xs' : 'text-[#607d8b] hover:text-[#263238]'
                 }`}
               >
                 JSON Payload
@@ -118,7 +118,7 @@ export const PromptInspectorModal: React.FC<PromptInspectorModalProps> = ({
             <button
               type="button"
               onClick={handleCopy}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-300 hover:text-white border border-slate-700 text-xs font-mono transition-colors cursor-pointer"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-[#455a64] hover:text-[#263238] border border-slate-700 text-xs font-mono transition-colors cursor-pointer"
             >
               {copied ? <Check className="w-3.5 h-3.5 text-teal-400" /> : <Copy className="w-3.5 h-3.5" />}
               <span>{copied ? 'Zkopírováno' : 'Zkopírovat do schránky'}</span>
@@ -127,15 +127,15 @@ export const PromptInspectorModal: React.FC<PromptInspectorModalProps> = ({
         </div>
 
         {/* Code / Text Preview */}
-        <div className="p-4 sm:p-6 overflow-y-auto flex-1 font-mono text-xs text-slate-300 leading-relaxed bg-[#030711] select-text">
-          <pre className="whitespace-pre-wrap font-mono text-[11px] sm:text-xs text-slate-200">
+        <div className="p-4 sm:p-6 overflow-y-auto flex-1 font-mono text-xs text-[#455a64] leading-relaxed bg-[#f8fafc] text-[#263238] select-text">
+          <pre className="whitespace-pre-wrap font-mono text-[11px] sm:text-xs text-[#263238]">
             {contentToCopy}
           </pre>
         </div>
 
         {/* Modal Footer with Actions */}
-        <div className="p-4 sm:p-5 border-t border-cyan-500/20 bg-[#081224] flex items-center justify-between">
-          <span className="text-xs text-slate-400 hidden sm:inline">
+        <div className="p-4 sm:p-5 border-t border-slate-200 bg-white flex items-center justify-between">
+          <span className="text-xs text-[#607d8b] hidden sm:inline">
             Tento text bude odeslán do vašeho zvoleného AI poskytovatele (Gemini / OpenAI / Claude).
           </span>
 
@@ -143,7 +143,7 @@ export const PromptInspectorModal: React.FC<PromptInspectorModalProps> = ({
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2.5 rounded-xl text-xs font-semibold text-slate-300 hover:text-white hover:bg-slate-800 transition-colors cursor-pointer"
+              className="px-4 py-2.5 rounded-xl text-xs font-semibold text-[#455a64] hover:text-[#263238] hover:bg-slate-800 transition-colors cursor-pointer"
             >
               Zavřít náhled
             </button>

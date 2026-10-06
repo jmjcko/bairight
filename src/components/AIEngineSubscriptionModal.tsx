@@ -174,27 +174,27 @@ export const AIEngineSubscriptionModal: React.FC<AIEngineSubscriptionModalProps>
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-950/85 backdrop-blur-md animate-in fade-in duration-200 overflow-y-auto">
       <div 
-        className="w-full max-w-2xl bg-[#070d18] border border-cyan-500/40 rounded-3xl shadow-[0_20px_60px_rgba(0,0,0,0.8)] overflow-hidden flex flex-col relative text-left my-auto"
+        className="w-full max-w-2xl bg-white border border-slate-200 rounded-2xl shadow-2xl shadow-[0_20px_60px_rgba(0,0,0,0.8)] overflow-hidden flex flex-col relative text-left my-auto"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header with Monospace Tag */}
-        <div className="p-5 sm:p-6 border-b border-cyan-500/20 bg-[#091424] relative">
+        <div className="p-5 sm:p-6 border-b border-slate-100 bg-white relative">
           <button
             onClick={onClose}
-            className="absolute right-5 top-5 w-8 h-8 rounded-xl bg-slate-900 border border-slate-800 text-slate-400 hover:text-white hover:border-cyan-400/50 flex items-center justify-center transition-colors cursor-pointer font-mono text-xs"
+            className="absolute right-5 top-5 w-8 h-8 rounded-xl bg-slate-900 border border-slate-800 text-[#607d8b] hover:text-[#263238] hover:border-cyan-400/50 flex items-center justify-center transition-colors cursor-pointer font-mono text-xs"
             aria-label={isEn ? 'Close' : 'Zavřít'}
           >
             ✕
           </button>
 
           <div>
-            <span className="inline-block text-[10px] font-mono font-bold tracking-widest text-cyan-400 uppercase bg-cyan-950/80 px-2.5 py-0.5 rounded border border-cyan-500/30 mb-2">
+            <span className="inline-block text-[10px] font-mono font-bold tracking-widest text-[#01579b] uppercase bg-[#e1f5fe] px-2.5 py-0.5 rounded-md border border-[#b3e5fc] font-bold mb-2">
               {isEn ? 'BYOK VAULT • CLIENT-SIDE SECURITY' : 'BYOK VAULT • LOKÁLNÍ BEZPEČNOST'}
             </span>
-            <h2 className="text-lg sm:text-xl font-black font-sans text-white tracking-tight">
+            <h2 className="text-lg sm:text-xl font-black font-sans text-[#263238] tracking-tight">
               {isEn ? 'AI Engine & Provider Vault (BYOK)' : 'AI Engine & Provider Vault (BYOK)'}
             </h2>
-            <p className="text-xs text-slate-400 font-mono mt-0.5">
+            <p className="text-xs text-[#607d8b] font-mono mt-0.5">
               {isEn 
                 ? 'Select your AI model and connect your own API key for direct chat' 
                 : 'Vyberte AI model a propojte svůj vlastní API klíč pro přímý chat'}
@@ -203,16 +203,16 @@ export const AIEngineSubscriptionModal: React.FC<AIEngineSubscriptionModalProps>
         </div>
 
         {/* Zero-Knowledge Security Notice (Zero Cloud Sync Mandate) */}
-        <div className="mx-5 sm:mx-6 mt-4 p-4 rounded-2xl bg-cyan-950/20 border border-cyan-500/30 text-slate-300 space-y-1.5 font-sans">
+        <div className="mx-5 sm:mx-6 mt-4 p-4 rounded-2xl bg-[#f8fafc] border border-slate-200 text-[#37474f] space-y-1.5 font-sans">
           <div className="flex items-center justify-between">
-            <span className="text-[10px] font-mono font-bold tracking-widest text-cyan-400 uppercase bg-cyan-950/80 px-2 py-0.5 rounded border border-cyan-500/30">
+            <span className="text-[10px] font-mono font-bold tracking-widest text-[#01579b] uppercase bg-[#e1f5fe] px-2 py-0.5 rounded-md border border-[#b3e5fc]">
               {isEn ? 'ZERO-KNOWLEDGE SECURITY POLICY' : 'BEZPEČNOSTNÍ ZÁRUKA (ZERO-KNOWLEDGE VAULT)'}
             </span>
-            <span className="text-[10px] font-mono text-cyan-400/80">
+            <span className="text-[10px] font-mono text-[#01579b] font-bold">
               {isEn ? 'LOCAL ONLY' : 'POUZE LOKÁLNĚ'}
             </span>
           </div>
-          <p className="text-xs text-slate-300 leading-relaxed">
+          <p className="text-xs text-[#455a64] leading-relaxed">
             {isEn
               ? 'For your protection, your personal API keys are NEVER synchronized to our database or cloud. They are stored strictly within this browser’s encrypted local Vault. When accessing bAIright from a new device (e.g. mobile or another computer), you will need to re-enter your API key.'
               : 'Z bezpečnostních důvodů (Zero-Knowledge) se vaše API klíče NIKDY neukládají do naší databáze ani do cloudu. Jsou uloženy výhradně v šifrovaném Vaultu tohoto prohlížeče. Pokud se přihlásíte na novém zařízení (např. mobil nebo jiný počítač), bude potřeba API klíč pro přímý chat zadat znovu.'}
@@ -231,8 +231,8 @@ export const AIEngineSubscriptionModal: React.FC<AIEngineSubscriptionModalProps>
                 onClick={() => setActiveId(provider.id)}
                 className={`p-4 rounded-2xl border transition-all cursor-pointer ${
                   isSelected
-                    ? "bg-[#091322] border-cyan-500/50 shadow-[0_0_20px_rgba(6,182,212,0.1)]"
-                    : "bg-[#070d18] border-slate-800 hover:border-slate-700 hover:bg-slate-900/40"
+                    ? "bg-[#f0f9ff] border-[#0099cc] shadow-[0_0_20px_rgba(6,182,212,0.1)]"
+                    : "bg-white border-slate-200 hover:border-slate-300 hover:bg-[#f8fafc]"
                 }`}
               >
                 <div className="flex items-center justify-between mb-2">
@@ -244,7 +244,7 @@ export const AIEngineSubscriptionModal: React.FC<AIEngineSubscriptionModalProps>
                       onChange={() => setActiveId(provider.id)}
                       className="w-4 h-4 text-cyan-500 bg-slate-900 border-slate-700 focus:ring-cyan-500 cursor-pointer"
                     />
-                    <span className="font-extrabold text-sm text-white">
+                    <span className="font-extrabold text-sm text-[#263238]">
                       {provider.name}
                     </span>
                     <span className={`text-[10px] font-mono px-2 py-0.5 rounded-full border ${provider.badgeColor}`}>
@@ -252,7 +252,7 @@ export const AIEngineSubscriptionModal: React.FC<AIEngineSubscriptionModalProps>
                     </span>
                   </div>
 
-                  <div className="flex items-center gap-2 text-[10px] font-mono text-slate-400">
+                  <div className="flex items-center gap-2 text-[10px] font-mono text-[#607d8b]">
                     <span>{isEn ? `Memory: ${provider.contextWindow}` : `Paměť: ${provider.contextWindow}`}</span>
                     {provider.requiresKey && (() => {
                       const test = testStatus[provider.id];
@@ -263,7 +263,7 @@ export const AIEngineSubscriptionModal: React.FC<AIEngineSubscriptionModalProps>
 
                       if (!hasKey) {
                         return (
-                          <span className="px-2 py-0.5 rounded bg-slate-800/80 text-slate-400 border border-slate-700/50">
+                          <span className="px-2 py-0.5 rounded bg-slate-800/80 text-[#607d8b] border border-slate-700/50">
                             {isEn ? "Key Required" : "Vyžaduje klíč"}
                           </span>
                         );
@@ -302,7 +302,7 @@ export const AIEngineSubscriptionModal: React.FC<AIEngineSubscriptionModalProps>
                   </div>
                 </div>
 
-                <p className="text-xs text-slate-300 leading-relaxed pl-6">
+                <p className="text-xs text-[#455a64] leading-relaxed pl-6">
                   {provider.description}
                 </p>
 
@@ -334,12 +334,12 @@ export const AIEngineSubscriptionModal: React.FC<AIEngineSubscriptionModalProps>
                           value={apiKeys[provider.id] || ""}
                           onChange={(e) => handleKeyChange(provider.id, e.target.value)}
                           placeholder={provider.placeholderKey || (isEn ? "Enter API key..." : "Zadejte API klíč...")}
-                          className="w-full bg-[#050a14] border border-slate-700 focus:border-cyan-500 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder:text-slate-600 outline-none pr-14 font-mono"
+                          className="w-full bg-[#f4f6f8] border border-slate-200 text-[#263238] focus:border-cyan-500 rounded-xl px-3.5 py-2.5 text-xs text-[#263238] placeholder:text-slate-600 outline-none pr-14 font-mono"
                         />
                         <button
                           type="button"
                           onClick={() => toggleShowKey(provider.id)}
-                          className="absolute right-3 text-[11px] font-mono text-slate-400 hover:text-slate-200 cursor-pointer"
+                          className="absolute right-3 text-[11px] font-mono text-[#607d8b] hover:text-[#263238] cursor-pointer"
                         >
                           {showKey[provider.id] ? (isEn ? 'HIDE' : 'SKRÝT') : (isEn ? 'SHOW' : 'UKÁZAT')}
                         </button>
@@ -350,7 +350,7 @@ export const AIEngineSubscriptionModal: React.FC<AIEngineSubscriptionModalProps>
                           type="button"
                           onClick={() => handleRemoveKey(provider.id)}
                           title={isEn ? "Remove key from Vault" : "Odstranit klíč z Vaultu"}
-                          className="px-3 py-2.5 rounded-xl text-xs font-semibold bg-rose-950/60 hover:bg-rose-900 border border-rose-500/40 text-rose-300 hover:text-white transition-all flex items-center gap-1 shrink-0 cursor-pointer font-mono"
+                          className="px-3 py-2.5 rounded-xl text-xs font-semibold bg-rose-950/60 hover:bg-rose-900 border border-rose-500/40 text-rose-300 hover:text-[#263238] transition-all flex items-center gap-1 shrink-0 cursor-pointer font-mono"
                         >
                           <span>{isEn ? 'Delete' : 'Odstranit'}</span>
                         </button>
@@ -360,7 +360,7 @@ export const AIEngineSubscriptionModal: React.FC<AIEngineSubscriptionModalProps>
                         type="button"
                         onClick={() => handleTestKey(provider.id)}
                         disabled={testStatus[provider.id]?.loading}
-                        className="px-3.5 py-2.5 rounded-xl text-xs font-semibold bg-cyan-950/80 hover:bg-cyan-900 border border-cyan-500/40 text-cyan-300 hover:text-white transition-all flex items-center gap-1.5 shrink-0 cursor-pointer disabled:opacity-50 font-mono"
+                        className="px-3.5 py-2.5 rounded-xl text-xs font-semibold bg-cyan-950/80 hover:bg-cyan-900 border border-cyan-500/40 text-cyan-300 hover:text-[#263238] transition-all flex items-center gap-1.5 shrink-0 cursor-pointer disabled:opacity-50 font-mono"
                       >
                         <span>{testStatus[provider.id]?.loading ? (isEn ? 'Testing...' : 'Testuji...') : (isEn ? 'Test Key' : 'Test klíče')}</span>
                       </button>
@@ -386,15 +386,15 @@ export const AIEngineSubscriptionModal: React.FC<AIEngineSubscriptionModalProps>
         </div>
 
         {/* Footer */}
-        <div className="p-4 sm:p-5 border-t border-slate-800 bg-[#081222] flex items-center justify-between">
-          <div className="text-xs text-slate-400 font-mono">
+        <div className="p-4 sm:p-5 border-t border-slate-800 bg-[#f8fafc] flex items-center justify-between">
+          <div className="text-xs text-[#607d8b] font-mono">
             {isEn ? 'Active Selection: ' : 'Aktivní volba: '}<strong className="text-cyan-300">{selectedProvider.name}</strong>
           </div>
 
           <div className="flex items-center gap-3 font-mono">
             <button
               onClick={onClose}
-              className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-300 hover:text-white hover:bg-slate-800/60 transition-all cursor-pointer"
+              className="px-4 py-2 rounded-xl text-xs font-semibold text-[#455a64] hover:text-[#263238] hover:bg-slate-800/60 transition-all cursor-pointer"
             >
               {isEn ? 'Cancel' : 'Zrušit'}
             </button>

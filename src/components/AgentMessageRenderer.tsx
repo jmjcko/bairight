@@ -68,7 +68,7 @@ function renderFormattedInlineText(text: string): React.ReactNode {
   return parts.map((part, i) => {
     if (part.startsWith('**') && part.endsWith('**')) {
       return (
-        <strong key={i} className="font-semibold text-slate-100">
+        <strong key={i} className="font-bold text-[#263238]">
           {part.slice(2, -2)}
         </strong>
       );
@@ -106,22 +106,22 @@ export function AgentMessageRenderer({ content, isEn = false }: AgentMessageRend
     elements.push(
       <div
         key={`model-card-${key}`}
-        className="my-4 p-4 rounded-2xl bg-slate-900/90 border border-slate-800/90 shadow-md hover:border-cyan-500/40 transition-all space-y-3"
+        className="my-4 p-4 rounded-xl bg-[#f8fafc] border border-slate-200 shadow-xs space-y-3"
       >
         {/* Model Card Header */}
-        <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-800/80 pb-2.5">
+        <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-200 pb-2.5">
           <div className="flex items-center gap-2">
             {currentModelCard.number && (
-              <span className="text-xs font-mono font-bold text-cyan-400 bg-cyan-950/80 border border-cyan-500/40 px-2 py-0.5 rounded-md">
+              <span className="text-xs font-mono font-bold text-[#01579b] bg-[#e1f5fe] border border-[#b3e5fc] px-2 py-0.5 rounded-md">
                 #{currentModelCard.number}
               </span>
             )}
-            <h4 className="text-sm sm:text-base font-bold text-white tracking-wide">
+            <h4 className="text-sm sm:text-base font-bold text-[#263238] tracking-tight">
               {renderFormattedInlineText(currentModelCard.title)}
             </h4>
           </div>
           {currentModelCard.badge && (
-            <span className="text-[11px] font-mono text-teal-300 bg-teal-950/80 border border-teal-500/40 px-2.5 py-0.5 rounded-full font-medium">
+            <span className="text-[11px] font-mono font-bold text-[#01579b] bg-[#e1f5fe] border border-[#b3e5fc] px-2.5 py-0.5 rounded-full">
               {currentModelCard.badge}
             </span>
           )}
@@ -129,11 +129,11 @@ export function AgentMessageRenderer({ content, isEn = false }: AgentMessageRend
 
         {/* Why Recommended Section */}
         {currentModelCard.whyRecommended && (
-          <div className="p-3 rounded-xl bg-slate-950/70 border border-slate-800/60">
-            <span className="text-[10px] font-mono uppercase tracking-wider text-cyan-400 font-bold block mb-1">
+          <div className="p-3 rounded-lg bg-white border border-slate-200 shadow-xs">
+            <span className="text-[10px] font-mono uppercase tracking-wider text-[#01579b] font-bold block mb-1">
               {isEn ? 'Why Recommended' : 'Proč doporučujeme'}
             </span>
-            <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">
+            <p className="text-xs sm:text-sm text-[#37474f] leading-relaxed">
               {renderFormattedInlineText(currentModelCard.whyRecommended)}
             </p>
           </div>
@@ -142,13 +142,13 @@ export function AgentMessageRenderer({ content, isEn = false }: AgentMessageRend
         {/* Key Pros Section */}
         {currentModelCard.pros.length > 0 && (
           <div className="space-y-1.5 pt-1">
-            <span className="text-[10px] font-mono uppercase tracking-wider text-emerald-400 font-bold block">
+            <span className="text-[10px] font-mono uppercase tracking-wider text-[#2e7d32] font-bold block">
               {isEn ? 'Key Pros & Advantages' : 'Klíčové výhody'}
             </span>
             <ul className="space-y-1 pl-1">
               {currentModelCard.pros.map((pro, pIdx) => (
-                <li key={pIdx} className="text-xs sm:text-sm text-slate-300 flex items-start gap-2">
-                  <span className="text-emerald-400 font-bold select-none shrink-0 mt-0.5">✓</span>
+                <li key={pIdx} className="text-xs sm:text-sm text-[#263238] flex items-start gap-2">
+                  <span className="text-[#2e7d32] font-bold select-none shrink-0 mt-0.5">✓</span>
                   <span>{renderFormattedInlineText(pro)}</span>
                 </li>
               ))}
@@ -158,14 +158,14 @@ export function AgentMessageRenderer({ content, isEn = false }: AgentMessageRend
 
         {/* Trade-offs & Cons Section */}
         {currentModelCard.cons.length > 0 && (
-          <div className="space-y-1.5 pt-1 border-t border-slate-800/50">
-            <span className="text-[10px] font-mono uppercase tracking-wider text-amber-400/90 font-bold block">
+          <div className="space-y-1.5 pt-1 border-t border-slate-200">
+            <span className="text-[10px] font-mono uppercase tracking-wider text-[#c62828] font-bold block">
               {isEn ? 'Trade-offs & Considerations' : 'Kompromisy a nevýhody'}
             </span>
             <ul className="space-y-1 pl-1">
               {currentModelCard.cons.map((con, cIdx) => (
-                <li key={cIdx} className="text-xs sm:text-sm text-slate-400 flex items-start gap-2">
-                  <span className="text-amber-400/80 font-bold select-none shrink-0 mt-0.5">•</span>
+                <li key={cIdx} className="text-xs sm:text-sm text-[#546e7a] flex items-start gap-2">
+                  <span className="text-[#c62828] font-bold select-none shrink-0 mt-0.5">•</span>
                   <span>{renderFormattedInlineText(con)}</span>
                 </li>
               ))}
@@ -196,7 +196,7 @@ export function AgentMessageRenderer({ content, isEn = false }: AgentMessageRend
       elements.push(
         <h1
           key={`h1-${idx}`}
-          className="text-base sm:text-lg font-bold text-white tracking-wide border-b border-cyan-500/40 pb-2.5 mt-2 mb-4"
+          className="text-base sm:text-lg font-black text-[#263238] tracking-tight border-b border-slate-200 pb-2.5 mt-2 mb-4"
         >
           {renderFormattedInlineText(title)}
         </h1>
@@ -212,7 +212,7 @@ export function AgentMessageRenderer({ content, isEn = false }: AgentMessageRend
       elements.push(
         <h2
           key={`h2-${idx}`}
-          className="text-xs sm:text-sm font-semibold uppercase tracking-wider text-cyan-400 mt-6 mb-3 flex items-center gap-2 border-l-2 border-cyan-500 pl-2.5"
+          className="text-xs sm:text-sm font-bold uppercase tracking-wider text-[#01579b] mt-6 mb-3 flex items-center gap-2 border-l-2 border-[#0099cc] pl-2.5"
         >
           {renderFormattedInlineText(sectionTitle)}
         </h2>
@@ -228,7 +228,7 @@ export function AgentMessageRenderer({ content, isEn = false }: AgentMessageRend
       elements.push(
         <h3
           key={`h3-${idx}`}
-          className="text-xs sm:text-sm font-bold text-slate-100 tracking-wide mt-4 mb-2 border-l border-cyan-500/60 pl-2"
+          className="text-xs sm:text-sm font-bold text-[#263238] tracking-tight mt-4 mb-2 border-l-2 border-[#0099cc] pl-2"
         >
           {renderFormattedInlineText(subTitle)}
         </h3>
@@ -277,8 +277,8 @@ export function AgentMessageRenderer({ content, isEn = false }: AgentMessageRend
         // Let it fall through to modelHeaderMatch handling
       } else {
         elements.push(
-          <div key={`ol-${idx}`} className="flex items-start gap-2.5 my-1 pl-1 text-xs sm:text-sm text-slate-300">
-            <span className="text-cyan-300 font-bold font-mono select-none shrink-0 min-w-[1.2rem] text-right">{num}.</span>
+          <div key={`ol-${idx}`} className="flex items-start gap-2.5 my-1 pl-1 text-xs sm:text-sm text-[#37474f]">
+            <span className="text-[#01579b] font-bold font-mono select-none shrink-0 min-w-[1.2rem] text-right">{num}.</span>
             <span className="flex-1">{renderFormattedInlineText(itemText)}</span>
           </div>
         );
@@ -338,7 +338,7 @@ export function AgentMessageRenderer({ content, isEn = false }: AgentMessageRend
       elements.push(
         <blockquote
           key={`bq-${idx}`}
-          className="p-3 my-3 border-l-2 border-cyan-500 bg-cyan-950/30 text-cyan-200 text-xs sm:text-sm rounded-r-xl leading-relaxed"
+          className="p-3 my-3 border-l-4 border-[#0099cc] bg-[#e1f5fe] text-[#014377] text-xs sm:text-sm rounded-r-lg leading-relaxed shadow-xs"
         >
           {renderFormattedInlineText(trimmed.replace(/^>\s*/, ''))}
         </blockquote>
@@ -351,8 +351,8 @@ export function AgentMessageRenderer({ content, isEn = false }: AgentMessageRend
     if (trimmed.startsWith('- ') || trimmed.startsWith('* ')) {
       flushModelCard(idx);
       elements.push(
-        <div key={`bullet-${idx}`} className="flex items-start gap-2 my-1 pl-1 text-xs sm:text-sm text-slate-300">
-          <span className="text-cyan-400 font-bold select-none shrink-0">•</span>
+        <div key={`bullet-${idx}`} className="flex items-start gap-2 my-1 pl-1 text-xs sm:text-sm text-[#37474f]">
+          <span className="text-[#0099cc] font-bold select-none shrink-0">•</span>
           <span>{renderFormattedInlineText(trimmed.replace(/^[-*]\s*/, ''))}</span>
         </div>
       );
@@ -363,7 +363,7 @@ export function AgentMessageRenderer({ content, isEn = false }: AgentMessageRend
     // Regular Paragraph
     flushModelCard(idx);
     elements.push(
-      <p key={`p-${idx}`} className="text-xs sm:text-sm text-slate-300 leading-relaxed my-2">
+      <p key={`p-${idx}`} className="text-xs sm:text-sm text-[#37474f] leading-relaxed my-2">
         {renderFormattedInlineText(trimmed)}
       </p>
     );

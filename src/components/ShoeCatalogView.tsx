@@ -58,23 +58,20 @@ export const ShoeCatalogView: React.FC<ShoeCatalogViewProps> = ({
   });
 
   return (
-    <div className="flex-1 overflow-y-auto bg-[#070d18] text-slate-100 p-4 sm:p-8">
+    <div className="flex-1 overflow-y-auto bg-[#f4f6f8] text-[#263238] p-4 sm:p-8">
       <div className="max-w-6xl mx-auto space-y-6 animate-in fade-in duration-300">
         {/* Header Banner */}
-        <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-[#0B121E] via-[#0E1A2D] to-[#0B121E] border border-cyan-500/30 p-6 sm:p-8 shadow-[0_10px_40px_rgba(6,182,212,0.15)]">
-          <div className="absolute -top-24 -right-24 w-72 h-72 bg-cyan-500/10 rounded-full blur-3xl pointer-events-none" />
-          <div className="absolute -bottom-24 -left-24 w-72 h-72 bg-teal-500/10 rounded-full blur-3xl pointer-events-none" />
-
-          <div className="relative z-10 flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+        <div className="rounded-2xl bg-white border border-slate-200 border-t-4 border-t-[#0099cc] p-6 sm:p-8 shadow-xs">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
             <div className="space-y-2">
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-cyan-950/80 border border-cyan-500/40 text-cyan-300 text-xs font-mono font-bold tracking-wider uppercase">
-                <Sparkles className="w-3.5 h-3.5 text-cyan-400" />
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-md bg-[#e1f5fe] border border-[#b3e5fc] text-[#01579b] text-xs font-mono font-bold tracking-wider uppercase">
+                <Sparkles className="w-3.5 h-3.5 text-[#01579b]" />
                 <span>{t.badge}</span>
               </div>
-              <h1 className="text-2xl sm:text-3xl font-black text-white tracking-tight">
+              <h1 className="text-2xl sm:text-3xl font-black text-[#263238] tracking-tight">
                 {t.title}
               </h1>
-              <p className="text-sm text-slate-300 max-w-2xl leading-relaxed">
+              <p className="text-sm text-[#546e7a] max-w-2xl leading-relaxed">
                 {t.subtitle}
               </p>
             </div>
@@ -93,7 +90,7 @@ export const ShoeCatalogView: React.FC<ShoeCatalogViewProps> = ({
               {onNavigateToWizard && (
                 <button
                   onClick={onNavigateToWizard}
-                  className="px-3.5 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-800 hover:border-cyan-500/30 text-slate-300 hover:text-white font-medium text-xs transition-all flex items-center gap-1.5 cursor-pointer"
+                  className="px-3.5 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-200 hover:border-cyan-500/30 text-slate-300 hover:text-[#263238] font-medium text-xs transition-all flex items-center gap-1.5 cursor-pointer"
                 >
                   <ArrowLeft className="w-3.5 h-3.5" />
                   <span>{t.backToWizard}</span>
@@ -104,7 +101,7 @@ export const ShoeCatalogView: React.FC<ShoeCatalogViewProps> = ({
         </div>
 
         {/* Filter Toolbar */}
-        <div className="p-4 sm:p-5 rounded-2xl bg-[#0B121E] border border-cyan-500/20 space-y-4">
+        <div className="p-4 sm:p-5 rounded-2xl bg-white border border-slate-200/80 shadow-xs border-t-[3px] border-t-[#0099cc] space-y-4">
           <div className="flex flex-col sm:flex-row items-center gap-3">
             {/* Search Input */}
             <div className="relative flex-1 w-full">
@@ -114,12 +111,12 @@ export const ShoeCatalogView: React.FC<ShoeCatalogViewProps> = ({
                 value={searchFilter}
                 onChange={(e) => setSearchFilter(e.target.value)}
                 placeholder={t.searchPlaceholder}
-                className="w-full bg-[#070f1e] border border-cyan-500/25 focus:border-cyan-400 rounded-xl pl-10 pr-9 py-2.5 text-xs text-white placeholder-slate-500 outline-none transition-all"
+                className="w-full bg-[#f4f6f8] border border-cyan-500/25 focus:border-cyan-400 rounded-xl pl-10 pr-9 py-2.5 text-xs text-[#263238] placeholder-slate-500 outline-none transition-all"
               />
               {searchFilter && (
                 <button
                   onClick={() => setSearchFilter('')}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-[#263238]"
                 >
                   <X className="w-3.5 h-3.5" />
                 </button>
@@ -135,7 +132,7 @@ export const ShoeCatalogView: React.FC<ShoeCatalogViewProps> = ({
                   className={`px-3 py-2 rounded-xl text-xs font-semibold transition-all border shrink-0 cursor-pointer ${
                     selectedBrand === b
                       ? 'bg-cyan-950/90 border-cyan-400 text-cyan-300 shadow-sm'
-                      : 'bg-[#070f1e] border-slate-800 text-slate-400 hover:text-slate-200'
+                      : 'bg-[#f4f6f8] border-slate-200 text-slate-400 hover:text-slate-200'
                   }`}
                 >
                   {b}
@@ -145,7 +142,7 @@ export const ShoeCatalogView: React.FC<ShoeCatalogViewProps> = ({
           </div>
 
           {/* Status line & Sub-filters */}
-          <div className="flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-slate-800/80 text-xs">
+          <div className="flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-slate-200/80 text-xs">
             <div className="flex items-center gap-2 text-slate-400 font-mono text-[11px]">
               <span className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse" />
               <span>{t.itemCount.replace('{count}', filtered.length.toString())}</span>
@@ -163,7 +160,7 @@ export const ShoeCatalogView: React.FC<ShoeCatalogViewProps> = ({
                   className={`px-2.5 py-1 rounded-lg text-[11px] transition-all cursor-pointer ${
                     selectedFeature === feat
                       ? 'bg-teal-950 border border-teal-500/40 text-teal-300 font-semibold'
-                      : 'bg-[#070f1e] text-slate-400 hover:text-slate-200 border border-transparent'
+                      : 'bg-[#f4f6f8] text-slate-400 hover:text-slate-200 border border-transparent'
                   }`}
                 >
                   {feat}
@@ -183,7 +180,7 @@ export const ShoeCatalogView: React.FC<ShoeCatalogViewProps> = ({
             return (
               <div
                 key={shoe.id}
-                className="rounded-3xl bg-[#0B121E] border border-cyan-500/20 hover:border-cyan-400/50 p-5 shadow-lg transition-all flex flex-col justify-between group hover:shadow-[0_10px_30px_rgba(6,182,212,0.15)]"
+                className="rounded-2xl bg-white border border-slate-200/80 hover:border-slate-300 border-t-[3px] border-t-[#1e88e5] shadow-xs p-5 shadow-lg transition-all flex flex-col justify-between group hover:shadow-[0_10px_30px_rgba(6,182,212,0.15)]"
               >
                 <div>
                   <div className="flex gap-4">
@@ -204,7 +201,7 @@ export const ShoeCatalogView: React.FC<ShoeCatalogViewProps> = ({
                         <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-cyan-950 border border-cyan-500/30 text-cyan-300 font-bold">
                           {shoe.brand}
                         </span>
-                        <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-[#070f1e] border border-slate-800 text-teal-300">
+                        <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-[#f4f6f8] border border-slate-200 text-teal-300">
                           Drop {shoe.heel_drop_mm} mm
                         </span>
                         {shoe.rocker_geometry && (
@@ -214,7 +211,7 @@ export const ShoeCatalogView: React.FC<ShoeCatalogViewProps> = ({
                         )}
                       </div>
 
-                      <h3 className="text-base font-bold text-white mb-1.5 leading-snug">
+                      <h3 className="text-base font-bold text-[#263238] mb-1.5 leading-snug">
                         {shoe.model}
                       </h3>
 
@@ -226,15 +223,15 @@ export const ShoeCatalogView: React.FC<ShoeCatalogViewProps> = ({
 
                   {/* Spec Badges Row */}
                   <div className="mt-4 grid grid-cols-3 gap-2 text-center text-[10px] font-mono">
-                    <div className="p-2 rounded-xl bg-[#070f1e] border border-slate-800">
+                    <div className="p-2 rounded-xl bg-[#f4f6f8] border border-slate-200">
                       <span className="text-slate-500 block">Kopyto</span>
                       <span className="text-cyan-300 font-bold">2E Extra Wide</span>
                     </div>
-                    <div className="p-2 rounded-xl bg-[#070f1e] border border-slate-800">
+                    <div className="p-2 rounded-xl bg-[#f4f6f8] border border-slate-200">
                       <span className="text-slate-500 block">Tlumení</span>
                       <span className="text-teal-300 font-bold">Maximální</span>
                     </div>
-                    <div className="p-2 rounded-xl bg-[#070f1e] border border-slate-800">
+                    <div className="p-2 rounded-xl bg-[#f4f6f8] border border-slate-200">
                       <span className="text-slate-500 block">Ochrana</span>
                       <span className="text-cyan-300 font-bold">Koleno OA 3</span>
                     </div>
@@ -244,7 +241,7 @@ export const ShoeCatalogView: React.FC<ShoeCatalogViewProps> = ({
                 {/* Card Footer: Price and E-shop Action */}
                 <div className="mt-5 pt-4 border-t border-cyan-500/15 flex items-center justify-between">
                   <div>
-                    <div className="text-base font-mono font-extrabold text-white">
+                    <div className="text-base font-mono font-extrabold text-[#263238]">
                       {czkPrice.toLocaleString('cs-CZ')} Kč
                     </div>
                     <div className="text-[10px] text-slate-400 font-mono">
@@ -268,16 +265,16 @@ export const ShoeCatalogView: React.FC<ShoeCatalogViewProps> = ({
         </div>
 
         {/* Bottom Consultation Banner */}
-        <div className="p-6 rounded-3xl bg-gradient-to-r from-cyan-950/40 via-[#0B121E] to-teal-950/40 border border-cyan-500/30 flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div className="p-6 rounded-2xl bg-white border border-slate-200 border-t-4 border-t-[#0099cc] shadow-xs flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-cyan-950 border border-cyan-500/40 flex items-center justify-center text-cyan-400 shrink-0">
+            <div className="w-10 h-10 rounded-xl bg-[#e1f5fe] border border-[#b3e5fc] flex items-center justify-center text-[#01579b] shrink-0">
               <MessageSquare className="w-5 h-5" />
             </div>
             <div>
-              <h4 className="text-sm font-bold text-white">
+              <h4 className="text-sm font-bold text-[#263238]">
                 {t.consultInChat}
               </h4>
-              <p className="text-xs text-slate-300">
+              <p className="text-xs text-[#546e7a]">
                 Náš specializovaný AI podiatrický agent vám poradí s klenbou, materiálem svršku a rozměry.
               </p>
             </div>
@@ -286,7 +283,7 @@ export const ShoeCatalogView: React.FC<ShoeCatalogViewProps> = ({
           {onNavigateToChat && (
             <button
               onClick={onNavigateToChat}
-              className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-cyan-500 to-teal-400 text-slate-950 font-bold text-xs shadow-md hover:brightness-110 transition-all shrink-0 cursor-pointer"
+              className="px-5 py-2.5 rounded-xl bg-[#0099cc] hover:bg-[#0088b8] text-white font-bold text-xs shadow-xs transition-all shrink-0 cursor-pointer"
             >
               {t.openChatBtn}
             </button>

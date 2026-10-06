@@ -272,10 +272,26 @@ export function forgeAgentPrompt(
   const rawBaseSystemPrompt = rawSystemPrompt
     .split(/### (?:User Specified & Tuned Parameters|Uživatelsky specifikované a vytuněné parametry|MANDATORY & BINDING USER REQUIREMENTS|STRIKTNÍ A ZÁVAZNÉ POŽADAVKY UŽIVATELE)/)[0]
     .trim();
-  const baseSystemPrompt = rawBaseSystemPrompt
+  let baseSystemPrompt = rawBaseSystemPrompt
     .replace(/(?:RESPONSE FORMATTING MANDATE|MANDÁT FORMÁTOVÁNÍ ODPOVĚDI)[\s\S]*?(?=(?:###|$))/gi, '')
     .replace(/###\s*\d+\.\s*\[(?:Full Model Name|Přesný název modelu)[\s\S]*?(?=(?:###|$))/gi, '')
     .trim();
+
+  if (!isEn) {
+    baseSystemPrompt = baseSystemPrompt
+      .replace(/^[#"'\s]*Expert shopping advisor for\s+/i, 'Expertní nákupní poradce pro ')
+      .replace(/^[#"'\s]*Expert purchasing consultant for\s+/i, 'Expertní nákupní poradce pro ')
+      .replace(/^[#"'\s]*Expert advisor for\s+/i, 'Expertní nákupní poradce pro ')
+      .replace(/^[#"'\s]*Specialist in\s+/i, 'Specialista na ')
+      .replace(/^[#"'\s]*Specialist:\s*/i, 'Specialista: ')
+      .replace(/^[#"'\s]*You are an expert shopping advisor for\s+/i, 'Jsi expertní nákupní poradce pro ');
+  } else {
+    baseSystemPrompt = baseSystemPrompt
+      .replace(/^[#"'\s]*Expertní nákupní poradce pro\s+/i, 'Expert shopping advisor for ')
+      .replace(/^[#"'\s]*Specialista na\s+/i, 'Specialist in ')
+      .replace(/^[#"'\s]*Specialista:\s*/i, 'Specialist: ')
+      .replace(/^[#"'\s]*Jsi expertní nákupní poradce pro\s+/i, 'You are an expert shopping advisor for ');
+  }
 
   // Helper: convert snake_case to Title Case (e.g. "road_running" -> "Road Running")
   const toTitleCase = (s: string): string =>

@@ -449,19 +449,19 @@ const [researchError, setResearchError] = useState<string | null>(null);
   return (
     <div className="w-full max-w-5xl mx-auto space-y-10 py-6 animate-in fade-in duration-300">
       {/* Hero Search Box (PRD Step 1: User enters a free-text starting point) */}
-      <div className={isMaterialCobalt ? 'rounded-2xl p-8 sm:p-12 border border-cyan-500/25 bg-[#091121]/90 shadow-xl relative text-center space-y-7' : 'rounded-3xl p-8 sm:p-12 border border-cyan-500/25 bg-[#091121]/90 shadow-xl relative text-center space-y-7 ring-1 ring-[#2563eb]/25'}>
+      <div className="rounded-2xl p-8 sm:p-12 border border-slate-200/80 bg-white shadow-xs relative text-center space-y-7 border-t-[3px] border-t-[#0099cc]">
 
 
         <div className="max-w-2xl mx-auto space-y-3 relative z-10">
-          <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-[#242e4a] border border-cyan-500/25 text-cyan-400 text-xs font-mono font-bold shadow-sm">
+          <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-[#e1f5fe] border border-[#b3e5fc] text-[#01579b] text-xs font-mono font-bold shadow-xs">
             <span>{t.launcher.badge}</span>
           </div>
 
-          <h1 className="text-3xl sm:text-5xl font-black text-white tracking-tight leading-tight drop-shadow-md">
+          <h1 className="text-3xl sm:text-5xl font-black text-[#263238] tracking-tight leading-tight">
             {t.launcher.heroTitle}
           </h1>
 
-          <p className="text-sm sm:text-base text-slate-300 max-w-xl mx-auto leading-relaxed">
+          <p className="text-sm sm:text-base text-[#607d8b] max-w-xl mx-auto leading-relaxed">
             {t.launcher.heroSubtitle}
           </p>
         </div>
@@ -469,8 +469,8 @@ const [researchError, setResearchError] = useState<string | null>(null);
         {/* Free-Text Prompt Generator Form with Glowing Ambient Aura */}
         <form onSubmit={(e) => { e.preventDefault(); handleResearchParameters(); }} className="max-w-2xl mx-auto relative z-10">
           <div className="relative group">
-            <div className="relative flex items-center h-14 sm:h-16 bg-[#091121]/90 rounded-xl border border-cyan-500/25 shadow-md overflow-hidden focus-within:border-[#60a5fa] transition-colors">
-              <div className="pl-4 sm:pl-5 text-cyan-400 shrink-0">
+            <div className="relative flex items-center h-14 sm:h-16 bg-[#f4f6f8] hover:bg-[#eceff1] focus-within:bg-white rounded-full border border-slate-200/90 shadow-xs overflow-hidden focus-within:border-[#0099cc] focus-within:ring-2 focus-within:ring-[#0099cc]/20 transition-all">
+              <div className="pl-5 text-[#0099cc] shrink-0">
                 <Search className="w-5 h-5 sm:w-6 sm:h-6" />
               </div>
 
@@ -490,7 +490,7 @@ const [researchError, setResearchError] = useState<string | null>(null);
                 }}
                 disabled={isGenerating || isResearching}
                 placeholder={t.launcher.searchPlaceholder}
-                className="w-full h-full pl-3.5 pr-32 sm:pr-40 bg-transparent text-white placeholder-slate-500 text-sm sm:text-base font-medium outline-none leading-normal caret-[#60a5fa] !border-none !border-0 !outline-none !shadow-none"
+                className="w-full h-full pl-3.5 pr-32 sm:pr-40 bg-transparent text-[#263238] placeholder-slate-400 text-sm sm:text-base font-medium outline-none leading-normal caret-[#0099cc] !border-none !border-0 !outline-none !shadow-none"
                 style={{ border: 'none', outline: 'none', boxShadow: 'none' }}
               />
 
@@ -498,7 +498,7 @@ const [researchError, setResearchError] = useState<string | null>(null);
                 type="button"
                 onClick={() => handleResearchParameters()}
                 disabled={!query.trim() || isGenerating || isResearching}
-                className="absolute right-2 px-5 sm:px-7 py-2.5 sm:py-3 rounded-lg bg-[#60a5fa] text-slate-950 text-xs sm:text-sm font-bold hover:brightness-110 shadow-md disabled:opacity-30 disabled:cursor-not-allowed transition-all cursor-pointer flex items-center gap-1.5 shrink-0 active:scale-95"
+                className="absolute right-2 px-5 sm:px-7 py-2.5 sm:py-3 rounded-full bg-[#0099cc] hover:bg-[#0088b8] text-white text-xs sm:text-sm font-bold shadow-xs disabled:opacity-30 disabled:cursor-not-allowed transition-all cursor-pointer flex items-center gap-1.5 shrink-0 active:scale-95"
               >
                 {isResearching ? (
                   <>
@@ -839,9 +839,9 @@ const [researchError, setResearchError] = useState<string | null>(null);
         <div className="space-y-4">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div>
-              <h2 className="text-xl font-extrabold text-white tracking-tight flex items-center gap-2">
+              <h2 className="text-xl font-extrabold text-[#263238] tracking-tight flex items-center gap-2">
                 <span>{t.launcher.myAgentsTitle}</span>
-                <span className="text-xs font-mono font-normal px-2.5 py-0.5 rounded-full bg-slate-900 border border-slate-800 text-cyan-300">
+                <span className="text-xs font-mono font-bold px-2.5 py-0.5 rounded-full bg-[#e1f5fe] text-[#01579b] border border-[#b3e5fc]">
                   {agents.length}
                 </span>
               </h2>
@@ -851,14 +851,14 @@ const [researchError, setResearchError] = useState<string | null>(null);
             </div>
 
             <div className="flex items-center gap-2 flex-wrap">
-              <div className="inline-flex items-center p-1 rounded-xl bg-slate-950/80 border border-slate-800 text-xs font-mono">
+              <div className="segmented-tabs-container inline-flex items-center gap-1.5 p-1 rounded-xl bg-[#f4f6f8] border border-slate-200 text-xs font-mono shadow-xs">
                 <button
                   type="button"
                   onClick={() => setActiveAgentsTab('active')}
-                  className={`px-3 py-1 rounded-lg transition-all cursor-pointer font-bold ${
+                  className={`segmented-tab-btn px-3 py-1 rounded-lg transition-all cursor-pointer font-bold ${
                     activeAgentsTab === 'active'
-                      ? 'bg-cyan-950 text-cyan-300 border border-cyan-500/40 shadow-sm'
-                      : 'text-slate-400 hover:text-slate-200'
+                      ? 'segmented-tab-active bg-[#0099cc] text-white shadow-xs'
+                      : 'text-[#607d8b] hover:text-[#263238]'
                   }`}
                 >
                   {t.launcher.tabActiveMissions} ({activeAgents.length})
@@ -866,10 +866,10 @@ const [researchError, setResearchError] = useState<string | null>(null);
                 <button
                   type="button"
                   onClick={() => setActiveAgentsTab('purchased')}
-                  className={`px-3 py-1 rounded-lg transition-all cursor-pointer font-bold ${
+                  className={`segmented-tab-btn px-3 py-1 rounded-lg transition-all cursor-pointer font-bold ${
                     activeAgentsTab === 'purchased'
-                      ? 'bg-cyan-950 text-cyan-300 border border-cyan-500/40 shadow-sm'
-                      : 'text-slate-400 hover:text-slate-200'
+                      ? 'segmented-tab-active bg-[#0099cc] text-white shadow-xs'
+                      : 'text-[#607d8b] hover:text-[#263238]'
                   }`}
                 >
                   {t.launcher.tabPurchasedHistory} ({purchasedAgents.length})
@@ -899,17 +899,20 @@ const [researchError, setResearchError] = useState<string | null>(null);
 
           {displayedAgents.length > 0 && (
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              {displayedAgents.map((rawAgent) => {
+              {displayedAgents.map((rawAgent, idx) => {
                 const agent = getLocalizedAgent(rawAgent, locale) || rawAgent;
+                const topBorderColors = ['#1e88e5', '#ff9800', '#4caf50', '#ef5350', '#0099cc'];
+                const accentColor = topBorderColors[idx % topBorderColors.length];
                 return (
                   <div
                     key={agent.id}
                     onClick={() => onSelectAgent(agent, true)}
-                    className="group p-5 rounded-3xl bg-[#060c18] border border-cyan-500/25 hover:border-cyan-500/40 shadow-md hover:shadow-[#121e3d]/40 transition-all cursor-pointer flex flex-col justify-between space-y-4 relative overflow-hidden"
+                    className="group p-5 rounded-2xl bg-white border border-slate-200/80 hover:border-slate-300 shadow-xs hover:shadow-md transition-all cursor-pointer flex flex-col justify-between space-y-4 relative overflow-hidden"
+                    style={{ borderTopWidth: '3px', borderTopColor: accentColor }}
                   >
                     <div className="space-y-3">
                       <div className="flex items-center justify-between gap-1">
-                        <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-slate-900 border border-slate-800 text-slate-400">
+                        <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-[#f4f6f8] border border-slate-200 text-[#607d8b] font-medium">
                           {agent.questions.length} {locale === 'en' ? 'questions' : 'otázek'}
                         </span>
 
@@ -949,23 +952,23 @@ const [researchError, setResearchError] = useState<string | null>(null);
                       </div>
 
                       <div>
-                        <h3 className="font-extrabold text-base text-white group-hover:text-cyan-300 transition-colors">
+                        <h3 className="font-extrabold text-base text-[#263238] group-hover:text-[#0099cc] transition-colors leading-snug">
                           {agent.name}
                         </h3>
-                        <span className="text-[11px] font-mono text-cyan-400/80">
+                        <span className="text-[11px] font-mono text-[#0099cc] font-bold">
                           {agent.category}
                         </span>
                       </div>
 
-                      <p className="text-xs text-slate-400 leading-relaxed line-clamp-2">
+                      <p className="text-xs text-[#607d8b] leading-relaxed line-clamp-2">
                         {agent.description}
                       </p>
                     </div>
 
-                    <div className="pt-3 border-t border-slate-800/80 flex items-center justify-between text-xs">
-                      <span className="text-[11px] font-mono text-slate-500">
+                    <div className="pt-3 border-t border-slate-100 flex items-center justify-between text-xs">
+                      <span className="text-[11px] font-mono text-[#607d8b]">
                         {rawAgent.isPurchased ? (
-                          <span className="text-cyan-400/90 font-bold">
+                          <span className="text-[#0099cc] font-bold">
                             {t.launcher.purchasedBadge}
                             {rawAgent.purchasedAt ? ` • ${new Date(rawAgent.purchasedAt).toLocaleDateString(locale === 'en' ? 'en-US' : 'cs-CZ')}` : ''}
                           </span>
@@ -974,7 +977,7 @@ const [researchError, setResearchError] = useState<string | null>(null);
                         )}
                       </span>
 
-                      <span className="flex items-center gap-1 text-cyan-400 font-bold group-hover:translate-x-1 transition-transform">
+                      <span className="flex items-center gap-1 text-[#0099cc] font-bold group-hover:translate-x-1 transition-transform">
                         <span>{locale === 'en' ? 'Launch' : 'Spustit'}</span>
                         <ChevronRight className="w-3.5 h-3.5" />
                       </span>

@@ -36,7 +36,7 @@ export const ShoeRecommendationCard: React.FC<ShoeCardProps> = ({ shoe }) => {
 
       <div>
         {/* Photorealistic Shoe Image Container with Floating Badges */}
-        <div className="relative w-full h-48 sm:h-52 bg-[#050a14] border-b border-cyan-500/20 overflow-hidden">
+        <div className="relative w-full h-48 sm:h-52 bg-[#f4f6f8] border-b border-slate-200 overflow-hidden">
           <Image 
             src={imageSrc}
             alt={shoe.model}
@@ -77,7 +77,7 @@ export const ShoeRecommendationCard: React.FC<ShoeCardProps> = ({ shoe }) => {
               </span>
             </div>
 
-            <h3 className="text-lg font-extrabold text-white group-hover:text-cyan-300 transition-colors tracking-tight">
+            <h3 className="text-lg font-extrabold text-[#263238] group-hover:text-cyan-300 transition-colors tracking-tight">
               {shoe.model}
             </h3>
           </div>
@@ -95,7 +95,7 @@ export const ShoeRecommendationCard: React.FC<ShoeCardProps> = ({ shoe }) => {
           </div>
 
           {/* Clinical Rationale Snippet */}
-          <div className="p-3 rounded-xl bg-[#050c18]/90 border border-cyan-500/20 text-xs leading-relaxed text-slate-300 mb-3">
+          <div className="p-3 rounded-xl bg-[#f4f6f8] border border-slate-200 text-xs leading-relaxed text-[#455a64] mb-3">
             <span className="font-bold text-cyan-300 block mb-0.5">Klinické doporučení:</span>
             <p>{shoe.medical_rationale}</p>
           </div>
@@ -104,20 +104,20 @@ export const ShoeRecommendationCard: React.FC<ShoeCardProps> = ({ shoe }) => {
 
       {/* European Retailers Deals Table */}
       <div className="p-5 pt-0">
-        <div className="border-t border-cyan-500/20 pt-3.5">
+        <div className="border-t border-slate-200 pt-3.5">
           <div className="flex items-center justify-between text-xs mb-2">
-            <span className="text-[10px] font-mono uppercase tracking-wider text-slate-400 font-bold">
+            <span className="text-[10px] font-mono uppercase tracking-wider text-[#607d8b] font-bold">
               Kde koupit v Evropě:
             </span>
-            <span className="text-base font-mono font-extrabold text-white">
-              {czkPrice.toLocaleString('cs-CZ')} Kč <span className="text-xs text-slate-400 font-normal">(€{shoe.european_price_eur.toFixed(2)})</span>
+            <span className="text-base font-mono font-extrabold text-[#263238]">
+              {czkPrice.toLocaleString('cs-CZ')} Kč <span className="text-xs text-[#607d8b] font-normal">(€{shoe.european_price_eur.toFixed(2)})</span>
             </span>
           </div>
 
           <div className="space-y-1.5">
-            <div className="flex items-center justify-between p-2 rounded-xl bg-[#050c18] border border-cyan-500/15 text-xs">
-              <span className="font-semibold text-slate-200">{shoe.retailer_name || 'Top4Running'}</span>
-              <span className="font-mono text-slate-300 font-bold">{czkPrice.toLocaleString('cs-CZ')} Kč</span>
+            <div className="flex items-center justify-between p-2 rounded-xl bg-[#f4f6f8] border border-slate-200 text-xs">
+              <span className="font-semibold text-[#263238]">{shoe.retailer_name || 'Top4Running'}</span>
+              <span className="font-mono text-[#455a64] font-bold">{czkPrice.toLocaleString('cs-CZ')} Kč</span>
               <button
                 onClick={() => handleOpenDeal(shoe.retailer_name || 'Top4Running', shoe.european_price_eur, shoe.retailer_url || 'https://top4running.cz')}
                 className="px-3 py-1 rounded-lg bg-cyan-500/20 hover:bg-cyan-500 text-cyan-300 hover:text-slate-950 border border-cyan-400/40 font-bold text-[11px] transition-all flex items-center gap-1 shadow-sm cursor-pointer"
@@ -127,9 +127,9 @@ export const ShoeRecommendationCard: React.FC<ShoeCardProps> = ({ shoe }) => {
               </button>
             </div>
 
-            <div className="flex items-center justify-between p-2 rounded-xl bg-[#050c18] border border-cyan-500/15 text-xs">
-              <span className="font-semibold text-slate-200">Zalando EU</span>
-              <span className="font-mono text-slate-300 font-bold">{(czkPrice + 100).toLocaleString('cs-CZ')} Kč</span>
+            <div className="flex items-center justify-between p-2 rounded-xl bg-[#f4f6f8] border border-slate-200 text-xs">
+              <span className="font-semibold text-[#263238]">Zalando EU</span>
+              <span className="font-mono text-[#455a64] font-bold">{(czkPrice + 100).toLocaleString('cs-CZ')} Kč</span>
               <button
                 onClick={() => handleOpenDeal('Zalando EU', shoe.european_price_eur + 4, 'https://zalando.cz')}
                 className="px-3 py-1 rounded-lg bg-teal-500/20 hover:bg-teal-500 text-teal-300 hover:text-slate-950 border border-teal-400/40 font-bold text-[11px] transition-all flex items-center gap-1 shadow-sm cursor-pointer"

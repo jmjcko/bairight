@@ -207,6 +207,7 @@ export default function Home() {
   const { user } = useAuth();
   const isEn = locale === 'en';
   const [activeTab, setActiveTab] = useState<AppTab>('wizard');
+  const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
 
   const [sessionId, setSessionId] = useState<string>('');
   const [messages, setMessages] = useState<AgentChatMessage[]>([]);
@@ -270,29 +271,37 @@ export default function Home() {
   const activeProvider = SUPPORTED_AI_PROVIDERS.find((p) => p.id === activeProviderId) || SUPPORTED_AI_PROVIDERS[0];
   const activeFactsCount = userFacts.filter((f) => f.isEnriched).length;
 
+  const isAgentCompleted = (a: UniversalAgentDefinition | null): boolean => {
+    if (!a) return false;
+    if (a.targetValues && Object.keys(a.targetValues).length > 0) return true;
+    if (typeof window !== 'undefined') {
+      try {
+        const storedStates = localStorage.getItem('bairight_agent_wizard_states');
+        if (storedStates) {
+          const parsed = JSON.parse(storedStates);
+          if (parsed[a.id]?.isCompleted || parsed[a.id]?.result || (parsed[a.id]?.answers && Object.keys(parsed[a.id].answers).length > 0)) {
+            return true;
+          }
+        }
+        const completedPrompt = PromptStorageService.getCompletedPromptByAgentId(a.id);
+        if (completedPrompt) return true;
+        const chatInitialized = localStorage.getItem(`bairight_chat_initialized_${a.id}`) === 'true';
+        if (chatInitialized) return true;
+        const chatMsgs = localStorage.getItem(`bairight_chat_messages_${a.id}`);
+        if (chatMsgs) {
+          const parsedMsgs = JSON.parse(chatMsgs);
+          if (Array.isArray(parsedMsgs) && parsedMsgs.length > 0) return true;
+        }
+      } catch {}
+    }
+    return false;
+  };
+
   const handleSelectAgent = (agent: UniversalAgentDefinition | null, forceShowResult?: boolean) => {
     setSelectedAgent(agent);
     setWizardMode(agent ? 'active_agent' : 'launcher');
     if (agent) {
-      let isCompleted = forceShowResult ?? false;
-      if (forceShowResult === undefined && typeof window !== 'undefined') {
-        try {
-          const storedStates = localStorage.getItem('bairight_agent_wizard_states');
-          if (storedStates) {
-            const parsed = JSON.parse(storedStates);
-            if (parsed[agent.id]?.isCompleted || parsed[agent.id]?.result) {
-              isCompleted = true;
-            }
-          }
-          if (!isCompleted) {
-            const completedPrompt = PromptStorageService.getCompletedPromptByAgentId(agent.id);
-            const chatInitialized = localStorage.getItem(`bairight_chat_initialized_${agent.id}`) === 'true';
-            if (completedPrompt || chatInitialized) {
-              isCompleted = true;
-            }
-          }
-        } catch {}
-      }
+      const isCompleted = forceShowResult !== undefined ? forceShowResult : isAgentCompleted(agent);
       setWizardInitialShowResult(isCompleted);
     } else {
       setWizardInitialShowResult(false);
@@ -362,12 +371,15 @@ export default function Home() {
 
   // Load persisted font preference, theme, assessments, BYOK keys, saved agents & facts from localStorage
   useEffect(() => {
-    const storedFont = localStorage.getItem('bairight_active_font') || 'space-grotesk';
+    // Force migration to Google Material Design 3
+    localStorage.setItem('bairight_active_theme', 'google-material');
+    document.documentElement.setAttribute('data-theme', 'google-material');
+    document.documentElement.setAttribute('data-design-system', 'material-admin');
+    document.body.classList.add('material-mode');
+
+    const storedFont = localStorage.getItem('bairight_active_font') || 'inter-tight';
     setActiveFontId(storedFont);
     document.documentElement.setAttribute('data-font', storedFont);
-
-    const storedTheme = localStorage.getItem('bairight_active_theme') || 'pixel-mint';
-    document.documentElement.setAttribute('data-theme', storedTheme);
 
     // 1. Clean legacy mock facts and load actual user facts
     const storedFacts = localStorage.getItem('bairight_user_facts');
@@ -723,21 +735,325 @@ export default function Home() {
     setWizardInitialShowResult(false);
   };
 
+  const renderSidebarContent = () => (
+    <>
+    
+            <div className="space-y-3">
+              {/* Material 3 Inspector Header */}
+              {selectedAgent ? (
+                <div className="space-y-3">
+                  <div className="p-3.5 rounded-xl bg-[#f8fafc] border border-slate-200 shadow-xs space-y-2">
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="min-w-0">
+                        <span className="text-[10px] font-mono uppercase tracking-wider text-[#01579b] font-bold block">
+                          {selectedAgent.category}
+                        </span>
+                        <h3 className="text-sm font-black text-[#263238] leading-tight mt-0.5">{selectedAgent.name}</h3>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setSelectedAgent(null)}
+                        title={isEn ? "Switch active agent" : "Přepnout aktivního agenta"}
+                        className="px-2 py-1 rounded-md bg-white hover:bg-slate-100 border border-slate-300 text-[#263238] text-[10px] font-mono font-bold tracking-wider uppercase transition-all cursor-pointer shadow-xs shrink-0"
+                      >
+                        {isEn ? 'Switch Agent' : 'Změnit agenta'}
+                      </button>
+                    </div>
+                    <p className="text-xs text-[#546e7a] line-clamp-2 leading-relaxed">
+                      {selectedAgent.description}
+                    </p>
+                  </div>
+
+                  {/* Star Component: Dynamic Top 3 Recommendations Leaderboard (Žebříček) */}
+                  <div className="p-3.5 rounded-xl bg-white border border-slate-200 border-t-2 border-t-[#0099cc] shadow-xs space-y-3">
+                    <div className="flex items-center justify-between border-b border-slate-200 pb-2">
+                      <div className="flex items-center gap-1.5">
+                        <span className="w-1.5 h-1.5 rounded-full bg-[#0099cc]" />
+                        <span className="text-[10px] font-mono uppercase tracking-wider text-[#263238] font-bold">
+                          {isEn ? 'Top 3 Recommendations' : 'Aktuální žebříček top 3'}
+                        </span>
+                      </div>
+                      <span className="text-[9px] font-mono px-1.5 py-0.5 rounded-md bg-[#e1f5fe] border border-[#b3e5fc] text-[#01579b] font-bold uppercase tracking-wider">
+                        {isEn ? 'Live Sync' : 'Živý stav'}
+                      </span>
+                    </div>
+
+                    {dynamicLeaderboard.length > 0 ? (
+                      <div className="space-y-2">
+                        {dynamicLeaderboard.map((item, idx) => {
+                          const isTop = idx === 0;
+                          const isSecond = idx === 1;
+                          return (
+                            <div
+                              key={item.id || idx}
+                              className="p-2.5 rounded-lg flex items-center justify-between gap-2 border bg-[#f8fafc] border-slate-200 shadow-xs transition-all"
+                            >
+                              <div className="min-w-0 flex items-center gap-2">
+                                <span
+                                  className={`text-[10px] font-mono font-bold px-1.5 py-0.5 rounded shrink-0 ${
+                                    isTop
+                                      ? 'text-[#014377] bg-[#e1f5fe] border border-[#b3e5fc]'
+                                      : 'text-[#263238] bg-slate-100 border border-slate-200'
+                                  }`}
+                                >
+                                  #{idx + 1}
+                                </span>
+                                <span className="text-xs font-bold text-[#263238] truncate">
+                                  {item.fullName}
+                                </span>
+                              </div>
+                              {item.matchScore && (
+                                <span
+                                  className="text-[10px] font-mono px-1.5 py-0.5 rounded-md font-bold shrink-0 bg-[#e1f5fe] text-[#01579b] border border-[#b3e5fc]"
+                                >
+                                  {item.matchScore}
+                                </span>
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    ) : (
+                      <div className="py-2.5 text-center bg-[#f8fafc] rounded-lg border border-slate-200 px-2">
+                        <p className="text-[11px] text-[#546e7a] italic leading-relaxed">
+                          {isEn
+                            ? 'Awaiting agent recommendations in chat...'
+                            : 'Čekám na doporučení produktů agentem v chatu...'}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Agent Parameters & Active Criteria Widget */}
+                  <div className="p-3 rounded-xl bg-white border border-slate-200 shadow-xs space-y-2.5">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[10px] font-mono uppercase tracking-wider text-[#546e7a] font-bold">
+                        {isEn ? 'Agent Parameters' : 'Parametry agenta'}
+                      </span>
+                      {!isSidebarAddingParam && (
+                        <button
+                          type="button"
+                          onClick={() => setIsSidebarAddingParam(true)}
+                          className="text-[10px] font-mono text-[#0099cc] hover:text-[#0277bd] font-bold cursor-pointer"
+                        >
+                          + {isEn ? 'Add' : 'Přidat'}
+                        </button>
+                      )}
+                    </div>
+
+                    {/* Inline Add Parameter Input */}
+                    {isSidebarAddingParam && (
+                      <div className="p-2.5 rounded-lg bg-[#f8fafc] border border-slate-200 space-y-2">
+                        <div className="flex items-center justify-between">
+                          <span className="text-[10px] font-mono text-[#01579b] font-bold">
+                            {isEn ? 'New Criterion (e.g. Budget)' : 'Nové kritérium (např. cena)'}
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setIsSidebarAddingParam(false);
+                              setSidebarParamName('');
+                              setSidebarParamValue('');
+                            }}
+                            className="text-[10px] text-[#546e7a] hover:text-[#263238] cursor-pointer"
+                          >
+                            {isEn ? 'Cancel' : 'Zrušit'}
+                          </button>
+                        </div>
+
+                        <div className="space-y-1.5">
+                          <input
+                            type="text"
+                            value={sidebarParamName}
+                            onChange={(e) => setSidebarParamName(e.target.value)}
+                            placeholder={isEn ? 'Criterion (e.g. Budget)' : 'Kritérium (např. Cena)'}
+                            className="w-full px-2.5 py-1.5 rounded-lg bg-white border border-slate-300 text-xs text-[#263238] placeholder-slate-400 outline-none"
+                          />
+                          <input
+                            type="text"
+                            value={sidebarParamValue}
+                            onChange={(e) => setSidebarParamValue(e.target.value)}
+                            placeholder={isEn ? 'Value (e.g. max $250)' : 'Hodnota (např. max 5 000 Kč)'}
+                            className="w-full px-2.5 py-1.5 rounded-lg bg-white border border-slate-300 text-xs text-[#263238] placeholder-slate-400 outline-none"
+                          />
+                        </div>
+
+                        <button
+                          type="button"
+                          disabled={!sidebarParamName.trim() || !sidebarParamValue.trim()}
+                          onClick={handleAddSidebarParam}
+                          className="w-full py-1.5 rounded-lg bg-[#0099cc] hover:bg-[#0088b8] text-white text-xs font-bold transition-all disabled:opacity-50 cursor-pointer shadow-xs"
+                        >
+                          {isEn ? 'Save & Send to Chat' : 'Uložit a odeslat do chatu'}
+                        </button>
+                      </div>
+                    )}
+
+                    {/* List of Custom & Active Parameters */}
+                    <div className="space-y-1.5 max-h-48 overflow-y-auto pr-1">
+                      {/* Custom Parameters */}
+                      {Array.isArray(sidebarAnswers.customParameters) && sidebarAnswers.customParameters.map((cp: any) => (
+                        <div
+                          key={cp.id}
+                          className="px-2.5 py-1.5 rounded-lg bg-[#e1f5fe] border border-[#b3e5fc] flex items-center justify-between text-xs gap-1.5"
+                        >
+                          <div className="min-w-0">
+                            <span className="text-[10px] font-mono text-[#01579b] font-bold block truncate">{cp.name}</span>
+                            <span className="text-[#263238] font-bold block truncate">{cp.value}</span>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => handleRemoveSidebarParam(cp.id)}
+                            className="text-slate-400 hover:text-red-400 text-xs font-mono p-1 cursor-pointer shrink-0"
+                            title={isEn ? 'Remove' : 'Odebrat'}
+                          >
+                            ×
+                          </button>
+                        </div>
+                      ))}
+
+                      {/* Standard Questions Answers Summary */}
+                      {selectedAgent.questions.map((q) => {
+                        const val = sidebarAnswers[q.id];
+                        if (val === undefined || val === null || val === '' || val === '__SKIP__') return null;
+                        let displayVal = String(val);
+                        if (Array.isArray(val)) {
+                          if (val.length === 0 || (val.length === 1 && val[0] === '__SKIP__')) return null;
+                          displayVal = val.map((v) => q.options?.find((o) => o.value === v)?.label || String(v)).join(', ');
+                        } else if (typeof val === 'object') {
+                          displayVal = Object.entries(val).map(([k, v]) => `${k}: ${v}`).join('; ');
+                        } else if (q.options) {
+                          const opt = q.options.find((o) => o.value === val);
+                          if (opt?.label) displayVal = opt.label;
+                        }
+                        return (
+                          <div
+                            key={q.id}
+                            className="px-2.5 py-1.5 rounded-lg bg-[#f8fafc] border border-slate-200 text-xs"
+                          >
+                            <span className="text-[10px] font-mono text-[#01579b] font-bold block truncate">{q.title}</span>
+                            <span className="text-[#263238] font-bold block truncate">{displayVal}</span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div className="p-3 rounded-2xl bg-slate-950/80 border border-slate-800 space-y-2">
+                  <span className="text-xs font-semibold text-slate-300 block">
+                    {isEn ? 'Saved agents in your account:' : 'Uložení agenti na vašem účtu:'}
+                  </span>
+                  {storedAgents.length > 0 ? (
+                    <div className="space-y-1.5">
+                      {storedAgents.map((ag) => (
+                        <button
+                          key={ag.id}
+                          onClick={() => handleSelectAgent(ag)}
+                          className="w-full p-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-800 text-left flex items-center gap-2.5 text-xs transition-all cursor-pointer group"
+                        >
+                          
+                          <div className="min-w-0 flex-1">
+                            <span className="text-slate-200 group-hover:text-white font-medium truncate block">{ag.name}</span>
+                            <span className="text-[10px] text-slate-500 truncate block">{ag.category}</span>
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-center py-4 px-2 space-y-2.5 bg-[#070e1a]/80 rounded-xl border border-slate-800/80">
+                      
+                      <p className="text-[11px] text-slate-400 leading-relaxed">
+                        {isEn ? 'No shopping agents saved in your account yet.' : 'Na svém účtu zatím nemáte uloženého žádného nákupního agenta.'}
+                      </p>
+                      <button
+                        onClick={() => {
+                          setActiveTab('wizard');
+                          setWizardMode('launcher');
+                        }}
+                        className="w-full py-1.5 px-3 rounded-xl bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-400 border border-cyan-500/30 text-xs font-medium transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+                      >
+                        <Plus className="w-3.5 h-3.5" />
+                        <span>{isEn ? 'Create agent in wizard' : 'Vytvořit agenta v průvodci'}</span>
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+
+            {/* Unified System Context & Status Panel (Secondary / Low-contrast Footer) */}
+            <div className="p-3 rounded-xl bg-white border border-slate-200 shadow-xs space-y-2 text-[#546e7a]">
+              <div className="flex items-center justify-between text-[10px] font-mono uppercase tracking-wider text-[#546e7a] border-b border-slate-200 pb-1 font-bold">
+                <span>{isEn ? 'System Status' : 'Stav systému'}</span>
+                <span className={`flex items-center gap-1 font-bold ${hasActiveSubscription ? 'text-emerald-700' : 'text-amber-700'}`}>
+                  <span className="w-1.5 h-1.5 rounded-full bg-current" />
+                  <span>{hasActiveSubscription ? (isEn ? 'Online' : 'Připojeno') : 'Offline'}</span>
+                </span>
+              </div>
+
+              {/* Model & RAG summary */}
+              <div className="flex items-center justify-between text-[10px] text-[#546e7a]">
+                <span className="truncate font-semibold text-[#263238]">{activeProvider.name}</span>
+                <button
+                  type="button"
+                  onClick={() => setIsSubscriptionModalOpen(true)}
+                  className="text-[#0099cc] font-bold hover:underline cursor-pointer font-mono"
+                >
+                  {isEn ? 'Change' : 'Změnit'}
+                </button>
+              </div>
+
+              <div className="flex items-center justify-between text-[10px] text-[#546e7a] pt-1 border-t border-slate-200">
+                <span>{isEn ? `RAG Facts: ${userFacts.length}` : `RAG Fakta: ${userFacts.length}`}</span>
+                <button
+                  type="button"
+                  onClick={() => setIsMemoryModalOpen(true)}
+                  className="text-[#0099cc] font-bold hover:underline cursor-pointer font-mono"
+                >
+                  {isEn ? 'Memory' : 'Paměť'}
+                </button>
+              </div>
+
+              {/* Selection Wizard Action (Sleek Low-contrast Ghost Button) */}
+              <div className="pt-1.5">
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (selectedAgent) {
+                      const isCompleted = isAgentCompleted(selectedAgent);
+                      handleSelectAgent(selectedAgent, isCompleted);
+                      setWizardInitialShowResult(isCompleted);
+                      setWizardMode('active_agent');
+                    } else {
+                      setWizardMode('launcher');
+                    }
+                    setActiveTab('wizard');
+                  }}
+                  className="w-full py-1.5 px-3 rounded-lg bg-white hover:bg-slate-50 border border-slate-300 text-[#263238] text-xs font-mono font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer shadow-xs"
+                >
+                  <span>{isEn ? 'Open Selection Wizard' : 'Otevřít průvodce výběrem'}</span>
+                </button>
+              </div>
+            </div>
+    </>
+  );
+
   return (
-    <div className="flex h-screen flex-col bg-[#070d18] text-slate-100 overflow-hidden font-sans bio-grid-pattern">
+    <div className="flex h-screen flex-col bg-[#f4f6f8] text-[#263238] overflow-hidden font-sans">
       {/* Top Navbar: Clean Executive Header */}
-      <header className="h-16 border-b border-cyan-500/20 bg-[#0B121E]/95 backdrop-blur-xl px-4 sm:px-8 flex items-center justify-between shrink-0 z-20 shadow-[0_4px_30px_rgba(0,0,0,0.5)]">
+      <header className="h-14 sm:h-16 border-b border-slate-200/80 bg-white px-3 sm:px-8 flex items-center justify-between shrink-0 z-20 shadow-xs">
         {/* Left: Brand Logo & Navigation */}
         <div className="flex items-center gap-6 shrink-0">
           <div className="flex items-center gap-2.5">
             <Logo size="md" onClick={handleGoHome} />
-            <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded-md bg-cyan-950/80 border border-cyan-500/40 text-cyan-300 shadow-[0_0_10px_rgba(6,182,212,0.2)]">
+            <span className="hidden xs:inline-block text-[10px] font-mono font-bold px-2 py-0.5 rounded-md bg-[#e1f5fe] border border-[#b3e5fc] text-[#01579b]">
               {APP_VERSION}
             </span>
           </div>
 
           {/* Clean Top Navigation Tabs */}
-          <div className="hidden sm:flex items-center gap-1.5 p-1 rounded-xl bg-slate-950/80 border border-slate-800 text-xs font-mono">
+          <div className="segmented-tabs-container hidden sm:flex items-center gap-1.5 p-1 rounded-xl bg-[#f4f6f8] border border-slate-200 text-xs font-mono">
             <button
               onClick={() => {
                 const activeOrStored = selectedAgent || (typeof window !== 'undefined' ? AgentStorageService.getAllAgents()[0] : null);
@@ -767,10 +1083,10 @@ export default function Home() {
                 }
                 setActiveTab('wizard');
               }}
-              className={`px-3 py-1 rounded-lg transition-all cursor-pointer ${
+              className={`segmented-tab-btn px-3 py-1 rounded-lg transition-all cursor-pointer font-bold ${
                 activeTab === 'wizard'
-                  ? 'bg-cyan-950 text-cyan-300 border border-cyan-500/40 font-bold'
-                  : 'text-slate-400 hover:text-slate-200'
+                  ? 'segmented-tab-active bg-[#0099cc] text-white shadow-xs'
+                  : 'text-[#607d8b] hover:text-[#263238]'
               }`}
             >
               {t.header.wizardTab}
@@ -784,15 +1100,15 @@ export default function Home() {
                   setSelectedAgent(null);
                 }
               }}
-              className={`px-3 py-1 rounded-lg transition-all cursor-pointer flex items-center gap-1.5 ${
+              className={`segmented-tab-btn px-3 py-1 rounded-lg transition-all cursor-pointer flex items-center gap-1.5 font-bold ${
                 activeTab === 'chat'
-                  ? 'bg-cyan-950 text-cyan-300 border border-cyan-500/40 font-bold'
-                  : 'text-slate-400 hover:text-slate-200'
+                  ? 'segmented-tab-active bg-[#0099cc] text-white shadow-xs'
+                  : 'text-[#607d8b] hover:text-[#263238]'
               }`}
             >
               <span>{t.header.chatTab}</span>
               {selectedAgent ? (
-                <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-cyan-900/60 text-cyan-300 font-mono font-medium hidden md:inline">
+                <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-[#e1f5fe] text-[#01579b] border border-[#b3e5fc] font-mono font-bold hidden md:inline">
                   {selectedAgent.name}
                 </span>
               ) : null}
@@ -801,7 +1117,7 @@ export default function Home() {
         </div>
 
         {/* Right: User Profile & Customization Capsules */}
-        <div className="flex items-center gap-2.5 sm:gap-3 shrink-0">
+        <div className="flex items-center gap-1.5 sm:gap-3 shrink-0">
           <HeaderEngineSwitcher
             activeProviderId={activeProviderId}
             onSelectProvider={(pId: AIProviderId) => {
@@ -811,6 +1127,7 @@ export default function Home() {
             onOpenVaultModal={() => setIsSubscriptionModalOpen(true)}
             currentApiKeys={apiKeys}
           />
+
           <LanguageSwitcher />
           <UserProfileCapsule
             userName="Jan Mynář"
@@ -831,8 +1148,9 @@ export default function Home() {
               userName="Jan Mynář"
               currentAgent={selectedAgent}
               initialTab={launcherInitialTab}
-              onSelectAgent={(agent, initialShowResult = false) => {
-                handleSelectAgent(agent, initialShowResult);
+              onSelectAgent={(agent, initialShowResult) => {
+                const showResult = initialShowResult !== undefined ? initialShowResult : isAgentCompleted(agent);
+                handleSelectAgent(agent, showResult);
                 setWizardMode('active_agent');
               }}
               activeProviderId={activeProviderId}
@@ -959,350 +1277,75 @@ export default function Home() {
       )}
 
       {/* Universal Consultative Chat Tab — Gated by Subscription (BYOK) */}
-      {activeTab === 'chat' && (
+      
+{activeTab === 'chat' && (
         <div className="flex flex-1 flex-col lg:flex-row overflow-hidden">
           {/* Left: Agent Selection & Context Sidebar */}
-          <aside className="w-full lg:w-80 border-b lg:border-b-0 lg:border-r border-slate-800 bg-[#08101e]/90 p-4 space-y-4 overflow-y-auto shrink-0">
-            <div className="space-y-2">
-              <div className="flex items-center justify-between gap-2">
-                <span className="text-[10px] font-mono uppercase tracking-wider text-cyan-400 font-bold truncate">
-                  {isEn ? 'Active Agent for Discussion' : 'Aktivní agent pro diskusi'}
+          
+          {/* Mobile Top Navigation & Filter Bar for Active Agent */}
+          <div className="lg:hidden flex items-center justify-between px-3.5 py-2 bg-white border-b border-slate-200 shrink-0 z-10">
+            <div className="flex items-center gap-2 min-w-0">
+              <span className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse shrink-0" />
+              <span className="font-bold text-[#263238] text-xs truncate max-w-[150px]">
+                {selectedAgent?.name || (isEn ? "Universal Shopping Agent" : "Univerzální nákupní agent")}
+              </span>
+              {dynamicLeaderboard.length > 0 && (
+                <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-cyan-950 text-cyan-300 border border-cyan-500/30 truncate max-w-[120px]">
+                  #1 {dynamicLeaderboard[0].fullName.split(" ")[0]}
                 </span>
-                {selectedAgent && (
-                  <button
-                    type="button"
-                    onClick={() => setSelectedAgent(null)}
-                    title={isEn ? "Switch active agent" : "Přepnout aktivního agenta"}
-                    className="px-2.5 py-1 rounded-lg bg-cyan-950/80 hover:bg-cyan-900 border border-cyan-400/60 hover:border-cyan-300 text-cyan-300 hover:text-white text-[10px] font-mono font-bold tracking-wider uppercase transition-all cursor-pointer shadow-[0_0_12px_rgba(6,182,212,0.2)] hover:shadow-[0_0_18px_rgba(6,182,212,0.35)] hover:scale-105 active:scale-95 shrink-0"
-                  >
-                    {isEn ? 'Switch Agent' : 'Změnit agenta'}
-                  </button>
-                )}
-              </div>
-
-              {selectedAgent ? (
-                <div className="space-y-2.5">
-                  <div className="p-3 rounded-2xl bg-slate-950/80 border border-cyan-500/30 space-y-1.5">
-                    <div className="flex items-center gap-2">
-                      <span className="text-xl p-1.5 rounded-lg bg-slate-900 border border-slate-800">
-                        
-                      </span>
-                      <div className="min-w-0">
-                        <h3 className="text-sm font-bold text-white truncate">{selectedAgent.name}</h3>
-                        <span className="text-[10px] font-mono text-cyan-400">{selectedAgent.category}</span>
-                      </div>
-                    </div>
-                    <p className="text-xs text-slate-400 line-clamp-2 leading-relaxed">
-                      {selectedAgent.description}
-                    </p>
-                  </div>
-
-                  {/* Star Component: Dynamic Top 3 Recommendations Leaderboard (Žebříček) */}
-                  <div className="p-3.5 rounded-2xl bg-[#060e1d]/90 border border-cyan-500/50 shadow-[0_0_25px_rgba(6,182,212,0.12)] space-y-3">
-                    <div className="flex items-center justify-between border-b border-cyan-500/30 pb-2">
-                      <div className="flex items-center gap-1.5">
-                        <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse" />
-                        <span className="text-[10px] font-mono uppercase tracking-wider text-cyan-300 font-extrabold">
-                          {isEn ? 'Top 3 Recommendations' : 'Aktuální žebříček top 3'}
-                        </span>
-                      </div>
-                      <span className="text-[9px] font-mono px-1.5 py-0.5 rounded bg-cyan-950 border border-cyan-500/40 text-cyan-300 font-bold uppercase tracking-wider">
-                        {isEn ? 'Live Sync' : 'Živý stav'}
-                      </span>
-                    </div>
-
-                    {dynamicLeaderboard.length > 0 ? (
-                      <div className="space-y-2">
-                        {dynamicLeaderboard.map((item, idx) => {
-                          const isTop = idx === 0;
-                          const isSecond = idx === 1;
-                          return (
-                            <div
-                              key={item.id || idx}
-                              className={`p-2.5 rounded-xl flex items-center justify-between gap-2 transition-all ${
-                                isTop
-                                  ? 'bg-gradient-to-r from-cyan-950/90 to-slate-900 border border-cyan-400/80 shadow-[0_0_12px_rgba(6,182,212,0.25)]'
-                                  : isSecond
-                                  ? 'bg-slate-900/90 border border-teal-500/40'
-                                  : 'bg-slate-950/90 border border-slate-800'
-                              }`}
-                            >
-                              <div className="min-w-0 flex items-center gap-2">
-                                <span
-                                  className={`text-[10px] font-mono font-black px-1.5 py-0.5 rounded shrink-0 ${
-                                    isTop
-                                      ? 'text-cyan-200 bg-cyan-900/90 border border-cyan-400/80'
-                                      : isSecond
-                                      ? 'text-teal-200 bg-teal-950 border border-teal-500/50'
-                                      : 'text-slate-400 bg-slate-900 border border-slate-700'
-                                  }`}
-                                >
-                                  #{idx + 1}
-                                </span>
-                                <span className={`text-xs truncate ${isTop ? 'font-black text-white' : isSecond ? 'font-bold text-slate-100' : 'font-medium text-slate-300'}`}>
-                                  {item.fullName}
-                                </span>
-                              </div>
-                              {item.matchScore && (
-                                <span
-                                  className={`text-[10px] font-mono px-1.5 py-0.5 rounded-full font-bold shrink-0 ${
-                                    isTop
-                                      ? 'text-cyan-200 bg-cyan-950 border border-cyan-400/50'
-                                      : 'text-teal-300 bg-slate-900 border border-slate-800'
-                                  }`}
-                                >
-                                  {item.matchScore}
-                                </span>
-                              )}
-                            </div>
-                          );
-                        })}
-                      </div>
-                    ) : (
-                      <div className="py-2.5 text-center bg-slate-950/60 rounded-xl border border-slate-800/80 px-2">
-                        <p className="text-[11px] text-slate-400 italic leading-relaxed">
-                          {isEn
-                            ? 'Awaiting agent recommendations in chat...'
-                            : 'Čekám na doporučení produktů agentem v chatu...'}
-                        </p>
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Agent Parameters & Active Criteria Widget */}
-                  <div className="p-3 rounded-2xl bg-slate-950/80 border border-slate-800 space-y-2.5">
-                    <div className="flex items-center justify-between">
-                      <span className="text-[10px] font-mono uppercase tracking-wider text-slate-400 font-bold">
-                        {isEn ? 'Agent Parameters' : 'Parametry agenta'}
-                      </span>
-                      {!isSidebarAddingParam && (
-                        <button
-                          type="button"
-                          onClick={() => setIsSidebarAddingParam(true)}
-                          className="text-[10px] font-mono text-cyan-400 hover:text-cyan-300 font-semibold cursor-pointer"
-                        >
-                          + {isEn ? 'Add' : 'Přidat'}
-                        </button>
-                      )}
-                    </div>
-
-                    {/* Inline Add Parameter Input */}
-                    {isSidebarAddingParam && (
-                      <div className="p-2.5 rounded-xl bg-cyan-950/30 border border-cyan-500/40 space-y-2">
-                        <div className="flex items-center justify-between">
-                          <span className="text-[10px] font-mono text-cyan-300 font-bold">
-                            {isEn ? 'New Criterion (e.g. Budget)' : 'Nové kritérium (např. cena)'}
-                          </span>
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setIsSidebarAddingParam(false);
-                              setSidebarParamName('');
-                              setSidebarParamValue('');
-                            }}
-                            className="text-[10px] text-slate-400 hover:text-white cursor-pointer"
-                          >
-                            {isEn ? 'Cancel' : 'Zrušit'}
-                          </button>
-                        </div>
-
-                        <div className="space-y-1.5">
-                          <input
-                            type="text"
-                            value={sidebarParamName}
-                            onChange={(e) => setSidebarParamName(e.target.value)}
-                            placeholder={isEn ? 'Criterion (e.g. Budget)' : 'Kritérium (např. Cena)'}
-                            className="w-full px-2.5 py-1.5 rounded-lg bg-slate-950 border border-slate-700 text-xs text-white placeholder-slate-500 outline-none"
-                          />
-                          <input
-                            type="text"
-                            value={sidebarParamValue}
-                            onChange={(e) => setSidebarParamValue(e.target.value)}
-                            placeholder={isEn ? 'Value (e.g. max $250)' : 'Hodnota (např. max 5 000 Kč)'}
-                            className="w-full px-2.5 py-1.5 rounded-lg bg-slate-950 border border-slate-700 text-xs text-white placeholder-slate-500 outline-none"
-                          />
-                        </div>
-
-                        <button
-                          type="button"
-                          disabled={!sidebarParamName.trim() || !sidebarParamValue.trim()}
-                          onClick={handleAddSidebarParam}
-                          className="w-full py-1.5 rounded-lg bg-gradient-to-r from-cyan-600 to-teal-600 hover:from-cyan-500 hover:to-teal-500 text-white text-xs font-bold transition-all disabled:opacity-50 cursor-pointer shadow-sm"
-                        >
-                          {isEn ? 'Save & Send to Chat' : 'Uložit a odeslat do chatu'}
-                        </button>
-                      </div>
-                    )}
-
-                    {/* List of Custom & Active Parameters */}
-                    <div className="space-y-1.5 max-h-48 overflow-y-auto pr-1">
-                      {/* Custom Parameters */}
-                      {Array.isArray(sidebarAnswers.customParameters) && sidebarAnswers.customParameters.map((cp: any) => (
-                        <div
-                          key={cp.id}
-                          className="px-2.5 py-1.5 rounded-xl bg-cyan-950/40 border border-cyan-500/40 flex items-center justify-between text-xs gap-1.5"
-                        >
-                          <div className="min-w-0">
-                            <span className="text-[10px] font-mono text-cyan-300 block truncate">{cp.name}</span>
-                            <span className="text-white font-medium block truncate">{cp.value}</span>
-                          </div>
-                          <button
-                            type="button"
-                            onClick={() => handleRemoveSidebarParam(cp.id)}
-                            className="text-slate-400 hover:text-red-400 text-xs font-mono p-1 cursor-pointer shrink-0"
-                            title={isEn ? 'Remove' : 'Odebrat'}
-                          >
-                            ×
-                          </button>
-                        </div>
-                      ))}
-
-                      {/* Standard Questions Answers Summary */}
-                      {selectedAgent.questions.map((q) => {
-                        const val = sidebarAnswers[q.id];
-                        if (val === undefined || val === null || val === '' || val === '__SKIP__') return null;
-                        let displayVal = String(val);
-                        if (Array.isArray(val)) {
-                          if (val.length === 0 || (val.length === 1 && val[0] === '__SKIP__')) return null;
-                          displayVal = val.map((v) => q.options?.find((o) => o.value === v)?.label || String(v)).join(', ');
-                        } else if (typeof val === 'object') {
-                          displayVal = Object.entries(val).map(([k, v]) => `${k}: ${v}`).join('; ');
-                        } else if (q.options) {
-                          const opt = q.options.find((o) => o.value === val);
-                          if (opt?.label) displayVal = opt.label;
-                        }
-                        return (
-                          <div
-                            key={q.id}
-                            className="px-2.5 py-1.5 rounded-xl bg-slate-900 border border-slate-800 text-xs"
-                          >
-                            <span className="text-[10px] font-mono text-slate-400 block truncate">{q.title}</span>
-                            <span className="text-slate-200 block truncate">{displayVal}</span>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </div>
-                </div>
-              ) : (
-                <div className="p-3 rounded-2xl bg-slate-950/80 border border-slate-800 space-y-2">
-                  <span className="text-xs font-semibold text-slate-300 block">
-                    {isEn ? 'Saved agents in your account:' : 'Uložení agenti na vašem účtu:'}
-                  </span>
-                  {storedAgents.length > 0 ? (
-                    <div className="space-y-1.5">
-                      {storedAgents.map((ag) => (
-                        <button
-                          key={ag.id}
-                          onClick={() => handleSelectAgent(ag)}
-                          className="w-full p-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-800 text-left flex items-center gap-2.5 text-xs transition-all cursor-pointer group"
-                        >
-                          
-                          <div className="min-w-0 flex-1">
-                            <span className="text-slate-200 group-hover:text-white font-medium truncate block">{ag.name}</span>
-                            <span className="text-[10px] text-slate-500 truncate block">{ag.category}</span>
-                          </div>
-                        </button>
-                      ))}
-                    </div>
-                  ) : (
-                    <div className="text-center py-4 px-2 space-y-2.5 bg-[#070e1a]/80 rounded-xl border border-slate-800/80">
-                      
-                      <p className="text-[11px] text-slate-400 leading-relaxed">
-                        {isEn ? 'No shopping agents saved in your account yet.' : 'Na svém účtu zatím nemáte uloženého žádného nákupního agenta.'}
-                      </p>
-                      <button
-                        onClick={() => {
-                          setActiveTab('wizard');
-                          setWizardMode('launcher');
-                        }}
-                        className="w-full py-1.5 px-3 rounded-xl bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-400 border border-cyan-500/30 text-xs font-medium transition-all flex items-center justify-center gap-1.5 cursor-pointer"
-                      >
-                        <Plus className="w-3.5 h-3.5" />
-                        <span>{isEn ? 'Create agent in wizard' : 'Vytvořit agenta v průvodci'}</span>
-                      </button>
-                    </div>
-                  )}
-                </div>
               )}
             </div>
+            <button
+              type="button"
+              onClick={() => setIsMobileSidebarOpen(true)}
+              className="px-2.5 py-1 rounded-lg bg-[#e1f5fe] border border-[#b3e5fc] text-[#01579b] text-[11px] font-mono font-bold flex items-center gap-1.5 cursor-pointer shadow-xs shrink-0"
+            >
+              <span>{isEn ? "Parameters & Top 3" : "Parametry & Top 3"}</span>
+              <span className="text-[9px]">▾</span>
+            </button>
+          </div>
 
-            {/* Unified System Context & Status Panel (Secondary / Low-contrast Footer) */}
-            <div className="p-3 rounded-xl bg-slate-950/40 border border-slate-800/40 space-y-2 text-slate-400">
-              <div className="flex items-center justify-between text-[10px] font-mono uppercase tracking-wider text-slate-400 border-b border-slate-800/40 pb-1">
-                <span>{isEn ? 'System Status' : 'Stav systému'}</span>
-                <span className={`flex items-center gap-1 ${hasActiveSubscription ? 'text-emerald-400' : 'text-amber-400'}`}>
-                  <span className="w-1.5 h-1.5 rounded-full bg-current" />
-                  <span>{hasActiveSubscription ? (isEn ? 'Online' : 'Připojeno') : 'Offline'}</span>
-                </span>
-              </div>
-
-              {/* Model & RAG summary */}
-              <div className="flex items-center justify-between text-[10px] text-slate-400">
-                <span className="truncate">{activeProvider.name}</span>
-                <button
-                  type="button"
-                  onClick={() => setIsSubscriptionModalOpen(true)}
-                  className="text-cyan-400 hover:underline cursor-pointer font-mono"
-                >
-                  {isEn ? 'Change' : 'Změnit'}
-                </button>
-              </div>
-
-              <div className="flex items-center justify-between text-[10px] text-slate-400 pt-1 border-t border-slate-800/30">
-                <span>{isEn ? `RAG Facts: ${userFacts.length}` : `RAG Fakta: ${userFacts.length}`}</span>
-                <button
-                  type="button"
-                  onClick={() => setIsMemoryModalOpen(true)}
-                  className="text-cyan-400 hover:underline cursor-pointer font-mono"
-                >
-                  {isEn ? 'Memory' : 'Paměť'}
-                </button>
-              </div>
-
-              {/* Selection Wizard Action (Sleek Low-contrast Ghost Button) */}
-              <div className="pt-1.5">
-                <button
-                  type="button"
-                  onClick={() => {
-                    if (selectedAgent) {
-                      let isCompleted = false;
-                      if (typeof window !== 'undefined') {
-                        try {
-                          const storedStates = localStorage.getItem('bairight_agent_wizard_states');
-                          if (storedStates) {
-                            const parsed = JSON.parse(storedStates);
-                            if (parsed[selectedAgent.id]?.isCompleted || parsed[selectedAgent.id]?.result) {
-                              isCompleted = true;
-                            }
-                          }
-                          if (!isCompleted) {
-                            const completedPrompt = PromptStorageService.getCompletedPromptByAgentId(selectedAgent.id);
-                            const chatInitialized = localStorage.getItem(`bairight_chat_initialized_${selectedAgent.id}`) === 'true';
-                            if (completedPrompt || chatInitialized) {
-                              isCompleted = true;
-                            }
-                          }
-                        } catch {}
-                      }
-                      handleSelectAgent(selectedAgent, isCompleted);
-                      setWizardInitialShowResult(isCompleted);
-                      setWizardMode('active_agent');
-                    } else {
-                      setWizardMode('launcher');
-                    }
-                    setActiveTab('wizard');
-                  }}
-                  className="w-full py-1.5 px-3 rounded-lg bg-slate-900/60 hover:bg-slate-800/80 border border-slate-800 text-slate-400 hover:text-white text-xs font-mono font-medium flex items-center justify-center gap-1.5 transition-all cursor-pointer"
-                >
-                  <span>{isEn ? 'Open Selection Wizard' : 'Otevřít průvodce výběrem'}</span>
-                </button>
+          {/* Mobile Parameters & Leaderboard Bottom Sheet */}
+          {isMobileSidebarOpen && (
+            <div 
+              role="dialog"
+              aria-modal="true"
+              className="fixed inset-0 z-50 lg:hidden flex flex-col justify-end bg-black/80 backdrop-blur-sm animate-in fade-in duration-200"
+              onClick={(e) => {
+                if (e.target === e.currentTarget) setIsMobileSidebarOpen(false);
+              }}
+            >
+              <div className="bg-white border-t border-slate-200 rounded-t-2xl max-h-[85vh] flex flex-col shadow-2xl safe-area-bottom">
+                <div className="p-3.5 border-b border-slate-200 flex items-center justify-between shrink-0">
+                  <div className="flex items-center gap-2">
+                    <span className="w-2 h-2 rounded-full bg-cyan-400" />
+                    <span className="text-xs font-mono font-bold text-[#01579b] uppercase tracking-wider">
+                      {isEn ? "Agent Parameters & Leaderboard" : "Parametry agenta & Žebříček"}
+                    </span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setIsMobileSidebarOpen(false)}
+                    className="px-2.5 py-1 rounded-lg bg-white border border-slate-300 text-[#263238] text-xs font-mono font-bold cursor-pointer shadow-xs"
+                  >
+                    {isEn ? "Close" : "Zavřít"} ✕
+                  </button>
+                </div>
+                <div className="p-4 overflow-y-auto space-y-4">
+                  {renderSidebarContent()}
+                </div>
               </div>
             </div>
+          )}
+
+          {/* Desktop Left: Agent Selection & Context Sidebar */}
+          <aside className="hidden lg:block w-80 border-r border-slate-200 bg-white text-[#263238] p-4 space-y-4 overflow-y-auto shrink-0 shadow-xs">
+            {renderSidebarContent()}
           </aside>
 
+
           {/* Right: Conversational Stream or Subscription Lock View */}
-          <main className="flex-1 flex flex-col justify-between overflow-hidden bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950">
+          <main className="flex-1 flex flex-col justify-between overflow-hidden bg-[#f4f6f8] text-[#263238]">
             {!hasActiveSubscription ? (
               /* Subscription Paywall Screen */
               <div className="flex-1 flex flex-col items-center justify-center p-6 text-center max-w-xl mx-auto space-y-6 animate-in fade-in zoom-in-95 duration-200 overflow-y-auto">
@@ -1380,85 +1423,50 @@ export default function Home() {
             ) : (
               /* Unlocked Chat Stream */
               <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-6">
-                {/* Active Model & Agent Banner */}
-                <div className="flex items-center justify-between p-3 rounded-xl bg-cyan-950/40 border border-cyan-500/30 text-xs">
-                  <div className="flex items-center gap-2">
-                    <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                    <span className="text-slate-200 font-medium">
-                      {isEn ? <>Discussion with agent <strong>{selectedAgent?.name || 'General Shopping Advisor'}</strong> active</> : <>Diskuse s agentem <strong>{selectedAgent?.name || 'Všeobecný nákupní poradce'}</strong> aktivní</>}
+                {/* Unified Material Header Bar */}
+                <div className="flex flex-wrap items-center justify-between gap-3 p-3.5 rounded-xl bg-white border border-slate-200 text-xs shadow-xs mb-2">
+                  <div className="flex items-center gap-2.5 flex-wrap min-w-0">
+                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-[#e1f5fe] text-[#01579b] border border-[#b3e5fc] font-bold text-[11px] font-mono shrink-0">
+                      <span className="w-1.5 h-1.5 rounded-full bg-[#0099cc]" />
+                      <span>{isEn ? 'Live Discussion' : 'Živá diskuse'}</span>
                     </span>
-                    <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-cyan-900/60 text-cyan-300 border border-cyan-500/30">
+                    <span className="text-[#263238] font-bold truncate">
+                      {selectedAgent?.name || (isEn ? 'General Shopping Advisor' : 'Všeobecný nákupní poradce')}
+                    </span>
+                    <span className="text-[10px] font-mono px-2 py-0.5 rounded-md bg-slate-100 text-[#546e7a] border border-slate-200 shrink-0 font-semibold">
                       {activeProvider.name}
                     </span>
                   </div>
-                  <button
-                    onClick={() => setIsSubscriptionModalOpen(true)}
-                    className="text-[10px] font-mono text-cyan-400 hover:underline cursor-pointer"
-                  >
-                    {isEn ? 'Switch Model' : 'Změnit model'}
-                  </button>
-                </div>
-
-                {/* Dynamic Recommendations Ranking Bar (Live Chat Sync, Non-Clickable Podium) */}
-                {dynamicLeaderboard.length > 0 && (
-                  <div className="p-3.5 rounded-2xl bg-gradient-to-r from-[#060e1d] via-slate-900 to-[#060e1d] border border-cyan-500/40 shadow-[0_4px_20px_rgba(6,182,212,0.12)] space-y-2.5">
-                    <div className="flex items-center justify-between text-[10px] font-mono uppercase tracking-wider">
-                      <span className="text-cyan-300 font-black flex items-center gap-2">
-                        <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse" />
-                        <span>{isEn ? 'Current Top 3 Ranking (Chat Sync)' : 'Aktuální žebříček top 3 (Synchronizováno s chatem)'}</span>
+                  <div className="flex items-center gap-3 shrink-0">
+                    {selectedAgent && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          handleSelectAgent(selectedAgent, true);
+                          setWizardInitialShowResult(true);
+                          setWizardMode('active_agent');
+                          setActiveTab('wizard');
+                        }}
+                        className="text-xs font-mono text-[#01579b] font-bold px-2.5 py-1 rounded-md bg-[#e1f5fe] hover:bg-[#b3e5fc] border border-[#b3e5fc] transition-colors cursor-pointer"
+                        title={isEn ? 'View agent deliverable & calibrated parameters' : 'Zobrazit výsledky agenta & zkalibrované parametry'}
+                      >
+                        {isEn ? 'Agent Hub & Results →' : 'Výsledky & Agent Hub →'}
+                      </button>
+                    )}
+                    {dynamicLeaderboard.length > 0 && (
+                      <span className="hidden sm:inline-block text-[11px] font-mono text-[#01579b] font-semibold bg-[#e1f5fe] px-2 py-0.5 rounded">
+                        {isEn ? `${dynamicLeaderboard.length} recommendations live` : `${dynamicLeaderboard.length} ověřená doporučení`}
                       </span>
-                      <span className="text-slate-400 font-medium">
-                        {dynamicLeaderboard.length} {isEn ? (dynamicLeaderboard.length === 1 ? 'model' : 'models') : (dynamicLeaderboard.length === 1 ? 'model' : 'modely')}
-                      </span>
-                    </div>
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-                      {dynamicLeaderboard.map((item, idx) => {
-                        const isTop = idx === 0;
-                        const isSecond = idx === 1;
-                        return (
-                          <div
-                            key={item.id || idx}
-                            className={`px-3 py-2 rounded-xl flex items-center justify-between gap-2 ${
-                              isTop
-                                ? 'bg-cyan-950/80 border border-cyan-400/80 shadow-[0_0_12px_rgba(6,182,212,0.2)]'
-                                : isSecond
-                                ? 'bg-slate-900/90 border border-teal-500/40'
-                                : 'bg-slate-950/90 border border-slate-800'
-                            }`}
-                          >
-                            <div className="min-w-0 flex items-center gap-2">
-                              <span
-                                className={`text-[10px] font-mono font-black px-1.5 py-0.5 rounded shrink-0 ${
-                                  isTop
-                                    ? 'text-cyan-200 bg-cyan-900 border border-cyan-400/80'
-                                    : isSecond
-                                    ? 'text-teal-200 bg-teal-950 border border-teal-500/40'
-                                    : 'text-slate-400 bg-slate-900 border border-slate-700'
-                                }`}
-                              >
-                                #{idx + 1}
-                              </span>
-                              <span className={`text-xs truncate ${isTop ? 'font-black text-white' : isSecond ? 'font-bold text-slate-100' : 'font-medium text-slate-300'}`}>
-                                {item.fullName}
-                              </span>
-                            </div>
-                            {item.matchScore && (
-                              <span
-                                className={`text-[10px] font-mono px-1.5 py-0.5 rounded-full font-bold shrink-0 ${
-                                  isTop
-                                    ? 'text-cyan-200 bg-cyan-950 border border-cyan-400/50'
-                                    : 'text-teal-300 bg-slate-900 border border-slate-800'
-                                }`}
-                              >
-                                {item.matchScore}
-                              </span>
-                            )}
-                          </div>
-                        );
-                      })}
-                    </div>
+                    )}
+                    <button
+                      type="button"
+                      onClick={() => setIsSubscriptionModalOpen(true)}
+                      className="text-xs font-mono text-[#0099cc] font-bold hover:underline cursor-pointer"
+                    >
+                      {isEn ? 'Switch Model' : 'Změnit model'}
+                    </button>
                   </div>
-                )}
+                </div>
 
                 {messages.length === 0 && (
                   <div className="flex flex-col items-center justify-center py-16 text-center text-slate-500 space-y-2">
@@ -1475,8 +1483,10 @@ export default function Home() {
                   </div>
                 )}
 
-                {messages.map((msg) => {
+                {messages.map((msg, msgIdx) => {
                   const isUser = msg.role === 'user';
+                  const isDuplicateUser = isUser && msgIdx > 0 && messages[msgIdx - 1]?.role === 'user' && messages[msgIdx - 1]?.content === msg.content;
+                  if (isDuplicateUser) return null;
                   return (
                     <div
                       key={msg.id}
@@ -1486,16 +1496,16 @@ export default function Home() {
 
                       <div className={`flex flex-col ${isUser ? 'items-end' : 'items-start'} max-w-[85%]`}>
                         <div
-                          className={`p-4 sm:p-5 rounded-2xl text-sm leading-relaxed ${
+                          className={`p-5 sm:p-6 rounded-xl text-sm leading-relaxed shadow-xs ${
                             isUser
-                              ? 'bg-cyan-600 text-white rounded-tr-none shadow-md shadow-cyan-950/40'
-                              : 'bg-slate-900/90 border border-slate-800 text-slate-200 rounded-tl-none shadow-sm'
+                              ? 'bg-[#0099cc] text-white rounded-2xl rounded-tr-sm shadow-xs px-5 py-4'
+                              : 'bg-white border border-slate-200 text-[#263238] rounded-2xl rounded-tl-sm shadow-xs p-6'
                           }`}
                         >
                           {!isUser && activeFactsCount > 0 && (
                             <div 
                               onClick={() => setIsMemoryModalOpen(true)}
-                              className="flex items-center gap-1.5 text-[10px] font-mono text-cyan-300 bg-cyan-950/70 border border-cyan-500/30 px-2.5 py-1 rounded-full w-fit mb-3 shadow-sm hover:border-cyan-400/60 cursor-pointer transition-all"
+                              className="flex items-center gap-1.5 text-[10px] font-mono text-[#01579b] bg-[#e1f5fe] border border-[#b3e5fc] px-2.5 py-1 rounded-md font-bold w-fit mb-3 shadow-xs hover:bg-[#b3e5fc] cursor-pointer transition-all"
                               title="Klikněte pro zobrazení a správu RAG faktů z databáze"
                             >
                               <span>{isEn ? `RAG Memory: Enriched with ${activeFactsCount} preference facts` : `RAG paměť: Obohaceno o ${activeFactsCount} preferenčních faktů`}</span>
@@ -1505,13 +1515,13 @@ export default function Home() {
                           {!isUser ? (
                             <AgentMessageRenderer content={msg.content} isEn={isEn} />
                           ) : isPromptDump(msg.content) ? (
-                            <div className="flex flex-col gap-1 text-slate-100">
+                            <div className="flex flex-col gap-1 text-white">
                               <span className="font-semibold text-sm">
                                 {isEn 
                                   ? 'Please recommend your top 3 specific product choices based on my parameters from the wizard.' 
                                   : 'Doporuč mi prosím 3 nejlepší produkty na základě mých parametrů z průvodce.'}
                               </span>
-                              <span className="text-[11px] font-mono text-cyan-200/80">
+                              <span className="text-[11px] font-mono text-teal-100">
                                 {isEn ? 'All parameters and criteria have been loaded into agent context' : 'Všechny parametry a kritéria byla úspěšně načtena do kontextu agenta'}
                               </span>
                             </div>
@@ -1581,13 +1591,13 @@ export default function Home() {
                 </button>
               </div>
             ) : (
-              <div className="p-4 sm:p-5 border-t border-slate-800 bg-slate-950/90 backdrop-blur-md">
+              <div className="p-4 sm:p-5 border-t border-slate-200 bg-white shadow-xs">
                 {(() => {
                   const quickPrompts = getAgentQuickPrompts(selectedAgent, isEn);
                   if (quickPrompts.length === 0) return null;
                   return (
                     <div className="flex items-center gap-2 overflow-x-auto pb-3 mb-2 no-scrollbar">
-                      <span className="text-[11px] font-medium text-slate-400 shrink-0 flex items-center gap-1">
+                      <span className="text-[11px] font-bold text-[#546e7a] shrink-0 flex items-center gap-1 uppercase tracking-wider">
                         <span>{isEn ? 'Suggested actions:' : 'Doporučené akce:'}</span>
                       </span>
                       {quickPrompts.map((prompt, idx) => (
@@ -1595,7 +1605,7 @@ export default function Home() {
                           key={idx}
                           onClick={() => handleSendMessage(prompt.text)}
                           disabled={isLoading}
-                          className="px-3 py-1.5 rounded-full text-xs font-medium bg-slate-900 hover:bg-slate-800 border border-slate-800 hover:border-slate-700 text-slate-300 hover:text-white transition-all shrink-0 disabled:opacity-50 cursor-pointer"
+                          className="px-3 py-1.5 rounded-full text-xs font-semibold bg-white hover:bg-slate-50 border border-slate-300 hover:border-[#0099cc] text-[#263238] hover:text-[#01579b] transition-all shrink-0 disabled:opacity-50 cursor-pointer shadow-xs"
                         >
                           {prompt.label}
                         </button>
@@ -1621,18 +1631,18 @@ export default function Home() {
                         : (isEn ? "Enter your purchasing intent, specific product requirements, or budget..." : "Zadejte svůj nákupní záměr, specifické požadavky na produkt či rozpočet...")
                     }
                     disabled={isLoading}
-                    className="flex-1 bg-slate-900 border border-slate-800 focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 rounded-xl px-4 py-3 text-sm text-slate-100 placeholder:text-slate-500 outline-none transition-all"
+                    className="flex-1 bg-[#f8fafc] border border-slate-300 focus:border-[#0099cc] focus:ring-1 focus:ring-[#0099cc] rounded-xl px-4 py-3 text-base sm:text-sm text-[#263238] placeholder:text-[#78909c] outline-none transition-all shadow-xs"
                   />
                   <button
                     type="submit"
                     disabled={isLoading || !inputValue.trim()}
-                    className="p-3 bg-gradient-to-r from-cyan-500 to-teal-500 hover:brightness-110 disabled:bg-slate-800 text-slate-950 disabled:text-slate-500 font-bold rounded-xl transition-all shadow-md shadow-cyan-950/50 disabled:shadow-none cursor-pointer"
+                    className="p-3 bg-[#0099cc] hover:bg-[#0088b8] disabled:bg-slate-200 text-white disabled:text-slate-400 font-bold rounded-xl transition-all shadow-xs disabled:shadow-none cursor-pointer flex items-center justify-center min-w-[44px]"
                   >
-                    <Send className="w-4 h-4" />
+                    <span className="font-bold text-base leading-none">➤</span>
                   </button>
                 </form>
 
-                <p className="text-[11px] text-center text-slate-400 mt-2">
+                <p className="text-[11px] text-center text-[#546e7a] mt-2 font-medium">
                   {isEn ? 'Discussion runs directly via your connected AI model utilizing your persistent RAG memory.' : 'Diskuse s agentem běží přímo přes vaše propojené AI předplatné s plným využitím vaší RAG paměti.'}
                 </p>
               </div>
@@ -1642,6 +1652,94 @@ export default function Home() {
       )}
 
       {/* Global Interactive Modals */}
+      
+      {/* Mobile Bottom Navigation Bar (Cyber-glass Style) */}
+      <nav 
+        aria-label="Mobile Navigation" 
+        className="sm:hidden border-t border-cyan-500/20 bg-[#0B121E]/95 backdrop-blur-xl px-3 py-1.5 flex items-center justify-around shrink-0 z-30 shadow-[0_-4px_25px_rgba(0,0,0,0.6)] safe-area-bottom"
+      >
+        <button
+          type="button"
+          aria-label={isEn ? "Mobile Wizard Navigation" : "Navigace průvodce pro mobil"}
+          data-testid="mobile-nav-wizard"
+          onClick={() => {
+            setIsMobileSidebarOpen(false);
+            const activeOrStored = selectedAgent || (typeof window !== "undefined" ? AgentStorageService.getAllAgents()[0] : null);
+            if (activeOrStored) {
+              let isCompleted = false;
+              if (typeof window !== "undefined") {
+                try {
+                  const storedStates = localStorage.getItem("bairight_agent_wizard_states");
+                  if (storedStates) {
+                    const parsed = JSON.parse(storedStates);
+                    if (parsed[activeOrStored.id]?.isCompleted || parsed[activeOrStored.id]?.result) {
+                      isCompleted = true;
+                    }
+                  }
+                  if (!isCompleted) {
+                    const completedPrompt = PromptStorageService.getCompletedPromptByAgentId(activeOrStored.id);
+                    const chatInitialized = localStorage.getItem(`bairight_chat_initialized_${activeOrStored.id}`) === "true";
+                    if (completedPrompt || chatInitialized) {
+                      isCompleted = true;
+                    }
+                  }
+                } catch {}
+              }
+              handleSelectAgent(activeOrStored, isCompleted);
+              setWizardInitialShowResult(isCompleted);
+              setWizardMode("active_agent");
+            }
+            setActiveTab("wizard");
+          }}
+          className={`flex-1 flex flex-col items-center justify-center py-1.5 rounded-xl transition-all cursor-pointer ${
+            activeTab === "wizard"
+              ? "text-cyan-300 font-bold bg-cyan-950/60 border border-cyan-500/40 shadow-[0_0_10px_rgba(6,182,212,0.2)]"
+              : "text-slate-400 hover:text-slate-200"
+          }`}
+        >
+          <span className="text-[11px] font-mono tracking-wider font-semibold">{t.header.wizardTab}</span>
+        </button>
+
+        <div className="w-px h-6 bg-slate-800 mx-2" />
+
+        <button
+          type="button"
+          aria-label={isEn ? "Mobile Chat Navigation" : "Navigace chatu pro mobil"}
+          data-testid="mobile-nav-chat"
+          onClick={() => {
+            setIsMobileSidebarOpen(false);
+            setActiveTab("chat");
+            const userStoredAgents = AgentStorageService.getAllAgents();
+            setStoredAgents(userStoredAgents);
+            if (selectedAgent && !userStoredAgents.some((a) => a.id === selectedAgent.id)) {
+              setSelectedAgent(null);
+            }
+          }}
+          className={`flex-1 flex flex-col items-center justify-center py-1.5 rounded-xl transition-all cursor-pointer ${
+            activeTab === "chat"
+              ? "text-cyan-300 font-bold bg-cyan-950/60 border border-cyan-500/40 shadow-[0_0_10px_rgba(6,182,212,0.2)]"
+              : "text-slate-400 hover:text-slate-200"
+          }`}
+        >
+          <span className="text-[11px] font-mono tracking-wider font-semibold">{t.header.chatTab}</span>
+        </button>
+
+        <div className="w-px h-6 bg-slate-800 mx-2" />
+
+        <button
+          type="button"
+          aria-label={isEn ? "Mobile Memory Navigation" : "Navigace paměti pro mobil"}
+          data-testid="mobile-nav-memory"
+          onClick={() => {
+            setIsMobileSidebarOpen(false);
+            setIsMemoryModalOpen(true);
+          }}
+          className="flex-1 flex flex-col items-center justify-center py-1.5 rounded-xl text-slate-400 hover:text-cyan-300 transition-all cursor-pointer"
+        >
+          <span className="text-[11px] font-mono tracking-wider font-semibold">{isEn ? "AI Memory" : "Paměť AI"}</span>
+        </button>
+      </nav>
+
       {/* 1. BYOK AI Engine & Subscription Modal */}
       <AIEngineSubscriptionModal
         isOpen={isSubscriptionModalOpen}

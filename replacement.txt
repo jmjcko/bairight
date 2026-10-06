@@ -1,0 +1,201 @@
+{/* Success status & Agent Identity */}
+        <div className="pb-5 border-b border-slate-200 mb-6 space-y-1.5">
+          <div className="flex items-center gap-2">
+            <span className="text-[11px] font-mono font-bold uppercase tracking-wider text-[#00695c] bg-[#e0f2f1] px-2.5 py-0.5 rounded-md border border-[#80cbc4]">
+              {locale === 'en' ? 'Calibration Complete' : 'Kalibrace dokončena'}
+            </span>
+          </div>
+          <h2 className="text-2xl sm:text-3xl font-black text-[#263238] tracking-tight">
+            {agent.name}
+          </h2>
+          <p className="text-xs sm:text-sm text-[#546e7a]">
+            {locale === 'en'
+              ? 'Choose how you want to run this agent:'
+              : 'Vyberte způsob, jak chcete agenta použít:'}
+          </p>
+        </div>
+
+        {/* Primary Action Deliverables Bar */}
+        <div className="space-y-5">
+
+          {/* TIER 1: TWO HERO ACTION CARDS (SIDE BY SIDE) */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5 pt-1">
+            {/* CARD 1 (LEFT): LIVE DISCUSSION IN BAIRIGHT */}
+            {(onOpenChat || onOpenSubscriptionModal) && (
+              <div
+                className="flex flex-col justify-between p-6 sm:p-7 rounded-2xl bg-white border border-slate-200 border-t-4 border-t-[#009688] text-[#263238] shadow-xs hover:shadow-md transition-all text-left"
+              >
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between w-full">
+                    <span className="text-[11px] font-mono font-bold uppercase tracking-wider text-[#00695c] bg-[#e0f2f1] px-2.5 py-1 rounded-md border border-[#80cbc4]">
+                      {locale === 'en' ? 'Option 1 • Live Chat' : 'Možnost 1 • Živý chat'}
+                    </span>
+                    <span className={`text-[10px] font-mono px-2 py-0.5 rounded font-bold ${
+                      hasApiKey 
+                        ? 'bg-[#e0f2f1] text-[#00695c] border border-[#80cbc4]' 
+                        : 'bg-slate-100 text-slate-600 border border-slate-200'
+                    }`}>
+                      {hasApiKey
+                        ? (locale === 'en' ? `✓ ${activeProviderName} connected` : `✓ ${activeProviderName} připojen`)
+                        : (locale === 'en' ? 'Requires API Key' : 'Vyžaduje API klíč')}
+                    </span>
+                  </div>
+
+                  <div>
+                    <h3 className="text-lg sm:text-xl font-black text-[#263238]">
+                      {locale === 'en' ? 'Chat in bAIright' : 'Spustit chat přímo v bAIright'}
+                    </h3>
+                    <p className="text-xs sm:text-sm text-[#546e7a] mt-1 leading-relaxed">
+                      {locale === 'en'
+                        ? 'Direct interactive discussion and tailored recommendations directly in this window.'
+                        : 'Interaktivní diskuze a výběr produktů na míru přímo v tomto okně.'}
+                    </p>
+                  </div>
+
+                  {/* Action Button & single concise caption */}
+                  <div className="pt-2 space-y-2">
+                    {hasApiKey ? (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (onOpenChat) {
+                            onOpenChat(currentLivePrompt, result || previousResult, answers);
+                          }
+                        }}
+                        className="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-[#009688] hover:bg-[#00897b] text-white font-bold text-xs sm:text-sm shadow-xs transition-colors cursor-pointer"
+                      >
+                        <span>{locale === 'en' ? 'Open Chat with Agent' : 'Otevřít chat s agentem'}</span>
+                        <span>→</span>
+                      </button>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (onOpenSubscriptionModal) {
+                            onOpenSubscriptionModal();
+                          } else {
+                            setShowBYOKHintModal(true);
+                          }
+                        }}
+                        className="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-white hover:bg-slate-50 border border-slate-300 text-[#263238] font-bold text-xs sm:text-sm shadow-xs transition-colors cursor-pointer"
+                      >
+                        <span>{locale === 'en' ? 'Connect API Key in Vault' : 'Připojit API klíč v Trezoru'}</span>
+                        <span>→</span>
+                      </button>
+                    )}
+
+                    <p className="text-[11px] font-mono text-center text-[#546e7a]">
+                      {hasApiKey
+                        ? (locale === 'en' ? `✓ Model ${activeProviderName} is ready` : `✓ Model ${activeProviderName} je připraven`)
+                        : (locale === 'en' ? 'Supports Gemini, GPT-4o, Claude & Ollama' : 'Podpora Gemini, GPT-4o, Claude i Ollama')}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="pt-3 border-t border-slate-100 mt-5 text-[11px] font-mono text-[#546e7a] flex items-center justify-between">
+                  <span>{locale === 'en' ? 'Interactive consultant' : 'Interaktivní konzultant'}</span>
+                  <span className="font-bold text-[#00695c]">bAIright Chat</span>
+                </div>
+              </div>
+            )}
+
+            {/* CARD 2 (RIGHT): COPY PROMPT TO CLIPBOARD */}
+            <div
+              className="flex flex-col justify-between p-6 sm:p-7 rounded-2xl bg-white border border-slate-200 border-t-4 border-t-[#1e293b] text-[#263238] shadow-xs hover:shadow-md transition-all text-left"
+            >
+              <div className="space-y-4">
+                <div className="flex items-center justify-between w-full">
+                  <span className="text-[11px] font-mono font-bold uppercase tracking-wider text-[#1e293b] bg-slate-100 px-2.5 py-1 rounded-md border border-slate-300">
+                    {locale === 'en' ? 'Option 2 • 100% Free' : 'Možnost 2 • 100% Zdarma'}
+                  </span>
+                  <span className="text-[10px] font-mono px-2 py-0.5 rounded font-bold bg-[#e0f2f1] text-[#00695c] border border-[#80cbc4]">
+                    {locale === 'en' ? 'No API Key Needed' : 'Bez API klíče'}
+                  </span>
+                </div>
+
+                <div>
+                  <h3 className="text-lg sm:text-xl font-black text-[#263238]">
+                    {locale === 'en' ? 'Copy Prompt to Clipboard' : 'Zkopírovat prompt do schránky'}
+                  </h3>
+                  <p className="text-xs sm:text-sm text-[#546e7a] mt-1 leading-relaxed">
+                    {locale === 'en'
+                      ? 'Calibrated prompt ready to paste into ChatGPT, Claude, Gemini, or Perplexity.'
+                      : 'Kompletní vyladěný prompt pro vložení do ChatGPT, Claude, Gemini či Perplexity.'}
+                  </p>
+                </div>
+
+                {/* Big Action Button & Subtext */}
+                <div className="pt-2 space-y-2">
+                  <button
+                    type="button"
+                    onClick={() => handleCopyText(currentLivePrompt, 'system_prompt')}
+                    className={`w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl font-bold text-xs sm:text-sm shadow-xs transition-all cursor-pointer ${
+                      copiedSnippetType === 'system_prompt'
+                        ? 'bg-[#009688] hover:bg-[#00897b] text-white'
+                        : 'bg-[#1e293b] hover:bg-[#0f172a] text-white'
+                    }`}
+                  >
+                    <span>{copiedSnippetType === 'system_prompt' ? '✓' : '⧉'}</span>
+                    <span>
+                      {copiedSnippetType === 'system_prompt'
+                        ? (locale === 'en' ? 'Prompt Copied to Clipboard!' : 'Prompt zkopírován do schránky!')
+                        : (locale === 'en' ? 'Copy Full Prompt (1 Click)' : 'Zkopírovat prompt (1 kliknutí)')}
+                    </span>
+                  </button>
+
+                  <p className="text-[11px] font-mono text-center text-[#546e7a]">
+                    {locale === 'en' ? 'Paste with Ctrl+V / Cmd+V into any AI chat' : 'Vložte zkratkou Ctrl+V / Cmd+V do libovolného chatu'}
+                  </p>
+                </div>
+
+                {/* Single-line prompt preview with inspector link */}
+                <div className="px-3 py-2 rounded-lg bg-slate-50 border border-slate-200 text-[11px] font-mono text-slate-600 flex items-center justify-between gap-2">
+                  <span className="truncate text-slate-500 max-w-[220px]">
+                    {currentLivePrompt.slice(0, 45)}...
+                  </span>
+                  <button
+                    type="button"
+                    onClick={handleOpenPromptInspector}
+                    className="text-[#009688] hover:underline cursor-pointer font-bold shrink-0 lowercase text-[10px]"
+                  >
+                    {locale === 'en' ? 'view full prompt' : 'zobrazit celý prompt'}
+                  </button>
+                </div>
+              </div>
+
+              <div className="pt-3 border-t border-slate-100 mt-5 text-[11px] font-mono text-[#546e7a] flex items-center justify-between">
+                <span>{locale === 'en' ? 'Free tier ready' : 'Funguje i ve free verzích'}</span>
+                <span className="font-bold text-[#1e293b]">ChatGPT • Claude • Gemini</span>
+              </div>
+            </div>
+          </div>
+
+          {/* TIER 2: SECONDARY ACTIONS & PORTABLE EXPORT (.AGENT.MD) */}
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 p-4 rounded-xl bg-slate-50 border border-slate-200 text-left">
+            <div className="space-y-0.5">
+              <div className="flex items-center gap-2">
+                <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-slate-600 bg-white px-2 py-0.5 rounded border border-slate-200">
+                  {locale === 'en' ? 'Portable File' : 'Soubor'}
+                </span>
+                <span className="text-xs font-bold text-[#263238]">
+                  {locale === 'en' ? 'Download .agent.md Configuration' : 'Stáhnout .agent.md soubor'}
+                </span>
+              </div>
+              <p className="text-xs text-[#546e7a]">
+                {locale === 'en'
+                  ? 'Markdown specification with all rules for Custom GPTs, Claude Projects, or local agents.'
+                  : 'Otevřená specifikace se všemi pravidly pro Custom GPTs, Claude Projects nebo lokální agenty.'}
+              </p>
+            </div>
+
+            <button
+              type="button"
+              onClick={handleDownloadAgentMarkdown}
+              className="px-3.5 py-2 rounded-lg bg-white hover:bg-slate-100 border border-slate-300 text-[#263238] text-xs font-mono font-bold transition-all cursor-pointer shrink-0 shadow-xs flex items-center gap-1.5"
+            >
+              <span>{locale === 'en' ? 'Download .agent.md' : 'Stáhnout .agent.md soubor'}</span>
+              <span>↓</span>
+            </button>
+          </div>
+
+          

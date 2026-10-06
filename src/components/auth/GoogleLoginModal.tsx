@@ -28,13 +28,13 @@ export const GoogleLoginModal: React.FC<GoogleLoginModalProps> = ({ isOpen, onCl
       onClick={onClose}
     >
       <div 
-        className="relative w-full max-w-md max-h-[90vh] overflow-y-auto my-auto p-6 sm:p-8 rounded-2xl bg-[#09111e]/95 border border-cyan-500/40 shadow-[0_0_50px_rgba(6,182,212,0.25)] text-slate-100 space-y-5"
+        className="relative w-full max-w-md max-h-[90vh] overflow-y-auto my-auto p-6 sm:p-8 rounded-2xl bg-white border border-slate-200 shadow-2xl text-[#263238] space-y-5"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Close Button */}
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 p-2 rounded-lg text-slate-400 hover:text-slate-100 hover:bg-slate-800/60 transition-colors cursor-pointer"
+          className="absolute top-4 right-4 p-2 rounded-lg text-[#607d8b] hover:text-[#263238] hover:bg-slate-800/60 transition-colors cursor-pointer"
           title="Zavřít"
         >
           <X className="w-5 h-5" />
@@ -45,35 +45,35 @@ export const GoogleLoginModal: React.FC<GoogleLoginModalProps> = ({ isOpen, onCl
           <div className="mx-auto w-12 h-12 rounded-xl bg-gradient-to-tr from-cyan-600/30 to-teal-500/30 border border-cyan-400/40 flex items-center justify-center text-cyan-300 shadow-md">
             <LogIn className="w-6 h-6 text-cyan-400" />
           </div>
-          <h2 className="text-xl font-bold font-sans text-slate-100">
+          <h2 className="text-xl font-bold font-sans text-[#263238]">
             {locale === "en" ? "Sign in to bAIright" : "Přihlášení do bAIright"}
           </h2>
-          <p className="text-xs text-slate-400 font-mono">
+          <p className="text-xs text-[#607d8b] font-mono">
             {locale === "en" ? "Unlock the full potential of your AI shopping consultant" : "Odemkněte plný potenciál AI nákupního poradce"}
           </p>
         </div>
 
         {/* Benefits Info Section */}
-        <div className="space-y-3 bg-[#060c18] p-4 rounded-xl border border-slate-800/80 text-xs">
+        <div className="space-y-3 bg-[#f4f6f8] p-4 rounded-xl border border-slate-200 text-xs">
           <div className="flex items-start gap-2.5">
             <Sparkles className="w-4 h-4 text-cyan-400 shrink-0 mt-0.5" />
             <div>
-              <span className="font-semibold text-slate-200">{locale === "en" ? "Persisted Market Research" : "Persistovaný výzkum trhu"}</span>
-              <p className="text-slate-400 text-[11px]">Ukládejte si nalezené parametry a vygenerované prompty do svého profilu.</p>
+              <span className="font-semibold text-[#263238]">{locale === "en" ? "Persisted Market Research" : "Persistovaný výzkum trhu"}</span>
+              <p className="text-[#607d8b] text-[11px]">Ukládejte si nalezené parametry a vygenerované prompty do svého profilu.</p>
             </div>
           </div>
           <div className="flex items-start gap-2.5">
             <Database className="w-4 h-4 text-teal-400 shrink-0 mt-0.5" />
             <div>
-              <span className="font-semibold text-slate-200">{locale === "en" ? "Personal RAG Memory" : "Osobní RAG Paměť"}</span>
-              <p className="text-slate-400 text-[11px]">{locale === "en" ? "Sync your preferences, sizes, and requirements" : "Synchronizujte své preference, velikosti a biomechanická data"}.</p>
+              <span className="font-semibold text-[#263238]">{locale === "en" ? "Personal RAG Memory" : "Osobní RAG Paměť"}</span>
+              <p className="text-[#607d8b] text-[11px]">{locale === "en" ? "Sync your preferences, sizes, and requirements" : "Synchronizujte své preference, velikosti a biomechanická data"}.</p>
             </div>
           </div>
           <div className="flex items-start gap-2.5">
             <Shield className="w-4 h-4 text-cyan-400 shrink-0 mt-0.5" />
             <div>
-              <span className="font-semibold text-slate-200">{locale === "en" ? "Privacy Protection & BYOK" : "Ochrana soukromí & BYOK"}</span>
-              <p className="text-slate-400 text-[11px]">Klíče API jsou bezpečně uchovávány a nikdy neuniknou do bundle.</p>
+              <span className="font-semibold text-[#263238]">{locale === "en" ? "Privacy Protection & BYOK" : "Ochrana soukromí & BYOK"}</span>
+              <p className="text-[#607d8b] text-[11px]">Klíče API jsou bezpečně uchovávány a nikdy neuniknou do bundle.</p>
             </div>
           </div>
         </div>
@@ -83,7 +83,7 @@ export const GoogleLoginModal: React.FC<GoogleLoginModalProps> = ({ isOpen, onCl
           <button
             onClick={() => loginWithGoogle()}
             disabled={isLoading}
-            className="w-full max-w-[320px] flex items-center justify-center gap-3 px-5 py-3 rounded-full bg-slate-900 hover:bg-slate-850 border border-cyan-500/40 hover:border-cyan-400 text-slate-100 font-semibold text-sm transition-all shadow-md cursor-pointer hover:shadow-[0_0_20px_rgba(6,182,212,0.25)] hover:scale-[1.02] active:scale-[0.98]"
+            className="w-full max-w-[320px] flex items-center justify-center gap-3 px-5 py-3 rounded-full bg-slate-900 hover:bg-slate-850 border border-cyan-500/40 hover:border-cyan-400 text-[#263238] font-semibold text-sm transition-all shadow-md cursor-pointer hover:shadow-[0_0_20px_rgba(6,182,212,0.25)] hover:scale-[1.02] active:scale-[0.98]"
           >
             <svg className="w-5 h-5 shrink-0" viewBox="0 0 24 24">
               <path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.665-5.17 3.665-9.17z"/>

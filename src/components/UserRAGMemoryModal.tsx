@@ -116,37 +116,37 @@ export const UserRAGMemoryModal: React.FC<UserRAGMemoryModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-950/80 backdrop-blur-md animate-in fade-in duration-200">
-      <div className="relative w-full max-w-4xl max-h-[92vh] bg-[#050b14] border border-cyan-500/30 rounded-3xl shadow-2xl shadow-cyan-950/50 flex flex-col overflow-hidden">
+      <div className="relative w-full max-w-4xl max-h-[92vh] bg-white border border-slate-200 rounded-2xl shadow-2xl shadow-cyan-950/50 flex flex-col overflow-hidden">
         
         {/* Header */}
-        <div className="p-5 sm:p-6 border-b border-cyan-500/20 bg-gradient-to-r from-[#071322] via-[#091a30] to-[#050b14] flex items-center justify-between">
+        <div className="p-5 sm:p-6 border-b border-slate-200 bg-white flex items-center justify-between">
           <div className="flex items-center gap-3.5">
-            <div className="w-10 h-10 rounded-2xl bg-cyan-950 border border-cyan-400/40 text-cyan-300 flex items-center justify-center shadow-lg shadow-cyan-950/50">
-              <Brain className="w-5 h-5 text-cyan-400" />
+            <div className="w-10 h-10 rounded-xl bg-[#e1f5fe] border border-[#b3e5fc] text-[#01579b] flex items-center justify-center shadow-xs">
+              <Brain className="w-5 h-5 text-[#01579b]" />
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h2 className="text-lg font-black text-white tracking-tight">
+                <h2 className="text-lg font-black text-[#263238] tracking-tight">
                   {locale === 'en' ? 'AI Memory & Assessment History' : 'Paměť AI & Historie Posudků'}
                 </h2>
-                <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-cyan-950 text-cyan-300 border border-cyan-500/40 font-bold">
+                <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-[#e1f5fe] text-[#01579b] border border-[#b3e5fc] font-bold">
                   {userName}
                 </span>
               </div>
-              <p className="text-xs text-slate-400 mt-0.5">
+              <p className="text-xs text-[#607d8b] mt-0.5">
                 Přehled osobního profilu, biometrických faktů a časová osa nákupních protokolů.
               </p>
             </div>
           </div>
 
           {/* Integrated Clean Cyberglass Pill Tabs */}
-          <div className="hidden sm:flex items-center gap-1.5 bg-[#050c18] p-1 rounded-2xl border border-cyan-500/20">
+          <div className="hidden sm:flex items-center gap-1.5 bg-[#f4f6f8] p-1 rounded-2xl border border-slate-200">
             <button
               onClick={() => setActiveTab('history')}
               className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
                 activeTab === 'history'
                   ? 'bg-cyan-950 text-cyan-300 border border-cyan-400/50 shadow-sm'
-                  : 'text-slate-400 hover:text-white'
+                  : 'text-[#607d8b] hover:text-[#263238]'
               }`}
             >
               <Calendar className="w-3.5 h-3.5" />
@@ -158,7 +158,7 @@ export const UserRAGMemoryModal: React.FC<UserRAGMemoryModalProps> = ({
               className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
                 activeTab === 'prompts'
                   ? 'bg-cyan-950 text-cyan-300 border border-cyan-400/50 shadow-sm'
-                  : 'text-slate-400 hover:text-white'
+                  : 'text-[#607d8b] hover:text-[#263238]'
               }`}
             >
               <Terminal className="w-3.5 h-3.5" />
@@ -170,7 +170,7 @@ export const UserRAGMemoryModal: React.FC<UserRAGMemoryModalProps> = ({
               className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
                 activeTab === 'facts'
                   ? 'bg-cyan-950 text-cyan-300 border border-cyan-400/50 shadow-sm'
-                  : 'text-slate-400 hover:text-white'
+                  : 'text-[#607d8b] hover:text-[#263238]'
               }`}
             >
               <FileText className="w-3.5 h-3.5" />
@@ -180,7 +180,7 @@ export const UserRAGMemoryModal: React.FC<UserRAGMemoryModalProps> = ({
 
           <button
             onClick={onClose}
-            className="p-2 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800/60 transition-colors cursor-pointer"
+            className="p-2 rounded-xl text-[#607d8b] hover:text-[#263238] hover:bg-slate-800/60 transition-colors cursor-pointer"
           >
             <X className="w-5 h-5" />
           </button>
@@ -189,10 +189,10 @@ export const UserRAGMemoryModal: React.FC<UserRAGMemoryModalProps> = ({
 
 
         {/* Global explanation banner */}
-        <div className="mx-5 sm:mx-6 mt-4 p-3 rounded-2xl bg-[#081528] border border-cyan-500/25 text-xs text-slate-300">
+        <div className="mx-5 sm:mx-6 mt-4 p-3 rounded-2xl bg-[#f4f6f8] border border-slate-200 text-xs text-[#455a64]">
           <div className="flex items-start gap-2.5">
             <Sparkles className="w-4 h-4 text-cyan-400 shrink-0 mt-0.5" />
-            <p className="text-[11px] text-slate-300 leading-relaxed">
+            <p className="text-[11px] text-[#455a64] leading-relaxed">
               Při každém dalším dotazu agent nezačíná od nuly. Vytáhne z paměti vaše minulé specifikace i preferenční fakta 
               a automaticky sestaví <strong>kontextově obohacený prompt</strong>. Hotové prompty se ukládají výhradně po dokončení posledního kroku.
             </p>
@@ -203,20 +203,20 @@ export const UserRAGMemoryModal: React.FC<UserRAGMemoryModalProps> = ({
         <div className="flex-1 overflow-y-auto p-5 sm:p-6 space-y-4">
 
           {/* TOP CARD: OSOBNÍ PROFIL A KLÍČOVÉ BIOMETRICKÉ ÚDAJE UŽIVATELE (ALWAYS VISIBLE AT TOP) */}
-          <div className="p-4 rounded-2xl bg-gradient-to-r from-[#081628] to-[#0a1e36] border border-cyan-500/40 shadow-lg space-y-3">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-cyan-500/20 pb-2.5">
+          <div className="p-4 rounded-xl bg-[#f8fafc] border border-slate-200 shadow-xs space-y-3">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-200 pb-2.5">
               <div className="flex items-center gap-2.5">
                 <div className="w-8 h-8 rounded-xl bg-cyan-950 border border-cyan-400/40 text-cyan-300 flex items-center justify-center font-bold text-xs">
                   <User className="w-4 h-4 text-cyan-400" />
                 </div>
                 <div>
                   <div className="flex items-center gap-2">
-                    <span className="font-extrabold text-sm text-white">{userName}</span>
+                    <span className="font-extrabold text-sm text-[#263238]">{userName}</span>
                     <span className="text-[9px] font-mono px-2 py-0.5 rounded-full bg-cyan-950 text-cyan-300 border border-cyan-500/40 font-bold uppercase">
                       Aktivní osobní profil
                     </span>
                   </div>
-                  <span className="text-[10px] font-mono text-slate-400">
+                  <span className="text-[10px] font-mono text-[#607d8b]">
                     Osobní & biometrické údaje používané automaticky pro obohacení AI promptů
                   </span>
                 </div>
@@ -227,7 +227,7 @@ export const UserRAGMemoryModal: React.FC<UserRAGMemoryModalProps> = ({
                   setActiveTab('facts');
                   setIsAdding(true);
                 }}
-                className="text-xs font-mono font-semibold text-cyan-300 hover:text-white flex items-center gap-1.5 px-3 py-1 rounded-xl bg-cyan-950/80 border border-cyan-500/30 transition-all cursor-pointer self-start sm:self-auto"
+                className="text-xs font-mono font-semibold text-cyan-300 hover:text-[#263238] flex items-center gap-1.5 px-3 py-1 rounded-xl bg-cyan-950/80 border border-slate-200 transition-all cursor-pointer self-start sm:self-auto"
               >
                 <Plus className="w-3.5 h-3.5 text-cyan-400" />
                 <span>Přidat profilový fakt</span>
@@ -237,12 +237,12 @@ export const UserRAGMemoryModal: React.FC<UserRAGMemoryModalProps> = ({
             {/* Display Personal & Biometric Items Grid */}
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2 font-mono text-xs">
               {/* Item 1: Jméno */}
-              <div className="p-2.5 rounded-xl bg-[#050c18] border border-cyan-500/20 flex flex-col justify-between">
-                <span className="text-[9px] text-slate-400 uppercase font-bold flex items-center gap-1">
+              <div className="p-2.5 rounded-xl bg-[#f4f6f8] border border-slate-200 flex flex-col justify-between">
+                <span className="text-[9px] text-[#607d8b] uppercase font-bold flex items-center gap-1">
                   <User className="w-3 h-3 text-cyan-400" />
                   Jméno & Uživatel
                 </span>
-                <span className="font-bold text-white text-xs mt-1 truncate">{userName}</span>
+                <span className="font-bold text-[#263238] text-xs mt-1 truncate">{userName}</span>
               </div>
 
               {/* Display active biometric & medical facts */}
@@ -251,10 +251,10 @@ export const UserRAGMemoryModal: React.FC<UserRAGMemoryModalProps> = ({
                   <div
                     key={fact.id}
                     className={`p-2.5 rounded-xl border flex flex-col justify-between transition-colors ${
-                      fact.isEnriched !== false ? 'bg-[#050c18] border-cyan-500/30 text-white' : 'bg-[#040812] border-slate-800 text-slate-500 opacity-60'
+                      fact.isEnriched !== false ? 'bg-[#f4f6f8] border-slate-200 text-[#263238]' : 'bg-[#040812] border-slate-200 text-slate-500 opacity-60'
                     }`}
                   >
-                    <span className="text-[9px] text-slate-400 uppercase font-bold flex items-center gap-1 truncate">
+                    <span className="text-[9px] text-[#607d8b] uppercase font-bold flex items-center gap-1 truncate">
                       <Fingerprint className="w-3 h-3 text-cyan-400 shrink-0" />
                       {formatValueDisplay(fact.label)}
                     </span>
@@ -265,19 +265,19 @@ export const UserRAGMemoryModal: React.FC<UserRAGMemoryModalProps> = ({
                 ))
               ) : (
                 <>
-                  <div className="p-2.5 rounded-xl bg-[#050c18] border border-slate-800/80 flex flex-col justify-between opacity-80">
-                    <span className="text-[9px] text-slate-400 uppercase font-bold flex items-center gap-1">
+                  <div className="p-2.5 rounded-xl bg-[#f4f6f8] border border-slate-200/80 flex flex-col justify-between opacity-80">
+                    <span className="text-[9px] text-[#607d8b] uppercase font-bold flex items-center gap-1">
                       <Fingerprint className="w-3 h-3 text-purple-400" />
                       Biometrie & Míry
                     </span>
-                    <span className="font-semibold text-slate-300 text-xs mt-1">Automaticky z dotazníků</span>
+                    <span className="font-semibold text-[#455a64] text-xs mt-1">Automaticky z dotazníků</span>
                   </div>
-                  <div className="p-2.5 rounded-xl bg-[#050c18] border border-slate-800/80 flex flex-col justify-between opacity-80">
-                    <span className="text-[9px] text-slate-400 uppercase font-bold flex items-center gap-1">
+                  <div className="p-2.5 rounded-xl bg-[#f4f6f8] border border-slate-200/80 flex flex-col justify-between opacity-80">
+                    <span className="text-[9px] text-[#607d8b] uppercase font-bold flex items-center gap-1">
                       <Heart className="w-3 h-3 text-teal-400" />
                       Pohybová citlivost
                     </span>
-                    <span className="font-semibold text-slate-300 text-xs mt-1">Zapojeno v RAG paměti</span>
+                    <span className="font-semibold text-[#455a64] text-xs mt-1">Zapojeno v RAG paměti</span>
                   </div>
                 </>
               )}
@@ -288,7 +288,7 @@ export const UserRAGMemoryModal: React.FC<UserRAGMemoryModalProps> = ({
           {activeTab === 'history' && (
             <div className="space-y-4">
               <div className="flex items-center justify-between">
-                <span className="text-xs font-mono uppercase tracking-wider text-slate-400">
+                <span className="text-xs font-mono uppercase tracking-wider text-[#607d8b]">
                   Uložené nákupní protokoly a specifikace s datem:
                 </span>
                 <span className="text-[10px] font-mono text-cyan-400">
@@ -297,7 +297,7 @@ export const UserRAGMemoryModal: React.FC<UserRAGMemoryModalProps> = ({
               </div>
 
               {(assessments || []).length === 0 ? (
-                <div className="py-12 text-center text-slate-400 space-y-2">
+                <div className="py-12 text-center text-[#607d8b] space-y-2">
                   <FileText className="w-8 h-8 text-slate-600 mx-auto" />
                   <p className="text-xs">Zatím nemáte dokončené žádné vyhodnocení.</p>
                   <p className="text-[11px] text-slate-500">
@@ -313,12 +313,12 @@ export const UserRAGMemoryModal: React.FC<UserRAGMemoryModalProps> = ({
                     return (
                       <div
                         key={assessment.id}
-                        className="rounded-2xl border border-cyan-500/30 bg-[#071120] overflow-hidden shadow-md transition-all"
+                        className="rounded-2xl border border-slate-200 bg-white overflow-hidden shadow-md transition-all"
                       >
                         {/* Assessment Card Header (Clickable Accordion) */}
                         <div
                           onClick={() => setExpandedAssessmentId(isExpanded ? null : assessment.id)}
-                          className="p-4 bg-[#091526] hover:bg-[#0c1c34] transition-colors cursor-pointer flex items-center justify-between gap-3"
+                          className="p-4 bg-[#f4f6f8] hover:bg-[#0c1c34] transition-colors cursor-pointer flex items-center justify-between gap-3"
                         >
                           <div className="flex items-center gap-3">
                             <div className="w-9 h-9 rounded-xl bg-cyan-950 border border-cyan-500/40 text-cyan-300 flex items-center justify-center font-mono text-xs font-bold shrink-0">
@@ -326,19 +326,19 @@ export const UserRAGMemoryModal: React.FC<UserRAGMemoryModalProps> = ({
                             </div>
                             <div>
                               <div className="flex items-center gap-2 flex-wrap">
-                                <span className="font-extrabold text-sm text-white">
+                                <span className="font-extrabold text-sm text-[#263238]">
                                   {assessment.missionName}
                                 </span>
                                 <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-cyan-950/80 text-cyan-300 border border-cyan-500/40 font-semibold">
                                   {assessment.status === 'active_prescription' ? 'Aktivní doporučení' : 'Archiv'}
                                 </span>
                                 {paramCount > 0 && (
-                                  <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-slate-900 text-slate-300 border border-slate-700/80 font-semibold">
+                                  <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-slate-900 text-[#455a64] border border-slate-700/80 font-semibold">
                                     {paramCount} specifikací
                                   </span>
                                 )}
                               </div>
-                              <div className="flex items-center gap-3 text-[10px] font-mono text-slate-400 mt-0.5">
+                              <div className="flex items-center gap-3 text-[10px] font-mono text-[#607d8b] mt-0.5">
                                 <span className="flex items-center gap-1 text-cyan-300 font-bold">
                                   <Clock className="w-3 h-3" />
                                   {assessment.dateFormatted}
@@ -368,10 +368,10 @@ export const UserRAGMemoryModal: React.FC<UserRAGMemoryModalProps> = ({
                         {isExpanded && (
                           <div className="p-4 space-y-3 text-xs border-t border-cyan-500/15 animate-in fade-in">
                             <div>
-                              <span className="text-[10px] font-mono text-slate-400 uppercase block mb-1">
+                              <span className="text-[10px] font-mono text-[#607d8b] uppercase block mb-1">
                                 Nákupní profil & specifika:
                               </span>
-                              <p className="font-bold text-white text-xs leading-snug">
+                              <p className="font-bold text-[#263238] text-xs leading-snug">
                                 {assessment.diagnosisSummary}
                               </p>
                             </div>
@@ -384,8 +384,8 @@ export const UserRAGMemoryModal: React.FC<UserRAGMemoryModalProps> = ({
                                   .map(([key, val]) => {
                                     const displayKey = key === 'weight' ? 'Váha' : key === 'width' ? 'Šířka' : key === 'knee' ? 'Klouby' : key === 'dropLimit' ? 'Limit dropu' : key;
                                     return (
-                                      <div key={key} className="px-2.5 py-1.5 rounded-xl bg-[#050c18] border border-slate-800 text-center shrink-0">
-                                        <span className="text-[9px] font-mono text-slate-400 block uppercase">{displayKey}</span>
+                                      <div key={key} className="px-2.5 py-1.5 rounded-xl bg-[#f4f6f8] border border-slate-200 text-center shrink-0">
+                                        <span className="text-[9px] font-mono text-[#607d8b] block uppercase">{displayKey}</span>
                                         <span className="font-mono font-bold text-cyan-300 text-xs">{formatValueDisplay(val)}</span>
                                       </div>
                                     );
@@ -403,18 +403,18 @@ export const UserRAGMemoryModal: React.FC<UserRAGMemoryModalProps> = ({
                                 {(assessment.recommendedModels || []).map((shoe) => (
                                   <div
                                     key={shoe.id}
-                                    className="p-3 rounded-xl bg-[#050c18] border border-cyan-500/20 flex flex-col sm:flex-row sm:items-center justify-between gap-2"
+                                    className="p-3 rounded-xl bg-[#f4f6f8] border border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-2"
                                   >
                                     <div>
                                       <div className="flex items-center gap-2">
-                                        <span className="font-extrabold text-white text-xs">
+                                        <span className="font-extrabold text-[#263238] text-xs">
                                           {shoe.brand} {shoe.model}
                                         </span>
                                         <span className="text-[9px] font-mono px-1.5 py-0.2 rounded bg-cyan-950 text-cyan-300 border border-cyan-500/40">
                                           {shoe.badge}
                                         </span>
                                       </div>
-                                      <p className="text-[11px] text-slate-300 mt-1 leading-snug">
+                                      <p className="text-[11px] text-[#455a64] mt-1 leading-snug">
                                         {shoe.rationale}
                                       </p>
                                     </div>
@@ -425,7 +425,7 @@ export const UserRAGMemoryModal: React.FC<UserRAGMemoryModalProps> = ({
                                           {shoe.priceCzk.toLocaleString('cs-CZ')} Kč
                                         </span>
                                       )}
-                                      <span className="text-[9px] font-mono text-slate-400">
+                                      <span className="text-[9px] font-mono text-[#607d8b]">
                                         Shoda: {shoe.matchScore}%
                                       </span>
                                     </div>
@@ -433,14 +433,14 @@ export const UserRAGMemoryModal: React.FC<UserRAGMemoryModalProps> = ({
                                 ))}
                               </div>
 
-                              <div className="p-3 rounded-xl bg-cyan-950/30 border border-cyan-500/20 text-[11px] text-slate-300 leading-relaxed mt-2">
+                              <div className="p-3 rounded-xl bg-cyan-950/30 border border-slate-200 text-[11px] text-[#455a64] leading-relaxed mt-2">
                                 <strong className="text-cyan-200 block mb-0.5">Expertní zpráva nákupního poradce a odůvodnění:</strong>
                                 {assessment.clinicalReport}
                               </div>
 
                               {/* Completed Prompt (Saved after final step) */}
                               {assessment.completedPrompt && (
-                                <div className="p-3.5 rounded-xl bg-[#040914] border border-cyan-500/30 space-y-2 mt-3">
+                                <div className="p-3.5 rounded-xl bg-[#f4f6f8] border border-slate-200 space-y-2 mt-3">
                                   <div className="flex items-center justify-between">
                                     <div className="flex items-center gap-1.5 text-xs font-mono font-bold text-cyan-300">
                                       <Terminal className="w-3.5 h-3.5 text-cyan-400" />
@@ -448,13 +448,13 @@ export const UserRAGMemoryModal: React.FC<UserRAGMemoryModalProps> = ({
                                     </div>
                                     <button
                                       onClick={() => copyToClipboard(assessment.completedPrompt!, assessment.id)}
-                                      className="px-2.5 py-1 rounded bg-slate-900 hover:bg-slate-800 text-[11px] font-mono text-cyan-300 border border-cyan-500/30 flex items-center gap-1 transition-colors cursor-pointer"
+                                      className="px-2.5 py-1 rounded bg-slate-900 hover:bg-slate-800 text-[11px] font-mono text-cyan-300 border border-slate-200 flex items-center gap-1 transition-colors cursor-pointer"
                                     >
                                       <Copy className="w-3 h-3" />
                                       <span>{copiedPromptId === assessment.id ? 'Zkopírováno!' : 'Kopírovat'}</span>
                                     </button>
                                   </div>
-                                  <div className="rounded-lg bg-slate-950 p-3 font-mono text-xs text-slate-300 leading-relaxed whitespace-pre-wrap max-h-44 overflow-y-auto border border-slate-800/80 selection:bg-cyan-500/30">
+                                  <div className="rounded-lg bg-slate-950 p-3 font-mono text-xs text-[#455a64] leading-relaxed whitespace-pre-wrap max-h-44 overflow-y-auto border border-slate-200/80 selection:bg-cyan-500/30">
                                     {assessment.completedPrompt}
                                   </div>
                                 </div>
@@ -474,7 +474,7 @@ export const UserRAGMemoryModal: React.FC<UserRAGMemoryModalProps> = ({
           {activeTab === 'prompts' && (
             <div className="space-y-4">
               <div className="flex items-center justify-between">
-                <span className="text-xs font-mono uppercase tracking-wider text-slate-400">
+                <span className="text-xs font-mono uppercase tracking-wider text-[#607d8b]">
                   Uložené hotové prompty po dokončení dotazníku ({(completedPrompts || []).length}):
                 </span>
                 {(completedPrompts || []).length > 0 && (
@@ -488,17 +488,17 @@ export const UserRAGMemoryModal: React.FC<UserRAGMemoryModalProps> = ({
                 )}
               </div>
 
-              <div className="p-3.5 rounded-2xl bg-[#081528] border border-cyan-500/25 text-xs text-slate-300 flex items-start gap-2.5">
+              <div className="p-3.5 rounded-2xl bg-[#f4f6f8] border border-slate-200 text-xs text-[#455a64] flex items-start gap-2.5">
                 <Sparkles className="w-4 h-4 text-cyan-400 shrink-0 mt-0.5" />
-                <p className="text-[11px] text-slate-300 leading-relaxed">
+                <p className="text-[11px] text-[#455a64] leading-relaxed">
                   <strong>Pravidlo perzistence:</strong> Zde se ukládají <strong>výhradně hotové prompty</strong> po úspěšném projití a odeslání posledního kroku dotazníku. Žádné rozpracované mezikroky se do úložiště neukládají.
                 </p>
               </div>
 
               {(completedPrompts || []).length === 0 ? (
-                <div className="py-12 text-center text-slate-400 space-y-2">
+                <div className="py-12 text-center text-[#607d8b] space-y-2">
                   <Terminal className="w-8 h-8 text-slate-600 mx-auto" />
-                  <p className="text-xs font-semibold text-slate-300">Zatím nemáte uložený žádný dokončený prompt.</p>
+                  <p className="text-xs font-semibold text-[#455a64]">Zatím nemáte uložený žádný dokončený prompt.</p>
                   <p className="text-[11px] text-slate-500 max-w-md mx-auto">
                     Dokončete všechny kroky dotazníku nákupního agenta a po vygenerování doporučení se finální prompt automaticky uloží do této knihovny.
                   </p>
@@ -506,14 +506,14 @@ export const UserRAGMemoryModal: React.FC<UserRAGMemoryModalProps> = ({
               ) : (
                 <div className="space-y-3.5">
                   {(completedPrompts || []).map((cp) => (
-                    <div key={cp.id} className="rounded-2xl border border-cyan-500/30 bg-[#071120] p-4 space-y-3">
+                    <div key={cp.id} className="rounded-2xl border border-slate-200 bg-white p-4 space-y-3">
                       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-cyan-500/15 pb-2.5">
                         <div className="flex items-center gap-2 flex-wrap">
-                          <span className="font-bold text-sm text-white">{cp.agentName}</span>
+                          <span className="font-bold text-sm text-[#263238]">{cp.agentName}</span>
                           <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-cyan-950/90 text-cyan-300 border border-cyan-500/40">
                             {cp.category}
                           </span>
-                          <span className="text-[10px] font-mono text-slate-400 flex items-center gap-1">
+                          <span className="text-[10px] font-mono text-[#607d8b] flex items-center gap-1">
                             <Clock className="w-3 h-3" />
                             {cp.dateFormatted}
                           </span>
@@ -521,14 +521,14 @@ export const UserRAGMemoryModal: React.FC<UserRAGMemoryModalProps> = ({
                         <div className="flex items-center gap-1.5 self-end sm:self-auto">
                           <button
                             onClick={() => PromptStorageService.downloadPromptMarkdown(cp)}
-                            className="p-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-slate-400 hover:text-white border border-slate-800 text-xs transition-colors cursor-pointer"
+                            className="p-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-[#607d8b] hover:text-[#263238] border border-slate-200 text-xs transition-colors cursor-pointer"
                             title="Stáhnout prompt jako .md soubor"
                           >
                             <Download className="w-3.5 h-3.5 text-cyan-400" />
                           </button>
                           <button
                             onClick={() => copyToClipboard(cp.prompt, cp.id)}
-                            className="px-2.5 py-1 rounded-lg bg-slate-900 hover:bg-slate-800 text-xs font-mono text-cyan-300 border border-cyan-500/30 flex items-center gap-1.5 transition-colors cursor-pointer"
+                            className="px-2.5 py-1 rounded-lg bg-slate-900 hover:bg-slate-800 text-xs font-mono text-cyan-300 border border-slate-200 flex items-center gap-1.5 transition-colors cursor-pointer"
                           >
                             <Copy className="w-3 h-3" />
                             <span>{copiedPromptId === cp.id ? 'Zkopírováno!' : 'Kopírovat'}</span>
@@ -544,12 +544,12 @@ export const UserRAGMemoryModal: React.FC<UserRAGMemoryModalProps> = ({
                       </div>
 
                       {cp.answersSummary && (
-                        <p className="text-[11px] font-mono text-cyan-300/80 bg-[#050c18] px-3 py-1.5 rounded-lg border border-slate-800/80">
+                        <p className="text-[11px] font-mono text-cyan-300/80 bg-[#f4f6f8] px-3 py-1.5 rounded-lg border border-slate-200/80">
                           {formatValueDisplay(cp.answersSummary)}
                         </p>
                       )}
 
-                      <div className="rounded-xl bg-slate-950 p-3.5 font-mono text-xs text-slate-300 leading-relaxed whitespace-pre-wrap max-h-56 overflow-y-auto border border-slate-800/90 selection:bg-cyan-500/30">
+                      <div className="rounded-xl bg-slate-950 p-3.5 font-mono text-xs text-[#455a64] leading-relaxed whitespace-pre-wrap max-h-56 overflow-y-auto border border-slate-200/90 selection:bg-cyan-500/30">
                         {cp.prompt}
                       </div>
                     </div>
@@ -563,12 +563,12 @@ export const UserRAGMemoryModal: React.FC<UserRAGMemoryModalProps> = ({
           {activeTab === 'facts' && (
             <div className="space-y-3">
               <div className="flex items-center justify-between mb-1">
-                <span className="text-xs font-mono uppercase tracking-wider text-slate-400">
+                <span className="text-xs font-mono uppercase tracking-wider text-[#607d8b]">
                   Aktivní fakta pro obohacení promptu (RAG):
                 </span>
                 <button
                   onClick={() => setIsAdding(!isAdding)}
-                  className="text-xs font-semibold text-cyan-300 hover:text-white flex items-center gap-1 cursor-pointer transition-colors"
+                  className="text-xs font-semibold text-cyan-300 hover:text-[#263238] flex items-center gap-1 cursor-pointer transition-colors"
                 >
                   <Plus className="w-3.5 h-3.5" />
                   <span>{isAdding ? 'Zavřít formulář' : 'Přidat ergonomický fakt'}</span>
@@ -577,28 +577,28 @@ export const UserRAGMemoryModal: React.FC<UserRAGMemoryModalProps> = ({
 
               {/* Add Fact Form */}
               {isAdding && (
-                <form onSubmit={handleCreateFact} className="p-4 rounded-2xl bg-[#0a1526] border border-cyan-400/40 space-y-3 mb-3 animate-in fade-in">
-                  <span className="text-xs font-bold text-white block">
+                <form onSubmit={handleCreateFact} className="p-4 rounded-2xl bg-white border border-cyan-400/40 space-y-3 mb-3 animate-in fade-in">
+                  <span className="text-xs font-bold text-[#263238] block">
                     Nový ergonomický nebo preferenční záznam do databáze:
                   </span>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                     <div>
-                      <label className="text-[10px] text-slate-400 uppercase font-mono block mb-1">Název / Parametr:</label>
+                      <label className="text-[10px] text-[#607d8b] uppercase font-mono block mb-1">Název / Parametr:</label>
                       <input
                         type="text"
                         value={newLabel}
                         onChange={(e) => setNewLabel(e.target.value)}
                         placeholder="Např. Citlivější koleno, Šířka nártu..."
-                        className="w-full bg-[#050c18] border border-cyan-500/30 rounded-xl px-3 py-1.5 text-xs text-white placeholder:text-slate-600 outline-none"
+                        className="w-full bg-[#f4f6f8] border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-[#263238] placeholder:text-slate-600 outline-none"
                         required
                       />
                     </div>
                     <div>
-                      <label className="text-[10px] text-slate-400 uppercase font-mono block mb-1">Kategorie:</label>
+                      <label className="text-[10px] text-[#607d8b] uppercase font-mono block mb-1">Kategorie:</label>
                       <select
                         value={newCategory}
                         onChange={(e) => setNewCategory(e.target.value as any)}
-                        className="w-full bg-[#050c18] border border-cyan-500/30 rounded-xl px-3 py-1.5 text-xs text-white outline-none"
+                        className="w-full bg-[#f4f6f8] border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-[#263238] outline-none"
                       >
                         <option value="medical">Pohybová citlivost & komfort</option>
                         <option value="biometrics">{locale === 'en' ? 'Biometrics & Dimensions' : 'Biometrie & Rozměry'}</option>
@@ -609,13 +609,13 @@ export const UserRAGMemoryModal: React.FC<UserRAGMemoryModalProps> = ({
                   </div>
 
                   <div>
-                    <label className="text-[10px] text-slate-400 uppercase font-mono block mb-1">Detailní hodnota / pravidlo pro doporučení:</label>
+                    <label className="text-[10px] text-[#607d8b] uppercase font-mono block mb-1">Detailní hodnota / pravidlo pro doporučení:</label>
                     <input
                       type="text"
                       value={newValue}
                       onChange={(e) => setNewValue(e.target.value)}
                       placeholder="Např. Potřeba měkkého tlumení paty, vyloučit úzká kopyta..."
-                      className="w-full bg-[#050c18] border border-cyan-500/30 rounded-xl px-3 py-1.5 text-xs text-white placeholder:text-slate-600 outline-none"
+                      className="w-full bg-[#f4f6f8] border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-[#263238] placeholder:text-slate-600 outline-none"
                       required
                     />
                   </div>
@@ -624,7 +624,7 @@ export const UserRAGMemoryModal: React.FC<UserRAGMemoryModalProps> = ({
                     <button
                       type="button"
                       onClick={() => setIsAdding(false)}
-                      className="px-3 py-1.5 rounded-lg text-xs text-slate-400 hover:text-white"
+                      className="px-3 py-1.5 rounded-lg text-xs text-[#607d8b] hover:text-[#263238]"
                     >
                       Zrušit
                     </button>
@@ -641,9 +641,9 @@ export const UserRAGMemoryModal: React.FC<UserRAGMemoryModalProps> = ({
               {/* Facts list */}
               <div className="space-y-2">
                 {(facts || []).length === 0 ? (
-                  <div className="py-8 text-center text-slate-400 space-y-2 border border-dashed border-slate-800 rounded-2xl p-6">
+                  <div className="py-8 text-center text-[#607d8b] space-y-2 border border-dashed border-slate-200 rounded-2xl p-6">
                     <FileText className="w-8 h-8 text-slate-600 mx-auto" />
-                    <p className="text-xs font-medium text-slate-300">Zatím nemáte uložena žádná specifická fakta.</p>
+                    <p className="text-xs font-medium text-[#455a64]">Zatím nemáte uložena žádná specifická fakta.</p>
                     <p className="text-[11px] text-slate-500">
                       Klikněte na „Přidat ergonomický fakt“ výše pro přidání vlastních kritérií, rozměrů či preferencí.
                     </p>
@@ -653,7 +653,7 @@ export const UserRAGMemoryModal: React.FC<UserRAGMemoryModalProps> = ({
                   const categoryBadge = 
                     fact.category === 'medical' ? { label: locale === 'en' ? 'Ergonomics & Health' : 'Ergonomie & komfort', color: 'border-teal-500/30 text-teal-300 bg-teal-950/40' } :
                     fact.category === 'biometrics' ? { label: 'Biometrie', color: 'border-purple-500/30 text-purple-300 bg-purple-950/40' } :
-                    fact.category === 'preference' ? { label: 'Preference', color: 'border-cyan-500/30 text-cyan-300 bg-cyan-950/40' } :
+                    fact.category === 'preference' ? { label: 'Preference', color: 'border-slate-200 text-cyan-300 bg-cyan-950/40' } :
                     { label: 'Historie', color: 'border-teal-500/30 text-teal-300 bg-teal-950/40' };
 
                   return (
@@ -661,8 +661,8 @@ export const UserRAGMemoryModal: React.FC<UserRAGMemoryModalProps> = ({
                       key={fact.id}
                       className={`p-3.5 rounded-2xl border transition-all flex items-start justify-between gap-3 ${
                         fact.isEnriched
-                          ? 'bg-[#091424] border-cyan-500/30 text-slate-200'
-                          : 'bg-[#050a14] border-slate-800/80 text-slate-500 opacity-60'
+                          ? 'bg-[#091424] border-slate-200 text-[#263238]'
+                          : 'bg-[#050a14] border-slate-200/80 text-slate-500 opacity-60'
                       }`}
                     >
                       <div className="flex items-start gap-3">
@@ -675,14 +675,14 @@ export const UserRAGMemoryModal: React.FC<UserRAGMemoryModalProps> = ({
                         />
                         <div>
                           <div className="flex items-center gap-2 mb-0.5">
-                            <span className="font-bold text-xs text-white">
+                            <span className="font-bold text-xs text-[#263238]">
                               {formatValueDisplay(fact.label)}
                             </span>
                             <span className={`text-[9px] font-mono px-1.5 py-0.2 rounded-full border ${categoryBadge.color}`}>
                               {categoryBadge.label}
                             </span>
                           </div>
-                          <p className="text-xs text-slate-300 leading-snug">
+                          <p className="text-xs text-[#455a64] leading-snug">
                             {formatValueDisplay(fact.value)}
                           </p>
                           <div className="flex items-center gap-2 text-[10px] text-slate-500 mt-1 font-mono">
@@ -710,8 +710,8 @@ export const UserRAGMemoryModal: React.FC<UserRAGMemoryModalProps> = ({
         </div>
 
         {/* Footer */}
-        <div className="p-4 sm:p-5 border-t border-cyan-500/20 bg-[#081222] flex items-center justify-between">
-          <span className="text-xs text-slate-400 flex items-center gap-1.5">
+        <div className="p-4 sm:p-5 border-t border-slate-200 bg-[#f8fafc] flex items-center justify-between">
+          <span className="text-xs text-[#607d8b] flex items-center gap-1.5">
             <Sparkles className="w-3.5 h-3.5 text-cyan-400" />
             <span>
               Aktivní RAG: <strong>{activeFactsCount} faktů</strong> a <strong>{assessments.length} zpráv</strong> připraveno k obohacení promptu.

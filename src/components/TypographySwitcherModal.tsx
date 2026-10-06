@@ -90,25 +90,25 @@ export const TypographySwitcherModal: React.FC<TypographySwitcherModalProps> = (
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-black/80 backdrop-blur-md animate-in fade-in duration-200">
-      <div className="relative w-full max-w-3xl bg-[#060c18] border border-cyan-500/30 rounded-3xl shadow-2xl shadow-cyan-950/70 flex flex-col max-h-[90vh] overflow-hidden">
+      <div className="relative w-full max-w-3xl bg-white border border-slate-200 rounded-2xl shadow-2xl shadow-cyan-950/70 flex flex-col max-h-[90vh] overflow-hidden">
         {/* Header */}
-        <div className="p-5 sm:p-6 border-b border-cyan-500/20 bg-[#081222] flex items-center justify-between">
+        <div className="p-5 sm:p-6 border-b border-slate-200 bg-white flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-cyan-600 to-teal-400 p-0.5 shadow-lg shadow-cyan-500/20">
-              <div className="w-full h-full bg-[#070e1a] rounded-[14px] flex items-center justify-center text-cyan-300">
+              <div className="w-full h-full bg-[#f4f6f8] rounded-[14px] flex items-center justify-center text-cyan-300">
                 <Type className="w-5 h-5" />
               </div>
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h2 className="text-base sm:text-lg font-extrabold text-white">
+                <h2 className="text-base sm:text-lg font-extrabold text-[#263238]">
                   Výběr typografie & systémového fontu
                 </h2>
                 <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-cyan-950 border border-cyan-500/40 text-cyan-300 font-bold">
                   5 variant
                 </span>
               </div>
-              <p className="text-xs text-slate-400 mt-0.5">
+              <p className="text-xs text-[#607d8b] mt-0.5">
                 Vyberte si styl písma, který nejlépe ladí s vaší vizí aplikace bAIright.
               </p>
             </div>
@@ -116,7 +116,7 @@ export const TypographySwitcherModal: React.FC<TypographySwitcherModalProps> = (
 
           <button
             onClick={onClose}
-            className="p-2 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800/60 transition-colors cursor-pointer"
+            className="p-2 rounded-xl text-[#607d8b] hover:text-[#263238] hover:bg-slate-800/60 transition-colors cursor-pointer"
           >
             <X className="w-5 h-5" />
           </button>
@@ -133,16 +133,16 @@ export const TypographySwitcherModal: React.FC<TypographySwitcherModalProps> = (
                 onClick={() => onSelectFont(font.id)}
                 className={`p-4 sm:p-5 rounded-2xl border transition-all cursor-pointer relative overflow-hidden group ${
                   isSelected
-                    ? 'bg-[#0b162c] border-cyan-400 shadow-lg shadow-cyan-950/50 ring-1 ring-cyan-400/40'
-                    : 'bg-[#070e1a] border-slate-800 hover:border-cyan-500/40 hover:bg-[#081324]'
+                    ? 'bg-[#f0f9ff] border-[#0099cc] shadow-lg shadow-cyan-950/50 ring-1 ring-cyan-400/40'
+                    : 'bg-[#f4f6f8] border-slate-200 hover:border-cyan-500/40 hover:bg-[#eceff1]'
                 }`}
               >
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3">
                   <div className="flex items-center gap-2.5">
-                    <span className="text-lg font-bold text-white group-hover:text-cyan-300 transition-colors">
+                    <span className="text-lg font-bold text-[#263238] group-hover:text-cyan-300 transition-colors">
                       {font.name}
                     </span>
-                    <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-slate-900 border border-slate-800 text-slate-400">
+                    <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-slate-900 border border-slate-200 text-[#607d8b]">
                       {font.category}
                     </span>
                   </div>
@@ -162,19 +162,19 @@ export const TypographySwitcherModal: React.FC<TypographySwitcherModalProps> = (
                   </div>
                 </div>
 
-                <p className="text-xs text-slate-400 mb-3 leading-relaxed">
+                <p className="text-xs text-[#607d8b] mb-3 leading-relaxed">
                   {font.description}
                 </p>
 
                 {/* Live Font Preview Card */}
                 <div 
-                  className="p-3.5 rounded-xl bg-slate-950 border border-slate-800/80 space-y-1.5"
+                  className="p-3.5 rounded-xl bg-[#f8fafc] border border-slate-200/80 space-y-1.5"
                   style={{ fontFamily: font.fontFamilySample }}
                 >
-                  <div className="text-sm font-bold text-slate-100 tracking-tight">
+                  <div className="text-sm font-bold text-[#263238] tracking-tight">
                     {font.previewHeading}
                   </div>
-                  <div className="text-xs text-slate-400 leading-relaxed">
+                  <div className="text-xs text-[#607d8b] leading-relaxed">
                     {font.previewBody}
                   </div>
                   <div className="text-[10px] font-mono text-cyan-400 pt-1 flex items-center gap-3">
@@ -191,7 +191,7 @@ export const TypographySwitcherModal: React.FC<TypographySwitcherModalProps> = (
                   {font.characteristics.map((char, idx) => (
                     <span
                       key={idx}
-                      className="text-[10px] font-mono px-2 py-0.5 rounded bg-slate-900/80 border border-slate-800 text-slate-400"
+                      className="text-[10px] font-mono px-2 py-0.5 rounded bg-slate-900/80 border border-slate-200 text-[#607d8b]"
                     >
                       ✓ {char}
                     </span>
@@ -203,7 +203,7 @@ export const TypographySwitcherModal: React.FC<TypographySwitcherModalProps> = (
         </div>
 
         {/* Footer info */}
-        <div className="p-4 border-t border-cyan-500/20 bg-[#081222] flex items-center justify-between text-xs text-slate-400">
+        <div className="p-4 border-t border-slate-200 bg-white flex items-center justify-between text-xs text-[#607d8b]">
           <span className="font-mono text-[11px]">
             Aktivní volba se okamžitě projeví na všech textech, tlačítkách i promptech webu.
           </span>

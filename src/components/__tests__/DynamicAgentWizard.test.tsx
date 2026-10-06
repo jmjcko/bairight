@@ -63,7 +63,7 @@ describe('DynamicAgentWizard Unit Test Suite (PRD v1)', () => {
     expect(screen.getByText(/Denní doba strávená sezením/i)).toBeInTheDocument();
   });
 
-  it('2. Umožňuje procházet kroky a v posledním kroku zobrazí tlačítka inspekce i vygenerování', () => {
+  it('2. Umožňuje procházet kroky a v posledním kroku zobrazí tlačítko pro dokončení a sestavení agenta', () => {
     render(
       <DynamicAgentWizard
         agent={PRESET_ERGO_CHAIR_AGENT}
@@ -78,15 +78,8 @@ describe('DynamicAgentWizard Unit Test Suite (PRD v1)', () => {
     }
 
     // On final step
-    const inspectButton = screen.getByRole('button', { name: /Zkontrolovat prompt pro AI/i });
-    const generateButton = screen.getByRole('button', { name: /Vyhodnotit & Doporučit|Vygenerovat doporučení agenta/i });
-
-    expect(inspectButton).toBeInTheDocument();
+    const generateButton = screen.getByRole('button', { name: /Dokončit a sestavit agenta|Vyhodnotit & Doporučit|Vygenerovat doporučení agenta/i });
     expect(generateButton).toBeInTheDocument();
-
-    // Click inspector opens modal
-    fireEvent.click(inspectButton);
-    expect(screen.getByText(/Inspekce AI Promptu/i)).toBeInTheDocument();
   });
 
   it('3. Po odeslání zobrazí textová doporučení dle PRD (Značka, model, reasoning, pros, cons)', async () => {
@@ -103,12 +96,12 @@ describe('DynamicAgentWizard Unit Test Suite (PRD v1)', () => {
     }
 
     // Click generate
-    const generateButton = screen.getByRole('button', { name: /Vyhodnotit & Doporučit|Vygenerovat doporučení agenta/i });
+    const generateButton = screen.getByRole('button', { name: /Dokončit a sestavit agenta|Vyhodnotit & Doporučit|Vygenerovat doporučení agenta/i });
     fireEvent.click(generateButton);
 
     await waitFor(() => {
       // Verify Phase 2 Revealed Results: Delivers Agent Hub and removes shortlist model cards
-      expect(screen.getByText(/Agent připraven k použití/i)).toBeInTheDocument();
+      expect(screen.getByText(/Kalibrace dokončena|Agent připraven k použití/i)).toBeInTheDocument();
       expect(screen.getByText(/Stáhnout .agent.md soubor/i)).toBeInTheDocument();
       expect(screen.queryByText(/Okamžitý výstup agenta: Ověřený shortlist modelů/i)).not.toBeInTheDocument();
       expect(screen.queryByText(/Herman Miller/i)).not.toBeInTheDocument();
@@ -155,7 +148,7 @@ describe('DynamicAgentWizard Unit Test Suite (PRD v1)', () => {
     for (let i = 0; i < 4; i++) {
       fireEvent.click(screen.getByRole('button', { name: /^Pokračovat$/i }));
     }
-    fireEvent.click(screen.getByRole('button', { name: /Vyhodnotit & Doporučit|Vygenerovat doporučení agenta/i }));
+    fireEvent.click(screen.getByRole('button', { name: /Dokončit a sestavit agenta|Vyhodnotit & Doporučit|Vygenerovat doporučení agenta/i }));
 
     await waitFor(() => {
       expect(screen.getByText(/Stáhnout .agent.md soubor/i)).toBeInTheDocument();
@@ -193,7 +186,7 @@ describe('DynamicAgentWizard Unit Test Suite (PRD v1)', () => {
     for (let i = 0; i < 4; i++) {
       fireEvent.click(screen.getByRole('button', { name: /^Pokračovat$/i }));
     }
-    fireEvent.click(screen.getByRole('button', { name: /Vyhodnotit & Doporučit|Vygenerovat doporučení agenta/i }));
+    fireEvent.click(screen.getByRole('button', { name: /Dokončit a sestavit agenta|Vyhodnotit & Doporučit|Vygenerovat doporučení agenta/i }));
 
     await waitFor(() => {
       expect(screen.getByText(/Klíčová výhoda bAIright architektury/i)).toBeInTheDocument();
@@ -223,7 +216,7 @@ describe('DynamicAgentWizard Unit Test Suite (PRD v1)', () => {
 
     // Should auto-evaluate and land on Agent Delivery Hub
     await waitFor(() => {
-      expect(screen.getByText(/Agent připraven k použití/i)).toBeInTheDocument();
+      expect(screen.getByText(/Kalibrace dokončena|Agent připraven k použití/i)).toBeInTheDocument();
     });
 
     expect(screen.getByText(/Stáhnout .agent.md soubor/i)).toBeInTheDocument();
@@ -240,7 +233,7 @@ describe('DynamicAgentWizard Unit Test Suite (PRD v1)', () => {
 
     // Clicking "Zpět na výsledky" immediately restores Phase 2
     fireEvent.click(screen.getByRole('button', { name: /Zpět na výsledky/i }));
-    expect(screen.getByText(/Agent připraven k použití/i)).toBeInTheDocument();
+    expect(screen.getByText(/Kalibrace dokončena|Agent připraven k použití/i)).toBeInTheDocument();
   });
 
   it('8. Umožňuje wizard kdykoliv zavřít a zahodit neuložený progress přes tlačítko Zavřít v hlavičce i spodní liště', async () => {
@@ -254,7 +247,7 @@ describe('DynamicAgentWizard Unit Test Suite (PRD v1)', () => {
 
     // Wait for delivery hub
     await waitFor(() => {
-      expect(screen.getByText(/Agent připraven k použití/i)).toBeInTheDocument();
+      expect(screen.getByText(/Kalibrace dokončena|Agent připraven k použití/i)).toBeInTheDocument();
     });
 
     // Enter wizard editing
@@ -270,13 +263,13 @@ describe('DynamicAgentWizard Unit Test Suite (PRD v1)', () => {
 
     // Clicking close in header returns to the finished agent result
     fireEvent.click(closeHeaderBtn);
-    expect(screen.getByText(/Agent připraven k použití/i)).toBeInTheDocument();
+    expect(screen.getByText(/Kalibrace dokončena|Agent připraven k použití/i)).toBeInTheDocument();
 
     // Enter editing again and click bottom close
     fireEvent.click(screen.getByRole('button', { name: /Upravit wizard/i }));
     expect(screen.getByText(/Dosavadní zkušenosti & Stávající produkt/i)).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: /Zavřít \/ Zahodit progress/i }));
-    expect(screen.getByText(/Agent připraven k použití/i)).toBeInTheDocument();
+    expect(screen.getByText(/Kalibrace dokončena|Agent připraven k použití/i)).toBeInTheDocument();
   });
 
   it('9. Umožňuje na stránce výsledků přidat vlastní parametr/kritérium (např. cenový limit) a promítnout ho do agenta', async () => {
@@ -340,30 +333,18 @@ describe('DynamicAgentWizard Unit Test Suite (PRD v1)', () => {
       fireEvent.click(screen.getByRole('button', { name: /^Pokračovat$/i }));
     }
 
-    const generateBtn = screen.getByRole('button', { name: /Vyhodnotit & Doporučit|Vygenerovat doporučení agenta/i });
+    const generateBtn = screen.getByRole('button', { name: /Dokončit a sestavit agenta|Vyhodnotit & Doporučit|Vygenerovat doporučení agenta/i });
     fireEvent.click(generateBtn);
 
     // Wait for delivery hub
     await waitFor(() => {
-      expect(screen.getByText(/Spustit živý chat & Výsledky agenta/i)).toBeInTheDocument();
+      expect(screen.getByText(/Spustit chat přímo v bAIright/i)).toBeInTheDocument();
+      expect(screen.getByText(/Zkopírovat prompt do schránky/i)).toBeInTheDocument();
     });
 
-    // Click on chat hero card without API key
-    const chatHeroBtn = screen.getByText(/Spustit živý chat & Výsledky agenta/i).closest('div[class*="cursor-pointer"]') || screen.getByText(/Spustit živý chat & Výsledky agenta/i);
-    fireEvent.click(chatHeroBtn);
-
-    // BYOK modal must be rendered
-    await waitFor(() => {
-      expect(screen.getByText(/Propojte svůj AI klíč pro živou diskusi s agentem/i)).toBeInTheDocument();
-      expect(screen.getByText(/Správa klíčů ve Vaultu/i)).toBeInTheDocument();
-    });
-
-    // Clicking 'Správa klíčů ve Vaultu' triggers vault modal opening
-    const vaultBtn = screen.getByRole('button', { name: /Správa klíčů ve Vaultu/i });
+    // Clicking 'Připojit API klíč v Trezoru' triggers vault modal opening
+    const vaultBtn = screen.getByRole('button', { name: /Připojit API klíč v Trezoru/i });
     fireEvent.click(vaultBtn);
     expect(mockOpenSubscription).toHaveBeenCalledTimes(1);
-
-    // Modal is dismissed
-    expect(screen.queryByText(/Propojte svůj AI klíč pro živou diskusi s agentem/i)).not.toBeInTheDocument();
   });
 });

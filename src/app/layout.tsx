@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Space_Grotesk, Inter_Tight } from "next/font/google";
 import "./globals.css";
 import { I18nProvider } from "@/lib/i18n/I18nContext";
@@ -18,6 +18,14 @@ const interTight = Inter_Tight({
   variable: "--font-inter-tight",
   display: "swap",
 });
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+  viewportFit: "cover",
+  themeColor: "#f4f6f8",
+};
 
 export const metadata: Metadata = {
   title: "bAIright | Univerzální AI nákupní poradce & prompt inženýr",
@@ -40,14 +48,14 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" suppressHydrationWarning data-theme="pixel-mint" data-design-system="executive-technical" data-font="space-grotesk" className={`dark ${spaceGrotesk.variable} ${interTight.variable}`}>
+    <html lang="en" suppressHydrationWarning data-theme="google-material" data-design-system="material-admin" data-font="inter-tight" className={`material-mode ${spaceGrotesk.variable} ${interTight.variable}`}>
       <head>
         <link rel="icon" href="/favicon.ico" sizes="any" />
         <link rel="icon" href="/icon.svg" type="image/svg+xml" />
         <link rel="icon" href="/icon.png" type="image/png" />
         <link rel="apple-touch-icon" href="/apple-icon.png" />
       </head>
-      <body suppressHydrationWarning className={`min-h-screen bg-[var(--background)] text-[var(--foreground)] antialiased selection:bg-emerald-900 selection:text-white ${spaceGrotesk.className}`}>
+      <body suppressHydrationWarning className={`min-h-screen material-mode bg-[#f4f6f8] text-[#263238] antialiased selection:bg-[#b3e5fc] selection:text-[#014377] ${interTight.className}`}>
         <I18nProvider>
           <AuthProvider>
             <ThemeProvider>

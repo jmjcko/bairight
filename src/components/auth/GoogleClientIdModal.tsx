@@ -46,13 +46,13 @@ export const GoogleClientIdModal: React.FC<GoogleClientIdModalProps> = ({ isOpen
       onClick={onClose}
     >
       <div 
-        className="relative w-full max-w-lg max-h-[90vh] overflow-y-auto my-auto p-6 sm:p-8 rounded-2xl bg-[#09111e]/95 border border-cyan-500/40 shadow-[0_0_50px_rgba(6,182,212,0.25)] text-slate-100 space-y-6"
+        className="relative w-full max-w-lg max-h-[90vh] overflow-y-auto my-auto p-6 sm:p-8 rounded-2xl bg-white border border-slate-200 shadow-2xl text-[#263238] space-y-6"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Close Button */}
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 p-2 rounded-lg text-slate-400 hover:text-slate-100 hover:bg-slate-800/60 transition-colors cursor-pointer"
+          className="absolute top-4 right-4 p-2 rounded-lg text-[#607d8b] hover:text-[#263238] hover:bg-slate-800/60 transition-colors cursor-pointer"
           title="Zavřít"
         >
           <X className="w-5 h-5" />
@@ -63,16 +63,16 @@ export const GoogleClientIdModal: React.FC<GoogleClientIdModalProps> = ({ isOpen
           <div className="w-10 h-10 rounded-xl bg-cyan-950/80 border border-cyan-500/40 flex items-center justify-center text-cyan-400 shadow-md">
             <Key className="w-5 h-5" />
           </div>
-          <h2 className="text-xl font-bold font-sans text-slate-100">
+          <h2 className="text-xl font-bold font-sans text-[#263238]">
             Nastavení Reálného Google Client ID
           </h2>
-          <p className="text-xs text-slate-400 font-mono">
+          <p className="text-xs text-[#607d8b] font-mono">
             Pro přihlášení přes váš osobní/firemní Google účet zadejte Client ID z Google Cloud Console.
           </p>
         </div>
 
         {/* Quick Instructions */}
-        <div className="space-y-2.5 bg-[#060c18] p-4 rounded-xl border border-slate-800 text-xs">
+        <div className="space-y-2.5 bg-[#f4f6f8] p-4 rounded-xl border border-slate-200 text-xs">
           <div className="flex items-center justify-between">
             <span className="font-semibold text-cyan-300">Stručný návod ke zprovoznění (1 minutu):</span>
             <a
@@ -84,13 +84,13 @@ export const GoogleClientIdModal: React.FC<GoogleClientIdModalProps> = ({ isOpen
               Google Console <ExternalLink className="w-3 h-3" />
             </a>
           </div>
-          <ol className="list-decimal list-inside space-y-1 text-slate-300 text-[11px] leading-relaxed">
+          <ol className="list-decimal list-inside space-y-1 text-[#455a64] text-[11px] leading-relaxed">
             <li>V Google Console zvolte <strong>Credentials &rarr; Create Credentials &rarr; OAuth client ID</strong>.</li>
             <li>Vyberte typ <strong>Web Application</strong>.</li>
             <li>Přidat Authorized JavaScript origin: <code className="bg-slate-900 px-1.5 py-0.5 rounded text-cyan-300">{currentOrigin}</code></li>
-            <li>Zkopírujte vygenerované Client ID (končící na <code className="bg-slate-900 px-1 py-0.5 rounded text-slate-400">.apps.googleusercontent.com</code>).</li>
+            <li>Zkopírujte vygenerované Client ID (končící na <code className="bg-slate-900 px-1 py-0.5 rounded text-[#607d8b]">.apps.googleusercontent.com</code>).</li>
           </ol>
-          <div className="pt-2 border-t border-slate-800/80 text-[11px] text-slate-400 leading-normal">
+          <div className="pt-2 border-t border-slate-800/80 text-[11px] text-[#607d8b] leading-normal">
             <strong>Pro produkční nasazení (Vercel):</strong> Vložte vytvořené Client ID do Vercel projektového nastavení (<em>Project Settings  Environment Variables</em>) pod klíčem <code className="text-cyan-400 bg-slate-900 px-1 py-0.5 rounded">GOOGLE_CLIENT_ID</code>.
           </div>
         </div>
@@ -98,7 +98,7 @@ export const GoogleClientIdModal: React.FC<GoogleClientIdModalProps> = ({ isOpen
         {/* Input Form */}
         <form onSubmit={handleSave} className="space-y-4">
           <div>
-            <label className="block text-xs font-mono text-slate-300 mb-1.5">
+            <label className="block text-xs font-mono text-[#455a64] mb-1.5">
               Google OAuth Client ID:
             </label>
             <input
@@ -106,7 +106,7 @@ export const GoogleClientIdModal: React.FC<GoogleClientIdModalProps> = ({ isOpen
               value={inputVal}
               onChange={(e) => setInputVal(e.target.value)}
               placeholder="např. 1234567890-abc123xyz.apps.googleusercontent.com"
-              className="w-full bg-[#050b14] border border-cyan-500/30 focus:border-cyan-400 rounded-xl px-4 py-3 text-xs text-slate-100 placeholder:text-slate-600 outline-none font-mono"
+              className="w-full bg-[#f4f6f8] border border-slate-200 text-[#263238] focus:border-cyan-400 rounded-xl px-4 py-3 text-xs text-[#263238] placeholder:text-slate-600 outline-none font-mono"
               required
             />
           </div>
@@ -115,7 +115,7 @@ export const GoogleClientIdModal: React.FC<GoogleClientIdModalProps> = ({ isOpen
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 rounded-xl text-xs text-slate-400 hover:text-slate-100 transition-colors"
+              className="px-4 py-2 rounded-xl text-xs text-[#607d8b] hover:text-[#263238] transition-colors"
             >
               Zrušit
             </button>

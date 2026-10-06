@@ -140,7 +140,7 @@ describe('Agent Discussion Navigation & Agent Picker Suite (Points 1 & 2)', () =
     
     await waitFor(() => {
       console.log("DOM IN TEST 2:", document.body.innerHTML);
-      expect(screen.getByText(/Stáhnout \.agent\.md soubor|Download \.agent\.md/i)).toBeDefined();
+      expect(screen.getAllByText(/Stáhnout \.agent\.md|Download \.agent\.md/i).length).toBeGreaterThan(0);
       expect(screen.getByText(/Upravit wizard|Edit wizard/i)).toBeDefined();
     });
   });

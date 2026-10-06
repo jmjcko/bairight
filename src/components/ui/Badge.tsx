@@ -18,8 +18,8 @@ export const Badge: React.FC<BadgeProps> = ({
       onClick={onClick}
       className={`inline-flex items-center px-3 py-1 text-xs font-semibold rounded-full transition-all duration-200 cursor-pointer select-none ${
         active
-          ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-400/50 shadow-[0_0_12px_rgba(6,182,212,0.3)]'
-          : 'bg-slate-800/60 text-slate-300 border border-slate-700/50 hover:border-slate-500 hover:text-white'
+          ? 'bg-[#e1f5fe] text-[#01579b] border border-[#b3e5fc] font-bold shadow-xs'
+          : 'bg-[#f4f6f8] text-[#607d8b] border border-slate-200 hover:bg-slate-200 hover:text-[#263238]'
       } ${className}`}
     >
       {label}

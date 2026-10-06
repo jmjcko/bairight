@@ -47,8 +47,8 @@ export const VerifiedShoeCard: React.FC<VerifiedShoeCardProps> = ({
     <div
       className={`rounded-3xl p-5 sm:p-6 transition-all duration-300 relative border flex flex-col justify-between group ${
         isFirst
-          ? 'bg-[#0a1324]/95 border-cyan-400/60 shadow-[0_15px_45px_rgba(6,182,212,0.22)] ring-1 ring-cyan-400/40'
-          : 'bg-[#070e1b]/90 border-slate-800 hover:border-cyan-500/40 shadow-lg'
+          ? 'bg-white border-[#0099cc] shadow-md border-t-[3px] border-t-[#0099cc]'
+          : 'bg-white border-slate-200/80 hover:border-slate-300 shadow-xs border-t-[3px] border-t-[#4caf50]'
       }`}
     >
       <div>
@@ -57,7 +57,7 @@ export const VerifiedShoeCard: React.FC<VerifiedShoeCardProps> = ({
           <div className="flex items-center gap-2">
             <span
               className={`w-7 h-7 rounded-xl flex items-center justify-center font-mono font-black text-xs ${
-                isFirst ? 'bg-cyan-400 text-slate-950 shadow-md' : 'bg-slate-800 text-slate-300'
+                isFirst ? 'bg-cyan-400 text-slate-950 shadow-md' : 'bg-slate-800 text-[#455a64]'
               }`}
             >
               #{rank}
@@ -66,7 +66,7 @@ export const VerifiedShoeCard: React.FC<VerifiedShoeCardProps> = ({
               className={`text-[11px] font-mono font-bold uppercase tracking-wider px-2.5 py-1 rounded-lg border ${
                 isFirst
                   ? 'bg-cyan-950 text-cyan-300 border-cyan-500/40 shadow-sm'
-                  : 'bg-slate-900 text-slate-400 border-slate-800'
+                  : 'bg-slate-900 text-[#607d8b] border-slate-800'
               }`}
             >
               {badgeLabel || (isFirst ? 'Hlavní doporučení' : 'Doporučená volba')}
@@ -80,7 +80,7 @@ export const VerifiedShoeCard: React.FC<VerifiedShoeCardProps> = ({
         </div>
 
         {/* Hero Shoe Image Showcase */}
-        <div className="relative w-full h-44 sm:h-48 rounded-2xl overflow-hidden bg-[#040812] border border-cyan-500/20 mb-4 group-hover:border-cyan-400/40 transition-colors">
+        <div className="relative w-full h-44 sm:h-48 rounded-2xl overflow-hidden bg-[#f4f6f8] border border-slate-200 mb-4 group-hover:border-cyan-400/40 transition-colors">
           <Image
             src={imageSrc}
             alt={`${shoe.brand} ${shoe.model}`}
@@ -94,7 +94,7 @@ export const VerifiedShoeCard: React.FC<VerifiedShoeCardProps> = ({
 
           {/* Floating Brand & Width Tag on Image */}
           <div className="absolute bottom-2.5 left-3 right-3 flex items-center justify-between">
-            <span className="text-xs font-mono font-extrabold text-white bg-black/75 backdrop-blur-md px-2.5 py-1 rounded-lg border border-white/10 shadow-sm">
+            <span className="text-xs font-mono font-extrabold text-[#263238] bg-black/75 backdrop-blur-md px-2.5 py-1 rounded-lg border border-white/10 shadow-sm">
               {shoe.brand}
             </span>
             <span className="text-[11px] font-mono font-bold text-cyan-300 bg-cyan-950/90 backdrop-blur-md px-2.5 py-1 rounded-lg border border-cyan-500/40 shadow-sm">
@@ -104,56 +104,56 @@ export const VerifiedShoeCard: React.FC<VerifiedShoeCardProps> = ({
         </div>
 
         {/* Model Title */}
-        <h3 className="text-lg sm:text-xl font-extrabold text-white tracking-tight mb-3 line-clamp-1">
+        <h3 className="text-lg sm:text-xl font-extrabold text-[#263238] tracking-tight mb-3 line-clamp-1">
           {shoe.model}
         </h3>
 
         {/* Biomechanical Specs Grid */}
         <div className="grid grid-cols-4 gap-1.5 mb-4 text-center">
-          <div className="p-2 rounded-xl bg-[#040812] border border-slate-800/80">
+          <div className="p-2 rounded-xl bg-[#f4f6f8] border border-slate-200">
             <span className="text-[9px] font-mono uppercase text-slate-500 block">Sklon</span>
-            <span className="text-xs font-mono font-bold text-white">{shoe.heel_drop_mm} mm</span>
+            <span className="text-xs font-mono font-bold text-[#263238]">{shoe.heel_drop_mm} mm</span>
           </div>
-          <div className="p-2 rounded-xl bg-[#040812] border border-slate-800/80">
+          <div className="p-2 rounded-xl bg-[#f4f6f8] border border-slate-200">
             <span className="text-[9px] font-mono uppercase text-slate-500 block">Tlumení</span>
             <span className="text-xs font-mono font-bold text-teal-300 truncate block">{shoe.cushion_level}</span>
           </div>
-          <div className="p-2 rounded-xl bg-[#040812] border border-slate-800/80">
+          <div className="p-2 rounded-xl bg-[#f4f6f8] border border-slate-200">
             <span className="text-[9px] font-mono uppercase text-slate-500 block">Kopyto</span>
             <span className="text-xs font-mono font-bold text-cyan-300">2E</span>
           </div>
-          <div className="p-2 rounded-xl bg-[#040812] border border-slate-800/80">
+          <div className="p-2 rounded-xl bg-[#f4f6f8] border border-slate-200">
             <span className="text-[9px] font-mono uppercase text-slate-500 block">Koleno</span>
             <span className="text-xs font-mono font-bold text-teal-300">OA 3 OK</span>
           </div>
         </div>
 
         {/* Podiatric Rationale (Plain Czech clinical explanation) */}
-        <div className="p-3.5 rounded-2xl bg-[#040914] border border-cyan-500/20 text-xs text-slate-300 leading-relaxed mb-4">
+        <div className="p-3.5 rounded-2xl bg-[#f4f6f8] border border-slate-200 text-xs text-[#455a64] leading-relaxed mb-4">
           <span className="font-bold text-cyan-300 block text-xs mb-1 flex items-center gap-1.5">
             <ShieldCheck className="w-3.5 h-3.5 text-cyan-400 shrink-0" />
             Biomechanické odůvodnění:
           </span>
-          <p className="text-xs text-slate-300 leading-relaxed line-clamp-4">
+          <p className="text-xs text-[#455a64] leading-relaxed line-clamp-4">
             {shoe.medical_rationale}
           </p>
         </div>
       </div>
 
       {/* Verified Price & 100% Real Live Shopping Links */}
-      <div className="pt-3.5 border-t border-slate-800/80 mt-auto">
+      <div className="pt-3.5 border-t border-slate-200 mt-auto">
         <div className="flex items-center justify-between gap-2 mb-3">
           <div>
             <span className="text-[10px] text-slate-500 uppercase font-mono block">
               Orientační cena:
             </span>
-            <div className="text-base font-mono font-bold text-white">
+            <div className="text-base font-mono font-bold text-[#263238]">
               {czkPrice.toLocaleString('cs-CZ')} Kč{' '}
-              <span className="text-xs text-slate-400 font-normal">(€{shoe.european_price_eur.toFixed(2)})</span>
+              <span className="text-xs text-[#607d8b] font-normal">(€{shoe.european_price_eur.toFixed(2)})</span>
             </div>
           </div>
 
-          <div className="flex items-center gap-1.5 text-[10px] text-slate-400 font-mono">
+          <div className="flex items-center gap-1.5 text-[10px] text-[#607d8b] font-mono">
             <CheckCircle2 className="w-3.5 h-3.5 text-teal-400 shrink-0" />
             <span>Skladem v EU</span>
           </div>
@@ -176,7 +176,7 @@ export const VerifiedShoeCard: React.FC<VerifiedShoeCardProps> = ({
             href={heurekaUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-700 hover:border-slate-600 text-slate-200 text-xs font-semibold transition-all shadow-sm"
+            className="flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-700 hover:border-slate-600 text-[#263238] text-xs font-semibold transition-all shadow-sm"
           >
             <span>Heureka.cz</span>
             <ExternalLink className="w-3 h-3 opacity-70" />

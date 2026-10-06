@@ -24,8 +24,8 @@ export const CleanShoeCard: React.FC<CleanShoeCardProps> = ({ shoe, isTopPick = 
   return (
     <div className={`rounded-3xl p-5 sm:p-6 transition-all duration-300 relative border ${
       isTopPick
-        ? 'bg-[#0B1526]/95 border-cyan-400/60 shadow-[0_15px_50px_rgba(6,182,212,0.25)] ring-1 ring-cyan-400/40'
-        : 'bg-[#09101D]/90 border-slate-800 hover:border-cyan-500/40 shadow-lg'
+        ? 'bg-white border-[#0099cc] shadow-md border-t-[3px] border-t-[#0099cc]'
+        : 'bg-white border-slate-200/80 hover:border-slate-300 shadow-xs border-t-[3px] border-t-[#1e88e5]'
     }`}>
       {/* Top Pick Badge */}
       {isTopPick && (
@@ -37,7 +37,7 @@ export const CleanShoeCard: React.FC<CleanShoeCardProps> = ({ shoe, isTopPick = 
 
       <div className="flex flex-col sm:flex-row gap-5 items-start">
         {/* Clean, Focused Shoe Render Image */}
-        <div className="relative w-full sm:w-44 h-36 rounded-2xl overflow-hidden bg-[#040812] border border-cyan-500/20 shrink-0">
+        <div className="relative w-full sm:w-44 h-36 rounded-2xl overflow-hidden bg-[#f4f6f8] border border-slate-200 shrink-0">
           <Image
             src={imageSrc}
             alt={shoe.model}
@@ -56,11 +56,11 @@ export const CleanShoeCard: React.FC<CleanShoeCardProps> = ({ shoe, isTopPick = 
               <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-cyan-400 bg-cyan-950/80 px-2 py-0.5 rounded border border-cyan-500/30">
                 {shoe.brand}
               </span>
-              <span className="text-[10px] font-mono text-slate-400">
+              <span className="text-[10px] font-mono text-[#607d8b]">
                 Ověřeno pro kopyto 2E (Široké)
               </span>
             </div>
-            <h3 className="text-lg font-extrabold text-white tracking-tight">
+            <h3 className="text-lg font-extrabold text-[#263238] tracking-tight">
               {shoe.model}
             </h3>
           </div>
@@ -68,23 +68,23 @@ export const CleanShoeCard: React.FC<CleanShoeCardProps> = ({ shoe, isTopPick = 
           {/* Clinical Rationale: Focused & Plain-Czech */}
           <div className="p-3 rounded-xl bg-cyan-950/30 border border-cyan-500/20 text-xs text-slate-200 leading-relaxed">
             <span className="font-bold text-cyan-300 block mb-0.5">Biomechanický důvod pro vaše nohy:</span>
-            <p className="text-[11px] text-slate-300">
+            <p className="text-[11px] text-[#455a64]">
               {shoe.medical_rationale}
             </p>
           </div>
 
           {/* 3 Essential Biomechanical Specs (Clear & Large) */}
           <div className="grid grid-cols-3 gap-2 pt-1">
-            <div className="p-2 rounded-xl bg-[#060c18] border border-slate-800 text-center">
-              <span className="text-[9px] font-mono uppercase text-slate-400 block">Sklon (Drop)</span>
-              <span className="text-xs font-mono font-bold text-white">{shoe.heel_drop_mm} mm</span>
+            <div className="p-2 rounded-xl bg-[#f4f6f8] border border-slate-200 text-center">
+              <span className="text-[9px] font-mono uppercase text-[#607d8b] block">Sklon (Drop)</span>
+              <span className="text-xs font-mono font-bold text-[#263238]">{shoe.heel_drop_mm} mm</span>
             </div>
-            <div className="p-2 rounded-xl bg-[#060c18] border border-slate-800 text-center">
-              <span className="text-[9px] font-mono uppercase text-slate-400 block">Tlumení</span>
+            <div className="p-2 rounded-xl bg-[#f4f6f8] border border-slate-200 text-center">
+              <span className="text-[9px] font-mono uppercase text-[#607d8b] block">Tlumení</span>
               <span className="text-xs font-mono font-bold text-teal-300">{shoe.cushion_level}</span>
             </div>
-            <div className="p-2 rounded-xl bg-[#060c18] border border-slate-800 text-center">
-              <span className="text-[9px] font-mono uppercase text-slate-400 block">Ochrana kolene</span>
+            <div className="p-2 rounded-xl bg-[#f4f6f8] border border-slate-200 text-center">
+              <span className="text-[9px] font-mono uppercase text-[#607d8b] block">Ochrana kolene</span>
               <span className="text-xs font-mono font-bold text-cyan-300">Bezpečné OA 3</span>
             </div>
           </div>
@@ -92,10 +92,10 @@ export const CleanShoeCard: React.FC<CleanShoeCardProps> = ({ shoe, isTopPick = 
           {/* Price & Direct Purchase Action */}
           <div className="pt-2 flex items-center justify-between border-t border-slate-800/80">
             <div>
-              <span className="text-[10px] text-slate-400 block">Nejlepší ověřená cena v EU:</span>
-              <div className="text-base font-mono font-extrabold text-white">
+              <span className="text-[10px] text-[#607d8b] block">Nejlepší ověřená cena v EU:</span>
+              <div className="text-base font-mono font-extrabold text-[#263238]">
                 {czkPrice.toLocaleString('cs-CZ')} Kč{' '}
-                <span className="text-xs text-slate-400 font-normal">(€{shoe.european_price_eur.toFixed(2)})</span>
+                <span className="text-xs text-[#607d8b] font-normal">(€{shoe.european_price_eur.toFixed(2)})</span>
               </div>
             </div>
 

@@ -86,41 +86,38 @@ export const AssessmentFeedbackLoop: React.FC<AssessmentFeedbackLoopProps> = ({
   const hasInputs = selectedTagIds.length > 0 || customNote.trim().length > 0;
 
   return (
-    <div className="w-full rounded-3xl bg-gradient-to-b from-[#081528] via-[#050c18] to-[#040812] border-2 border-cyan-500/35 p-6 sm:p-7 shadow-[0_15px_50px_rgba(6,182,212,0.15)] relative overflow-hidden mt-6">
-      {/* Decorative background glow */}
-      <div className="absolute top-0 right-0 w-72 h-72 bg-cyan-500/10 rounded-full blur-3xl pointer-events-none" />
-
+    <div className="w-full rounded-2xl bg-white border border-slate-200 border-t-4 border-t-[#0099cc] p-6 sm:p-7 shadow-xs relative overflow-hidden mt-6">
       {/* Header Bar */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-5 border-b border-cyan-500/20">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-5 border-b border-slate-200">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-2xl bg-cyan-950 border border-cyan-400/40 text-cyan-300 flex items-center justify-center font-bold shrink-0 shadow-[0_0_15px_rgba(6,182,212,0.3)]">
-            <SlidersHorizontal className="w-5 h-5 text-cyan-400" />
+          <div className="w-10 h-10 rounded-xl bg-[#e1f5fe] border border-[#b3e5fc] text-[#01579b] flex items-center justify-center font-bold shrink-0 shadow-xs">
+            <SlidersHorizontal className="w-5 h-5 text-[#01579b]" />
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <h3 className="text-base sm:text-lg font-extrabold text-white">
+              <h3 className="text-base sm:text-lg font-black text-[#263238]">
                 Interaktivní zpětná vazba & RAG ladění modelů
               </h3>
-              <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-cyan-950 text-cyan-300 border border-cyan-500/40 font-bold uppercase tracking-wider">
+              <span className="text-[10px] font-mono px-2.5 py-0.5 rounded-md bg-[#e1f5fe] text-[#01579b] border border-[#b3e5fc] font-bold uppercase tracking-wider">
                 Učící se smyčka
               </span>
             </div>
-            <p className="text-xs text-slate-300 mt-0.5">
+            <p className="text-xs text-[#546e7a] mt-0.5">
               Nesedí vám cena, značka nebo pocit z bot? Vyberte úpravu a agent okamžitě přepočítá doporučení a uloží si preferenci do RAG paměti.
             </p>
           </div>
         </div>
 
-        <div className="flex items-center gap-2 text-xs font-mono text-slate-400 shrink-0">
-          <Database className="w-3.5 h-3.5 text-cyan-400" />
+        <div className="flex items-center gap-2 text-xs font-mono text-[#546e7a] shrink-0 font-medium">
+          <Database className="w-3.5 h-3.5 text-[#01579b]" />
           <span>Ukládá se do vašeho profilu</span>
         </div>
       </div>
 
       {/* Quick Feedback Chips Grid */}
       <div className="py-4 space-y-2.5">
-        <label className="text-[11px] font-mono uppercase tracking-wider text-cyan-300 font-bold flex items-center gap-1.5">
-          <Tag className="w-3.5 h-3.5 text-cyan-400" />
+        <label className="text-[11px] font-mono uppercase tracking-wider text-[#01579b] font-bold flex items-center gap-1.5">
+          <Tag className="w-3.5 h-3.5 text-[#01579b]" />
           <span>Rychlá zpětná vazba (kliknutím vyberte):</span>
         </label>
 
@@ -134,8 +131,8 @@ export const AssessmentFeedbackLoop: React.FC<AssessmentFeedbackLoopProps> = ({
                 onClick={() => toggleTag(tag.id)}
                 className={`px-3.5 py-2 rounded-xl text-xs font-semibold transition-all cursor-pointer flex items-center gap-2 ${
                   isSelected
-                    ? 'bg-cyan-950 text-white border-2 border-cyan-400 shadow-[0_0_18px_rgba(34,211,238,0.45)] ring-1 ring-cyan-400 scale-[1.02]'
-                    : 'bg-[#091526]/80 text-slate-300 hover:text-white border border-cyan-500/20 hover:border-cyan-500/50 hover:bg-[#0d1e36]'
+                    ? 'bg-[#0099cc] text-white border-2 border-[#0277bd] shadow-xs'
+                    : 'bg-[#f8fafc] text-[#263238] hover:text-[#0277bd] border border-slate-200 hover:bg-[#eceff1]'
                 }`}
               >
                 <span>{tag.label}</span>
@@ -165,13 +162,13 @@ export const AssessmentFeedbackLoop: React.FC<AssessmentFeedbackLoopProps> = ({
               }
             }}
             placeholder="Např. Hledám spíše neutrální tlumení na asfalt i polní cesty, nemám rád příliš křiklavé barvy..."
-            className="w-full bg-[#040a16] border border-cyan-500/30 rounded-2xl px-4 py-3 text-xs sm:text-sm text-white placeholder:text-slate-500 focus:border-cyan-400 focus:outline-none focus:ring-1 focus:ring-cyan-400 transition-all"
+            className="w-full bg-[#f8fafc] border border-slate-200 rounded-xl px-4 py-3 text-xs sm:text-sm text-[#263238] placeholder:text-slate-400 focus:border-[#0099cc] focus:outline-none focus:ring-1 focus:ring-[#0099cc] transition-all"
           />
         </div>
       </div>
 
       {/* Action Footer Bar */}
-      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 pt-5 mt-4 border-t border-cyan-500/15">
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 pt-5 mt-4 border-t border-slate-200">
         <div className="text-xs text-slate-400">
           {hasInputs ? (
             <span className="text-cyan-300 font-semibold flex items-center gap-1.5">
@@ -189,9 +186,9 @@ export const AssessmentFeedbackLoop: React.FC<AssessmentFeedbackLoopProps> = ({
           type="button"
           onClick={handleTriggerRefinement}
           disabled={!hasInputs || isRecalculating}
-          className="flex items-center justify-center gap-2 px-6 py-3.5 rounded-2xl text-xs sm:text-sm font-extrabold bg-gradient-to-r from-cyan-400 via-cyan-300 to-teal-400 text-slate-950 shadow-[0_0_25px_rgba(6,182,212,0.45)] hover:brightness-110 active:scale-[0.98] transition-all disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer shrink-0"
+          className="flex items-center justify-center gap-2 px-6 py-3 rounded-xl text-xs sm:text-sm font-bold bg-[#0099cc] hover:bg-[#0088b8] text-white shadow-xs transition-all disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer shrink-0"
         >
-          <RotateCcw className={`w-4 h-4 text-slate-950 ${isRecalculating ? 'animate-spin' : ''}`} />
+          <RotateCcw className={`w-4 h-4 text-white ${isRecalculating ? 'animate-spin' : ''}`} />
           <span>
             {isRecalculating 
               ? 'Přepočítávám a ukládám do RAG...' 
