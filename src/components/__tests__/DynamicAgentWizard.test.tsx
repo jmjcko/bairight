@@ -208,7 +208,7 @@ describe('DynamicAgentWizard Unit Test Suite (PRD v1)', () => {
   it('7. Při initialShowResult={true} přejde přímo na výsledky a umožňuje kliknutím na "Upravit wizard" přejít do editace', async () => {
     render(
       <DynamicAgentWizard
-        agent={PRESET_ERGO_CHAIR_AGENT}
+        agent={{ ...PRESET_ERGO_CHAIR_AGENT, id: 'test_loading_fresh_agent' }}
         initialShowResult={true}
         onAssessmentCompleted={mockOnAssessmentCompleted}
       />
@@ -346,5 +346,41 @@ describe('DynamicAgentWizard Unit Test Suite (PRD v1)', () => {
     const vaultBtn = screen.getByRole('button', { name: /Připojit API klíč v Trezoru/i });
     fireEvent.click(vaultBtn);
     expect(mockOpenSubscription).toHaveBeenCalledTimes(1);
+  });
+
+  it('12. Loading obrazovka a dotazník mají kontrastní třídy chránící před bílým textem na bílém podkladu', async () => {
+    // 1. Ověření loading obrazovky (fetch pending)
+    global.fetch = vi.fn().mockImplementation(() => new Promise(() => {}));
+    const { unmount } = render(
+      <DynamicAgentWizard
+        agent={{ ...PRESET_ERGO_CHAIR_AGENT, id: 'test_fresh_loading_screen_agent' }}
+        initialShowResult={true}
+      />
+    );
+
+    const loadingTitle = screen.getByRole('heading', { level: 2, name: /Ergonomické sezení & kancelář/i });
+    expect(loadingTitle).toBeInTheDocument();
+    expect(loadingTitle.className).toContain('dark:text-white');
+    expect(loadingTitle.className).toContain('text-slate-900');
+
+    unmount();
+
+    // 2. Ověření dotazníku (krok 1 & záhlaví)
+    render(
+      <DynamicAgentWizard
+        agent={PRESET_ERGO_CHAIR_AGENT}
+        initialShowResult={false}
+      />
+    );
+
+    const wizardTitle = screen.getByRole('heading', { level: 1 });
+    expect(wizardTitle).toBeInTheDocument();
+    expect(wizardTitle.className).toContain('dark:text-white');
+    expect(wizardTitle.className).toContain('text-slate-900');
+
+    const baselineHeading = screen.getByRole('heading', { level: 3 });
+    expect(baselineHeading).toBeInTheDocument();
+    expect(baselineHeading.className).toContain('dark:text-white');
+    expect(baselineHeading.className).toContain('text-slate-900');
   });
 });

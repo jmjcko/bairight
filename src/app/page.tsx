@@ -16,6 +16,8 @@ import { AgentCategoryLauncher } from '@/components/AgentCategoryLauncher';
 import { DynamicAgentWizard } from '@/components/DynamicAgentWizard';
 import { TypographySwitcherModal as ColorPaletteModal } from '@/components/TypographySwitcherModal';
 import { UniversalAgentPromptModal } from '@/components/UniversalAgentPromptModal';
+import { BuyMeACoffeeFloatingButton } from '@/components/BuyMeACoffeeFloatingButton';
+import { BuyMeACoffeeModal } from '@/components/BuyMeACoffeeModal';
 import { 
   UniversalAgentDefinition,
   forgeAgentPrompt
@@ -35,6 +37,7 @@ import {
 } from '@/lib/agent/engine-config';
 import { useI18n } from '@/lib/i18n/I18nContext';
 import { LanguageSwitcher } from '@/components/LanguageSwitcher';
+import { ThemeModeSwitcher } from '@/components/ThemeModeSwitcher';
 import { 
   Send, 
   Sparkles, 
@@ -219,6 +222,7 @@ export default function Home() {
   const [isMemoryModalOpen, setIsMemoryModalOpen] = useState(false);
   const [isPaletteModalOpen, setIsPaletteModalOpen] = useState(false);
   const [isPromptModalOpen, setIsPromptModalOpen] = useState(false);
+  const [isGlobalCoffeeModalOpen, setIsGlobalCoffeeModalOpen] = useState(false);
   const [activeFontId, setActiveFontId] = useState<string>('space-grotesk');
 
   // Universal Agent & BYOK State
@@ -273,14 +277,16 @@ export default function Home() {
 
   const isAgentCompleted = (a: UniversalAgentDefinition | null): boolean => {
     if (!a) return false;
-    if (a.targetValues && Object.keys(a.targetValues).length > 0) return true;
     if (typeof window !== 'undefined') {
       try {
         const storedStates = localStorage.getItem('bairight_agent_wizard_states');
         if (storedStates) {
           const parsed = JSON.parse(storedStates);
-          if (parsed[a.id]?.isCompleted || parsed[a.id]?.result || (parsed[a.id]?.answers && Object.keys(parsed[a.id].answers).length > 0)) {
-            return true;
+          const state = parsed[a.id];
+          if (state) {
+            if (state.isCompleted === true) return true;
+            if (state.result && Array.isArray(state.result.recommendations) && state.result.recommendations.length > 0) return true;
+            if (state.isCompleted === false) return false;
           }
         }
         const completedPrompt = PromptStorageService.getCompletedPromptByAgentId(a.id);
@@ -1059,25 +1065,7 @@ export default function Home() {
               onClick={() => {
                 const activeOrStored = selectedAgent || (typeof window !== 'undefined' ? AgentStorageService.getAllAgents()[0] : null);
                 if (activeOrStored) {
-                  let isCompleted = false;
-                  if (typeof window !== 'undefined') {
-                    try {
-                      const storedStates = localStorage.getItem('bairight_agent_wizard_states');
-                      if (storedStates) {
-                        const parsed = JSON.parse(storedStates);
-                        if (parsed[activeOrStored.id]?.isCompleted || parsed[activeOrStored.id]?.result) {
-                          isCompleted = true;
-                        }
-                      }
-                      if (!isCompleted) {
-                        const completedPrompt = PromptStorageService.getCompletedPromptByAgentId(activeOrStored.id);
-                        const chatInitialized = localStorage.getItem(`bairight_chat_initialized_${activeOrStored.id}`) === 'true';
-                        if (completedPrompt || chatInitialized) {
-                          isCompleted = true;
-                        }
-                      }
-                    } catch {}
-                  }
+                  const isCompleted = isAgentCompleted(activeOrStored);
                   handleSelectAgent(activeOrStored, isCompleted);
                   setWizardInitialShowResult(isCompleted);
                   setWizardMode('active_agent');
@@ -1132,6 +1120,7 @@ export default function Home() {
             currentApiKeys={apiKeys}
           />
 
+          <ThemeModeSwitcher />
           <LanguageSwitcher />
           <UserProfileCapsule
             userName="Jan Mynář"
@@ -1165,6 +1154,9 @@ export default function Home() {
               key={selectedAgent.id}
               agent={selectedAgent}
               onBackToLauncher={() => setWizardMode('launcher')}
+              onStepChange={(stepIdx, stepAnswers) => {
+                setSidebarAnswers(stepAnswers);
+              }}
               onOpenChat={(customPrompt) => {
                 setActiveTab('chat');
                 if (selectedAgent) {
@@ -1670,25 +1662,7 @@ export default function Home() {
             setIsMobileSidebarOpen(false);
             const activeOrStored = selectedAgent || (typeof window !== "undefined" ? AgentStorageService.getAllAgents()[0] : null);
             if (activeOrStored) {
-              let isCompleted = false;
-              if (typeof window !== "undefined") {
-                try {
-                  const storedStates = localStorage.getItem("bairight_agent_wizard_states");
-                  if (storedStates) {
-                    const parsed = JSON.parse(storedStates);
-                    if (parsed[activeOrStored.id]?.isCompleted || parsed[activeOrStored.id]?.result) {
-                      isCompleted = true;
-                    }
-                  }
-                  if (!isCompleted) {
-                    const completedPrompt = PromptStorageService.getCompletedPromptByAgentId(activeOrStored.id);
-                    const chatInitialized = localStorage.getItem(`bairight_chat_initialized_${activeOrStored.id}`) === "true";
-                    if (completedPrompt || chatInitialized) {
-                      isCompleted = true;
-                    }
-                  }
-                } catch {}
-              }
+              const isCompleted = isAgentCompleted(activeOrStored);
               handleSelectAgent(activeOrStored, isCompleted);
               setWizardInitialShowResult(isCompleted);
               setWizardMode("active_agent");
@@ -1786,6 +1760,18 @@ export default function Home() {
         isOpen={isPromptModalOpen}
         onClose={() => setIsPromptModalOpen(false)}
         agent={selectedAgent}
+      />
+
+      {/* 6. Buy Me a Coffee Floating Capsule & Modal */}
+      <BuyMeACoffeeFloatingButton
+        onClick={() => setIsGlobalCoffeeModalOpen(true)}
+        locale={locale}
+      />
+      <BuyMeACoffeeModal
+        isOpen={isGlobalCoffeeModalOpen}
+        onClose={() => setIsGlobalCoffeeModalOpen(false)}
+        agent={selectedAgent}
+        locale={locale}
       />
     </div>
   );

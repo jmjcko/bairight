@@ -572,11 +572,11 @@ const [researchError, setResearchError] = useState<string | null>(null);
                 <div className="flex items-center gap-3.5 min-w-0">
                   <div className="min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
-                      <h4 className="text-base sm:text-lg font-bold text-white tracking-tight">
+                      <h4 className="param-discovery-header-title text-base sm:text-lg font-bold text-slate-900 dark:text-white tracking-tight">
                         {researchedAnalysis.categoryName}
                       </h4>
                     </div>
-                    <p className="text-xs text-slate-400 mt-0.5 leading-normal">
+                    <p className="param-discovery-header-subtitle text-xs text-slate-600 dark:text-slate-400 mt-0.5 leading-normal">
                       {locale === 'en' ? 'Select parameters for intake questions, remove unneeded ones with (X).' : 'Vyberte parametry pro dotazník, nepotřebné odeberte křížkem (X).'}
                     </p>
                   </div>
@@ -616,9 +616,9 @@ const [researchError, setResearchError] = useState<string | null>(null);
                       <div 
                         key={param.id} 
                         onClick={() => toggleParamSelected(param.id)}
-                        className={`relative group p-2.5 rounded-xl border transition-all flex items-start gap-2.5 shadow-sm cursor-pointer select-none ${
+                        className={`param-discovery-card relative group p-2.5 rounded-xl border transition-all flex items-start gap-2.5 shadow-sm cursor-pointer select-none ${
                           isSelected
-                            ? 'bg-slate-900/95 border-cyan-500/40 shadow-[0_0_15px_rgba(59,91,169,0.2)] ring-1 ring-[#2563eb]/30'
+                            ? 'param-discovery-card-selected bg-slate-900/95 border-cyan-500/40 shadow-[0_0_15px_rgba(59,91,169,0.2)] ring-1 ring-[#2563eb]/30'
                             : 'bg-slate-950/60 border-slate-800/80 opacity-50 hover:opacity-75'
                         }`}
                       >
@@ -633,7 +633,7 @@ const [researchError, setResearchError] = useState<string | null>(null);
 
                         <div className="min-w-0 flex-1 pr-7">
                           <div className="flex items-center gap-2 flex-wrap">
-                            <span className={`text-sm sm:text-base font-extrabold tracking-tight leading-snug line-clamp-2 break-words ${isSelected ? 'text-slate-100 group-hover:text-cyan-300' : 'text-slate-400'}`}>
+                            <span className={`param-discovery-card-title text-sm sm:text-base font-extrabold tracking-tight leading-snug line-clamp-2 break-words ${isSelected ? 'text-slate-900 dark:text-white group-hover:text-cyan-600 dark:group-hover:text-cyan-300' : 'text-slate-500 dark:text-slate-400'}`}>
                               {formatConciseParameterName(param.name)}
                             </span>
                             {param.id.startsWith('learned-') && !param.id.startsWith('custom_') && (
@@ -647,7 +647,7 @@ const [researchError, setResearchError] = useState<string | null>(null);
                               </span>
                             )}
                           </div>
-                          <p className="text-xs text-slate-400 font-normal leading-relaxed mt-0.5 line-clamp-2">
+                          <p className="param-discovery-card-desc text-xs text-slate-600 dark:text-slate-400 font-normal leading-relaxed mt-0.5 line-clamp-2">
                             {formatShortDescription(param.rationale, locale)}
                           </p>
                         </div>
@@ -700,12 +700,12 @@ const [researchError, setResearchError] = useState<string | null>(null);
                     </div>
                     <div>
                       <div className="flex items-center gap-2">
-                        <h5 className="text-xs sm:text-sm font-extrabold text-white tracking-tight">
+                        <h5 className="param-discovery-header-title text-xs sm:text-sm font-extrabold text-slate-900 dark:text-white tracking-tight">
                           {locale === "en" ? "Missing a criterion here? Add your own parameter" : "Chybí vám zde nějaké kritérium? Přidejte si vlastní parametr"}
                         </h5>
                         
                       </div>
-                      <p className="text-[11px] text-slate-400">
+                      <p className="param-discovery-header-subtitle text-[11px] text-slate-600 dark:text-slate-400">
                         {locale === "en" ? "Type any parameter that is key for you, or click suggestions below." : "Napište libovolný parametr, který je pro vás klíčový, nebo klikněte na návrhy níže."}
                       </p>
                     </div>
@@ -731,7 +731,7 @@ const [researchError, setResearchError] = useState<string | null>(null);
                         }
                       }}
                       placeholder={locale === "en" ? "Add custom parameter (e.g. Tow hitch, Panoramic roof, Noise level)..." : "Přidat vlastní parametr (např. Tažné zařízení, Prosklená střecha, Hlučnost)..."}
-                      className="w-full pl-10 pr-3 py-2.5 rounded-xl bg-slate-950/90 border-2 border-cyan-500/25 text-xs sm:text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-[#60a5fa] focus:ring-4 focus:ring-[#2563eb]/30 font-mono transition-all shadow-inner"
+                      className="param-discovery-input w-full pl-10 pr-3 py-2.5 rounded-xl border-2 border-cyan-500/25 text-xs sm:text-sm placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-[#60a5fa] focus:ring-4 focus:ring-[#2563eb]/30 font-mono transition-all shadow-inner"
                     />
                   </div>
                   <button
@@ -903,18 +903,48 @@ const [researchError, setResearchError] = useState<string | null>(null);
                 const agent = getLocalizedAgent(rawAgent, locale) || rawAgent;
                 const topBorderColors = ['#1e88e5', '#ff9800', '#4caf50', '#ef5350', '#0099cc'];
                 const accentColor = topBorderColors[idx % topBorderColors.length];
+                // Detect if agent has already been completed or is still in progress
+                let isCompleted = false;
+                let currentStep = 0;
+                let hasProgress = false;
+                if (typeof window !== 'undefined') {
+                  try {
+                    const stored = localStorage.getItem('bairight_agent_wizard_states');
+                    if (stored) {
+                      const parsed = JSON.parse(stored);
+                      const st = parsed[rawAgent.id];
+                      if (st) {
+                        isCompleted = st.isCompleted === true || Boolean(st.result && Array.isArray(st.result.recommendations) && st.result.recommendations.length > 0);
+                        currentStep = typeof st.currentStepIndex === 'number' ? st.currentStepIndex : 0;
+                        hasProgress = Boolean(currentStep > 0 || (st.answers && Object.keys(st.answers).length > 0));
+                      }
+                    }
+                  } catch {}
+                }
+
                 return (
                   <div
                     key={agent.id}
-                    onClick={() => onSelectAgent(agent, true)}
+                    onClick={() => onSelectAgent(agent)}
                     className="group p-5 rounded-2xl bg-white border border-slate-200/80 hover:border-slate-300 shadow-xs hover:shadow-md transition-all cursor-pointer flex flex-col justify-between space-y-4 relative overflow-hidden"
                     style={{ borderTopWidth: '3px', borderTopColor: accentColor }}
                   >
                     <div className="space-y-3">
                       <div className="flex items-center justify-between gap-1">
-                        <span className="text-[11px] font-sans px-2.5 py-0.5 rounded-full bg-[#f4f6f8] border border-slate-200 text-[#546e7a] font-semibold">
-                          {agent.questions.length} {locale === 'en' ? 'questions' : 'otázek'}
-                        </span>
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          <span className="text-[11px] font-sans px-2.5 py-0.5 rounded-full bg-[#f4f6f8] border border-slate-200 text-[#546e7a] font-semibold">
+                            {agent.questions.length} {locale === 'en' ? 'questions' : 'otázek'}
+                          </span>
+                          {isCompleted ? (
+                            <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-300 dark:border-emerald-700/50 text-emerald-800 dark:text-emerald-300 font-semibold">
+                              {locale === 'en' ? 'Completed' : 'Dokončeno'}
+                            </span>
+                          ) : hasProgress ? (
+                            <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-amber-50 dark:bg-amber-950/40 border border-amber-300 dark:border-amber-700/50 text-amber-800 dark:text-amber-300 font-semibold">
+                              {locale === 'en' ? `In progress (${currentStep + 1}/${agent.questions.length + 1})` : `Rozpracováno (${currentStep + 1}/${agent.questions.length + 1})`}
+                            </span>
+                          ) : null}
+                        </div>
 
                         <div className="flex items-center gap-1.5">
                           {activeAgentsTab === 'active' ? (
@@ -978,7 +1008,7 @@ const [researchError, setResearchError] = useState<string | null>(null);
                       </span>
 
                       <span className="flex items-center gap-1 text-[#0277bd] group-hover:text-[#01579b] font-bold group-hover:translate-x-1 transition-transform">
-                        <span>{locale === 'en' ? 'Launch' : 'Spustit'}</span>
+                        <span>{isCompleted ? (locale === 'en' ? 'Results' : 'Výsledky') : hasProgress ? (locale === 'en' ? 'Continue' : 'Pokračovat') : (locale === 'en' ? 'Launch' : 'Spustit')}</span>
                         <ChevronRight className="w-3.5 h-3.5" />
                       </span>
                     </div>

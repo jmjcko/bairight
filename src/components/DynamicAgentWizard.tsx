@@ -165,7 +165,15 @@ export const DynamicAgentWizard: React.FC<DynamicAgentWizardProps> = ({
       });
     }
   }, [resolvedInitialAnswers]);
-  const [currentStepIndex, setCurrentStepIndex] = useState<number>(initialStepIndex || 0);
+  const [currentStepIndex, setCurrentStepIndex] = useState<number>(() => {
+    if (initialStepIndex !== undefined && initialStepIndex !== null) {
+      return initialStepIndex;
+    }
+    if (savedStateFromStorage?.currentStepIndex !== undefined && typeof savedStateFromStorage.currentStepIndex === "number") {
+      return savedStateFromStorage.currentStepIndex;
+    }
+    return 0;
+  });
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [result, setResult] = useState<UniversalEvaluationResult | null>(() => {
     if (initialSavedResult) return initialSavedResult;
@@ -323,10 +331,34 @@ export const DynamicAgentWizard: React.FC<DynamicAgentWizardProps> = ({
   const isBaselineStep = currentStepIndex === 0;
   const activeQuestions = !isBaselineStep ? (stepGroups[currentStepIndex - 1] || []) : [];
 
+  const persistProgress = (nextAnswers?: Record<string, any>, stepIdx?: number) => {
+    if (typeof window === "undefined" || !agent?.id) return;
+    try {
+      const storedStates = localStorage.getItem("bairight_agent_wizard_states");
+      const parsed = storedStates ? JSON.parse(storedStates) : {};
+      const targetAnswers = nextAnswers !== undefined ? nextAnswers : answers;
+      const targetStep = stepIdx !== undefined ? stepIdx : currentStepIndex;
+      const existing = parsed[agent.id] || {};
+      parsed[agent.id] = {
+        ...existing,
+        answers: targetAnswers,
+        currentStepIndex: targetStep,
+        isCompleted: existing.isCompleted === true,
+        updatedAt: new Date().toISOString(),
+      };
+      localStorage.setItem("bairight_agent_wizard_states", JSON.stringify(parsed));
+      if (onStepChange) {
+        onStepChange(targetStep, targetAnswers);
+      }
+    } catch (e) {
+      console.warn("Failed to persist in-progress wizard state:", e);
+    }
+  };
+
   const handleValueChange = (questionId: string, value: any) => {
     setAnswers((prev) => {
       const next = { ...prev, [questionId]: value };
-      if (onStepChange) onStepChange(currentStepIndex, next);
+      persistProgress(next, currentStepIndex);
       return next;
     });
   };
@@ -344,17 +376,21 @@ export const DynamicAgentWizard: React.FC<DynamicAgentWizardProps> = ({
 
     setAnswers((prev) => {
       const isMulti = question.component === "chips" || question.isMultiSelect;
+      let next: Record<string, any>;
       if (isMulti) {
         const currentArr = Array.isArray(prev[question.id]) ? [...prev[question.id]] : [];
         const oldText = customAnswerText[question.id];
         const filtered = oldText ? currentArr.filter((item) => item !== oldText) : currentArr;
         if (text.trim()) {
-          return { ...prev, [question.id]: [...filtered, text.trim()] };
+          next = { ...prev, [question.id]: [...filtered, text.trim()] };
+        } else {
+          next = { ...prev, [question.id]: filtered };
         }
-        return { ...prev, [question.id]: filtered };
       } else {
-        return { ...prev, [question.id]: text };
+        next = { ...prev, [question.id]: text };
       }
+      persistProgress(next, currentStepIndex);
+      return next;
     });
   };
 
@@ -369,19 +405,22 @@ export const DynamicAgentWizard: React.FC<DynamicAgentWizardProps> = ({
 
     setAnswers((prev) => {
       const isMulti = question.component === "chips" || question.isMultiSelect;
+      let next: Record<string, any>;
       if (isMulti) {
         const currentArr = Array.isArray(prev[question.id]) ? [...prev[question.id]] : [];
-        return {
+        next = {
           ...prev,
           [question.id]: currentArr.filter((item) => item !== oldText),
         };
       } else {
         const defaultVal = question.defaultValue || question.options?.[0]?.value || '';
-        return {
+        next = {
           ...prev,
           [question.id]: defaultVal,
         };
       }
+      persistProgress(next, currentStepIndex);
+      return next;
     });
   };
 
@@ -429,39 +468,43 @@ export const DynamicAgentWizard: React.FC<DynamicAgentWizardProps> = ({
   const handleToggleChip = (question: WizardQuestion, chipValue: string) => {
     setAnswers((prev) => {
       const current = prev[question.id];
+      let next: Record<string, any>;
       if (chipValue === '__SKIP__') {
         setActiveCustomInputs((aPrev) => ({ ...aPrev, [question.id]: false }));
-        return {
+        next = {
           ...prev,
           [question.id]: '__SKIP__',
         };
-      }
-      // All chips questions strictly allow multiselect
-      const isMulti = question.component === 'chips' || question.isMultiSelect;
-      if (isMulti) {
-        const arr: any[] = Array.isArray(current)
-          ? current.filter((x) => x !== '__SKIP__')
-          : typeof current === 'string' && current && current !== '__SKIP__'
-          ? [current]
-          : [];
-        const opt = question.options?.find((o) => o.value === chipValue);
-        const matchIdx = arr.findIndex((item) =>
-          opt ? isOptionMatched(opt, item) : String(item).toLowerCase() === String(chipValue).toLowerCase()
-        );
-        const nextArr = matchIdx >= 0
-          ? arr.filter((_, idx) => idx !== matchIdx)
-          : [...arr, chipValue];
-        return {
-          ...prev,
-          [question.id]: nextArr.length > 0 ? nextArr : '__SKIP__',
-        };
       } else {
-        setActiveCustomInputs((aPrev) => ({ ...aPrev, [question.id]: false }));
-        return {
-          ...prev,
-          [question.id]: chipValue,
-        };
+        // All chips questions strictly allow multiselect
+        const isMulti = question.component === 'chips' || question.isMultiSelect;
+        if (isMulti) {
+          const arr: any[] = Array.isArray(current)
+            ? current.filter((x) => x !== '__SKIP__')
+            : typeof current === 'string' && current && current !== '__SKIP__'
+            ? [current]
+            : [];
+          const opt = question.options?.find((o) => o.value === chipValue);
+          const matchIdx = arr.findIndex((item) =>
+            opt ? isOptionMatched(opt, item) : String(item).toLowerCase() === String(chipValue).toLowerCase()
+          );
+          const nextArr = matchIdx >= 0
+            ? arr.filter((_, idx) => idx !== matchIdx)
+            : [...arr, chipValue];
+          next = {
+            ...prev,
+            [question.id]: nextArr.length > 0 ? nextArr : '__SKIP__',
+          };
+        } else {
+          setActiveCustomInputs((aPrev) => ({ ...aPrev, [question.id]: false }));
+          next = {
+            ...prev,
+            [question.id]: chipValue,
+          };
+        }
       }
+      persistProgress(next, currentStepIndex);
+      return next;
     });
   };
 
@@ -477,14 +520,16 @@ export const DynamicAgentWizard: React.FC<DynamicAgentWizardProps> = ({
   };
 
   const handleCancelWizard = () => {
-    // Restore saved answers and discard uncommitted edit session changes
-    setAnswers(backupAnswersRef.current);
     if (previousResult) {
-      // Restore previous result
+      // Restore previous result and discard uncommitted edit session changes
+      setAnswers(backupAnswersRef.current);
       setResult(previousResult);
-    } else if (onBackToLauncher) {
-      // Exit back to launcher
-      onBackToLauncher();
+    } else {
+      // Persist ongoing progress so the user resumes right here
+      persistProgress(answers, currentStepIndex);
+      if (onBackToLauncher) {
+        onBackToLauncher();
+      }
     }
   };
 
@@ -790,19 +835,18 @@ export const DynamicAgentWizard: React.FC<DynamicAgentWizardProps> = ({
     return (
       <div className="w-full max-w-4xl mx-auto py-20 px-4 text-center space-y-6 animate-in fade-in duration-300">
         <div className="relative w-16 h-16 mx-auto flex items-center justify-center">
-          <div className="absolute inset-0 rounded-full bg-cyan-500/20 blur-xl animate-pulse" />
-          <div className="relative w-16 h-16 rounded-full bg-cyan-950/80 border-2 border-cyan-400/50 flex items-center justify-center shadow-[0_0_30px_rgba(6,182,212,0.3)]">
-            <div className="w-7 h-7 rounded-full border-2 border-cyan-400 border-t-transparent animate-spin" />
+          <div className="relative w-16 h-16 rounded-full bg-white dark:bg-slate-900 border-2 border-[#0099cc] flex items-center justify-center shadow-sm">
+            <div className="w-7 h-7 rounded-full border-2 border-[#0099cc] border-t-transparent animate-spin" />
           </div>
         </div>
         <div className="space-y-2">
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-cyan-950 border border-cyan-400/40 text-cyan-300 text-xs font-mono font-bold">
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#0099cc]/10 dark:bg-[#0099cc]/20 border border-[#0099cc]/30 text-[#0099cc] dark:text-[#38bdf8] text-xs font-mono font-bold">
             <span>{t.dynamicWizardLoading.wakingUp}</span>
           </div>
-          <h2 className="text-2xl sm:text-3xl font-black text-white tracking-tight">
+          <h2 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight">
             {agent.name}
           </h2>
-          <p className="text-sm text-slate-300 max-w-md mx-auto leading-relaxed">
+          <p className="text-sm text-slate-600 dark:text-slate-300 max-w-md mx-auto leading-relaxed">
             {t.dynamicWizardLoading.loadingDetails}
           </p>
         </div>
@@ -816,20 +860,19 @@ export const DynamicAgentWizard: React.FC<DynamicAgentWizardProps> = ({
   if (!result) {
     return (
       <div className="w-full max-w-4xl mx-auto py-4 animate-in fade-in duration-300">
-        <div className="glass-panel rounded-3xl p-6 sm:p-10 border-2 border-cyan-500/40 shadow-[0_25px_80px_rgba(6,182,212,0.18)] relative overflow-hidden">
-          {/* Subtle Glow effects */}
-          <div className="absolute -top-32 -left-32 w-80 h-80 bg-cyan-500/15 rounded-full blur-3xl pointer-events-none" />
-          <div className="absolute -bottom-32 -right-32 w-80 h-80 bg-teal-500/15 rounded-full blur-3xl pointer-events-none" />
-
+        <div className="rounded-2xl sm:rounded-3xl p-6 sm:p-10 bg-white dark:bg-[#181e26] border border-slate-200 dark:border-slate-800 shadow-sm relative overflow-hidden">
           {/* Clean Focused Header */}
-          <div className="border-b border-cyan-500/20 pb-5 mb-6">
+          <div className="border-b border-slate-200 dark:border-slate-800 pb-5 mb-6">
             <div className="flex items-center justify-between gap-4">
               <div className="flex items-center gap-3.5 min-w-0">
                 {onBackToLauncher && (
                   <button
                     type="button"
-                    onClick={onBackToLauncher}
-                    className="p-2.5 rounded-xl bg-slate-900/90 border border-slate-800 text-slate-400 hover:text-white hover:border-cyan-500/40 transition-colors cursor-pointer shrink-0"
+                    onClick={() => {
+                      persistProgress(answers, currentStepIndex);
+                      onBackToLauncher();
+                    }}
+                    className="p-2.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors cursor-pointer shrink-0 shadow-xs"
                     title={locale === 'en' ? "Back to category selection" : "Zpět na výběr kategorie"}
                   >
                     <ArrowLeft className="w-4 h-4" />
@@ -837,10 +880,10 @@ export const DynamicAgentWizard: React.FC<DynamicAgentWizardProps> = ({
                 )}
 
                 <div className="min-w-0">
-                  <h1 className="text-base sm:text-lg md:text-xl font-black text-white tracking-tight leading-snug truncate">
+                  <h1 className="text-base sm:text-lg md:text-xl font-black text-slate-900 dark:text-white tracking-tight leading-snug truncate">
                     {cleanAgentTitle}
                   </h1>
-                  <p className="text-xs text-slate-400 font-mono mt-0.5">
+                  <p className="text-xs text-slate-500 dark:text-slate-400 font-mono mt-0.5 font-medium">
                     {isBaselineStep
                       ? (locale === 'en' ? `Step 1 of ${totalSteps} • Optional Baseline Experience` : `Krok 1 z ${totalSteps} • Volitelná zkušenost s produktem`)
                       : (locale === 'en' ? `Step ${currentStepIndex + 1} of ${totalSteps} • ${Math.round(((currentStepIndex + 1) / totalSteps) * 100)}% Completed` : `Krok ${currentStepIndex + 1} z ${totalSteps} • ${Math.round(((currentStepIndex + 1) / totalSteps) * 100)} % dokončeno`)}
@@ -854,7 +897,7 @@ export const DynamicAgentWizard: React.FC<DynamicAgentWizardProps> = ({
                   <button
                     type="button"
                     onClick={() => setResult(previousResult)}
-                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-cyan-950/90 hover:bg-cyan-900 border border-cyan-400/50 text-cyan-300 text-xs font-mono font-bold transition-colors cursor-pointer shadow-sm"
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white dark:bg-slate-900 hover:bg-[#0099cc]/5 dark:hover:bg-slate-800 border border-[#0099cc]/40 dark:border-[#0099cc]/50 text-[#0099cc] dark:text-[#38bdf8] text-xs font-mono font-bold transition-colors cursor-pointer shadow-xs"
                     title={locale === 'en' ? "Return to completed results" : "Návrat zpět na hotový výsledek a hotového agenta"}
                   >
                     <span>{locale === 'en' ? 'Back to results' : 'Zpět na výsledky'}</span>
@@ -864,7 +907,7 @@ export const DynamicAgentWizard: React.FC<DynamicAgentWizardProps> = ({
                 <button
                   type="button"
                   onClick={handleResetForm}
-                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-900/90 hover:bg-slate-800 text-slate-400 hover:text-cyan-300 border border-slate-800 hover:border-slate-700 text-xs font-mono transition-colors cursor-pointer"
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white border border-slate-200 dark:border-slate-800 text-xs font-mono transition-colors cursor-pointer shadow-xs"
                   title={locale === 'en' ? "Reset form to default values" : "Resetovat formulář na výchozí hodnoty"}
                 >
                   <RotateCcw className="w-3.5 h-3.5" />
@@ -874,20 +917,20 @@ export const DynamicAgentWizard: React.FC<DynamicAgentWizardProps> = ({
                 <button
                   type="button"
                   onClick={handleCancelWizard}
-                  className="p-2 rounded-xl bg-slate-900/80 hover:bg-slate-800 text-slate-400 hover:text-rose-400 border border-slate-800 hover:border-rose-500/40 transition-colors cursor-pointer shrink-0"
+                  className="p-2 rounded-xl bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-400 hover:text-rose-500 border border-slate-200 dark:border-slate-800 hover:border-rose-300 transition-colors cursor-pointer shrink-0 shadow-xs"
                   title={previousResult ? (locale === 'en' ? "Close editing and discard unsaved progress" : "Zavřít editaci a zahodit neuložený progress") : (locale === 'en' ? "Close wizard and return home" : "Zavřít wizard a vrátit se na úvod")}
                   aria-label={locale === 'en' ? "Close wizard" : "Zavřít wizard"}
                 >
-                  <X className="w-4 h-4 text-rose-400" />
+                  <X className="w-4 h-4 text-rose-500" />
                 </button>
               </div>
             </div>
 
-            {/* Stepper Progress Bar: Single Continuous Glowing Line with Clickable Step Chips */}
+            {/* Stepper Progress Bar: Clean Solid Accent Line with Clickable Step Chips */}
             <div className="space-y-2.5 mt-5">
-              <div className="w-full bg-slate-800/80 h-1.5 rounded-full overflow-hidden relative">
+              <div className="w-full bg-slate-100 dark:bg-slate-800 h-1.5 rounded-full overflow-hidden relative">
                 <div
-                  className="h-full bg-gradient-to-r from-cyan-400 via-cyan-300 to-teal-400 shadow-[0_0_12px_rgba(6,182,212,0.8)] transition-all duration-300 rounded-full"
+                  className="h-full bg-[#0099cc] transition-all duration-300 rounded-full"
                   style={{ width: `${Math.max(5, ((currentStepIndex + 1) / totalSteps) * 100)}%` }}
                 />
               </div>
@@ -903,14 +946,14 @@ export const DynamicAgentWizard: React.FC<DynamicAgentWizardProps> = ({
                       type="button"
                       onClick={() => {
                         setCurrentStepIndex(sIdx);
-                        if (onStepChange) onStepChange(sIdx, answers);
+                        persistProgress(answers, sIdx);
                       }}
-                      className={`px-2.5 py-1 rounded-lg text-[10px] font-mono transition-all cursor-pointer shrink-0 ${
+                      className={`px-2.5 sm:px-3 py-1 rounded-lg text-xs font-mono transition-all cursor-pointer shrink-0 ${
                         isActive
-                          ? 'bg-cyan-950 text-cyan-300 border border-cyan-400/60 font-bold shadow-sm'
+                          ? 'bg-[#0099cc]/10 dark:bg-[#0099cc]/20 text-[#0099cc] dark:text-[#38bdf8] border-2 border-[#0099cc] font-bold shadow-xs'
                           : isDone
-                          ? 'bg-slate-900/80 text-slate-300 hover:text-white border border-slate-800 hover:border-slate-700'
-                          : 'text-slate-500 hover:text-slate-300'
+                          ? 'bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700'
+                          : 'bg-slate-50/50 dark:bg-slate-900/40 text-slate-400 dark:text-slate-500 border border-slate-200/80 dark:border-slate-800/60 hover:text-slate-700 dark:hover:text-slate-300 hover:border-slate-300'
                       }`}
                       title={locale === 'en' ? `Jump to step ${sIdx + 1}` : `Přejít na krok ${sIdx + 1}`}
                     >
@@ -927,15 +970,15 @@ export const DynamicAgentWizard: React.FC<DynamicAgentWizardProps> = ({
             <div className="space-y-8 animate-in fade-in duration-200">
               {isBaselineStep ? (
                 /* BASELINE PRODUCT & EXPERIENCE STEP (KROK 1 - VOLITELNÁ ZKUŠENOST) */
-                <div className="p-6 rounded-2xl bg-[#060c18] border border-cyan-500/30 space-y-6 animate-in fade-in duration-300">
-                  <div className="border-b border-cyan-500/20 pb-4 space-y-1">
-                    <span className="text-xs font-mono font-bold uppercase tracking-wider text-cyan-400 block">
+                <div className="p-6 rounded-2xl bg-white dark:bg-[#151a22] border border-slate-200 dark:border-slate-800 space-y-6 animate-in fade-in duration-300 shadow-xs">
+                  <div className="border-b border-slate-200 dark:border-slate-800 pb-4 space-y-1">
+                    <span className="text-xs font-mono font-bold uppercase tracking-wider text-[#0099cc] dark:text-[#38bdf8] block">
                       {locale === 'en' ? `Step 1 of ${totalSteps} • Optional Baseline Experience` : `Krok 1 z ${totalSteps} • Volitelná zkušenost s produktem`}
                     </span>
-                    <h3 className="text-base sm:text-lg font-bold text-white tracking-wide">
+                    <h3 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white tracking-wide">
                       {locale === 'en' ? 'Current Experience & Baseline Product' : 'Dosavadní zkušenosti & Stávající produkt'}
                     </h3>
-                    <p className="text-xs text-slate-300 leading-relaxed">
+                    <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
                       {locale === 'en'
                         ? 'Do you already have experience with this product category? The agent will contrast new models directly against what you know.'
                         : 'Máte již s touto kategorií zkušenost? Agent porovná nové modely přímo s tím, co znáte.'}
@@ -953,27 +996,31 @@ export const DynamicAgentWizard: React.FC<DynamicAgentWizardProps> = ({
                         handleValueChange('baselineLikes', '');
                         handleValueChange('baselineDislikes', '');
                       }}
-                      className={`p-5 rounded-2xl border text-left transition-all cursor-pointer flex flex-col justify-between gap-3 ${baselineMode === 'first_purchase' ? 'bg-cyan-950/40 border-cyan-400 shadow-[0_0_20px_rgba(6,182,212,0.25)] ring-1 ring-cyan-400/50' : 'bg-slate-900/60 border-slate-800 hover:border-slate-700 hover:bg-slate-900/90'}`}
+                      className={`p-5 rounded-2xl border text-left transition-all cursor-pointer flex flex-col justify-between gap-3 ${
+                        baselineMode === 'first_purchase'
+                          ? 'bg-[#0099cc]/5 dark:bg-[#0099cc]/15 border-2 border-[#0099cc] ring-1 ring-[#0099cc]/30 shadow-xs'
+                          : 'bg-white dark:bg-slate-900/50 border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 hover:bg-slate-50/50 dark:hover:bg-slate-900/80'
+                      }`}
                     >
                       <div className="space-y-1.5">
                         <div className="flex items-center justify-between">
-                          <h4 className="text-sm font-bold text-white tracking-wide">
+                          <h4 className="text-sm font-bold text-slate-900 dark:text-white tracking-wide">
                             {locale === 'en' ? 'First purchase in this category' : 'První nákup v této kategorii'}
                           </h4>
                           {baselineMode === 'first_purchase' && (
-                            <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded bg-cyan-950 border border-cyan-400/50 text-cyan-300">
+                            <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded bg-[#0099cc]/15 text-[#0099cc] dark:text-[#38bdf8] border border-[#0099cc]/30">
                               {locale === 'en' ? 'SELECTED' : 'ZVOLENO'}
                             </span>
                           )}
                         </div>
-                        <p className="text-xs text-slate-400 leading-relaxed">
+                        <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
                           {locale === 'en'
                             ? 'I do not currently own or use a product in this category. Take me straight to expert recommendations.'
                             : 'Zatím v této kategorii žádný produkt nevlastním ani nepoužívám. Chci přejít rovnou k doporučením.'}
                         </p>
                       </div>
                       <div className="pt-2">
-                        <span className="text-xs font-mono font-semibold text-cyan-400/80">
+                        <span className="text-xs font-mono font-semibold text-[#0099cc] dark:text-[#38bdf8]">
                           {locale === 'en' ? 'Skip baseline form' : 'Přeskočí formulář'}
                         </span>
                       </div>
@@ -983,27 +1030,31 @@ export const DynamicAgentWizard: React.FC<DynamicAgentWizardProps> = ({
                     <button
                       type="button"
                       onClick={() => setBaselineMode('has_experience')}
-                      className={`p-5 rounded-2xl border text-left transition-all cursor-pointer flex flex-col justify-between gap-3 ${baselineMode === 'has_experience' ? 'bg-cyan-950/40 border-cyan-400 shadow-[0_0_20px_rgba(6,182,212,0.25)] ring-1 ring-cyan-400/50' : 'bg-slate-900/60 border-slate-800 hover:border-slate-700 hover:bg-slate-900/90'}`}
+                      className={`p-5 rounded-2xl border text-left transition-all cursor-pointer flex flex-col justify-between gap-3 ${
+                        baselineMode === 'has_experience'
+                          ? 'bg-[#0099cc]/5 dark:bg-[#0099cc]/15 border-2 border-[#0099cc] ring-1 ring-[#0099cc]/30 shadow-xs'
+                          : 'bg-white dark:bg-slate-900/50 border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 hover:bg-slate-50/50 dark:hover:bg-slate-900/80'
+                      }`}
                     >
                       <div className="space-y-1.5">
                         <div className="flex items-center justify-between">
-                          <h4 className="text-sm font-bold text-white tracking-wide">
+                          <h4 className="text-sm font-bold text-slate-900 dark:text-white tracking-wide">
                             {locale === 'en' ? 'I own / used a product in this category' : 'Vlastním / používal jsem produkt z téhle kategorie'}
                           </h4>
                           {baselineMode === 'has_experience' && (
-                            <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded bg-cyan-950 border border-cyan-400/50 text-cyan-300">
+                            <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded bg-[#0099cc]/15 text-[#0099cc] dark:text-[#38bdf8] border border-[#0099cc]/30">
                               {locale === 'en' ? 'SELECTED' : 'ZVOLENO'}
                             </span>
                           )}
                         </div>
-                        <p className="text-xs text-slate-400 leading-relaxed">
+                        <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
                           {locale === 'en'
                             ? 'I have experience with a specific model and want to specify what worked and what disappointed me.'
                             : 'Používám nebo jsem používal konkrétní model a chci specifikovat, co mi vyhovovalo a co vadilo.'}
                         </p>
                       </div>
                       <div className="pt-2">
-                        <span className="text-xs font-mono font-semibold text-cyan-400/80">
+                        <span className="text-xs font-mono font-semibold text-[#0099cc] dark:text-[#38bdf8]">
                           {locale === 'en' ? 'Open baseline form' : 'Otevře formulář níže'}
                         </span>
                       </div>
@@ -1012,10 +1063,10 @@ export const DynamicAgentWizard: React.FC<DynamicAgentWizardProps> = ({
 
                   {/* Expanded Form: Only when Karta B is selected */}
                   {baselineMode === 'has_experience' && (
-                    <div className="space-y-4 pt-4 border-t border-cyan-500/20 animate-in fade-in slide-in-from-top-2 duration-300">
+                    <div className="space-y-4 pt-4 border-t border-slate-200 dark:border-slate-800 animate-in fade-in slide-in-from-top-2 duration-300">
                       {/* Field 1: Current Model */}
                       <div className="space-y-1.5">
-                        <label className="text-xs font-bold text-slate-200 block">
+                        <label className="text-xs font-bold text-slate-700 dark:text-slate-200 block">
                           {locale === 'en' ? 'Which specific model do you currently own / use?' : 'Jaký konkrétní model nyní vlastníte / používáte?'}
                         </label>
                         <input
@@ -1023,14 +1074,14 @@ export const DynamicAgentWizard: React.FC<DynamicAgentWizardProps> = ({
                           value={answers['baselineModel'] || ''}
                           onChange={(e) => handleValueChange('baselineModel', e.target.value)}
                           placeholder={locale === 'en' ? 'e.g. DeLonghi Magnifica S / Hoka Clifton 8 / Sidi Shot 2' : 'např. DeLonghi Magnifica S / Hoka Clifton 8 / Sidi Shot 2'}
-                          className="w-full px-4 py-3 rounded-xl bg-slate-950 border border-slate-800 text-slate-100 text-xs sm:text-sm focus:border-cyan-400 focus:outline-none transition-all placeholder:text-slate-600 shadow-inner"
+                          className="w-full px-4 py-3 rounded-xl bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white text-xs sm:text-sm focus:border-[#0099cc] focus:ring-1 focus:ring-[#0099cc] focus:outline-none transition-all placeholder:text-slate-400 dark:placeholder:text-slate-500 shadow-xs"
                         />
                       </div>
 
                       {/* Field 2: Likes */}
                       <div className="space-y-1.5">
-                        <label className="text-xs font-bold text-emerald-300 flex items-center gap-1.5">
-                          <span className="text-emerald-400 select-none font-bold">✓</span>
+                        <label className="text-xs font-bold text-emerald-700 dark:text-emerald-400 flex items-center gap-1.5">
+                          <span className="text-emerald-500 select-none font-bold">✓</span>
                           <span>{locale === 'en' ? 'What worked well & what do you want to keep?' : 'Co vám na něm nejvíce vyhovuje a chcete to i u nového?'}</span>
                         </label>
                         <input
@@ -1038,14 +1089,14 @@ export const DynamicAgentWizard: React.FC<DynamicAgentWizardProps> = ({
                           value={answers['baselineLikes'] || ''}
                           onChange={(e) => handleValueChange('baselineLikes', e.target.value)}
                           placeholder={locale === 'en' ? 'e.g. Fast heat-up time, compact footprint, low weight' : 'např. Rychlý náběh, kompaktní rozměry na lince'}
-                          className="w-full px-4 py-3 rounded-xl bg-slate-950 border border-slate-800 text-slate-100 text-xs sm:text-sm focus:border-emerald-500/50 focus:outline-none transition-all placeholder:text-slate-600 shadow-inner"
+                          className="w-full px-4 py-3 rounded-xl bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white text-xs sm:text-sm focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500/30 focus:outline-none transition-all placeholder:text-slate-400 dark:placeholder:text-slate-500 shadow-xs"
                         />
                       </div>
 
                       {/* Field 3: Dislikes */}
                       <div className="space-y-1.5">
-                        <label className="text-xs font-bold text-amber-300 flex items-center gap-1.5">
-                          <span className="text-amber-400 select-none font-bold">•</span>
+                        <label className="text-xs font-bold text-amber-700 dark:text-amber-400 flex items-center gap-1.5">
+                          <span className="text-amber-500 select-none font-bold">•</span>
                           <span>{locale === 'en' ? 'What frustrates you or what broke down / failed?' : 'Co vám na něm nejvíce vadí nebo co selhalo?'}</span>
                         </label>
                         <input
@@ -1053,7 +1104,7 @@ export const DynamicAgentWizard: React.FC<DynamicAgentWizardProps> = ({
                           value={answers['baselineDislikes'] || ''}
                           onChange={(e) => handleValueChange('baselineDislikes', e.target.value)}
                           placeholder={locale === 'en' ? 'e.g. Loud grinder, tedious manual milk wand cleaning, pinched instep' : 'např. Hlučný mlýnek, náročné ruční čištění mléčné trysky'}
-                          className="w-full px-4 py-3 rounded-xl bg-slate-950 border border-slate-800 text-slate-100 text-xs sm:text-sm focus:border-amber-500/50 focus:outline-none transition-all placeholder:text-slate-600 shadow-inner"
+                          className="w-full px-4 py-3 rounded-xl bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white text-xs sm:text-sm focus:border-amber-500 focus:ring-1 focus:ring-amber-500/30 focus:outline-none transition-all placeholder:text-slate-400 dark:placeholder:text-slate-500 shadow-xs"
                         />
                       </div>
                     </div>
@@ -1065,18 +1116,18 @@ export const DynamicAgentWizard: React.FC<DynamicAgentWizardProps> = ({
                 const cleanTitle = question.title.replace(/^Jaké jsou vaše požadavky na:\s*/i, '').replace(/\?$/, '');
 
                 return (
-                  <div key={question.id} className="p-6 sm:p-7 rounded-2xl bg-[#060c18] border border-cyan-500/20 space-y-5">
+                  <div key={question.id} className="p-6 sm:p-7 rounded-2xl bg-white dark:bg-[#151a22] border border-slate-200 dark:border-slate-800 space-y-5 shadow-xs">
                     <div>
-                      <h2 className="text-xl sm:text-2xl font-black text-white tracking-tight flex items-center gap-2.5 flex-wrap">
+                      <h2 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight flex items-center gap-2.5 flex-wrap">
                         <span>{cleanTitle}</span>
                         {(question.component === 'chips' || question.component === 'dropdown' || (question.options && question.options.length > 0)) && (
-                          <span className="text-[10px] font-mono px-2.5 py-0.5 rounded-md bg-cyan-950/80 text-cyan-300 border border-cyan-500/30 font-bold uppercase tracking-wider">
+                          <span className="text-[10px] font-mono px-2.5 py-0.5 rounded-md bg-[#0099cc]/10 dark:bg-[#0099cc]/20 text-[#0099cc] dark:text-[#38bdf8] border border-[#0099cc]/30 font-bold uppercase tracking-wider">
                             {locale === "en" ? "Multi-select" : "Možno vybrat více"}
                           </span>
                         )}
                       </h2>
                       {question.subtitle && (
-                        <p className="text-xs sm:text-sm text-slate-400 mt-1.5 leading-relaxed">{question.subtitle}</p>
+                        <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 mt-1.5 leading-relaxed">{question.subtitle}</p>
                       )}
                     </div>
 
@@ -1084,10 +1135,10 @@ export const DynamicAgentWizard: React.FC<DynamicAgentWizardProps> = ({
                     {question.component === 'slider' && question.sliderConfig && (
                       <div className="space-y-3 pt-2">
                         <div className="flex justify-between items-center">
-                          {locale === 'en' ? <span className="text-xs font-mono text-slate-400">Set value:</span> : <span className="text-xs font-mono text-slate-400">Nastavená hodnota:</span>}
-                          <span className="font-mono text-cyan-300 font-extrabold text-base bg-cyan-950/90 px-3.5 py-1 rounded-xl border border-cyan-500/30 shadow-sm">
+                          {locale === 'en' ? <span className="text-xs font-mono text-slate-500 dark:text-slate-400">Set value:</span> : <span className="text-xs font-mono text-slate-500 dark:text-slate-400">Nastavená hodnota:</span>}
+                          <span className="font-mono text-[#0099cc] dark:text-[#38bdf8] font-extrabold text-base bg-[#0099cc]/10 dark:bg-[#0099cc]/20 px-3.5 py-1 rounded-xl border border-[#0099cc]/30 shadow-xs">
                             {val ?? question.sliderConfig.defaultValue}{' '}
-                            <span className="text-xs text-slate-400 font-normal">{question.sliderConfig.unit}</span>
+                            <span className="text-xs text-slate-500 dark:text-slate-400 font-normal">{question.sliderConfig.unit}</span>
                           </span>
                         </div>
                         <input
@@ -1097,7 +1148,7 @@ export const DynamicAgentWizard: React.FC<DynamicAgentWizardProps> = ({
                           step={question.sliderConfig.step}
                           value={val ?? question.sliderConfig.defaultValue}
                           onChange={(e) => handleValueChange(question.id, Number(e.target.value))}
-                          className="w-full accent-cyan-400 h-2.5 bg-slate-900 rounded-lg cursor-pointer"
+                          className="w-full accent-[#0099cc] h-2.5 bg-slate-200 dark:bg-slate-800 rounded-lg cursor-pointer"
                         />
                       </div>
                     )}
@@ -1139,13 +1190,13 @@ export const DynamicAgentWizard: React.FC<DynamicAgentWizardProps> = ({
                       return (
                         <div className="space-y-4 pt-1">
                           {/* 1. PREFEROVANÉ ZNAČKY (CHCI) */}
-                          <div className="p-4 rounded-2xl bg-emerald-950/20 border border-emerald-500/30 space-y-2.5">
+                          <div className="p-4 rounded-2xl bg-emerald-50/60 dark:bg-emerald-950/20 border border-emerald-200 dark:border-emerald-500/30 space-y-2.5">
                             <div className="flex items-center justify-between">
-                              <label className="text-xs font-bold text-emerald-300 flex items-center gap-2">
-                                <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+                              <label className="text-xs font-bold text-emerald-800 dark:text-emerald-300 flex items-center gap-2">
+                                <CheckCircle2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
                                 <span>{t.brandSelector.preferredTitle}</span>
                               </label>
-                              <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded bg-emerald-900/40 text-emerald-300 border border-emerald-500/30">
+                              <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded bg-emerald-100 dark:bg-emerald-900/40 text-emerald-800 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-500/30">
                                 {preferredTags.length > 0 ? t.brandSelector.preferredBadgeSelected.replace('{count}', String(preferredTags.length)) : t.brandSelector.preferredBadgeOpen}
                               </span>
                             </div>
@@ -1155,7 +1206,7 @@ export const DynamicAgentWizard: React.FC<DynamicAgentWizardProps> = ({
                               value={brandVal.preferred}
                               onChange={(e) => updateBrandPref(e.target.value)}
                               placeholder={t.brandSelector.preferredPlaceholder}
-                              className="w-full px-3.5 py-2.5 bg-slate-950/90 rounded-xl border border-emerald-500/30 focus:border-emerald-400 text-sm text-white placeholder-slate-500 outline-none transition-all shadow-inner"
+                              className="w-full px-3.5 py-2.5 bg-white dark:bg-slate-950 rounded-xl border border-emerald-300 dark:border-emerald-500/30 focus:border-emerald-500 text-sm text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 outline-none transition-all shadow-xs"
                             />
 
                             {preferredTags.length > 0 && (
@@ -1163,13 +1214,13 @@ export const DynamicAgentWizard: React.FC<DynamicAgentWizardProps> = ({
                                 {preferredTags.map((tag: string) => (
                                   <span
                                     key={tag}
-                                    className="inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-lg bg-emerald-900/60 text-emerald-200 border border-emerald-500/40"
+                                    className="inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-lg bg-emerald-100 dark:bg-emerald-900/60 text-emerald-900 dark:text-emerald-200 border border-emerald-300 dark:border-emerald-500/40"
                                   >
                                     <span>{tag}</span>
                                     <button
                                       type="button"
                                       onClick={() => removeTag('preferred', tag)}
-                                      className="hover:text-white p-0.5 rounded cursor-pointer"
+                                      className="hover:text-rose-600 p-0.5 rounded cursor-pointer"
                                       title={locale === 'en' ? "Remove brand" : "Odebrat značku"}
                                     >
                                       <X className="w-3 h-3" />
@@ -1181,13 +1232,13 @@ export const DynamicAgentWizard: React.FC<DynamicAgentWizardProps> = ({
                           </div>
 
                           {/* 2. ZAKÁZANÉ / VYLOUČENÉ ZNAČKY (NECHCI) */}
-                          <div className="p-4 rounded-2xl bg-rose-950/20 border border-rose-500/30 space-y-2.5">
+                          <div className="p-4 rounded-2xl bg-rose-50/60 dark:bg-rose-950/20 border border-rose-200 dark:border-rose-500/30 space-y-2.5">
                             <div className="flex items-center justify-between">
-                              <label className="text-xs font-bold text-rose-300 flex items-center gap-2">
-                                <AlertCircle className="w-4 h-4 text-rose-400" />
+                              <label className="text-xs font-bold text-rose-800 dark:text-rose-300 flex items-center gap-2">
+                                <AlertCircle className="w-4 h-4 text-rose-600 dark:text-rose-400" />
                                 <span>{t.brandSelector.forbiddenTitle}</span>
                               </label>
-                              <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded bg-rose-900/40 text-rose-300 border border-rose-500/30">
+                              <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded bg-rose-100 dark:bg-rose-900/40 text-rose-800 dark:text-rose-300 border border-rose-300 dark:border-rose-500/30">
                                 {forbiddenTags.length > 0 ? t.brandSelector.forbiddenBadgeSelected.replace('{count}', String(forbiddenTags.length)) : t.brandSelector.forbiddenBadgeNone}
                               </span>
                             </div>
@@ -1197,7 +1248,7 @@ export const DynamicAgentWizard: React.FC<DynamicAgentWizardProps> = ({
                               value={brandVal.forbidden}
                               onChange={(e) => updateBrandForb(e.target.value)}
                               placeholder={t.brandSelector.forbiddenPlaceholder}
-                              className="w-full px-3.5 py-2.5 bg-slate-950/90 rounded-xl border border-rose-500/30 focus:border-rose-400 text-sm text-white placeholder-slate-500 outline-none transition-all shadow-inner"
+                              className="w-full px-3.5 py-2.5 bg-white dark:bg-slate-950 rounded-xl border border-rose-300 dark:border-rose-500/30 focus:border-rose-500 text-sm text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 outline-none transition-all shadow-xs"
                             />
 
                             {forbiddenTags.length > 0 && (
@@ -1205,14 +1256,14 @@ export const DynamicAgentWizard: React.FC<DynamicAgentWizardProps> = ({
                                 {forbiddenTags.map((tag: string) => (
                                   <span
                                     key={tag}
-                                    className="inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-lg bg-rose-900/60 text-rose-200 border border-rose-500/40 line-through"
+                                    className="inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-lg bg-rose-100 dark:bg-rose-900/60 text-rose-900 dark:text-rose-200 border border-rose-300 dark:border-rose-500/40"
                                   >
                                     <span>{tag}</span>
                                     <button
                                       type="button"
                                       onClick={() => removeTag('forbidden', tag)}
-                                      className="hover:text-white p-0.5 rounded cursor-pointer no-underline"
-                                      title={locale === 'en' ? "Remove from forbidden" : "Odebrat ze zakázaných"}
+                                      className="hover:text-rose-700 p-0.5 rounded cursor-pointer"
+                                      title={locale === 'en' ? "Remove brand" : "Odebrat značku"}
                                     >
                                       <X className="w-3 h-3" />
                                     </button>
@@ -1221,29 +1272,11 @@ export const DynamicAgentWizard: React.FC<DynamicAgentWizardProps> = ({
                               </div>
                             )}
                           </div>
-
-                          {/* Quick reset to all brands */}
-                          <div className="flex items-center justify-between text-xs text-slate-400 pt-1">
-                            <span>
-                              {preferredTags.length === 0 && forbiddenTags.length === 0
-                                ? t.brandSelector.openSelectionHint
-                                : t.brandSelector.strictRulesHint}
-                            </span>
-                            {(preferredTags.length > 0 || forbiddenTags.length > 0) && (
-                              <button
-                                type="button"
-                                onClick={() => handleValueChange(question.id, { preferred: '', forbidden: '' })}
-                                className="text-cyan-400 hover:text-cyan-300 underline font-medium cursor-pointer"
-                              >
-                                {t.brandSelector.clearRestrictions}
-                              </button>
-                            )}
-                          </div>
                         </div>
                       );
                     })()}
 
-                    {/* COMPONENT 2: SELECT CHIPS & MULTI-OPTION SELECTION */}
+                    {/* COMPONENT 2: CHIPS & MULTI-SELECT (OPTION CARDS) */}
                     {(question.component === 'chips' || question.component === 'dropdown' || (question.options && question.options.length > 0)) && question.options && !question.id.includes('brand') && !question.title.toLowerCase().includes('značk') && !question.title.toLowerCase().includes('brand') && (
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
                         {question.options.map((opt, optIdx) => {
@@ -1262,29 +1295,29 @@ export const DynamicAgentWizard: React.FC<DynamicAgentWizardProps> = ({
                               onClick={() => handleToggleChip(question, opt.value)}
                               className={`p-4 rounded-2xl border text-left transition-all cursor-pointer flex items-start justify-between gap-3 ${
                                 isSelected
-                                  ? 'bg-cyan-950/90 border-2 border-cyan-400 text-white shadow-[0_0_20px_rgba(6,182,212,0.3)] ring-1 ring-cyan-400/50'
-                                  : 'bg-slate-900/60 border-slate-800 text-slate-400 hover:text-slate-200 hover:border-slate-700'
+                                  ? 'bg-[#0099cc]/5 dark:bg-[#0099cc]/15 border-2 border-[#0099cc] text-slate-900 dark:text-white ring-1 ring-[#0099cc]/30 shadow-xs'
+                                  : 'bg-white dark:bg-slate-900/50 border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:border-slate-300 dark:hover:border-slate-700 hover:bg-slate-50/50 dark:hover:bg-slate-900/80'
                               }`}
                             >
                               <div className="space-y-1">
                                 <div className="flex items-center gap-2">
-                                  <span className="font-bold text-sm text-white">{opt.label}</span>
+                                  <span className="font-bold text-sm text-slate-900 dark:text-white">{opt.label}</span>
                                   {opt.badge && (
-                                    <span className="text-[10px] font-mono px-2 py-0.5 rounded-md bg-cyan-900/50 text-cyan-300 border border-cyan-500/30 font-bold">
+                                    <span className="text-[10px] font-mono px-2 py-0.5 rounded-md bg-[#0099cc]/10 dark:bg-[#0099cc]/20 text-[#0099cc] dark:text-[#38bdf8] border border-[#0099cc]/30 font-bold">
                                       {opt.badge}
                                     </span>
                                   )}
                                 </div>
                                 {hasMeaningfulDesc && (
-                                  <p className="text-xs text-slate-400 leading-snug">{opt.description}</p>
+                                  <p className="text-xs text-slate-600 dark:text-slate-400 leading-snug">{opt.description}</p>
                                 )}
                               </div>
                               {isSelected ? (
-                                <div className="w-5 h-5 rounded-md bg-cyan-500 border border-cyan-300 flex items-center justify-center shrink-0 mt-0.5 shadow-[0_0_10px_rgba(6,182,212,0.5)]">
-                                  <span className="text-slate-950 text-xs font-black leading-none">✓</span>
+                                <div className="w-5 h-5 rounded-md bg-[#0099cc] text-white flex items-center justify-center shrink-0 mt-0.5 shadow-xs">
+                                  <span className="text-xs font-black leading-none">✓</span>
                                 </div>
                               ) : (
-                                <div className="w-5 h-5 rounded-md border border-slate-700 bg-slate-950/40 shrink-0 mt-0.5" />
+                                <div className="w-5 h-5 rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 shrink-0 mt-0.5" />
                               )}
                             </button>
                           );
@@ -1296,8 +1329,8 @@ export const DynamicAgentWizard: React.FC<DynamicAgentWizardProps> = ({
                             onClick={() => handleToggleChip(question, '__SKIP__')}
                             className={`py-1.5 px-3 rounded-lg text-xs font-mono transition-colors cursor-pointer ${
                               (Array.isArray(val) ? val.includes('__SKIP__') : val === '__SKIP__')
-                                ? 'bg-slate-800 border border-cyan-400 text-cyan-300 font-bold'
-                                : 'text-slate-400 hover:text-slate-200'
+                                ? 'bg-slate-100 dark:bg-slate-800 border border-[#0099cc] text-[#0099cc] dark:text-[#38bdf8] font-bold'
+                                : 'text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200'
                             }`}
                           >
                             <span>{t.dynamicWizardLoading.skipChip}</span>
@@ -1306,16 +1339,16 @@ export const DynamicAgentWizard: React.FC<DynamicAgentWizardProps> = ({
 
                         {/* Interactive Custom / Write-In Option */}
                         {activeCustomInputs[question.id] || customAnswerText[question.id] ? (
-                          <div className="sm:col-span-2 p-3.5 rounded-2xl bg-cyan-950/70 border-2 border-cyan-400 text-white shadow-[0_0_20px_rgba(6,182,212,0.25)] ring-1 ring-cyan-400 space-y-2 animate-in fade-in duration-200">
+                          <div className="sm:col-span-2 p-3.5 rounded-2xl bg-[#0099cc]/5 dark:bg-[#0099cc]/15 border-2 border-[#0099cc] text-slate-900 dark:text-white shadow-xs ring-1 ring-[#0099cc]/30 space-y-2 animate-in fade-in duration-200">
                             <div className="flex items-center justify-between">
-                              <span className="text-xs font-mono font-bold text-cyan-300 flex items-center gap-1.5">
-                                <PenLine className="w-3.5 h-3.5 text-cyan-400" />
+                              <span className="text-xs font-mono font-bold text-[#0099cc] dark:text-[#38bdf8] flex items-center gap-1.5">
+                                <PenLine className="w-3.5 h-3.5 text-[#0099cc] dark:text-[#38bdf8]" />
                                 {t.dynamicWizardLoading.customChoice}
                               </span>
                               <button
                                 type="button"
                                 onClick={() => handleRemoveCustomAnswer(question)}
-                                className="text-slate-400 hover:text-red-400 p-1 rounded-lg hover:bg-slate-900 transition-colors cursor-pointer"
+                                className="text-slate-400 hover:text-rose-500 p-1 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
                                 title={locale === 'en' ? 'Remove custom choice' : 'Zrušit vlastní volbu'}
                               >
                                 <X className="w-4 h-4" />
@@ -1327,16 +1360,16 @@ export const DynamicAgentWizard: React.FC<DynamicAgentWizardProps> = ({
                               value={customAnswerText[question.id] || ''}
                               onChange={(e) => handleCustomTextChange(question, e.target.value)}
                               placeholder={locale === 'en' ? 'Write your custom answer or specific clarification...' : 'Napište vlastní odpověď či specifické upřesnění...'}
-                              className="w-full px-3.5 py-2.5 bg-slate-950/90 rounded-xl border border-cyan-500/40 focus:border-cyan-300 text-sm text-white placeholder-slate-500 outline-none transition-all shadow-inner"
+                              className="w-full px-3.5 py-2.5 bg-white dark:bg-slate-950 rounded-xl border border-slate-200 dark:border-slate-800 focus:border-[#0099cc] text-sm text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 outline-none transition-all shadow-xs"
                             />
                           </div>
                         ) : (
                           <button
                             type="button"
                             onClick={() => handleActivateCustomAnswer(question.id)}
-                            className="sm:col-span-2 p-3.5 rounded-2xl border border-dashed border-cyan-500/30 bg-cyan-950/20 hover:bg-cyan-950/40 hover:border-cyan-400/60 text-slate-300 hover:text-white transition-all cursor-pointer flex items-center justify-center gap-2 text-xs font-bold group"
+                            className="sm:col-span-2 p-3.5 rounded-2xl border border-dashed border-slate-300 dark:border-slate-700 bg-slate-50/60 dark:bg-slate-900/30 hover:bg-slate-100/80 dark:hover:bg-slate-900/60 hover:border-[#0099cc]/60 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition-all cursor-pointer flex items-center justify-center gap-2 text-xs font-bold group"
                           >
-                            <PenLine className="w-3.5 h-3.5 text-cyan-400 group-hover:scale-110 transition-transform" />
+                            <PenLine className="w-3.5 h-3.5 text-[#0099cc] dark:text-[#38bdf8] group-hover:scale-110 transition-transform" />
                             <span>{locale === 'en' ? t.dynamicWizard.writeCustomOption : 'Napsat vlastní možnost (jiný specifický požadavek)...'}</span>
                           </button>
                         )}
@@ -1352,9 +1385,9 @@ export const DynamicAgentWizard: React.FC<DynamicAgentWizardProps> = ({
                           value={typeof val === 'string' ? val : ''}
                           onChange={(e) => handleValueChange(question.id, e.target.value)}
                           placeholder={locale === 'en' ? 'Write your answer or specification…' : 'Napište svoji odpověď nebo specifikaci…'}
-                          className="w-full px-4 py-3 bg-slate-900/80 rounded-2xl border border-cyan-500/30 focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/30 text-sm text-white placeholder-slate-500 outline-none transition-all resize-none shadow-inner leading-relaxed"
+                          className="w-full px-4 py-3 bg-white dark:bg-slate-950 rounded-2xl border border-slate-200 dark:border-slate-800 focus:border-[#0099cc] focus:ring-2 focus:ring-[#0099cc]/20 text-sm text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 outline-none transition-all resize-none shadow-xs leading-relaxed"
                         />
-                        <p className="text-xs text-slate-500 px-1">{locale === 'en' ? 'Write typical values or specific requirements as free text.' : 'Tipické hodnoty nebo specifické požadavky pište volným textem.'}</p>
+                        <p className="text-xs text-slate-500 dark:text-slate-400 px-1">{locale === 'en' ? 'Write typical values or specific requirements as free text.' : 'Typické hodnoty nebo specifické požadavky pište volným textem.'}</p>
                       </div>
                     )}
                   </div>
@@ -1364,7 +1397,7 @@ export const DynamicAgentWizard: React.FC<DynamicAgentWizardProps> = ({
             </div>
 
             {/* Navigation Buttons with Prompt Inspector trigger */}
-            <div className="pt-6 border-t border-cyan-500/20 flex flex-wrap items-center justify-between gap-3 mt-8">
+            <div className="pt-6 border-t border-slate-200 dark:border-slate-800 flex flex-wrap items-center justify-between gap-3 mt-8">
               <div className="flex items-center gap-3">
                 {currentStepIndex > 0 && (
                   <button
@@ -1372,9 +1405,9 @@ export const DynamicAgentWizard: React.FC<DynamicAgentWizardProps> = ({
                     onClick={() => {
                       const prevIdx = Math.max(0, currentStepIndex - 1);
                       setCurrentStepIndex(prevIdx);
-                      if (onStepChange) onStepChange(prevIdx, answers);
+                      persistProgress(answers, prevIdx);
                     }}
-                    className="flex items-center gap-2 px-5 py-3 rounded-2xl text-xs font-bold bg-slate-900/90 hover:bg-slate-800 border border-slate-800 hover:border-slate-700 text-slate-300 hover:text-white transition-all cursor-pointer"
+                    className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-bold bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 transition-colors cursor-pointer shadow-xs"
                   >
                     <ChevronLeft className="w-4 h-4" />
                     <span>{t.dynamicWizard.btnPrevious}</span>
@@ -1384,7 +1417,7 @@ export const DynamicAgentWizard: React.FC<DynamicAgentWizardProps> = ({
                 <button
                   type="button"
                   onClick={handleCancelWizard}
-                  className="px-3.5 py-2.5 text-xs font-mono text-slate-500 hover:text-rose-400 transition-colors cursor-pointer"
+                  className="px-3.5 py-2 text-xs font-mono text-slate-500 hover:text-slate-800 dark:hover:text-slate-300 transition-colors cursor-pointer"
                   title={previousResult ? (locale === 'en' ? "Close editing and discard unsaved progress" : "Zavřít editaci a zahodit neuložený progress") : (locale === 'en' ? "Close wizard and return home" : "Zavřít wizard a vrátit se na úvod")}
                 >
                   <span>{t.dynamicWizard.btnCancel}</span>
@@ -1397,10 +1430,10 @@ export const DynamicAgentWizard: React.FC<DynamicAgentWizardProps> = ({
                   <button
                     type="button"
                     onClick={() => handleSave()}
-                    className="flex items-center gap-2 px-5 py-3.5 rounded-2xl text-xs font-bold bg-cyan-950/90 hover:bg-cyan-900 border border-cyan-400/60 text-cyan-300 hover:text-white shadow-[0_0_15px_rgba(6,182,212,0.25)] transition-all cursor-pointer"
+                    className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-bold bg-[#0099cc] hover:bg-[#0088b8] text-white shadow-xs transition-colors cursor-pointer"
                     title={locale === 'en' ? "Save" : "Uložit"}
                   >
-                    <Check className="w-3.5 h-3.5 text-cyan-400" />
+                    <Check className="w-3.5 h-3.5 text-white" />
                     <span>{t.dynamicWizard.btnSave || (locale === 'en' ? 'Save' : 'Uložit')}</span>
                   </button>
                 )}
@@ -1413,9 +1446,9 @@ export const DynamicAgentWizard: React.FC<DynamicAgentWizardProps> = ({
                         onClick={() => {
                           const nextIdx = 1;
                           setCurrentStepIndex(nextIdx);
-                          if (onStepChange) onStepChange(nextIdx, answers);
+                          persistProgress(answers, nextIdx);
                         }}
-                        className="px-4 py-3.5 rounded-2xl text-xs font-bold bg-slate-900 border border-slate-800 text-slate-400 hover:text-slate-200 hover:bg-slate-800 transition-all cursor-pointer"
+                        className="px-4 py-2.5 rounded-xl text-xs font-bold bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 transition-colors cursor-pointer shadow-xs"
                         title={locale === 'en' ? "Skip baseline step and go to parameters" : "Přeskočit stávající zkušenosti a přejít na parametry"}
                       >
                         <span>{locale === 'en' ? 'Skip to Parameters' : 'Přeskočit na parametry'}</span>
@@ -1425,9 +1458,9 @@ export const DynamicAgentWizard: React.FC<DynamicAgentWizardProps> = ({
                       onClick={() => {
                         const nextIdx = Math.min(totalSteps - 1, currentStepIndex + 1);
                         setCurrentStepIndex(nextIdx);
-                        if (onStepChange) onStepChange(nextIdx, answers);
+                        persistProgress(answers, nextIdx);
                       }}
-                      className="flex items-center gap-2 px-8 py-3.5 rounded-2xl text-xs font-bold bg-gradient-to-r from-cyan-500 to-teal-400 text-slate-950 shadow-[0_0_20px_rgba(6,182,212,0.4)] hover:brightness-110 transition-all cursor-pointer"
+                      className="flex items-center gap-2 px-7 py-2.5 sm:py-3 rounded-xl text-xs sm:text-sm font-bold bg-[#0099cc] hover:bg-[#0088b8] text-white shadow-xs transition-colors cursor-pointer"
                     >
                       <span>{t.dynamicWizard.btnContinue}</span>
                       <ChevronRight className="w-4 h-4" />
@@ -1438,10 +1471,10 @@ export const DynamicAgentWizard: React.FC<DynamicAgentWizardProps> = ({
                     <button
                       type="button"
                       onClick={handleOpenPromptInspector}
-                      className="flex items-center gap-2 px-4 py-3.5 rounded-2xl text-xs font-bold bg-slate-900/90 border border-cyan-500/40 text-cyan-300 hover:text-white hover:bg-cyan-950/60 hover:border-cyan-400 transition-all cursor-pointer shadow-sm"
+                      className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 transition-colors cursor-pointer shadow-xs"
                       title={locale === 'en' ? "Inspect prompt sent to AI" : "Zkontrolovat přesný prompt před odesláním do AI"}
                     >
-                      <Eye className="w-4 h-4 text-cyan-400" />
+                      <Eye className="w-4 h-4 text-[#0099cc] dark:text-[#38bdf8]" />
                       <span>{t.dynamicWizard.btnInspectPrompt}</span>
                     </button>
 
@@ -1449,10 +1482,10 @@ export const DynamicAgentWizard: React.FC<DynamicAgentWizardProps> = ({
                       <button
                         type="button"
                         onClick={() => handleSave()}
-                        className="flex items-center gap-2 px-5 py-3.5 rounded-2xl text-xs font-bold bg-cyan-950/90 hover:bg-cyan-900 border border-cyan-400/60 text-cyan-300 hover:text-white shadow-[0_0_15px_rgba(6,182,212,0.25)] transition-all cursor-pointer"
+                        className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-bold bg-[#0099cc] hover:bg-[#0088b8] text-white shadow-xs transition-colors cursor-pointer"
                         title={locale === 'en' ? "Save" : "Uložit"}
                       >
-                        <Check className="w-3.5 h-3.5 text-cyan-400" />
+                        <Check className="w-3.5 h-3.5 text-white" />
                         <span>{t.dynamicWizard.btnSave || (locale === 'en' ? 'Save' : 'Uložit')}</span>
                       </button>
                     )}
@@ -1460,9 +1493,9 @@ export const DynamicAgentWizard: React.FC<DynamicAgentWizardProps> = ({
                     <button
                       onClick={() => handleSubmit()}
                       disabled={isSubmitting}
-                      className="flex items-center gap-2.5 px-8 py-3.5 rounded-2xl text-xs sm:text-sm font-extrabold bg-gradient-to-r from-cyan-400 via-cyan-300 to-teal-400 text-slate-950 shadow-[0_0_30px_rgba(34,211,238,0.8)] hover:scale-105 transition-all disabled:opacity-50 cursor-pointer"
+                      className="flex items-center gap-2.5 px-7 py-2.5 sm:py-3 rounded-xl text-xs sm:text-sm font-bold bg-[#0099cc] hover:bg-[#0088b8] text-white shadow-xs transition-all disabled:opacity-50 cursor-pointer"
                     >
-                      {isSubmitting && <div className="w-4 h-4 rounded-full border-2 border-slate-950 border-t-transparent animate-spin" />}
+                      {isSubmitting && <div className="w-4 h-4 rounded-full border-2 border-white border-t-transparent animate-spin" />}
                       <span>{isSubmitting ? t.dynamicWizard.btnEvaluating : (previousResult ? (locale === 'en' ? 'Recalculate with AI' : 'Přepočítat s AI') : (locale === 'en' ? 'Generate Agent Recommendations' : 'Vygenerovat doporučení agenta'))}</span>
                     </button>
                   </div>
@@ -1494,21 +1527,21 @@ export const DynamicAgentWizard: React.FC<DynamicAgentWizardProps> = ({
   return (
     <div className="w-full max-w-5xl mx-auto space-y-7 py-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
       {/* 1. HERO DELIVERABLE: THE AGENT CARD (MATERIAL DESIGN 3 - HIGHLIGHTED MASTER CARD) */}
-      <div className="rounded-2xl bg-white border-2 border-slate-300 shadow-md p-6 sm:p-8 shadow-slate-200/60 relative overflow-hidden text-left space-y-6">
+      <div className="rounded-2xl result-hub-master-card p-6 sm:p-8 relative overflow-hidden text-left space-y-6">
         {/* Top vibrant Material cyan-blue accent bar */}
         <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-[#0099cc] via-[#0288d1] to-[#0099cc]" />
 
         {/* Success status & Agent Identity */}
-        <div className="pb-5 border-b border-slate-200 space-y-1.5">
+        <div className="pb-5 result-hub-header-divider space-y-1.5">
           <div className="flex items-center gap-2">
-            <span className="text-[11px] font-mono font-bold uppercase tracking-wider text-[#01579b] bg-[#e1f5fe] px-2.5 py-0.5 rounded-md border border-[#b3e5fc]">
+            <span className="text-[11px] font-mono font-bold uppercase tracking-wider result-hub-badge-cyan px-2.5 py-0.5 rounded-md">
               {locale === 'en' ? 'Calibration Complete' : 'Kalibrace dokončena'}
             </span>
           </div>
-          <h2 className="text-2xl sm:text-3xl font-black text-[#263238] tracking-tight">
+          <h2 className="text-2xl sm:text-3xl font-black result-hub-option1-title tracking-tight">
             {displayAgentName}
           </h2>
-          <p className="text-xs sm:text-sm text-[#546e7a]">
+          <p className="text-xs sm:text-sm result-hub-option1-desc">
             {locale === 'en'
               ? 'Choose how you want to run this agent:'
               : 'Vyberte způsob, jak chcete agenta použít:'}
@@ -1523,12 +1556,12 @@ export const DynamicAgentWizard: React.FC<DynamicAgentWizardProps> = ({
             {/* CARD 1 (LEFT): LIVE CHAT IN BAIRIGHT (PRIMARY HIGHLIGHTED OPTION) */}
             {(onOpenChat || onOpenSubscriptionModal) && (
               <div
-                className="flex flex-col justify-between p-6 sm:p-7 rounded-2xl bg-[#f0f9ff] border-2 border-[#b3e5fc] text-[#263238] shadow-xs hover:shadow-md transition-all text-left relative overflow-hidden"
+                className="flex flex-col justify-between p-6 sm:p-7 rounded-2xl result-hub-option1-card transition-all text-left relative overflow-hidden"
               >
                 <div className="absolute top-0 left-0 right-0 h-1 bg-[#0099cc]" />
                 <div className="space-y-4">
                   <div className="flex items-center justify-between gap-2 w-full">
-                    <span className="text-[11px] font-mono font-bold uppercase tracking-wider text-[#01579b] bg-[#e1f5fe] px-2.5 py-1 rounded-md border border-[#b3e5fc] shrink-0">
+                    <span className="text-[11px] font-mono font-bold uppercase tracking-wider result-hub-badge-cyan px-2.5 py-1 rounded-md shrink-0">
                       {locale === 'en' ? 'Option 1' : 'Možnost 1'}
                     </span>
                     <span className={`text-[10px] font-mono px-2 py-0.5 rounded font-bold shrink-0 ${
@@ -1543,10 +1576,10 @@ export const DynamicAgentWizard: React.FC<DynamicAgentWizardProps> = ({
                   </div>
 
                   <div>
-                    <h3 className="text-lg sm:text-xl font-black text-[#263238]">
+                    <h3 className="text-lg sm:text-xl font-black result-hub-option1-title">
                       {locale === 'en' ? 'Chat in bAIright' : 'Spustit chat přímo v bAIright'}
                     </h3>
-                    <p className="text-xs sm:text-sm text-[#546e7a] mt-1 leading-relaxed">
+                    <p className="text-xs sm:text-sm result-hub-option1-desc mt-1 leading-relaxed">
                       {locale === 'en'
                         ? 'Direct interactive discussion and tailored recommendations directly in this window.'
                         : 'Interaktivní diskuze a výběr produktů na míru přímo v tomto okně.'}
@@ -1585,7 +1618,7 @@ export const DynamicAgentWizard: React.FC<DynamicAgentWizardProps> = ({
                       </button>
                     )}
 
-                    <p className="text-[11px] font-mono text-center text-[#546e7a]">
+                    <p className="text-[11px] font-mono text-center result-hub-option1-desc">
                       {hasApiKey
                         ? (locale === 'en' ? `✓ Model ${activeProviderName} is ready` : `✓ Model ${activeProviderName} je připraven`)
                         : (locale === 'en' ? 'Supports Gemini, GPT-4o, Claude & Ollama' : 'Podpora Gemini, GPT-4o, Claude i Ollama')}
@@ -1593,33 +1626,33 @@ export const DynamicAgentWizard: React.FC<DynamicAgentWizardProps> = ({
                   </div>
                 </div>
 
-                <div className="pt-3 border-t border-slate-100 mt-5 text-[11px] font-mono text-[#546e7a] flex items-center justify-between">
+                <div className="pt-3 result-hub-option1-footer mt-5 text-[11px] font-mono flex items-center justify-between">
                   <span>{locale === 'en' ? 'Interactive consultant' : 'Interaktivní konzultant'}</span>
-                  <span className="font-bold text-[#01579b]">bAIright Chat</span>
+                  <span className="font-bold text-[#0099cc] dark:text-[#38bdf8]">bAIright Chat</span>
                 </div>
               </div>
             )}
 
             {/* CARD 2 (RIGHT): COPY PROMPT TO CLIPBOARD (SECONDARY OPTION) */}
             <div
-              className="flex flex-col justify-between p-6 sm:p-7 rounded-2xl bg-slate-50 border-2 border-slate-200 text-[#263238] shadow-xs hover:shadow-md transition-all text-left relative overflow-hidden"
+              className="flex flex-col justify-between p-6 sm:p-7 rounded-2xl result-hub-option2-card transition-all text-left relative overflow-hidden"
             >
-              <div className="absolute top-0 left-0 right-0 h-1 bg-[#1e293b]" />
+              <div className="absolute top-0 left-0 right-0 h-1 result-hub-option2-bar" />
               <div className="space-y-4">
                 <div className="flex items-center justify-between gap-2 w-full">
-                  <span className="text-[11px] font-mono font-bold uppercase tracking-wider text-[#1e293b] bg-slate-100 px-2.5 py-1 rounded-md border border-slate-300 shrink-0">
+                  <span className="text-[11px] font-mono font-bold uppercase tracking-wider result-hub-option2-badge px-2.5 py-1 rounded-md shrink-0">
                     {locale === 'en' ? 'Option 2' : 'Možnost 2'}
                   </span>
-                  <span className="text-[10px] font-mono px-2 py-0.5 rounded font-bold bg-[#e1f5fe] text-[#01579b] border border-[#b3e5fc] shrink-0">
+                  <span className="text-[10px] font-mono px-2 py-0.5 rounded font-bold result-hub-badge-cyan shrink-0">
                     {locale === 'en' ? 'No API Key Needed' : 'Bez API klíče'}
                   </span>
                 </div>
 
                 <div>
-                  <h3 className="text-lg sm:text-xl font-black text-[#263238]">
+                  <h3 className="text-lg sm:text-xl font-black result-hub-option2-title">
                     {locale === 'en' ? 'Copy Prompt to Clipboard' : 'Zkopírovat prompt do schránky'}
                   </h3>
-                  <p className="text-xs sm:text-sm text-[#546e7a] mt-1 leading-relaxed">
+                  <p className="text-xs sm:text-sm result-hub-option2-desc mt-1 leading-relaxed">
                     {locale === 'en'
                       ? 'Calibrated prompt ready to paste into ChatGPT, Claude, Gemini, or Perplexity.'
                       : 'Kompletní vyladěný prompt pro vložení do ChatGPT, Claude, Gemini či Perplexity.'}
@@ -1634,7 +1667,7 @@ export const DynamicAgentWizard: React.FC<DynamicAgentWizardProps> = ({
                     className={`w-full flex items-center justify-center gap-2 py-3.5 px-4 rounded-xl font-bold text-xs sm:text-sm shadow-xs transition-all cursor-pointer ${
                       copiedSnippetType === 'system_prompt'
                         ? 'bg-[#0099cc] hover:bg-[#0088b8] text-white'
-                        : 'bg-[#1e293b] hover:bg-[#0f172a] text-white'
+                        : 'result-hub-option2-copybtn'
                     }`}
                   >
                     <span>{copiedSnippetType === 'system_prompt' ? '✓' : '⧉'}</span>
@@ -1645,45 +1678,45 @@ export const DynamicAgentWizard: React.FC<DynamicAgentWizardProps> = ({
                     </span>
                   </button>
 
-                  <p className="text-[11px] font-mono text-center text-[#546e7a]">
+                  <p className="text-[11px] font-mono text-center result-hub-option2-desc">
                     {locale === 'en' ? 'Paste with Ctrl+V / Cmd+V into any AI chat' : 'Vložte zkratkou Ctrl+V / Cmd+V do libovolného chatu'}
                   </p>
                 </div>
 
                 {/* Single-line prompt preview with inspector link */}
-                <div className="px-3 py-2 rounded-lg bg-slate-50 border border-slate-200 text-[11px] font-mono text-slate-600 flex items-center justify-between gap-2">
+                <div className="px-3 py-2 rounded-lg result-hub-prompt-box text-[11px] font-mono flex items-center justify-between gap-2">
                   <span className="truncate text-slate-500 max-w-[220px]">
                     {currentLivePrompt.slice(0, 45)}...
                   </span>
                   <button
                     type="button"
                     onClick={handleOpenPromptInspector}
-                    className="text-[#0277bd] hover:text-[#01579b] hover:underline cursor-pointer font-bold shrink-0 lowercase text-[10px]"
+                    className="text-[#0277bd] dark:text-[#38bdf8] hover:underline cursor-pointer font-bold shrink-0 lowercase text-[10px]"
                   >
                     {locale === 'en' ? 'view full prompt' : 'zobrazit celý prompt'}
                   </button>
                 </div>
               </div>
 
-              <div className="pt-3 border-t border-slate-100 mt-5 text-[11px] font-mono text-[#546e7a] flex items-center justify-between">
+              <div className="pt-3 result-hub-option2-footer mt-5 text-[11px] font-mono flex items-center justify-between">
                 <span>{locale === 'en' ? 'Free tier ready' : 'Funguje i ve free verzích'}</span>
-                <span className="font-bold text-[#1e293b]">ChatGPT • Claude • Gemini</span>
+                <span className="font-bold result-hub-option2-brandtag">ChatGPT • Claude • Gemini</span>
               </div>
             </div>
           </div>
 
           {/* TIER 2: SECONDARY ACTIONS & PORTABLE EXPORT (.AGENT.MD) */}
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 p-4 rounded-xl bg-slate-50 border border-slate-200 text-left">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 p-4 rounded-xl result-hub-tier2-box text-left">
             <div className="space-y-0.5">
               <div className="flex items-center gap-2">
-                <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-slate-600 bg-white px-2 py-0.5 rounded border border-slate-200">
+                <span className="text-[10px] font-mono font-bold uppercase tracking-wider result-hub-option2-badge px-2 py-0.5 rounded">
                   {locale === 'en' ? 'Portable File' : 'Soubor'}
                 </span>
-                <span className="text-xs font-bold text-[#263238]">
+                <span className="text-xs font-bold result-hub-option1-title">
                   {locale === 'en' ? 'Download .agent.md Configuration' : 'Uložit konfiguraci agenta (.agent.md)'}
                 </span>
               </div>
-              <p className="text-xs text-[#546e7a]">
+              <p className="text-xs result-hub-option1-desc">
                 {locale === 'en'
                   ? 'Markdown specification with all rules for Custom GPTs, Claude Projects, or local agents.'
                   : 'Otevřená specifikace se všemi pravidly pro Custom GPTs, Claude Projects nebo lokální agenty.'}
@@ -1693,7 +1726,7 @@ export const DynamicAgentWizard: React.FC<DynamicAgentWizardProps> = ({
             <button
               type="button"
               onClick={handleDownloadAgentMarkdown}
-              className="px-3.5 py-2 rounded-lg bg-white hover:bg-slate-100 border border-slate-300 text-[#263238] text-xs font-mono font-bold transition-all cursor-pointer shrink-0 shadow-xs flex items-center gap-1.5"
+              className="px-3.5 py-2 rounded-lg result-hub-btn-secondary text-xs font-mono font-bold transition-all cursor-pointer shrink-0 shadow-xs flex items-center gap-1.5"
             >
               <span>{locale === 'en' ? 'Download .agent.md' : 'Stáhnout .agent.md soubor'}</span>
               <span>↓</span>
@@ -1701,8 +1734,8 @@ export const DynamicAgentWizard: React.FC<DynamicAgentWizardProps> = ({
           </div>
 
           {/* TIER 3: CLEAN UTILITY TOOLBAR (MATERIAL DESIGN 3, ZERO ICONS) */}
-          <div className="flex flex-wrap items-center justify-between gap-2.5 p-3 rounded-xl bg-white border border-slate-200">
-            <span className="text-xs font-mono text-[#546e7a] px-2 font-semibold">
+          <div className="flex flex-wrap items-center justify-between gap-2.5 p-3 rounded-xl result-hub-tier3-box">
+            <span className="text-xs font-mono result-hub-option1-desc px-2 font-semibold">
               {locale === 'en' ? 'Wizard Tools:' : 'Nástroje průvodce:'}
             </span>
 
@@ -1711,7 +1744,7 @@ export const DynamicAgentWizard: React.FC<DynamicAgentWizardProps> = ({
               <button
                 type="button"
                 onClick={handleOpenPromptInspector}
-                className="px-3.5 py-1.5 rounded-lg bg-slate-50 hover:bg-slate-100 border border-slate-200 text-[#263238] text-xs font-mono transition-all cursor-pointer flex items-center gap-1.5"
+                className="px-3.5 py-1.5 rounded-lg result-hub-btn-tool text-xs font-mono transition-all cursor-pointer flex items-center gap-1.5"
                 title={locale === 'en' ? "View full prompt sent to AI" : "Zobrazit kompletní prompt"}
               >
                 <span>{locale === 'en' ? 'View Full Prompt' : 'Zobrazit celý prompt'}</span>
@@ -1727,7 +1760,7 @@ export const DynamicAgentWizard: React.FC<DynamicAgentWizardProps> = ({
                   setCurrentStepIndex(0);
                   if (onEditWizard) onEditWizard();
                 }}
-                className="px-3.5 py-1.5 rounded-lg bg-slate-50 hover:bg-slate-100 border border-slate-200 text-[#263238] text-xs font-mono transition-all cursor-pointer flex items-center gap-1.5"
+                className="px-3.5 py-1.5 rounded-lg result-hub-btn-tool text-xs font-mono transition-all cursor-pointer flex items-center gap-1.5"
                 title={locale === 'en' ? "Adjust entered parameters" : "Upravit zadané parametry"}
               >
                 <span>{locale === 'en' ? 'Edit Wizard' : 'Upravit wizard'}</span>
@@ -1742,7 +1775,7 @@ export const DynamicAgentWizard: React.FC<DynamicAgentWizardProps> = ({
                   setAnswers(initialAnswers);
                   if (onResetWizard) onResetWizard();
                 }}
-                className="px-3.5 py-1.5 rounded-lg bg-slate-50 hover:bg-red-50 border border-slate-200 hover:border-red-200 text-[#546e7a] hover:text-red-700 text-xs font-mono transition-all cursor-pointer flex items-center gap-1.5"
+                className="px-3.5 py-1.5 rounded-lg result-hub-btn-reset text-xs font-mono transition-all cursor-pointer flex items-center gap-1.5"
                 title={locale === 'en' ? "Reset questionnaire" : "Vynulovat dotazník"}
               >
                 <span>{locale === 'en' ? 'Reset Questionnaire' : 'Vynulovat dotazník'}</span>
@@ -1753,9 +1786,9 @@ export const DynamicAgentWizard: React.FC<DynamicAgentWizardProps> = ({
       </div>
 
       {/* 1.5 ACTIVE SELECTION CRITERIA & RETROACTIVE PARAMETER TUNING */}
-      <div className="rounded-2xl bg-white border border-slate-200 shadow-xs overflow-hidden transition-all text-left">
+      <div className="rounded-2xl result-hub-accordion-master shadow-xs overflow-hidden transition-all text-left">
         {/* Collapsible Header Accordion Toggle */}
-        <div className="w-full p-4 sm:p-5 flex items-center justify-between text-left hover:bg-slate-50 transition-colors">
+        <div className="w-full p-4 sm:p-5 flex items-center justify-between text-left result-hub-accordion-header transition-colors">
           <div
             onClick={() => setIsParametersExpanded((prev) => !prev)}
             className="min-w-0 cursor-pointer flex-1"
@@ -1980,12 +2013,12 @@ export const DynamicAgentWizard: React.FC<DynamicAgentWizardProps> = ({
       </div>
 
       {/* 2. PLATFORM DEPLOYMENT GUIDES (GEMINI GEMS, CHATGPT CUSTOM GPTS, CLAUDE PROJECTS) */}
-      <div className="rounded-2xl bg-white border border-slate-200 shadow-xs overflow-hidden transition-all text-left">
+      <div className="rounded-2xl result-hub-accordion-master shadow-xs overflow-hidden transition-all text-left">
         {/* Collapsible Header Accordion Toggle */}
         <button
           type="button"
           onClick={() => setIsGuidesExpanded((prev) => !prev)}
-          className="w-full p-4 sm:p-5 flex items-center justify-between text-left hover:bg-slate-50 transition-colors cursor-pointer group"
+          className="w-full p-4 sm:p-5 flex items-center justify-between text-left result-hub-accordion-header transition-colors cursor-pointer group"
           aria-expanded={isGuidesExpanded}
         >
           <div className="min-w-0">
@@ -2023,7 +2056,7 @@ export const DynamicAgentWizard: React.FC<DynamicAgentWizardProps> = ({
               </p>
 
               {/* Guide Platform Switcher Tabs */}
-              <div className="flex items-center p-1 rounded-xl bg-slate-100 border border-slate-200 shrink-0">
+              <div className="flex items-center p-1 rounded-xl result-hub-tabs-container shrink-0">
                 <button
                   type="button"
                   onClick={() => setActiveGuideTab('gemini')}
@@ -2063,7 +2096,7 @@ export const DynamicAgentWizard: React.FC<DynamicAgentWizardProps> = ({
             {/* Tab Content: Google Gemini Gems */}
             {activeGuideTab === 'gemini' && (
               <div className="space-y-4 animate-in fade-in duration-200">
-                <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 text-xs text-[#263238] space-y-3">
+                <div className="p-4 rounded-xl result-hub-card-item text-xs result-hub-option1-title space-y-3">
                   <div className="flex items-center justify-between">
                     <span className="font-bold text-[#01579b] text-sm flex items-center gap-1.5">
                       {locale === 'en' ? 'Instructions for Google Gemini (Gem Manager):' : 'Návod pro Google Gemini (Gem Manager):'}
@@ -2107,7 +2140,7 @@ export const DynamicAgentWizard: React.FC<DynamicAgentWizardProps> = ({
             {/* Tab Content: OpenAI ChatGPT Custom GPTs */}
             {activeGuideTab === 'chatgpt' && (
               <div className="space-y-4 animate-in fade-in duration-200">
-                <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 text-xs text-[#263238] space-y-3">
+                <div className="p-4 rounded-xl result-hub-card-item text-xs result-hub-option1-title space-y-3">
                   <div className="flex items-center justify-between">
                     <span className="font-bold text-[#01579b] text-sm flex items-center gap-1.5">
                       {locale === 'en' ? 'Instructions for OpenAI ChatGPT (Custom GPT):' : 'Návod pro OpenAI ChatGPT (Custom GPT):'}
@@ -2151,7 +2184,7 @@ export const DynamicAgentWizard: React.FC<DynamicAgentWizardProps> = ({
             {/* Tab Content: Anthropic Claude Projects */}
             {activeGuideTab === 'claude' && (
               <div className="space-y-4 animate-in fade-in duration-200">
-                <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 text-xs text-[#263238] space-y-3">
+                <div className="p-4 rounded-xl result-hub-card-item text-xs result-hub-option1-title space-y-3">
                   <div className="flex items-center justify-between">
                     <span className="font-bold text-[#01579b] text-sm flex items-center gap-1.5">
                       {locale === 'en' ? 'Instructions for Anthropic Claude (Projects):' : 'Návod pro Anthropic Claude (Projects):'}
@@ -2244,7 +2277,7 @@ export const DynamicAgentWizard: React.FC<DynamicAgentWizardProps> = ({
       )}
 
       {/* 4. THE ULTIMATE VALUE PROPOSITION: PERSISTENT RAG MEMORY & FEEDBACK LOOP */}
-      <div className="rounded-2xl bg-white border border-slate-200 shadow-xs overflow-hidden transition-all text-left">
+      <div className="rounded-2xl result-hub-accordion-master shadow-xs overflow-hidden transition-all text-left">
         {/* Collapsible Header Accordion Toggle */}
         <button
           type="button"

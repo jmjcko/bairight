@@ -326,5 +326,30 @@ describe('AgentCategoryLauncher Unit Test Suite (PRD v1)', () => {
     expect(screen.getByText(/1 otázek|1 questions/i)).toBeInTheDocument();
     expect(screen.getByTitle(/Smazat agenta z knihovny|Remove from library/i)).toBeInTheDocument();
   });
+
+  it('13. Parametry a záhlaví kategorie mají třídy a vysoký kontrast pro čitelnost v dark i light módu', async () => {
+    render(<AgentCategoryLauncher onSelectAgent={mockOnSelectAgent} />);
+
+    const searchInput = screen.getByPlaceholderText(/Kancelářská ergonomická židle/i);
+    fireEvent.change(searchInput, { target: { value: 'proudove cerpadlo do akvaria' } });
+
+    const researchBtn = screen.getByRole('button', { name: /Začít/i });
+    fireEvent.click(researchBtn);
+
+    await waitFor(() => {
+      expect(screen.getByText(/Vyberte parametry pro dotazník/i)).toBeInTheDocument();
+    });
+
+    const categoryHeading = document.querySelector('.param-discovery-header-title');
+    expect(categoryHeading).toBeInTheDocument();
+    expect(categoryHeading?.className).toContain('dark:text-white');
+
+    const paramTitles = document.querySelectorAll('.param-discovery-card-title');
+    expect(paramTitles.length).toBeGreaterThan(0);
+    paramTitles.forEach((title) => {
+      expect(title.className).toContain('param-discovery-card-title');
+      expect(title.className).toContain('dark:text-white');
+    });
+  });
 });
 

@@ -4,6 +4,12 @@ export interface Translations {
   appName: string;
   appTagline: string;
   appBadge: string;
+  theme: {
+    light: string;
+    dark: string;
+    system: string;
+    mode: string;
+  };
   nav: {
     wizardTab: string;
     chatTab: string;
@@ -342,6 +348,12 @@ export interface Translations {
 
 export const translations: Record<SupportedLocale, Translations> = {
   cs: {
+    theme: {
+      light: 'Světlý',
+      dark: 'Tmavý',
+      system: 'Auto',
+      mode: 'Režim zobrazení',
+    },
     appName: 'bAIright',
     appTagline: 'Vyberte správně s AI • Osobní nákupní poradce',
     appBadge: 'AI Asistent',
@@ -690,6 +702,12 @@ export const translations: Record<SupportedLocale, Translations> = {
     disclaimer: 'Veškerá doporučení a výpočty mají výhradně informativní a orientační charakter. Systém neprovádí lékařskou diagnostiku a nenahrazuje odborné vyšetření lékařem či ortopedem.',
   },
   en: {
+    theme: {
+      light: 'Light',
+      dark: 'Dark',
+      system: 'Auto',
+      mode: 'Color mode',
+    },
     appName: 'bAIright',
     appTagline: 'Buy Right with AI • Personal Podiatric Shoe Shopper',
     appBadge: 'AI Assistant',

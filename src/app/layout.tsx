@@ -50,6 +50,13 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" suppressHydrationWarning data-theme="google-material" data-design-system="material-admin" data-font="inter-tight" className={`material-mode ${spaceGrotesk.variable} ${interTight.variable}`}>
+            <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(function(){try{var m=localStorage.getItem('bairight_color_mode');var dark=m==='dark'||(!m||m==='system')&&window.matchMedia('(prefers-color-scheme: dark)').matches;document.documentElement.setAttribute('data-color-mode',dark?'dark':'light');}catch(e){}})();`,
+          }}
+        />
+      </head>
       <body suppressHydrationWarning className={`min-h-screen material-mode bg-[#f4f6f8] text-[#263238] antialiased selection:bg-[#b3e5fc] selection:text-[#014377] ${interTight.className}`}>
         <I18nProvider>
           <AuthProvider>
