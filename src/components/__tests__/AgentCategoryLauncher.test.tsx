@@ -351,5 +351,43 @@ describe('AgentCategoryLauncher Unit Test Suite (PRD v1)', () => {
       expect(title.className).toContain('dark:text-white');
     });
   });
+
+  it('14. Vykreslí agenty předané v props a aktualizuje se při předání synchronizovaných agentů z cloudu', async () => {
+    const propAgents = [
+      {
+        id: 'agent-prop-synced',
+        name: 'Prop Cloud Synced Agent',
+        category: 'Test Category',
+        icon: '',
+        version: '1.0.0',
+        description: 'Synced from cloud',
+        questions: [],
+        systemPrompt: 'Prompt',
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        isCustom: true,
+      },
+    ];
+
+    const { rerender } = render(
+      <AgentCategoryLauncher
+        onSelectAgent={mockOnSelectAgent}
+        agents={[]}
+      />
+    );
+
+    // Initially no agent cards
+    expect(screen.queryByText('Prop Cloud Synced Agent')).toBeNull();
+
+    // Rerender with synced agents passed from page.tsx
+    rerender(
+      <AgentCategoryLauncher
+        onSelectAgent={mockOnSelectAgent}
+        agents={propAgents}
+      />
+    );
+
+    expect(screen.getByText('Prop Cloud Synced Agent')).toBeInTheDocument();
+  });
 });
 

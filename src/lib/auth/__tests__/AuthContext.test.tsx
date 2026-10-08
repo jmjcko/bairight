@@ -9,6 +9,7 @@ vi.mock("@/lib/supabase", () => ({
       getSession: vi.fn().mockResolvedValue({ data: { session: null } }),
       onAuthStateChange: vi.fn().mockReturnValue({ data: { subscription: { unsubscribe: vi.fn() } } }),
       signInWithOAuth: vi.fn().mockResolvedValue({ error: null }),
+      signInWithIdToken: vi.fn().mockResolvedValue({ data: { user: { id: "supabase_usr_123" } }, error: null }),
       signOut: vi.fn().mockResolvedValue({ error: null }),
     },
   },
@@ -105,5 +106,24 @@ describe("AuthContext with Real Google GIS", () => {
 
     expect(screen.getByTestId("user-status")).toHaveTextContent("Logged out");
     expect(localStorage.getItem("bairight_user_session")).toBeNull();
+  });
+
+  it("calls supabase.auth.signInWithIdToken when google credential is provided", async () => {
+    const { supabase } = await import("@/lib/supabase");
+    render(
+      <AuthProvider>
+        <TestComponent />
+      </AuthProvider>
+    );
+
+    await act(async () => {
+      fireEvent.click(screen.getByText("Simulate Google Credential"));
+    });
+
+    expect(supabase.auth.signInWithIdToken).toHaveBeenCalledWith(
+      expect.objectContaining({
+        provider: "google",
+      })
+    );
   });
 });

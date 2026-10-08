@@ -4,6 +4,7 @@ import { ProfileStorageManager } from '@/lib/storage/profile-storage';
 import { extractBiomechanicalProfileUpdates } from '@/lib/agent/state-machine';
 import { AgentChatMessage } from '@/lib/agent/types';
 import { UniversalAgentDefinition, resolveAgentIcon, getMarketRecencyDirective } from '@/lib/agent/universal-agent-schema';
+import { classifyChatIntent, stripReportTemplateFromPrompt, ChatIntent } from '@/lib/agent/chat-intent-classifier';
 
 interface ChatRequestBody {
   sessionId: string;
@@ -92,8 +93,10 @@ export async function POST(req: NextRequest) {
       || rawAgentPrompt.includes("REQUIRED RESPONSE FORMAT")
       || rawAgentPrompt.includes("POŽADOVANÝ FORMÁT ODPOVĚDI");
 
+    const chatIntent = classifyChatIntent(message);
+
     // 5. If no user BYOK key is connected, synthesized assessment context if present or return clear BYOK notice
-    if (!effectiveKey && (assessmentContext || isAskingRecommendations || isCompiledPrompt)) {
+    if (!effectiveKey && (assessmentContext || chatIntent === "recommendation_request" || isCompiledPrompt)) {
       assistantContent = synthesizeConversationalFallback({
         message,
         agent,
@@ -148,6 +151,7 @@ Vyčkejte prosím několik sekund a pošlete svůj dotaz znovu.`;
           ragFacts,
           assessmentContext,
           locale,
+          chatIntent,
         });
       }
     }
@@ -365,6 +369,9 @@ async function executeConversationalLLM(params: {
     domain.isChair ? 'Ergonomické sezení a židle' :
     'Sportovní obuv a spotřební produkty'
   );
+  // Classify chat intent (conversational dialogue vs explicit recommendation request)
+  const chatIntent = classifyChatIntent(message);
+
   // Detect if agent.systemPrompt is already a full compiled prompt (from wizard)
   // vs. a simple base directive. Compiled prompts contain the parameter block marker.
   const rawAgentSystemPrompt = agent?.systemPrompt || '';
@@ -372,7 +379,9 @@ async function executeConversationalLLM(params: {
     || rawAgentSystemPrompt.includes('STRIKTNÍ A ZÁVAZNÉ POŽADAVKY UŽIVATELE')
     || rawAgentSystemPrompt.includes('REQUIRED RESPONSE FORMAT')
     || rawAgentSystemPrompt.includes('POŽADOVANÝ FORMÁT ODPOVĚDI');
-  const agentDirective = rawAgentSystemPrompt || 'Pomáhej uživateli vybrat nejvhodnější produkty na základě technických a ergonomických parametrů.';
+  const agentDirective = chatIntent === 'conversational_dialogue'
+    ? stripReportTemplateFromPrompt(rawAgentSystemPrompt || agentRole)
+    : (rawAgentSystemPrompt || agentRole);
 
   const formattedFacts = relevantFacts
     .map((f) => `- [${f.category || 'profil'}] ${f.label ? f.label + ': ' : ''}${f.value || f.fact}`)
@@ -466,13 +475,53 @@ Přímo mu odpovídej na jeho dotaz, analyzuj doporučené modely a buď jeho ne
         ? `\n\nCRITICAL MANDATORY INSTRUCTION:\nThe user has already completed the purchasing wizard. All criteria are in the instructions above. NEVER ask the user to re-enter criteria or restart the wizard! Answer directly and serve as their independent shopping expert.`
         : `\n\nSTRIKTNÍ KRITICKÁ INSTRUKCE:\nUživatel už tento průvodce nákupem dokončil! Všechna jeho kritéria MÁŠ K DISPOZICI VÝŠE. NIKDY se uživatele nesmíš ptát, aby znova zadával kritéria! Přímo mu odpovídej na jeho dotaz.`)
       : '';
-    const conversationalRules = isEn
-      ? `\n\n### CONVERSATIONAL RULES:\n1. ALWAYS respond directly to what the user wrote.\n2. MANDATORY 3-MODEL OUTPUT REQUIREMENT: You MUST ALWAYS output EXACTLY 3 distinct product recommendations (### 1., ### 2., ### 3.). NEVER output only 1 or 2 products under any circumstances! If user criteria are extremely niche (e.g. rare vertical dual-drawer air fryers) such that fewer than 3 exact 100% matches exist on the active market, provide the exact match as #1, and the closest top-tier market contenders as #2 and #3 with clear trade-off notes explaining the difference.\n3. Format ALL responses clearly in Markdown using headings (##, ###), bold text (**text**), and bullet points.\n4. When recommending products, ALWAYS use this exact structure for each item:\n### [number]. [Brand Model Name] ([Match: X%])\n- **Why Recommended:** [rationale]\n- **Key Pros:**\n  - [pro 1]\n  - [pro 2]\n- **Trade-offs & Cons:**\n  - [con 1]\n5. For follow-up questions, keep the same structured Markdown format — never respond with plain unformatted text.
-6. DIRECT ACTION MANDATE: NEVER respond with an empty confirmation or promise such as "I will do the research", "I understand and will perform the research", or "I will evaluate". When the user asks to "do the research again", "re-evaluate", "find products", or gives feedback, you MUST IMMEDIATELY execute the research and deliver the full, structured product recommendations with exact model names, rationale, pros, and cons in this exact response!`
-      : `\n\n${getMarketRecencyDirective(false)}
+    const conversationalRules = chatIntent === 'conversational_dialogue'
+      ? (isEn
+        ? `\n\n### CONVERSATIONAL DIALOGUE RULES:
+1. ALWAYS respond directly, naturally, and conversationally to what the user wrote (questions, challenges, comparisons, or feedback).
+2. DO NOT output the full initial evaluation report (# Expert Purchasing Recommendation...) or repeat 3 product cards unless specifically requested.
+3. If the user asks why you recommended certain models or brands (e.g. why only one brand was shown), clearly explain the technical and market rationale based on their selected parameters, reliability, and market consensus. Offer to explore other brands if desired.
+4. Keep the tone helpful, objective, and consultative as an expert personal advisor.
+5. Format key technical points with clear Markdown (bullet points, bold highlights).`
+        : `\n\n${getMarketRecencyDirective(false)}
 
-### PRAVIDLA PRO ODPOVĚDI:\n1. VŽDY reaguj přímo na to, co uživatel napsal.\n2. GARANCE PŘESNĚ 3 PRODUKTŮ: VŽDY MUSÍŠ doporučit PŘESNĚ 3 konkrétní produkty (### 1., ### 2., ### 3.). NIKDY neukončuj odpověď po 1 nebo 2 produktech! Pokud uživatel aktualizuje parametry, recalibruje nebo žádá nové návrhy, VŽDY dodej kompletní trojici. Pokud jsou požadavky extrémně úzké a na trhu nejsou 3 stoprocentní modely, uveď stoprocentní shodu jako #1 a nejbližší alternativy jako #2 a #3 s jasným vysvětlením kompromisu.\n3. Formátuj VŠECHNY odpovědi přehledně v Markdownu s nadpisy (##, ###), tučným písmem (**text**) a odrážkami.\n4. Při doporučování produktů VŽDY dodržuj tuto přesnou strukturu pro každý produkt:\n### [číslo]. [Značka Model] (Shoda: X%)\n- **Proč doporučujeme:** [odůvodnění]\n- **Klíčové výhody:**\n  - [výhoda 1]\n  - [výhoda 2]\n- **Kompromisy a nevýhody:**\n  - [nevýhoda 1]\n5. Na doplňující otázky odpovídej ve stejném strukturovaném Markdown formátu — nikdy neodpovídej neformátovaným prostým textem.
-6. PŘÍKAZ OKAMŽITÉHO VÝKONU: NIKDY neodpovídej prázdným potvrzením nebo slibem typu „Rozumím a provedu výzkum znovu“, „I will perform the research“ nebo „Podívám se na to“. Pokud uživatel napíše „do the research again“, „zkus to znovu“, „přehodnoť doporučení“ nebo požádá o produkty, MUSÍŠ OKAMŽITĚ v této jediné odpovědi provést celý průzkum a doručit kompletní strukturovaná doporučení s konkrétními modely, odůvodněním, výhodami a nevýhodami!`;
+### PRAVIDLA PRO KONVERZAČNÍ DIALOG:
+1. VŽDY reaguj přímo, přirozeně a konverzačně na konkrétní dotaz, námitku, srovnání či dotaz uživatele.
+2. NIKDY neopakuj celou úvodní hodnotící zprávu (# Expertní nákupní doporučení...) ani nevypisuj znovu 3 produktové karty, pokud o ně uživatel výslovně nepožádá.
+3. Pokud se uživatel ptá, proč nabízíš konkrétní značku nebo proč chybí jiná značka (např. „proč mi nabízíš pouze duotone?“), věcně a srozumitelně vysvětli důvody na základě jeho parametrů, spolehlivosti a tržních dat. Nabídni možnost prozkoumat nebo doporučit i jiné značky, pokud o to má zájem.
+4. Zachovej roli nezávislého odborného nákupního poradce a konzultanta.
+5. Formátuj odpověď přehledně v Markdownu (odrážky, tučné zvýraznění klíčových parametrů).`)
+      : (isEn
+        ? `\n\n### CONVERSATIONAL RULES:
+1. ALWAYS respond directly to what the user wrote.
+2. MANDATORY 3-MODEL OUTPUT REQUIREMENT: You MUST ALWAYS output EXACTLY 3 distinct product recommendations (### 1., ### 2., ### 3.). NEVER output only 1 or 2 products under any circumstances! If user criteria are extremely niche (e.g. rare vertical dual-drawer air fryers) such that fewer than 3 exact 100% matches exist on the active market, provide the exact match as #1, and the closest top-tier market contenders as #2 and #3 with clear trade-off notes explaining the difference.
+3. Format ALL responses clearly in Markdown using headings (##, ###), bold text (**text**), and bullet points.
+4. When recommending products, ALWAYS use this exact structure for each item:
+### [number]. [Brand Model Name] ([Match: X%])
+- **Why Recommended:** [rationale]
+- **Key Pros:**
+  - [pro 1]
+  - [pro 2]
+- **Trade-offs & Cons:**
+  - [con 1]
+5. For follow-up questions, keep the same structured Markdown format — never respond with plain unformatted text.
+6. DIRECT ACTION MANDATE: NEVER respond with an empty confirmation or promise such as "I will do the research", "I understand and will perform the research", or "I will evaluate". When the user asks to "do the research again", "re-evaluate", "find products", or gives feedback, you MUST IMMEDIATELY execute the research and deliver the full, structured product recommendations with exact model names, rationale, pros, and cons in this exact response!`
+        : `\n\n${getMarketRecencyDirective(false)}
+
+### PRAVIDLA PRO ODPOVĚDI:
+1. VŽDY reaguj přímo na to, co uživatel napsal.
+2. GARANCE PŘESNĚ 3 PRODUKTŮ: VŽDY MUSÍŠ doporučit PŘESNĚ 3 konkrétní produkty (### 1., ### 2., ### 3.). NIKDY neukončuj odpověď po 1 nebo 2 produktech! Pokud uživatel aktualizuje parametry, recalibruje nebo žádá nové návrhy, VŽDY dodej kompletní trojici. Pokud jsou požadavky extrémně úzké a na trhu nejsou 3 stoprocentní modely, uveď stoprocentní shodu jako #1 a nejbližší alternativy jako #2 a #3 s jasným vysvětlením kompromisu.
+3. Formátuj VŠECHNY odpovědi přehledně v Markdownu s nadpisy (##, ###), tučným písmem (**text**) a odrážkami.
+4. Při doporučování produktů VŽDY dodržuj tuto přesnou strukturu pro každý produkt:
+### [číslo]. [Značka Model] (Shoda: X%)
+- **Proč doporučujeme:** [odůvodnění]
+- **Klíčové výhody:**
+  - [výhoda 1]
+  - [výhoda 2]
+- **Kompromisy a nevýhody:**
+  - [nevýhoda 1]
+5. Na doplňující otázky odpovídej ve stejném strukturovaném Markdown formátu — nikdy neodpovídej neformátovaným prostým textem.
+6. PŘÍKAZ OKAMŽITÉHO VÝKONU: NIKDY neodpovídej prázdným potvrzením nebo slibem typu „Rozumím a provedu výzkum znovu“, „I will perform the research“ nebo „Podívám se na to“. Pokud uživatel napíše „do the research again“, „zkus to znovu“, „přehodnoť doporučení“ nebo požádá o produkty, MUSÍŠ OKAMŽITĚ v této jediné odpovědi provést celý průzkum a doručit kompletní strukturovaná doporučení s konkrétními modely, odůvodněním, výhodami a nevýhodami!`);
     const recencyBlock = `\n\n${getMarketRecencyDirective(isEn)}`;
     systemPrompt = `${agentDirective}${ragBlock}${dontReaskBlock}${recencyBlock}${conversationalRules}`.trim();
   } else {
@@ -490,7 +539,7 @@ ${getMarketRecencyDirective(true)}
 ### RESPONSE RULES & STRICT LANGUAGE DIRECTIVE:
 1. CRITICAL LANGUAGE DIRECTIVE: Communicate and output ALL text, executive summaries, product names, rationale, pros & cons, trade-offs, and buying advice STRICTLY in fluent, natural English. Do NOT generate Czech sentences or paragraphs.
 2. ALWAYS respond directly to what the user wrote. Never repeat mechanically.
-3. MANDATORY 3-MODEL OUTPUT: When recommending products, you MUST ALWAYS provide EXACTLY 3 distinct models (### 1., ### 2., ### 3.). Never output only 1 or 2 products. If criteria are niche, provide the closest top-tier alternatives for slots #2 and #3 with clear trade-off notes.
+${chatIntent === "conversational_dialogue" ? "3. CONVERSATIONAL CONSULTANT: Answer questions, comparisons, and brand inquiries directly without generating a 3-product recommendation template unless specifically requested." : "3. MANDATORY 3-MODEL OUTPUT: When recommending products, you MUST ALWAYS provide EXACTLY 3 distinct models (### 1., ### 2., ### 3.). Never output only 1 or 2 products. If criteria are niche, provide the closest top-tier alternatives for slots #2 and #3 with clear trade-off notes."}
 4. Format output clearly in Markdown using headings (###), bold text, and bullet points.
 `.trim() : `
 Jsi ${agentTitle} (${agentRole}) specializovaný na kategorii "${agentCategory}".
@@ -503,7 +552,7 @@ ${formattedFacts || 'Žádná předchozí data zatím nejsou evidována.'}
 ### PRAVIDLA PRO ODPOVĚDI:
 1. CRITICAL LANGUAGE DIRECTIVE: Veškerá doporučení, konkrétní přesné názvy produktových modelů (např. Lenovo Legion Slim 5 16AHR8), odůvodnění, výhody a reakce MUSÍŠ komunikovat a generovat striktně v přirozené češtině (Čeština).
 2. VŽDY reaguj přímo na to, co uživatel napsal. Nikdy se mechanicky neopakuj.
-3. GARANCE PŘESNĚ 3 MODELŮ: Při doporučování produktů VŽDY uveď PŘESNĚ 3 konkrétní modely (### 1., ### 2., ### 3.). Nikdy neukončuj výstup po 1 nebo 2 modelech. Pokud jsou požadavky specifické či úzké, doplň zbývající pozice nejbližšími alternativami s vysvětlením kompromisu.
+${chatIntent === "conversational_dialogue" ? "3. KONVERZAČNÍ KONZULTANT: Přímo zodpovídej dotazy uživatele, vysvětluj volbu značek, srovnávej modely a řeš technická specifika bez generování šablony 3 doporučení, pokud si o ni uživatel výslovně neřekl." : "3. GARANCE PŘESNĚ 3 MODELŮ: Při doporučování produktů VŽDY uveď PŘESNĚ 3 konkrétní modely (### 1., ### 2., ### 3.). Nikdy neukončuj výstup po 1 nebo 2 modelech. Pokud jsou požadavky specifické či úzké, doplň zbývající pozice nejbližšími alternativami s vysvětlením kompromisu."}
 4. Formátuj odpověď přehledně v Markdownu s použitím nadpisů (###), tučného písma a odrážek či číslovaných seznamů.
 `.trim();
   }
@@ -663,8 +712,10 @@ function synthesizeConversationalFallback(params: {
   ragFacts: Array<{ id?: string; label?: string; value?: string; fact?: string; category?: string }>;
   assessmentContext?: any | null;
   locale?: string;
+  chatIntent?: ChatIntent;
 }): string {
-  const { message, agent, ragFacts, assessmentContext, locale = "cs" } = params;
+  const { message, agent, ragFacts, assessmentContext, locale = "cs", chatIntent: providedIntent } = params;
+  const chatIntent = providedIntent || classifyChatIntent(message);
   const isEn = locale === "en";
   const msgLower = message.toLowerCase().trim();
   const domain = classifyDomain(agent, message);
@@ -717,8 +768,8 @@ function synthesizeConversationalFallback(params: {
       : `> **Zohledněno z vašeho RAG profilu:** ${ragNotes.join(', ')}.\n\n`)
     : '';
 
-  // 1. Check if user has assessmentContext with existing recommended models
-  if (assessmentContext && assessmentContext.recommendedModels && assessmentContext.recommendedModels.length > 0) {
+  // 1. If explicit recommendation request AND assessmentContext has recommended models
+  if (chatIntent === 'recommendation_request' && assessmentContext && assessmentContext.recommendedModels && assessmentContext.recommendedModels.length > 0) {
     const agentName = agent?.name || assessmentContext.missionName || (isEn ? 'bAIright Shopping Consultant' : 'bAIright Nákupní konzultant');
     const recs = assessmentContext.recommendedModels;
     const recsMarkdown = recs.map((m: any, idx: number) => {
@@ -758,20 +809,97 @@ ${recsMarkdown}
 Před nákupem si doporučujeme ověřit dostupnost u českých prodejců, záruční podmínky a přesné rozměry.`;
   }
 
+  // 1b. Conversational Dialogue: handle brand questions and model comparisons
+  if (chatIntent === 'conversational_dialogue') {
+    const normMsg = message.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+
+    // Check if user is questioning brand selection or why specific models were offered
+    const isBrandOrSelectionQuestion = 
+      /proc\s+(?:mi\s+)?(?:nabizis|doporucujes|vybiras|tam\s+je|tam\s+neni|pouze|jen|vyhradne)/i.test(normMsg) ||
+      /why\s+(?:are\s+you\s+)?(?:offering|recommending|choosing|suggesting|only)/i.test(normMsg) ||
+      /proc\s+zrovna/i.test(normMsg) ||
+      /(?:proc|why).*(?:znack|brand)/i.test(normMsg);
+
+    if (isBrandOrSelectionQuestion) {
+      const agentName = agent?.name || assessmentContext?.missionName || (isEn ? 'bAIright Shopping Consultant' : 'bAIright Nákupní konzultant');
+      const recs = assessmentContext?.recommendedModels || [];
+      const brands = Array.from(new Set(recs.map((m: any) => m.brand).filter(Boolean)));
+      const brandStr = brands.length > 0 ? brands.join(', ') : (isEn ? 'these selected brands' : 'vybrané modely');
+
+      return isEn ? `### ${agentName} — Brand & Model Consultation
+
+${ragContextSentence}That is a very fair question! In our evaluation, models from **${brandStr}** scored highest against your configured priority criteria (budget, experience level, safety, and performance parameters).
+
+**Why this selection was prioritized:**
+- **Exact Parameter Compliance:** These models strictly match the criteria defined in your purchasing profile.
+- **Market Reliability & Track Record:** Strong user consensus, service support, and verified build quality.
+
+**Looking for other brands?**
+As an independent purchasing consultant, I have zero vendor lock-in. If you want to include other brands (e.g. Core, Ozone, Cabrinha or other market alternatives), simply ask:
+- *"Recommend 3 models from other brands"*
+- Or tell me which brands you prefer or wish to avoid!`
+      : `### ${agentName} — Konzultace výběru a značek
+
+${ragContextSentence}To je skvělá a naprosto legitimní otázka! V úvodním vyhodnocení dosáhly modely od **${brandStr}** nejvyšší shody s vašimi zadanými parametry (rozpočet, úroveň pokročilosti, bezpečnost a preference).
+
+**Proč byl tento výběr upřednostněn:**
+- **Přesná shoda s parametry:** Tyto modely nejlépe odpovídají kritériím, která máte vybrána v profilu.
+- **Tržní spolehlivost a podpora:** Dlouhodobě prověřená konstrukce, servisní dostupnost a ověřená spokojenost uživatelů.
+
+**Chcete prozkoumat i jiné značky?**
+Jako nezávislý nákupní rádce nemám žádné partnerství s jedním výrobcem. Pokud chcete do výběru zařadit i jiné značky, stačí napsat:
+- *„Doporuč mi 3 modely i od jiných značek“*
+- Nebo mi přímo napište konkrétní značky, které preferujete či naopak nechcete!`;
+    }
+
+    // Check if user is asking for a comparison between models
+    const isComparisonQuestion =
+      /(?:rozdil|srovnej|porovnej|difference|compare|\bversus\b|\bvs\.?\b)/i.test(normMsg);
+
+    if (isComparisonQuestion) {
+      const agentName = agent?.name || assessmentContext?.missionName || (isEn ? 'bAIright Shopping Consultant' : 'bAIright Nákupní konzultant');
+      const recs = assessmentContext?.recommendedModels || [];
+      if (recs.length >= 2) {
+        const m1 = recs[0];
+        const m2 = recs[1];
+        const m1Name = `${m1.brand || ''} ${m1.model || ''}`.trim() || 'Model 1';
+        const m2Name = `${m2.brand || ''} ${m2.model || ''}`.trim() || 'Model 2';
+        return isEn ? `### ${agentName} — Model Comparison: ${m1Name} vs ${m2Name}
+
+${ragContextSentence}Here is a direct consultative comparison of how these two options compare:
+
+**1. ${m1Name}:**
+- **Core Focus:** ${m1.rationale || 'Top match for your parameters.'}
+${Array.isArray(m1.pros) && m1.pros.length > 0 ? `- **Key Advantage:** ${m1.pros[0]}` : ''}
+${Array.isArray(m1.cons) && m1.cons.length > 0 ? `- **Trade-off:** ${m1.cons[0]}` : ''}
+
+**2. ${m2Name}:**
+- **Core Focus:** ${m2.rationale || 'Strong alternative contender.'}
+${Array.isArray(m2.pros) && m2.pros.length > 0 ? `- **Key Advantage:** ${m2.pros[0]}` : ''}
+${Array.isArray(m2.cons) && m2.cons.length > 0 ? `- **Trade-off:** ${m2.cons[0]}` : ''}
+
+Feel free to ask for deeper technical nuances or adjust your preference criteria!`
+        : `### ${agentName} — Srovnání modelů: ${m1Name} vs ${m2Name}
+
+${ragContextSentence}Zde je přímé expertní porovnání obou možností:
+
+**1. ${m1Name}:**
+- **Hlavní zaměření:** ${m1.rationale || 'Nejvyšší shoda s vašimi parametry.'}
+${Array.isArray(m1.pros) && m1.pros.length > 0 ? `- **Klíčová výhoda:** ${m1.pros[0]}` : ''}
+${Array.isArray(m1.cons) && m1.cons.length > 0 ? `- **Kompromis:** ${m1.cons[0]}` : ''}
+
+**2. ${m2Name}:**
+- **Hlavní zaměření:** ${m2.rationale || 'Silná alternativa na trhu.'}
+${Array.isArray(m2.pros) && m2.pros.length > 0 ? `- **Klíčová výhoda:** ${m2.pros[0]}` : ''}
+${Array.isArray(m2.cons) && m2.cons.length > 0 ? `- **Kompromis:** ${m2.cons[0]}` : ''}
+
+Zeptejte se mě na další technické detaily, nebo mi napište, který směr je vám sympatičtější!`;
+      }
+    }
+  }
+
   // 2. Check if user is explicitly asking for top recommendations or sending wizard initialQuery
-  const isAskingRecommendations = 
-    msgLower.includes('top 3') || 
-    msgLower.includes('top3') ||
-    msgLower.includes('doporučení') ||
-    msgLower.includes('doporuč mi 3') || 
-    msgLower.includes('doporuč 3') || 
-    msgLower.includes('navrhni 3') || 
-    msgLower.includes('recommendations') || 
-    msgLower.includes('konkrétní produkt') ||
-    msgLower.includes('specific product') ||
-    msgLower.includes('nejlepší produkty') ||
-    msgLower.includes('based on all parameters') ||
-    msgLower.includes('na základě všech zadaných parametrů');
+  const isAskingRecommendations = chatIntent === 'recommendation_request';
 
   if (isAskingRecommendations) {
     const agentName = agent?.name || (isEn ? 'bAIright Shopping Consultant' : 'bAIright Nákupní poradce');
@@ -798,40 +926,40 @@ ${ragContextSentence}Based on your biomechanical profile, intended running surfa
   - High-stack DNA LOFT v2 foam with neutral lateral stability
   - Highly durable rubber outsole compound with excellent wet-road traction
 - **Trade-offs & Cons:**
-  - Firmer underfoot initial feel during the first 15-20 km break-in period
+  - Slightly firmer toe-off transition for midfoot runners
 
 ### 3. Saucony Echelon 9 (Wide 2E) (Match: 91%)
-- **Why Recommended:** Purpose-built straight platform designed specifically to accommodate custom orthotic insoles and wide feet without inward rolling.
+- **Why Recommended:** Broad and stable straight-last platform engineered specifically for orthotic insoles and wide feet without lateral pinching.
 - **Key Pros:**
-  - PWRRUN cushioning with roomy, friction-free toe box
-  - Rigid external heel counter for confident rearfoot lockdown
+  - Highly accommodating toe box volume and plush PWRRUN cushioning
+  - Outstanding heel counter lockdown and joint stability
 - **Trade-offs & Cons:**
-  - Understated visual styling
+  - Traditional aesthetic styling
 
 ## Important Buying Advice
-Ensure a thumb-width of clearance in front of your longest toe for downhill running expansion, and pair with moisture-wicking technical running socks.`
+Always size up by 0.5–1 full size for running shoes to accommodate foot expansion during prolonged workouts.`
       : `# Expertní nákupní doporučení: ${agentName}
 
 ## Souhrnné hodnocení a strategie výběru
-${ragContextSentence}Na základě vašich parametrů, biomechanického profilu a požadavků na tlumení jsme vyhodnotili aktuální nabídku silničních a objemových bot. Níže uvedené modely maximalizují ochranu kloubů, stabilitu došlapu a prostor v přední části chodidla.
+${ragContextSentence}Na základě vašeho biomechanického profilu, povrchu a nároků na tlumení jsme vybrali 3 nejvhodnější modely běžecké obuvi. Modely níže kladou důraz na maximální absorpci nárazů, stabilitu a prostornou špičku.
 
 ## Top 3 Doporučené Modely
 
 ### 1. Hoka Bondi 8 (Wide 2E) (Shoda: 97%)
-- **Proč doporučujeme:** Absolutní špička v maximálním tlumení s kolébkovou geometrií Early-Stage Meta-Rocker, která zásadně odlehčuje tlak na koleno a čéšku.
+- **Proč doporučujeme:** Etalon maximálního tlumení s kolébkovou geometrií Early-Stage Meta-Rocker pro plynulý přechod z paty na špičku a úlevu kolenním kloubům.
 - **Klíčové výhody:**
-  - Mimořádné tlumení mezipodešve CMEVA pro citlivé klouby
-  - Certifikované široké kopyto 2E zabraňující otlakům prstů
+  - Mimořádně měkká mezipodešev CMEVA s maximální absorpcí rázů
+  - Certifikovaná širší špička 2E a stabilní široká základna
 - **Kompromisy a nevýhody:**
-  - Vyšší hmotnost (307 g) předurčená pro regeneraci a polykání kilometrů, nikoli na rychlé sprinty
+  - Vyšší hmotnost (307 g) určená pro regenerační a objemový běh
 
 ### 2. Brooks Ghost Max (Wide 2E) (Shoda: 94%)
-- **Proč doporučujeme:** Nízký 6mm drop ulevuje kolenům a kolébka GlideRoll Rocker přirozeně odvaluje krok při každém dopadu.
+- **Proč doporučujeme:** Ochranný 6mm drop snižující zatížení pately a rockerová geometrie GlideRoll pomáhající plynulému odvalu.
 - **Klíčové výhody:**
-  - Prémiová tlumicí pěna DNA LOFT v2 s neutrální stabilitou
-  - Vysoce odolná pryžová podešev s dlouhou životností na asfaltu
+  - Pěna DNA LOFT v2 s vysokým stackem a neutrální stabilitou
+  - Vysoce odolná pryžová podešev s vynikající trakcí
 - **Kompromisy a nevýhody:**
-  - Tužší pocit při prvních 20 km před plným prošlápnutím
+  - Pevnější přechod do odrazu pro běžce přes špičku
 
 ### 3. Saucony Echelon 9 (Wide 2E) (Shoda: 91%)
 - **Proč doporučujeme:** Rovná a široká základna speciálně vyvinutá pro ortopedické vložky a široké chodidlo bez mačkání malíkové hrany.
@@ -842,40 +970,40 @@ ${ragContextSentence}Na základě vašich parametrů, biomechanického profilu a
   - Konzervativnější design svršku
 
 ## Důležitá doporučení před nákupem
-Při výběru velikosti běžecké obuvi ponechte nadměrek na šířku palce (cca 1–1,5 cm) před prsty kvůli rozpínání nohy při zátěži.`;
+Běžeckou obuv doporučujeme kupovat o 0,5 až 1 číslo větší než běžnou vycházkovou obuv.`;
     }
 
     if (domain.isCoffee) {
       return isEn ? `# Expert Purchasing Recommendation: ${agentName}
 
 ## Executive Summary & Selection Rationale
-${ragContextSentence}Based on your daily coffee consumption, preference for espresso and milk specialties, and maintenance requirements, here are your top 3 recommended coffee machines.
+${ragContextSentence}Based on your coffee brewing preferences, daily maintenance expectations, and budget tier, here are the top 3 coffee machines evaluated for extraction quality and durability.
 
 ## Top 3 Recommended Models
 
 ### 1. De'Longhi Magnifica S ECAM 22.110.B (Match: 96%)
-- **Why Recommended:** The gold standard for price-to-performance, featuring a removable brew unit for effortless cleaning and durable conical steel burrs.
+- **Why Recommended:** Long-term proven value benchmark featuring a removable brew group for effortless cold water rinsing.
 - **Key Pros:**
-  - Exceptional espresso extraction with rich crema at an affordable price
-  - Easy self-maintenance without expensive service visits
+  - Reliable espresso extraction with dense crema and durable steel conical burrs
+  - Low-maintenance design without mandatory expensive service visits
 - **Trade-offs & Cons:**
-  - Manual Panarello steam wand requires practice for silky microfoam
+  - Manual Pannarello steam wand requires practice for microfoam milk texturing
 
 ### 2. Sage Barista Express BES875 (Match: 93%)
-- **Why Recommended:** High-performance semi-automatic portafilter machine with built-in grinder and PID temperature regulation for cafe-quality coffee at home.
+- **Why Recommended:** Solid semi-automatic portafilter machine with integrated conical grinder and PID temperature regulation for complete cup control.
 - **Key Pros:**
-  - Full barista control over grind coarseness, dose, and water temperature
-  - Robust brushed stainless steel construction with pressure gauge
+  - Café-quality espresso extractions and heavy-gauge stainless steel construction
+  - 15-bar Italian pump with commercial 360-degree steam wand
 - **Trade-offs & Cons:**
-  - Requires manual tamping and regular portafilter clean-up
+  - Requires manual tamping technique and routine grouphead cleaning
 
 ### 3. Jura E8 Piano Black (Match: 90%)
-- **Why Recommended:** Premium Swiss automated espresso machine with Pulse Extraction Process (P.E.P.) and one-touch fine foam milk technology.
+- **Why Recommended:** Premium Swiss automatic machine with Pulse Extraction Process (P.E.P.) and silky One-Touch fine foam milk preparation.
 - **Key Pros:**
-  - Outstanding one-touch cappuccino and flat white quality
-  - Intelligent Water System (I.W.S.) with automatic filter detection
+  - Exceptional espresso and milk specialty flavor at the touch of a button
+  - Intelligent Water System (I.W.S.) with automatic RFID filter recognition
 - **Trade-offs & Cons:**
-  - Higher initial cost and fixed brew group requiring branded cleaning tablets
+  - Higher price entry barrier and non-removable internal brew group
 
 ## Important Buying Advice
 Always use fresh whole coffee beans roasted within the last 2-8 weeks and filtered water to prevent rapid limescale buildup.`
@@ -1049,9 +1177,8 @@ ${ragContextSentence}Na základě vámi zadaných kritérií, rozpočtových mo�
   - Kratší předpokládaná životnost při maximálním vytížení
 
 ## Důležitá doporučení před nákupem
-Doporučujeme zkontrolovat dostupnost u autorizovaných distributorů a záruční podmínky.`;
+Před nákupem si doporučujeme ověřit dostupnost u autorizovaných prodejců a přesné záruční podmínky.`;
   }
-
   // 3. User asked for 10 parameters
   const isAsking10 = 
     /(?:10|deset)\s*(?:parametr|krit[eé]r|bod|v[eě]c)|(?:chci|dej|uka[zž]|napi[sš])\s*(?:jich\s*)?10/i.test(msgLower) ||
@@ -1311,22 +1438,26 @@ Pokud chcete rovnou vidět technická kritéria, stačí napsat např. *"chci 10
     || rawSysPrompt.includes('POŽADOVANÝ FORMÁT ODPOVĚDI');
 
   if (isAgentCompiled || assessmentContext) {
-    return isEn ? `### ${agentHeader}
+    return isEn ? `### ${agentHeader} — Purchasing Consultation
 
-${ragContextSentence}I have all your parameters and preferences loaded from the shopping wizard.
+${ragContextSentence}I have all your criteria, measurements, and preferences active from the shopping wizard.
 
-How can I help you next?
-- Ask: *"Please recommend your top 3 specific product choices based on my parameters."*
-- Compare specific models or brands.
-- Adjust budget or feature priorities.`
-    : `### ${agentHeader}
+Regarding your inquiry **"${message}"**:
+- All evaluation criteria from your configured purchasing profile are factored in.
+- Feel free to ask about specific models, technical parameters, or trade-offs.
+- If you would like to generate 3 new or alternative recommendations, simply ask: *"Recommend 3 models"*.
+
+How else can I assist your purchasing decision?`
+    : `### ${agentHeader} — Osobní nákupní konzultace
 
 ${ragContextSentence}Mám načteny všechny vaše parametry a preference z nákupního průvodce.
 
-S čím mohu nyní pomoci?
-- Napište: *„Doporuč mi prosím 3 konkrétní modely na základě mých parametrů.“*
-- Požádejte o srovnání konkrétních značek či modelů.
-- Upravte rozpočet nebo prioritu vlastností.`;
+K vašemu dotazu **„${message}“**:
+- Všechna vaše zadaná kritéria a hodnoty z nákupního profilu beru plně v úvahu.
+- Můžete se mě zeptat na detailní technické parametry, servisní zkušenosti nebo srovnání konkrétních modelů.
+- Pokud chcete vygenerovat 3 nová či alternativní doporučení, stačí napsat: *„Doporuč mi 3 modely“*.
+
+S čím dalším vám mohu při výběru pomoci?`;
   }
 
   return isEn ? `### ${agentHeader}

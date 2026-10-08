@@ -26,6 +26,23 @@ export class ChatStorageService {
   }
 
   /**
+   * Retrieves the currently authenticated user's ID from session storage if available
+   */
+  static getCurrentUserId(): string | undefined {
+    if (typeof window === "undefined") return undefined;
+    try {
+      const raw = localStorage.getItem("bairight_user_session");
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        return parsed?.id;
+      }
+    } catch {
+      return undefined;
+    }
+    return undefined;
+  }
+
+  /**
    * Retrieves messages from localStorage immediately
    */
   static getLocalMessages(agentSlug: string): AgentChatMessage[] {
@@ -51,7 +68,8 @@ export class ChatStorageService {
     agentTitle?: string
   ): Promise<AgentChatMessage[]> {
     const local = this.getLocalMessages(agentSlug);
-    if (!userId || !this.isCloudSyncEnabled()) {
+    const activeUserId = userId || this.getCurrentUserId();
+    if (!activeUserId || !this.isCloudSyncEnabled()) {
       return local;
     }
 
@@ -60,7 +78,7 @@ export class ChatStorageService {
       const { data: thread, error: threadErr } = await supabase
         .from("chat_threads")
         .select("id")
-        .eq("user_id", userId)
+        .eq("user_id", activeUserId)
         .eq("agent_slug", agentSlug)
         .maybeSingle();
 
@@ -72,7 +90,7 @@ export class ChatStorageService {
       if (!thread?.id) {
         // If local has messages, seed to cloud
         if (local.length > 0) {
-          void this.saveMessages(agentSlug, local, userId, agentTitle);
+          void this.saveMessages(agentSlug, local, activeUserId, agentTitle);
         }
         return local;
       }
@@ -91,7 +109,7 @@ export class ChatStorageService {
 
       if (messageRows.length === 0) {
         if (local.length > 0) {
-          void this.saveMessages(agentSlug, local, userId, agentTitle);
+          void this.saveMessages(agentSlug, local, activeUserId, agentTitle);
         }
         return local;
       }
@@ -104,11 +122,26 @@ export class ChatStorageService {
         productMetadata: r.product_metadata || undefined,
       }));
 
+      // Merge local messages that may not be in remote yet
+      const remoteIds = new Set(remoteMessages.map((m) => m.id));
+      const missingLocal = local.filter((m) => !remoteIds.has(m.id));
+
+      let merged = [...remoteMessages];
+      if (missingLocal.length > 0) {
+        merged = [...remoteMessages, ...missingLocal].sort((a, b) => {
+          const tA = new Date(a.timestamp || 0).getTime();
+          const tB = new Date(b.timestamp || 0).getTime();
+          return tA - tB;
+        });
+        // Seed missing local messages to cloud
+        void this.saveMessages(agentSlug, merged, activeUserId, agentTitle);
+      }
+
       // Cache locally
       if (typeof window !== "undefined") {
-        localStorage.setItem(`${CHAT_PREFIX}${agentSlug}`, JSON.stringify(remoteMessages));
+        localStorage.setItem(`${CHAT_PREFIX}${agentSlug}`, JSON.stringify(merged));
       }
-      return remoteMessages;
+      return merged;
     } catch (err) {
       console.warn("Exception loading chat messages from cloud:", err);
       return local;
@@ -132,17 +165,18 @@ export class ChatStorageService {
       }
     }
 
-    if (!userId || !this.isCloudSyncEnabled() || messages.length === 0) {
+    const activeUserId = userId || this.getCurrentUserId();
+    if (!activeUserId || !this.isCloudSyncEnabled() || messages.length === 0) {
       return;
     }
 
     try {
-      // 1. Ensure thread exists
+      // 1. Ensure thread exists with updated timestamp
       const { data: thread, error: threadErr } = await supabase
         .from("chat_threads")
         .upsert(
           {
-            user_id: userId,
+            user_id: activeUserId,
             agent_slug: agentSlug,
             title: agentTitle || `Chat ${agentSlug}`,
             is_active: true,
@@ -174,7 +208,7 @@ export class ChatStorageService {
           const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(m.id);
           const row: any = {
             thread_id: threadId,
-            user_id: userId,
+            user_id: activeUserId,
             role: m.role,
             content: m.content,
             product_metadata: (m as any).productMetadata || null,
@@ -205,12 +239,13 @@ export class ChatStorageService {
       localStorage.removeItem(`${CHAT_PREFIX}${agentSlug}`);
     }
 
-    if (userId && this.isCloudSyncEnabled()) {
+    const activeUserId = userId || this.getCurrentUserId();
+    if (activeUserId && this.isCloudSyncEnabled()) {
       try {
         const { data: thread } = await supabase
           .from("chat_threads")
           .select("id")
-          .eq("user_id", userId)
+          .eq("user_id", activeUserId)
           .eq("agent_slug", agentSlug)
           .maybeSingle();
 

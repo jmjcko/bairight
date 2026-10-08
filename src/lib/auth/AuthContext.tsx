@@ -51,23 +51,35 @@ export function decodeGoogleJwt(token: string): { email?: string; name?: string;
 }
 
 
-export const syncUserProfileToDatabase = async (profile: UserProfile) => {
-  if (!profile?.id || !profile.email || !supabase) return;
+export const syncUserProfileToDatabase = async (profile: UserProfile): Promise<string> => {
+  if (!profile?.id || !profile.email || !supabase) return profile?.id || "";
   try {
-    await supabase.from("users").upsert(
-      {
-        id: profile.id,
-        email: profile.email,
-        name: profile.name || profile.email.split("@")[0],
-        avatar_url: profile.avatarUrl || null,
-        preferred_locale: profile.preferredLocale || "cs",
-        last_active_at: new Date().toISOString(),
-      },
-      { onConflict: "id" }
-    );
+    if (typeof (supabase as any).from === "function") {
+      const { data: existingUser } = await supabase
+        .from("users")
+        .select("id")
+        .eq("email", profile.email)
+        .maybeSingle();
+
+      const canonicalId = existingUser?.id || profile.id;
+
+      await supabase.from("users").upsert(
+        {
+          id: canonicalId,
+          email: profile.email,
+          name: profile.name || profile.email.split("@")[0],
+          avatar_url: profile.avatarUrl || null,
+          preferred_locale: profile.preferredLocale || "cs",
+          last_active_at: new Date().toISOString(),
+        },
+        { onConflict: "id" }
+      );
+      return canonicalId;
+    }
   } catch (err) {
     console.warn("Could not sync user profile to database:", err);
   }
+  return profile.id;
 };
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -89,7 +101,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         if (parsed && (parsed.preferredLocale === 'cs' || parsed.preferredLocale === 'en')) {
           persistLocale(parsed.preferredLocale);
         }
-        void syncUserProfileToDatabase(parsed);
+        void (async () => {
+          const canonicalId = await syncUserProfileToDatabase(parsed);
+          if (canonicalId && canonicalId !== parsed.id) {
+            const updated = { ...parsed, id: canonicalId };
+            setUser(updated);
+            if (typeof window !== "undefined") {
+              localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(updated));
+            }
+          }
+        })();
       }
     } catch {
       // Ignore
@@ -142,15 +163,35 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const handleGoogleCredentialResponse = (credentialToken: string) => {
+  const handleGoogleCredentialResponse = async (credentialToken: string) => {
     const payload = decodeGoogleJwt(credentialToken);
     if (!payload || !payload.email) {
       console.error("Invalid Google credential token payload");
       return;
     }
 
+    // 1. Establish native Supabase authenticated session via Google ID token
+    // This issues an authenticated Supabase JWT with auth.uid() matching the user,
+    // enabling strict Row-Level Security (RLS) enforcement on all database tables.
+    let supabaseAuthUserId: string | null = null;
+    if (supabase && typeof (supabase.auth as any)?.signInWithIdToken === "function") {
+      try {
+        const { data: authData, error: authError } = await (supabase.auth as any).signInWithIdToken({
+          provider: "google",
+          token: credentialToken,
+        });
+        if (authError) {
+          console.warn("Supabase signInWithIdToken notice (enable Google Provider in Supabase dashboard to enforce RLS via native session):", authError.message);
+        } else if (authData?.user) {
+          supabaseAuthUserId = authData.user.id;
+        }
+      } catch (authErr) {
+        console.warn("Supabase signInWithIdToken exception:", authErr);
+      }
+    }
+
     const realGoogleProfile: UserProfile = {
-      id: payload.sub || `usr_g_${Date.now()}`,
+      id: supabaseAuthUserId || payload.sub || `usr_g_${Date.now()}`,
       email: payload.email,
       name: payload.name || payload.email.split("@")[0],
       avatarUrl: payload.picture,
@@ -158,11 +199,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       preferredLocale: getSavedLocale(),
     };
 
+    const canonicalId = await syncUserProfileToDatabase(realGoogleProfile);
+    if (canonicalId) {
+      realGoogleProfile.id = canonicalId;
+    }
+
     setUser(realGoogleProfile);
     if (typeof window !== "undefined") {
       localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(realGoogleProfile));
     }
-    void syncUserProfileToDatabase(realGoogleProfile);
     setIsLoginModalOpen(false);
   };
 
@@ -214,11 +259,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                         provider: "google",
                         preferredLocale: getSavedLocale(),
                       };
+                      const canonicalId = await syncUserProfileToDatabase(realGoogleProfile);
+                      if (canonicalId) {
+                        realGoogleProfile.id = canonicalId;
+                      }
                       setUser(realGoogleProfile);
                       if (typeof window !== "undefined") {
                         localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(realGoogleProfile));
                       }
-                      void syncUserProfileToDatabase(realGoogleProfile);
                       setIsLoginModalOpen(false);
                       return;
                     }

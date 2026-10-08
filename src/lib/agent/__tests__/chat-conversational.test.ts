@@ -77,5 +77,131 @@ describe('Conversational Agent Chat & Parameter Responsiveness', () => {
     expect(content).toContain('Denní kapacita');
     expect(content).toContain('Kávovary & domácí espresso');
   });
-});
 
+  it('5. When user asks "proč mi nabízíš pouze duotone?" on a wizard-compiled agent, agent answers conversationally without repeating 3-model report template', async () => {
+    const req = new NextRequest('http://localhost:3000/api/agent/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        sessionId: `test-duotone-${Date.now()}`,
+        message: 'proč mi nabízíš pouze duotone?',
+        agent: {
+          id: 'custom_kitesurfing_agent',
+          name: 'Kitesurfing poradce',
+          category: 'Vodní sporty',
+          systemPrompt: `Jsi expert na kitesurfing.
+### STRIKTNÍ A ZÁVAZNÉ POŽADAVKY UŽIVATELE:
+- Rozpočet: 45 000 Kč
+- Zkušenost: mírně pokročilý
+### POŽADOVANÝ FORMÁT ODPOVĚDI (HUMAN-READABLE MARKDOWN):
+# Expertní nákupní doporučení: Kitesurfing poradce
+## Top 3 Doporučené Modely
+### 1. Duotone Rebel SLS`,
+        },
+        assessmentContext: {
+          missionName: 'Kitesurfing poradce',
+          diagnosisSummary: 'Výběr freeride draka do 45 000 Kč pro mírně pokročilého',
+          recommendedModels: [
+            { brand: 'Duotone', model: 'Rebel SLS', badge: 'Shoda 96%', rationale: 'Špičková stabilita a větrný rozsah', pros: ['Snadný restart', 'Vysoká odolnost'], cons: ['Vyšší cena'] },
+            { brand: 'Duotone', model: 'Dice', badge: 'Shoda 92%', rationale: 'Univerzální freestyle/wave drak', pros: ['Rychlé reakce', 'Výborný tah'], cons: ['Vyžaduje citlivější trim'] },
+            { brand: 'Duotone', model: 'Evo D/LAB', badge: 'Shoda 88%', rationale: 'Prémiový all-round', pros: ['Materiál Aluula', 'Extrémní lehkost'], cons: ['Překračuje rozpočet'] },
+          ],
+        },
+      }),
+    });
+
+    const response = await chatHandler(req);
+    expect(response.status).toBe(200);
+
+    const json = await response.json();
+    const content = json.message.content;
+
+    // Must be conversational dialogue
+    expect(content).toContain('Konzultace výběru a značek');
+    expect(content).toContain('Duotone');
+    expect(content).toContain('Jako nezávislý nákupní rádce');
+
+    // MUST NOT repeat the full initial report template or dump the 3 product cards
+    expect(content).not.toContain('# Expertní nákupní doporučení');
+    expect(content).not.toContain('## Top 3 Doporučené Modely');
+    expect(content).not.toContain('### 1. Duotone Rebel SLS');
+  });
+
+  it('6. When user explicitly asks "doporuč mi 3 modely", agent provides the full 3-model recommendation report', async () => {
+    const req = new NextRequest('http://localhost:3000/api/agent/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        sessionId: `test-recommendation-${Date.now()}`,
+        message: 'doporuč mi 3 konkrétní modely',
+        agent: {
+          id: 'custom_kitesurfing_agent',
+          name: 'Kitesurfing poradce',
+          category: 'Vodní sporty',
+          systemPrompt: 'Jsi expert na kitesurfing.',
+        },
+        assessmentContext: {
+          missionName: 'Kitesurfing poradce',
+          diagnosisSummary: 'Výběr freeride draka do 45 000 Kč pro mírně pokročilého',
+          recommendedModels: [
+            { brand: 'Duotone', model: 'Rebel SLS', badge: 'Shoda 96%', rationale: 'Špičková stabilita a větrný rozsah', pros: ['Snadný restart'], cons: ['Vyšší cena'] },
+            { brand: 'Duotone', model: 'Dice', badge: 'Shoda 92%', rationale: 'Univerzální drak', pros: ['Rychlé reakce'], cons: ['Citlivější trim'] },
+            { brand: 'Core', model: 'XR8', badge: 'Shoda 90%', rationale: 'Výkonný freeride', pros: ['Masivní skoky'], cons: ['Dražší bar'] },
+          ],
+        },
+      }),
+    });
+
+    const response = await chatHandler(req);
+    expect(response.status).toBe(200);
+
+    const json = await response.json();
+    const content = json.message.content;
+
+    // Must output the full 3-model recommendation structure
+    expect(content).toContain('# Expertní nákupní doporučení');
+    expect(content).toContain('## Top 3 Doporučené Modely');
+    expect(content).toContain('Duotone Rebel SLS');
+    expect(content).toContain('Duotone Dice');
+    expect(content).toContain('Core XR8');
+  });
+
+  it('7. When user asks in English "why are you only offering duotone?", agent answers conversationally in English without report template', async () => {
+    const req = new NextRequest('http://localhost:3000/api/agent/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        sessionId: `test-en-duotone-${Date.now()}`,
+        message: 'why are you only offering duotone?',
+        locale: 'en',
+        agent: {
+          id: 'custom_kitesurfing_agent_en',
+          name: 'Kitesurfing Advisor',
+          category: 'Water Sports',
+          systemPrompt: 'You are a kitesurfing expert.',
+        },
+        assessmentContext: {
+          missionName: 'Kitesurfing Advisor',
+          diagnosisSummary: 'Freeride kite selection under $2,000 for intermediate rider',
+          recommendedModels: [
+            { brand: 'Duotone', model: 'Rebel SLS', badge: 'Match 96%', rationale: 'Benchmark freeride booster', pros: ['Easy relaunch'], cons: ['Higher price'] },
+            { brand: 'Duotone', model: 'Dice', badge: 'Match 92%', rationale: 'Versatile freestyle/wave kite', pros: ['Crisp handling'], cons: ['Requires trim precision'] },
+          ],
+        },
+      }),
+    });
+
+    const response = await chatHandler(req);
+    expect(response.status).toBe(200);
+
+    const json = await response.json();
+    const content = json.message.content;
+
+    // Must be English conversational consultation
+    expect(content).toContain('Brand & Model Consultation');
+    expect(content).toContain('Duotone');
+    expect(content).toContain('independent purchasing consultant');
+    expect(content).not.toContain('# Expert Purchasing Recommendation');
+    expect(content).not.toContain('## Top 3 Recommended Models');
+  });
+});

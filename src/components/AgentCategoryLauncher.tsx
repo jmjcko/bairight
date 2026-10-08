@@ -52,6 +52,8 @@ interface AgentCategoryLauncherProps {
   onOpenSubscriptionModal?: () => void;
   userName?: string;
   initialTab?: 'active' | 'purchased';
+  agents?: UniversalAgentDefinition[];
+  onAgentsChange?: (agents: UniversalAgentDefinition[]) => void;
 }
 
 export const AgentCategoryLauncher: React.FC<AgentCategoryLauncherProps> = ({
@@ -62,6 +64,8 @@ export const AgentCategoryLauncher: React.FC<AgentCategoryLauncherProps> = ({
   onOpenSubscriptionModal,
   userName = 'Jan Mynář',
   initialTab = 'active',
+  agents: propAgents,
+  onAgentsChange,
 }) => {
   const { t, locale } = useI18n();
   const { isMaterialCobalt } = useTheme();
@@ -77,7 +81,16 @@ export const AgentCategoryLauncher: React.FC<AgentCategoryLauncherProps> = ({
     }
   }, [initialTab]);
   const [generationStep, setGenerationStep] = useState<string>('');
-  const [agents, setAgents] = useState<UniversalAgentDefinition[]>([]);
+  const [agents, setAgents] = useState<UniversalAgentDefinition[]>(
+    propAgents && propAgents.length > 0 ? propAgents : AgentStorageService.getAllAgents()
+  );
+
+  // Synchronize with parent prop updates
+  useEffect(() => {
+    if (propAgents && propAgents.length > 0) {
+      setAgents(propAgents);
+    }
+  }, [propAgents]);
   const customInputRef = useRef<HTMLInputElement>(null);
 
   // Parameter Tuning State
@@ -187,10 +200,21 @@ const [researchError, setResearchError] = useState<string | null>(null);
     }
   };
 
-  // Load saved agents from localStorage on client mount
+  // Load saved agents and perform cloud sync when authenticated
   useEffect(() => {
-    setAgents(AgentStorageService.getAllAgents());
-  }, []);
+    const local = AgentStorageService.getAllAgents();
+    if (local.length > 0) {
+      setAgents(local);
+    }
+    if (user?.id) {
+      void AgentStorageService.syncWithCloud(user.id).then((synced) => {
+        if (synced && synced.length > 0) {
+          setAgents(synced);
+          onAgentsChange?.(synced);
+        }
+      });
+    }
+  }, [user?.id]);
 
   const toggleParamSelected = (paramId: string) => {
     setSelectedParamIds((prev) => {
@@ -320,7 +344,7 @@ const [researchError, setResearchError] = useState<string | null>(null);
       );
 
       if (finalAgent) {
-        AgentStorageService.saveAgent(finalAgent);
+        AgentStorageService.saveAgent(finalAgent, user?.id);
         UserRAGHistoryService.saveUserSearchHistory("demo", {
           query: currentAnalysis?.categoryName || query,
           domainKey: currentAnalysis?.matchedDomain,
@@ -380,7 +404,7 @@ const [researchError, setResearchError] = useState<string | null>(null);
       const finalAgent = data.agent;
 
       if (finalAgent) {
-        AgentStorageService.saveAgent(finalAgent);
+        AgentStorageService.saveAgent(finalAgent, user?.id);
         UserRAGHistoryService.saveUserSearchHistory("demo", {
           query: currentAnalysis?.categoryName || query,
           domainKey: currentAnalysis?.matchedDomain,
@@ -400,8 +424,10 @@ const [researchError, setResearchError] = useState<string | null>(null);
           currentAnalysis,
           finalParamsToUse.length > 0 ? finalParamsToUse : currentAnalysis.parameters
         );
-        AgentStorageService.saveAgent(fallbackAgent);
-        setAgents(AgentStorageService.getAllAgents());
+        AgentStorageService.saveAgent(fallbackAgent, user?.id);
+        const updatedAll = AgentStorageService.getAllAgents();
+        setAgents(updatedAll);
+        onAgentsChange?.(updatedAll);
         setQuery('');
         onSelectAgent(fallbackAgent, false);
       } else {
@@ -418,7 +444,9 @@ const [researchError, setResearchError] = useState<string | null>(null);
     e.stopPropagation();
     if (confirm('Opravdu chcete smazat tohoto agenta z knihovny?')) {
       AgentStorageService.deleteAgent(agentId, user?.id);
-      setAgents(AgentStorageService.getAllAgents());
+      const updatedAll = AgentStorageService.getAllAgents();
+      setAgents(updatedAll);
+      onAgentsChange?.(updatedAll);
     }
   };
 
@@ -426,20 +454,25 @@ const [researchError, setResearchError] = useState<string | null>(null);
     if (confirm(locale === 'en' ? 'Are you sure you want to delete all your agents?' : 'Opravdu chcete smazat všechny vaše agenty?')) {
       AgentStorageService.deleteAllAgents(user?.id);
       setAgents([]);
+      onAgentsChange?.([]);
     }
   };
 
   const handleMarkPurchased = (e: React.MouseEvent, agent: UniversalAgentDefinition) => {
     e.stopPropagation();
     AgentStorageService.markAgentAsPurchased(agent.id, true, user?.id);
-    setAgents(AgentStorageService.getAllAgents());
+    const updatedAll = AgentStorageService.getAllAgents();
+    setAgents(updatedAll);
+    onAgentsChange?.(updatedAll);
     setBmcModalAgent(agent);
   };
 
   const handleRestoreActive = (e: React.MouseEvent, agentId: string) => {
     e.stopPropagation();
     AgentStorageService.markAgentAsPurchased(agentId, false, user?.id);
-    setAgents(AgentStorageService.getAllAgents());
+    const updatedAll = AgentStorageService.getAllAgents();
+    setAgents(updatedAll);
+    onAgentsChange?.(updatedAll);
   };
 
   const activeAgents = agents.filter((a) => !a.isPurchased);

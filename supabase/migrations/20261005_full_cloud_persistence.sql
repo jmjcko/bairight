@@ -124,10 +124,72 @@ ALTER TABLE user_rag_facts ENABLE ROW LEVEL SECURITY;
 ALTER TABLE user_prompts ENABLE ROW LEVEL SECURITY;
 ALTER TABLE pinned_products ENABLE ROW LEVEL SECURITY;
 
-CREATE POLICY "Allow users access own profile" ON users FOR ALL USING (true) WITH CHECK (true);
-CREATE POLICY "Allow users access own agents" ON agents FOR ALL USING (true) WITH CHECK (true);
-CREATE POLICY "Allow users access own threads" ON chat_threads FOR ALL USING (true) WITH CHECK (true);
-CREATE POLICY "Allow users access own messages" ON chat_messages FOR ALL USING (true) WITH CHECK (true);
-CREATE POLICY "Allow users access own facts" ON user_rag_facts FOR ALL USING (true) WITH CHECK (true);
-CREATE POLICY "Allow users access own prompts" ON user_prompts FOR ALL USING (true) WITH CHECK (true);
-CREATE POLICY "Allow users access own pinned products" ON pinned_products FOR ALL USING (true) WITH CHECK (true);
+CREATE POLICY "Allow users access own profile" ON users FOR ALL USING (
+    auth.uid()::text = id 
+    OR (auth.jwt() -> 'user_metadata' ->> 'sub') = id
+    OR auth.jwt() ->> 'email' = email
+) WITH CHECK (
+    auth.uid()::text = id 
+    OR (auth.jwt() -> 'user_metadata' ->> 'sub') = id
+    OR auth.jwt() ->> 'email' = email
+);
+
+CREATE POLICY "Allow users access own agents" ON agents FOR ALL USING (
+    auth.uid()::text = user_id 
+    OR (auth.jwt() -> 'user_metadata' ->> 'sub') = user_id
+    OR auth.jwt() ->> 'email' = (SELECT email FROM users WHERE users.id = user_id)
+) WITH CHECK (
+    auth.uid()::text = user_id 
+    OR (auth.jwt() -> 'user_metadata' ->> 'sub') = user_id
+    OR auth.jwt() ->> 'email' = (SELECT email FROM users WHERE users.id = user_id)
+);
+
+CREATE POLICY "Allow users access own threads" ON chat_threads FOR ALL USING (
+    auth.uid()::text = user_id 
+    OR (auth.jwt() -> 'user_metadata' ->> 'sub') = user_id
+    OR auth.jwt() ->> 'email' = (SELECT email FROM users WHERE users.id = user_id)
+) WITH CHECK (
+    auth.uid()::text = user_id 
+    OR (auth.jwt() -> 'user_metadata' ->> 'sub') = user_id
+    OR auth.jwt() ->> 'email' = (SELECT email FROM users WHERE users.id = user_id)
+);
+
+CREATE POLICY "Allow users access own messages" ON chat_messages FOR ALL USING (
+    auth.uid()::text = user_id 
+    OR (auth.jwt() -> 'user_metadata' ->> 'sub') = user_id
+    OR auth.jwt() ->> 'email' = (SELECT email FROM users WHERE users.id = user_id)
+) WITH CHECK (
+    auth.uid()::text = user_id 
+    OR (auth.jwt() -> 'user_metadata' ->> 'sub') = user_id
+    OR auth.jwt() ->> 'email' = (SELECT email FROM users WHERE users.id = user_id)
+);
+
+CREATE POLICY "Allow users access own facts" ON user_rag_facts FOR ALL USING (
+    auth.uid()::text = user_id 
+    OR (auth.jwt() -> 'user_metadata' ->> 'sub') = user_id
+    OR auth.jwt() ->> 'email' = (SELECT email FROM users WHERE users.id = user_id)
+) WITH CHECK (
+    auth.uid()::text = user_id 
+    OR (auth.jwt() -> 'user_metadata' ->> 'sub') = user_id
+    OR auth.jwt() ->> 'email' = (SELECT email FROM users WHERE users.id = user_id)
+);
+
+CREATE POLICY "Allow users access own prompts" ON user_prompts FOR ALL USING (
+    auth.uid()::text = user_id 
+    OR (auth.jwt() -> 'user_metadata' ->> 'sub') = user_id
+    OR auth.jwt() ->> 'email' = (SELECT email FROM users WHERE users.id = user_id)
+) WITH CHECK (
+    auth.uid()::text = user_id 
+    OR (auth.jwt() -> 'user_metadata' ->> 'sub') = user_id
+    OR auth.jwt() ->> 'email' = (SELECT email FROM users WHERE users.id = user_id)
+);
+
+CREATE POLICY "Allow users access own pinned products" ON pinned_products FOR ALL USING (
+    auth.uid()::text = user_id 
+    OR (auth.jwt() -> 'user_metadata' ->> 'sub') = user_id
+    OR auth.jwt() ->> 'email' = (SELECT email FROM users WHERE users.id = user_id)
+) WITH CHECK (
+    auth.uid()::text = user_id 
+    OR (auth.jwt() -> 'user_metadata' ->> 'sub') = user_id
+    OR auth.jwt() ->> 'email' = (SELECT email FROM users WHERE users.id = user_id)
+);

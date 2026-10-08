@@ -37,6 +37,23 @@ export class AgentStorageService {
   }
 
   /**
+   * Retrieves the currently authenticated user's ID from session storage if available
+   */
+  static getCurrentUserId(): string | undefined {
+    if (typeof window === 'undefined') return undefined;
+    try {
+      const raw = localStorage.getItem('bairight_user_session');
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        return parsed?.id;
+      }
+    } catch {
+      return undefined;
+    }
+    return undefined;
+  }
+
+  /**
    * Retrieves all agents (presets + custom agents, or empty if user deleted them all)
    */
   static getAllAgents(): UniversalAgentDefinition[] {
@@ -86,12 +103,14 @@ export class AgentStorageService {
       delete cleanAgent.secret;
       delete cleanAgent.password;
 
+      const activeUserId = userId || this.getCurrentUserId();
       const existing = this.getAllAgents();
+      const nowIso = new Date().toISOString();
       const updatedAgent: UniversalAgentDefinition = {
         ...cleanAgent,
         icon: resolveAgentIcon(agent.icon, `${agent.name} ${agent.category}`),
         isCustom: true,
-        updatedAt: new Date().toISOString(),
+        updatedAt: nowIso,
       };
 
       const updated = [
@@ -101,15 +120,16 @@ export class AgentStorageService {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
 
       // Asynchronous cloud persistence for logged in users (NEVER includes BYOK keys)
-      if (userId && this.isCloudSyncEnabled()) {
+      if (activeUserId && this.isCloudSyncEnabled()) {
         void (async () => {
           try {
             const { error } = await supabase
               .from('agents')
               .upsert(
                 {
-                  user_id: userId,
-                  agent_slug: updatedAgent.id, status: updatedAgent.isPurchased ? 'purchased' : 'active',
+                  user_id: activeUserId,
+                  agent_slug: updatedAgent.id,
+                  status: updatedAgent.isPurchased ? 'purchased' : 'active',
                   name: updatedAgent.name,
                   category: updatedAgent.category,
                   icon: updatedAgent.icon || '',
@@ -136,8 +156,9 @@ export class AgentStorageService {
   /**
    * Synchronizes local agents with cloud database for an authenticated user
    */
-  static async syncWithCloud(userId: string): Promise<UniversalAgentDefinition[]> {
-    if (!userId || typeof window === 'undefined') {
+  static async syncWithCloud(userId?: string): Promise<UniversalAgentDefinition[]> {
+    const activeUserId = userId || this.getCurrentUserId();
+    if (!activeUserId || typeof window === 'undefined') {
       return this.getAllAgents();
     }
 
@@ -152,7 +173,7 @@ export class AgentStorageService {
       const { data: remoteRows, error } = await supabase
         .from('agents')
         .select('*')
-        .eq('user_id', userId);
+        .eq('user_id', activeUserId);
 
       if (error || !remoteRows) {
         console.warn('Error fetching cloud agents:', error?.message);
@@ -161,49 +182,52 @@ export class AgentStorageService {
 
       const remoteAgents: UniversalAgentDefinition[] = remoteRows.map((r: any) => {
         const def = r.definition || {};
+        const isPurchased = Boolean(r.is_purchased || r.status === 'purchased' || def.isPurchased);
+        const updatedAt = r.updated_at || def.updatedAt || r.created_at || new Date().toISOString();
         return {
           ...def,
           id: r.agent_slug || def.id,
           name: r.name || def.name,
           category: r.category || def.category,
-          isPurchased: Boolean(r.is_purchased),
+          isPurchased,
           purchasedAt: r.purchased_at || def.purchasedAt,
-          updatedAt: r.updated_at || def.updatedAt,
+          updatedAt,
           isCustom: true,
           icon: resolveAgentIcon(r.icon || def.icon, `${r.name} ${r.category}`),
         };
       });
 
-      // 2. Merge local and remote agents
+      // 2. Merge local and remote agents using Last-Write-Wins (newest timestamp resolution)
       const agentMap = new Map<string, UniversalAgentDefinition>();
+      const agentsToUpload: UniversalAgentDefinition[] = [];
 
       // Put remote agents first
       remoteAgents.forEach((ra) => agentMap.set(ra.id, ra));
 
-      // Merge local agents: if local is missing from remote, prepare to upload
-      const agentsToUpload: UniversalAgentDefinition[] = [];
-
+      // Merge local agents: if local is missing from remote or strictly newer, prepare to upload
       localAgents.forEach((la) => {
-        const existing = agentMap.get(la.id);
-        if (!existing) {
+        const existingRemote = agentMap.get(la.id);
+        if (!existingRemote) {
           agentMap.set(la.id, la);
           agentsToUpload.push(la);
         } else {
-          // If local has newer timestamp, keep local and update remote
+          // Compare timestamps: if local has strictly newer timestamp, keep local and update remote
           const localTime = la.updatedAt ? new Date(la.updatedAt).getTime() : 0;
-          const remoteTime = existing.updatedAt ? new Date(existing.updatedAt).getTime() : 0;
+          const remoteTime = existingRemote.updatedAt ? new Date(existingRemote.updatedAt).getTime() : 0;
           if (localTime > remoteTime) {
             agentMap.set(la.id, la);
             agentsToUpload.push(la);
           }
+          // If remote is newer or equal, existingRemote in agentMap remains
         }
       });
 
       // 3. Upload missing/updated local agents to cloud
       if (agentsToUpload.length > 0) {
         const rowsToUpsert = agentsToUpload.map((a) => ({
-          user_id: userId,
-          agent_slug: a.id, status: a.isPurchased ? 'purchased' : 'active',
+          user_id: activeUserId,
+          agent_slug: a.id,
+          status: a.isPurchased ? 'purchased' : 'active',
           name: a.name,
           category: a.category,
           icon: a.icon || '',
@@ -242,6 +266,7 @@ export class AgentStorageService {
     if (typeof window === 'undefined') return null;
 
     try {
+      const activeUserId = userId || this.getCurrentUserId();
       const existing = this.getAllAgents();
       let targetAgent: UniversalAgentDefinition | null = null;
       const now = new Date().toISOString();
@@ -262,17 +287,18 @@ export class AgentStorageService {
         localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
 
         // Cloud sync if logged in
-        if (userId && this.isCloudSyncEnabled()) {
+        if (activeUserId && this.isCloudSyncEnabled()) {
           void (async () => {
             try {
               const { error } = await supabase
                 .from('agents')
                 .update({
                   is_purchased: isPurchased,
+                  status: isPurchased ? 'purchased' : 'active',
                   purchased_at: isPurchased ? now : null,
                   updated_at: now,
                 })
-                .match({ user_id: userId, agent_slug: agentId });
+                .match({ user_id: activeUserId, agent_slug: agentId });
               if (error) console.warn('Cloud update error on markAgentAsPurchased:', error.message);
             } catch (err) {
               console.warn('Cloud update exception on markAgentAsPurchased:', err);
@@ -308,18 +334,19 @@ export class AgentStorageService {
     if (typeof window === 'undefined') return false;
 
     try {
+      const activeUserId = userId || this.getCurrentUserId();
       const existing = this.getAllAgents();
       const filtered = existing.filter((a) => a.id !== agentId);
       localStorage.setItem(STORAGE_KEY, JSON.stringify(filtered));
 
       // Delete from cloud if logged in
-      if (userId && this.isCloudSyncEnabled()) {
+      if (activeUserId && this.isCloudSyncEnabled()) {
         void (async () => {
           try {
             const { error } = await supabase
               .from('agents')
               .delete()
-              .match({ user_id: userId, agent_slug: agentId });
+              .match({ user_id: activeUserId, agent_slug: agentId });
             if (error) console.warn('Cloud delete error:', error.message);
           } catch (err) {
             console.warn('Cloud delete exception:', err);
@@ -340,15 +367,16 @@ export class AgentStorageService {
   static deleteAllAgents(userId?: string): void {
     if (typeof window === 'undefined') return;
     try {
+      const activeUserId = userId || this.getCurrentUserId();
       localStorage.setItem(STORAGE_KEY, JSON.stringify([]));
 
-      if (userId && this.isCloudSyncEnabled()) {
+      if (activeUserId && this.isCloudSyncEnabled()) {
         void (async () => {
           try {
             const { error } = await supabase
               .from('agents')
               .delete()
-              .eq('user_id', userId);
+              .eq('user_id', activeUserId);
             if (error) console.warn('Cloud delete all error:', error.message);
           } catch (err) {
             console.warn('Cloud delete all exception:', err);

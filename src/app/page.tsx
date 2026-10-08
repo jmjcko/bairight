@@ -257,6 +257,7 @@ export default function Home() {
   const [isSidebarAddingParam, setIsSidebarAddingParam] = useState<boolean>(false);
   const [sidebarParamName, setSidebarParamName] = useState<string>('');
   const [sidebarParamValue, setSidebarParamValue] = useState<string>('');
+  const [isSidebarSwitchingAgent, setIsSidebarSwitchingAgent] = useState<boolean>(false);
 
   const initialWizardStepIndex = useMemo(() => {
     if (!selectedAgent || typeof window === 'undefined') return 0;
@@ -305,6 +306,7 @@ export default function Home() {
 
   const handleSelectAgent = (agent: UniversalAgentDefinition | null, forceShowResult?: boolean) => {
     setSelectedAgent(agent);
+    setIsSidebarSwitchingAgent(false);
     setWizardMode(agent ? 'active_agent' : 'launcher');
     if (agent) {
       const isCompleted = forceShowResult !== undefined ? forceShowResult : isAgentCompleted(agent);
@@ -739,6 +741,7 @@ export default function Home() {
     setWizardMode('launcher');
     setSelectedAgent(null);
     setWizardInitialShowResult(false);
+    setIsSidebarSwitchingAgent(false);
   };
 
   const renderSidebarContent = () => (
@@ -746,7 +749,7 @@ export default function Home() {
     
             <div className="space-y-3">
               {/* Material 3 Inspector Header */}
-              {selectedAgent ? (
+              {selectedAgent && !isSidebarSwitchingAgent ? (
                 <div className="space-y-3">
                   <div className="p-3.5 rounded-xl bg-[#f8fafc] border border-slate-200 shadow-xs space-y-2">
                     <div className="flex items-start justify-between gap-2">
@@ -758,7 +761,7 @@ export default function Home() {
                       </div>
                       <button
                         type="button"
-                        onClick={() => setSelectedAgent(null)}
+                        onClick={() => setIsSidebarSwitchingAgent(true)}
                         title={isEn ? "Switch active agent" : "Přepnout aktivního agenta"}
                         className="px-2 py-1 rounded-md bg-white hover:bg-slate-100 border border-slate-300 text-[#263238] text-[10px] font-mono font-bold tracking-wider uppercase transition-all cursor-pointer shadow-xs shrink-0"
                       >
@@ -946,41 +949,78 @@ export default function Home() {
                   </div>
                 </div>
               ) : (
-                <div className="p-3 rounded-2xl bg-slate-950/80 border border-slate-800 space-y-2">
-                  <span className="text-xs font-semibold text-slate-300 block">
-                    {isEn ? 'Saved agents in your account:' : 'Uložení agenti na vašem účtu:'}
-                  </span>
+                <div className="p-3.5 rounded-xl bg-white border border-slate-200 shadow-xs space-y-3">
+                  <div className="flex items-center justify-between border-b border-slate-200 pb-2">
+                    <div>
+                      <span className="text-[10px] font-mono uppercase tracking-wider text-[#01579b] font-bold block">
+                        {isEn ? 'Switch Agent' : 'Změna agenta'}
+                      </span>
+                      <h3 className="text-xs font-bold text-[#263238] block mt-0.5">
+                        {isEn ? 'Saved agents in your account:' : 'Uložení agenti na vašem účtu:'}
+                      </h3>
+                    </div>
+                    {selectedAgent && (
+                      <button
+                        type="button"
+                        onClick={() => setIsSidebarSwitchingAgent(false)}
+                        className="px-2.5 py-1 rounded-md bg-[#e1f5fe] hover:bg-[#b3e5fc] border border-[#b3e5fc] text-[#01579b] text-[10px] font-mono font-bold tracking-wider uppercase transition-all cursor-pointer shadow-xs shrink-0"
+                        title={isEn ? "Return to active chat" : "Zpět do aktivního chatu"}
+                      >
+                        {isEn ? '← Back to Chat' : '← Zpět do chatu'}
+                      </button>
+                    )}
+                  </div>
                   {storedAgents.length > 0 ? (
                     <div className="space-y-1.5">
-                      {storedAgents.map((ag) => (
-                        <button
-                          key={ag.id}
-                          onClick={() => handleSelectAgent(ag)}
-                          className="w-full p-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-800 text-left flex items-center gap-2.5 text-xs transition-all cursor-pointer group"
-                        >
-                          
-                          <div className="min-w-0 flex-1">
-                            <span className="text-slate-200 group-hover:text-white font-medium truncate block">{ag.name}</span>
-                            <span className="text-[10px] text-slate-500 truncate block">{ag.category}</span>
-                          </div>
-                        </button>
-                      ))}
+                      {storedAgents.map((ag) => {
+                        const isActive = selectedAgent?.id === ag.id;
+                        return (
+                          <button
+                            key={ag.id}
+                            onClick={() => {
+                              handleSelectAgent(ag);
+                              setIsSidebarSwitchingAgent(false);
+                            }}
+                            className={`w-full p-2.5 rounded-xl text-left flex items-center justify-between gap-2.5 text-xs transition-all cursor-pointer border ${
+                              isActive
+                                ? 'bg-[#e1f5fe] border-[#0099cc] shadow-xs'
+                                : 'bg-[#f8fafc] hover:bg-slate-100 border-slate-200 shadow-xs'
+                            }`}
+                          >
+                            <div className="min-w-0 flex-1">
+                              <div className="flex items-center justify-between gap-1">
+                                <span className={`font-bold truncate block ${isActive ? 'text-[#01579b]' : 'text-[#263238]'}`}>
+                                  {ag.name}
+                                </span>
+                                {isActive && (
+                                  <span className="text-[9px] font-mono px-1.5 py-0.5 rounded bg-[#0099cc] text-white font-bold shrink-0 uppercase tracking-wider">
+                                    {isEn ? 'Active' : 'Aktivní'}
+                                  </span>
+                                )}
+                              </div>
+                              <span className="text-[10px] font-mono text-[#546e7a] truncate block mt-0.5">
+                                {ag.category}
+                              </span>
+                            </div>
+                          </button>
+                        );
+                      })}
                     </div>
                   ) : (
-                    <div className="text-center py-4 px-2 space-y-2.5 bg-[#070e1a]/80 rounded-xl border border-slate-800/80">
-                      
-                      <p className="text-[11px] text-slate-400 leading-relaxed">
+                    <div className="text-center py-4 px-2 space-y-2.5 bg-[#f8fafc] rounded-xl border border-slate-200">
+                      <p className="text-[11px] text-[#546e7a] leading-relaxed">
                         {isEn ? 'No shopping agents saved in your account yet.' : 'Na svém účtu zatím nemáte uloženého žádného nákupního agenta.'}
                       </p>
                       <button
+                        type="button"
                         onClick={() => {
                           setActiveTab('wizard');
                           setWizardMode('launcher');
+                          setIsSidebarSwitchingAgent(false);
                         }}
-                        className="w-full py-1.5 px-3 rounded-xl bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-400 border border-cyan-500/30 text-xs font-medium transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+                        className="w-full py-1.5 px-3 rounded-lg bg-[#0099cc] hover:bg-[#0088b8] text-white text-xs font-bold transition-all cursor-pointer shadow-xs"
                       >
-                        <Plus className="w-3.5 h-3.5" />
-                        <span>{isEn ? 'Create agent in wizard' : 'Vytvořit agenta v průvodci'}</span>
+                        {isEn ? 'Create agent in wizard' : 'Vytvořit agenta v průvodci'}
                       </button>
                     </div>
                   )}
@@ -1084,6 +1124,7 @@ export default function Home() {
             <button
               onClick={() => {
                 setActiveTab('chat');
+                setIsSidebarSwitchingAgent(false);
                 const userStoredAgents = AgentStorageService.getAllAgents();
                 setStoredAgents(userStoredAgents);
                 if (selectedAgent && !userStoredAgents.some((a) => a.id === selectedAgent.id)) {
@@ -1098,7 +1139,7 @@ export default function Home() {
               }`}
             >
               <span>{t.header.chatTab}</span>
-              {selectedAgent ? (
+              {selectedAgent && !isSidebarSwitchingAgent ? (
                 <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-[#e1f5fe] text-[#01579b] border border-[#b3e5fc] font-sans font-bold hidden md:inline">
                   {selectedAgent.name}
                 </span>
@@ -1141,6 +1182,8 @@ export default function Home() {
               userName="Jan Mynář"
               currentAgent={selectedAgent}
               initialTab={launcherInitialTab}
+              agents={storedAgents}
+              onAgentsChange={setStoredAgents}
               onSelectAgent={(agent, initialShowResult) => {
                 const showResult = initialShowResult !== undefined ? initialShowResult : isAgentCompleted(agent);
                 handleSelectAgent(agent, showResult);
@@ -1687,6 +1730,7 @@ export default function Home() {
           onClick={() => {
             setIsMobileSidebarOpen(false);
             setActiveTab("chat");
+            setIsSidebarSwitchingAgent(false);
             const userStoredAgents = AgentStorageService.getAllAgents();
             setStoredAgents(userStoredAgents);
             if (selectedAgent && !userStoredAgents.some((a) => a.id === selectedAgent.id)) {
