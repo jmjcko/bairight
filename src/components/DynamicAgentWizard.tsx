@@ -21,7 +21,6 @@ import {
   RotateCcw, 
   Zap, 
   ShieldCheck, 
-  Eye, 
   Download, 
   ArrowLeft, 
   Check, 
@@ -948,16 +947,25 @@ export const DynamicAgentWizard: React.FC<DynamicAgentWizardProps> = ({
                         setCurrentStepIndex(sIdx);
                         persistProgress(answers, sIdx);
                       }}
-                      className={`px-2.5 sm:px-3 py-1 rounded-lg text-xs font-mono transition-all cursor-pointer shrink-0 ${
+                      className={`h-7 sm:h-8 px-2 sm:px-2.5 min-w-[28px] sm:min-w-[32px] flex items-center justify-center rounded-lg text-xs font-mono transition-all cursor-pointer shrink-0 ${
                         isActive
-                          ? 'bg-[#0099cc]/10 dark:bg-[#0099cc]/20 text-[#0099cc] dark:text-[#38bdf8] border-2 border-[#0099cc] font-bold shadow-xs'
+                          ? 'bg-[#0099cc]/15 dark:bg-[#0099cc]/25 text-[#0099cc] dark:text-[#38bdf8] border-2 border-[#0099cc] font-bold shadow-xs'
                           : isDone
                           ? 'bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700'
                           : 'bg-slate-50/50 dark:bg-slate-900/40 text-slate-400 dark:text-slate-500 border border-slate-200/80 dark:border-slate-800/60 hover:text-slate-700 dark:hover:text-slate-300 hover:border-slate-300'
                       }`}
-                      title={locale === 'en' ? `Jump to step ${sIdx + 1}` : `Přejít na krok ${sIdx + 1}`}
+                      title={
+                        sIdx === 0
+                          ? (locale === 'en' ? 'Step 1 • Baseline Experience' : 'Krok 1 • Dosavadní zkušenosti')
+                          : (locale === 'en' ? `Step ${sIdx + 1}` : `Krok ${sIdx + 1}`)
+                      }
+                      aria-label={
+                        sIdx === 0
+                          ? (locale === 'en' ? 'Step 1: Baseline Experience' : 'Krok 1: Dosavadní zkušenosti')
+                          : (locale === 'en' ? `Step ${sIdx + 1}` : `Krok ${sIdx + 1}`)
+                      }
                     >
-                      {sIdx === 0 ? (locale === 'en' ? 'Baseline' : 'Zkušenost') : `${locale === 'en' ? 'Step' : 'Krok'} ${sIdx}`}
+                      <span>{sIdx === 0 ? (locale === 'en' ? 'Baseline' : 'Zkušenost') : sIdx}</span>
                     </button>
                   );
                 })}
@@ -1468,15 +1476,6 @@ export const DynamicAgentWizard: React.FC<DynamicAgentWizardProps> = ({
                   </div>
                 ) : (
                   <div className="flex items-center gap-2.5 flex-wrap">
-                    <button
-                      type="button"
-                      onClick={handleOpenPromptInspector}
-                      className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 transition-colors cursor-pointer shadow-xs"
-                      title={locale === 'en' ? "Inspect prompt sent to AI" : "Zkontrolovat přesný prompt před odesláním do AI"}
-                    >
-                      <Eye className="w-4 h-4 text-[#0099cc] dark:text-[#38bdf8]" />
-                      <span>{t.dynamicWizard.btnInspectPrompt}</span>
-                    </button>
 
                     {previousResult && (
                       <button

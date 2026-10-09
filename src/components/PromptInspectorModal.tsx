@@ -102,7 +102,7 @@ export const PromptInspectorModal: React.FC<PromptInspectorModalProps> = ({
                   activeTab === 'prompt' ? 'segmented-tab-active bg-[#0099cc] text-white shadow-xs' : 'text-[#607d8b] hover:text-[#263238]'
                 }`}
               >
-                Kompletní Prompt (LLM)
+                {locale === "en" ? "Complete Prompt (LLM)" : "Kompletní Prompt (LLM)"}
               </button>
               <button
                 type="button"
@@ -121,7 +121,7 @@ export const PromptInspectorModal: React.FC<PromptInspectorModalProps> = ({
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-[#455a64] hover:text-[#263238] border border-slate-700 text-xs font-mono transition-colors cursor-pointer"
             >
               {copied ? <Check className="w-3.5 h-3.5 text-teal-400" /> : <Copy className="w-3.5 h-3.5" />}
-              <span>{copied ? 'Zkopírováno' : 'Zkopírovat do schránky'}</span>
+              <span>{copied ? (locale === "en" ? "Copied" : "Zkopírováno") : (locale === "en" ? "Copy to clipboard" : "Zkopírovat do schránky")}</span>
             </button>
           </div>
         </div>
@@ -136,7 +136,7 @@ export const PromptInspectorModal: React.FC<PromptInspectorModalProps> = ({
         {/* Modal Footer with Actions */}
         <div className="p-4 sm:p-5 border-t border-slate-200 bg-white flex items-center justify-between">
           <span className="text-xs text-[#607d8b] hidden sm:inline">
-            Tento text bude odeslán do vašeho zvoleného AI poskytovatele (Gemini / OpenAI / Claude).
+            {locale === "en" ? "This text will be sent to your selected AI provider (Gemini / OpenAI / Claude)." : "Tento text bude odeslán do vašeho zvoleného AI poskytovatele (Gemini / OpenAI / Claude)."}
           </span>
 
           <div className="flex items-center gap-3 w-full sm:w-auto justify-end">
@@ -145,7 +145,7 @@ export const PromptInspectorModal: React.FC<PromptInspectorModalProps> = ({
               onClick={onClose}
               className="px-4 py-2.5 rounded-xl text-xs font-semibold text-[#455a64] hover:text-[#263238] hover:bg-slate-800 transition-colors cursor-pointer"
             >
-              Zavřít náhled
+              {locale === "en" ? "Close preview" : "Zavřít náhled"}
             </button>
             <button
               type="button"
@@ -157,7 +157,7 @@ export const PromptInspectorModal: React.FC<PromptInspectorModalProps> = ({
               className="flex items-center gap-2 px-6 py-2.5 rounded-xl text-xs font-extrabold bg-gradient-to-r from-cyan-400 to-teal-400 text-slate-950 hover:brightness-110 shadow-[0_0_20px_rgba(6,182,212,0.4)] transition-all cursor-pointer disabled:opacity-50"
             >
               <Sparkles className={`w-4 h-4 ${isSubmitting ? "animate-spin" : ""}`} />
-              <span>{isSubmitting ? 'Vyhodnocuji...' : 'Potvrdit a odeslat do AI'}</span>
+              <span>{isSubmitting ? (locale === "en" ? "Evaluating..." : "Vyhodnocuji...") : (locale === "en" ? "Confirm and send to AI" : "Potvrdit a odeslat do AI")}</span>
             </button>
           </div>
         </div>

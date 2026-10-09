@@ -524,14 +524,25 @@ const [researchError, setResearchError] = useState<string | null>(null);
                 disabled={isGenerating || isResearching}
                 placeholder={t.launcher.searchPlaceholder}
                 className="w-full h-full pl-3.5 pr-32 sm:pr-40 bg-transparent text-[#263238] placeholder-slate-400 text-sm sm:text-base font-medium outline-none leading-normal caret-[#0099cc] !border-none !border-0 !outline-none !shadow-none"
-                style={{ border: 'none', outline: 'none', boxShadow: 'none' }}
+                style={{ border: 'none', outline: 'none', boxShadow: 'none', background: 'transparent' }}
               />
 
               <button
                 type="button"
                 onClick={() => handleResearchParameters()}
-                disabled={!query.trim() || isGenerating || isResearching}
-                className="absolute right-2 px-5 sm:px-7 py-2.5 sm:py-3 rounded-full bg-[#0099cc] hover:bg-[#0088b8] text-white text-xs sm:text-sm font-bold shadow-xs disabled:opacity-30 disabled:cursor-not-allowed transition-all cursor-pointer flex items-center gap-1.5 shrink-0 active:scale-95"
+                disabled={!query.trim() || isGenerating || isResearching || Boolean(researchedAnalysis && query.trim() && researchedAnalysis.keyword && query.trim().toLowerCase() === researchedAnalysis.keyword.toLowerCase())}
+                title={
+                  Boolean(researchedAnalysis && query.trim() && researchedAnalysis.keyword && query.trim().toLowerCase() === researchedAnalysis.keyword.toLowerCase())
+                    ? (locale === "en" ? "Parameters are already loaded below" : "Parametry jsou již načteny níže")
+                    : undefined
+                }
+                className={`absolute right-2 px-5 sm:px-7 py-2.5 sm:py-3 rounded-full text-xs sm:text-sm font-bold shadow-xs transition-all flex items-center gap-1.5 shrink-0 ${
+                  Boolean(researchedAnalysis && query.trim() && researchedAnalysis.keyword && query.trim().toLowerCase() === researchedAnalysis.keyword.toLowerCase())
+                    ? "bg-slate-200 dark:bg-slate-800 text-slate-400 dark:text-slate-500 cursor-not-allowed opacity-60"
+                    : (!query.trim() || isGenerating || isResearching)
+                    ? "bg-[#0099cc] text-white opacity-40 cursor-not-allowed"
+                    : "bg-[#0099cc] hover:bg-[#0088b8] text-white cursor-pointer active:scale-95"
+                }`}
               >
                 {isResearching ? (
                   <>
@@ -610,19 +621,43 @@ const [researchError, setResearchError] = useState<string | null>(null);
                       </h4>
                     </div>
                     <p className="param-discovery-header-subtitle text-xs text-slate-600 dark:text-slate-400 mt-0.5 leading-normal">
-                      {locale === 'en' ? 'Select parameters for intake questions, remove unneeded ones with (X).' : 'Vyberte parametry pro dotazník, nepotřebné odeberte křížkem (X).'}
+                      {locale === 'en' 
+                        ? 'AI prepared key criteria. Start the advisor directly, or select parameters for intake questions below.' 
+                        : 'AI připravila klíčová kritéria. Můžete rovnou spustit průvodce, nebo vyberte parametry pro dotazník níže.'}
                     </p>
                   </div>
                 </div>
 
-                <div className="flex items-center gap-2 shrink-0">
+                <div className="flex items-center gap-2.5 shrink-0 self-end sm:self-center">
                   <button
                     type="button"
                     onClick={handleResetParameters}
-                    className="p-2.5 rounded-xl bg-slate-900/90 hover:bg-slate-800 text-slate-400 hover:text-cyan-300 border border-cyan-500/25 hover:border-cyan-500/25 text-xs transition-colors cursor-pointer flex items-center justify-center shrink-0"
+                    className="p-2.5 rounded-xl bg-slate-100 dark:bg-slate-900 hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-cyan-300 border border-slate-200 dark:border-slate-800 text-xs transition-colors cursor-pointer flex items-center justify-center shrink-0"
                     title={locale === "en" ? "Reset default parameters" : "Obnovit výchozí parametry"}
                   >
                     <RotateCcw className="w-4 h-4" />
+                  </button>
+
+                  <button
+                    type="submit"
+                    disabled={selectedParamIds.size === 0 || isGenerating}
+                    className="px-5 py-2.5 rounded-xl bg-[#0099cc] hover:bg-[#0088b8] text-white text-xs sm:text-sm font-bold shadow-md hover:shadow-lg disabled:opacity-40 disabled:cursor-not-allowed transition-all cursor-pointer flex items-center justify-center gap-2 shrink-0 active:scale-95"
+                  >
+                    {isGenerating ? (
+                      <>
+                        <div className="w-4 h-4 rounded-full border-2 border-white border-t-transparent animate-spin" />
+                        <span>{locale === "en" ? "Assembling wizard..." : "Sestavuji průvodce..."}</span>
+                      </>
+                    ) : (
+                      <>
+                        <span>
+                          {locale === "en"
+                            ? `Start Shopping Advisor (${selectedParamIds.size})`
+                            : `Spustit průvodce výběrem (${selectedParamIds.size})`}
+                        </span>
+                        <ArrowRight className="w-4 h-4" />
+                      </>
+                    )}
                   </button>
                 </div>
               </div>
@@ -702,21 +737,21 @@ const [researchError, setResearchError] = useState<string | null>(null);
                     );
                   })}
 
-                  {/* Interactive Add Custom Parameter Tile in Grid */}
+                  {/* Interactive Add Custom Parameter Tile in Grid (Material Design Light & Dark) */}
                   <button
                     type="button"
                     onClick={focusCustomParamInput}
-                    className="group relative p-3 rounded-xl border-2 border-dashed border-cyan-500/40 hover:border-[#60a5fa] bg-gradient-to-br from-[#121e3d] to-[#242e4a] hover:bg-[#242e4a] transition-all flex items-center justify-center gap-3 text-cyan-300 hover:text-white cursor-pointer shadow-sm hover:shadow-[0_0_20px_rgba(59,91,169,0.25)] min-h-[62px]"
+                    className="group relative p-3 rounded-xl border-2 border-dashed border-[#0099cc]/40 hover:border-[#0099cc] bg-slate-50 dark:bg-slate-900/60 hover:bg-slate-100 dark:hover:bg-slate-800/80 transition-all flex items-center justify-center gap-3 text-[#0099cc] dark:text-cyan-400 cursor-pointer shadow-xs hover:shadow-md min-h-[62px]"
                     title={locale === "en" ? "Click to add custom criterion" : "Klikněte pro přidání vlastního kritéria"}
                   >
-                    <div className="w-7 h-7 rounded-lg bg-cyan-950/40 border border-cyan-500/40 group-hover:bg-cyan-500 group-hover:text-slate-950 flex items-center justify-center text-cyan-300 transition-all shadow-sm shrink-0">
+                    <div className="w-7 h-7 rounded-lg bg-[#0099cc]/10 dark:bg-cyan-950/50 border border-[#0099cc]/30 group-hover:bg-[#0099cc] group-hover:text-white flex items-center justify-center text-[#0099cc] dark:text-cyan-400 transition-all shadow-xs shrink-0">
                       <Plus className="w-4 h-4 stroke-[3]" />
                     </div>
                     <div className="text-left min-w-0">
-                      <div className="text-xs font-bold font-mono tracking-tight text-cyan-300 group-hover:text-white flex items-center gap-1.5">
+                      <div className="text-xs font-bold font-mono tracking-tight text-[#0099cc] dark:text-cyan-300 group-hover:text-[#0088b8] dark:group-hover:text-white flex items-center gap-1.5">
                         <span>+ {locale === "en" ? "Add another parameter" : "Přidat další parametr"}</span>
                       </div>
-                      <div className="text-[10px] text-slate-400 group-hover:text-[#eff6ff]/80">
+                      <div className="text-[10px] text-slate-500 dark:text-slate-400 group-hover:text-slate-700 dark:group-hover:text-slate-300">
                         {locale === "en" ? "Custom criterion or specific feature" : "Vlastní kritérium nebo specifická výbava"}
                       </div>
                     </div>
@@ -841,16 +876,20 @@ const [researchError, setResearchError] = useState<string | null>(null);
                 <button
                   type="submit"
                   disabled={selectedParamIds.size === 0 || isGenerating}
-                  className="w-full sm:w-auto px-6 py-2.5 rounded-xl bg-[#60a5fa] hover:bg-[#c6d7ff] text-slate-950 text-xs sm:text-sm font-extrabold shadow-lg hover:shadow-xl disabled:opacity-40 disabled:cursor-not-allowed transition-all cursor-pointer flex items-center justify-center gap-2"
+                  className="w-full sm:w-auto px-6 py-2.5 rounded-xl bg-[#0099cc] hover:bg-[#0088b8] text-white text-xs sm:text-sm font-bold shadow-md hover:shadow-lg disabled:opacity-40 disabled:cursor-not-allowed transition-all cursor-pointer flex items-center justify-center gap-2"
                 >
                   {isGenerating ? (
                     <>
-                      <div className="w-4 h-4 rounded-full border-2 border-slate-950 border-t-transparent animate-spin" />
+                      <div className="w-4 h-4 rounded-full border-2 border-white border-t-transparent animate-spin" />
                       <span>{locale === "en" ? "Assembling wizard..." : "Sestavuji průvodce..."}</span>
                     </>
                   ) : (
                     <>
-                      <span>{locale === "en" ? "Set target values" : "Nastavit cílové hodnoty"}</span>
+                      <span>
+                        {locale === "en"
+                          ? `Start Shopping Advisor (${selectedParamIds.size})`
+                          : `Spustit průvodce výběrem (${selectedParamIds.size})`}
+                      </span>
                       <ArrowRight className="w-4 h-4" />
                     </>
                   )}

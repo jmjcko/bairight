@@ -15,9 +15,9 @@ export const BuyMeACoffeeFloatingButton: React.FC<BuyMeACoffeeFloatingButtonProp
   const isEn = locale === 'en';
 
   return (
-    <aside
+    <div
       aria-label="Support bAIright"
-      className="fixed bottom-20 sm:bottom-6 right-4 sm:right-6 z-40 print:hidden"
+      className="fixed bottom-20 sm:bottom-6 right-4 sm:right-6 z-40 print:hidden pointer-events-auto !bg-transparent !border-0 !shadow-none p-0 m-0"
     >
       <button
         type="button"
@@ -46,6 +46,6 @@ export const BuyMeACoffeeFloatingButton: React.FC<BuyMeACoffeeFloatingButtonProp
           {isEn ? 'Buy Me a Coffee' : 'Pozvat na kávu'}
         </span>
       </button>
-    </aside>
+    </div>
   );
 };

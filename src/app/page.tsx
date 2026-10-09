@@ -17,7 +17,9 @@ import { DynamicAgentWizard } from '@/components/DynamicAgentWizard';
 import { TypographySwitcherModal as ColorPaletteModal } from '@/components/TypographySwitcherModal';
 import { UniversalAgentPromptModal } from '@/components/UniversalAgentPromptModal';
 import { BuyMeACoffeeFloatingButton } from '@/components/BuyMeACoffeeFloatingButton';
+import { HowItWorksFloatingButton } from '@/components/HowItWorksFloatingButton';
 import { BuyMeACoffeeModal } from '@/components/BuyMeACoffeeModal';
+import { ProductTourModal } from '@/components/ProductTourModal';
 import { 
   UniversalAgentDefinition,
   forgeAgentPrompt
@@ -223,10 +225,21 @@ export default function Home() {
   const [isPaletteModalOpen, setIsPaletteModalOpen] = useState(false);
   const [isPromptModalOpen, setIsPromptModalOpen] = useState(false);
   const [isGlobalCoffeeModalOpen, setIsGlobalCoffeeModalOpen] = useState(false);
+  const [isTourModalOpen, setIsTourModalOpen] = useState(false);
   const [activeFontId, setActiveFontId] = useState<string>('space-grotesk');
 
   // Universal Agent & BYOK State
   const [selectedAgent, setSelectedAgent] = useState<UniversalAgentDefinition | null>(null);
+
+  useEffect(() => {
+    try {
+      const tourSeen = localStorage.getItem("bairight_tour_seen");
+      if (!tourSeen) {
+        const timer = setTimeout(() => setIsTourModalOpen(true), 1200);
+        return () => clearTimeout(timer);
+      }
+    } catch {}
+  }, []);
 
   useEffect(() => {
     setMessages((prev) => {
@@ -1089,12 +1102,9 @@ export default function Home() {
     <div className="flex h-screen flex-col bg-[#f4f6f8] text-[#263238] overflow-hidden font-sans">
       {/* Top Navbar: Clean Executive Header */}
       <header className="h-14 sm:h-16 border-b border-slate-200/80 bg-white px-3 sm:px-8 flex items-center justify-between shrink-0 z-20 shadow-xs relative">
-        {/* Left: Brand Logo & Version */}
+        {/* Left: Brand Logo */}
         <div className="flex items-center gap-2.5 shrink-0">
           <Logo size="md" onClick={handleGoHome} />
-          <span className="hidden xs:inline-block text-[10px] font-mono font-bold px-2 py-0.5 rounded-md bg-[#e1f5fe] border border-[#b3e5fc] text-[#01579b]">
-            {APP_VERSION}
-          </span>
         </div>
 
         {/* Center: Centered Mode Switcher (Contextual — only visible when inside an active agent, Result Hub or Chat) */}
@@ -1806,7 +1816,20 @@ export default function Home() {
         agent={selectedAgent}
       />
 
-      {/* 6. Buy Me a Coffee Floating Capsule & Modal */}
+      {/* 6. Version watermark & Floating Action Capsules */}
+      <div 
+        className="fixed bottom-[166px] sm:bottom-[108px] right-4 sm:right-6 z-40 print:hidden select-none pointer-events-none text-right"
+        aria-hidden="true"
+      >
+        <span className="text-[10px] font-mono font-semibold text-slate-400 dark:text-slate-500 tracking-wider px-1">
+          {APP_VERSION}
+        </span>
+      </div>
+
+      <HowItWorksFloatingButton
+        onClick={() => setIsTourModalOpen(true)}
+        locale={locale}
+      />
       <BuyMeACoffeeFloatingButton
         onClick={() => setIsGlobalCoffeeModalOpen(true)}
         locale={locale}
@@ -1816,6 +1839,15 @@ export default function Home() {
         onClose={() => setIsGlobalCoffeeModalOpen(false)}
         agent={selectedAgent}
         locale={locale}
+      />
+      <ProductTourModal
+        isOpen={isTourModalOpen}
+        onClose={() => setIsTourModalOpen(false)}
+        onOpenGuidePage={() => {
+          if (typeof window !== "undefined") {
+            window.location.href = "/guide";
+          }
+        }}
       />
     </div>
   );

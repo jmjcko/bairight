@@ -101,10 +101,10 @@ describe('AgentCategoryLauncher Unit Test Suite (PRD v1)', () => {
     fireEvent.click(submitBtn);
 
     await waitFor(() => {
-      expect(screen.getByRole('button', { name: /Nastavit cílové hodnoty/i })).toBeInTheDocument();
+      expect(screen.getAllByRole('button', { name: /Spustit průvodce výběrem/i })[0]).toBeInTheDocument();
     });
 
-    const ctaBtn = screen.getByRole('button', { name: /Nastavit cílové hodnoty/i });
+    const ctaBtn = screen.getAllByRole('button', { name: /Spustit průvodce výběrem/i })[0];
     fireEvent.click(ctaBtn);
 
     await waitFor(() => {

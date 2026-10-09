@@ -81,11 +81,11 @@ describe('Parameter Research Agent & 3-Phase Wizard Flow (Updated PRD)', () => {
     fireEvent.click(researchBtn);
 
     await waitFor(() => {
-      expect(screen.getByRole('button', { name: /Nastavit cílové hodnoty/i })).toBeInTheDocument();
+      expect(screen.getAllByRole('button', { name: /Spustit průvodce výběrem/i })[0]).toBeInTheDocument();
     });
 
-    const ctaBtn = screen.getByRole('button', { name: /Nastavit cílové hodnoty/i });
-    expect(ctaBtn).toHaveTextContent(/Nastavit cílové hodnoty/i);
+    const ctaBtn = screen.getAllByRole('button', { name: /Spustit průvodce výběrem/i })[0];
+    expect(ctaBtn).toHaveTextContent(/Spustit průvodce výběrem/i);
 
     fireEvent.click(ctaBtn);
 

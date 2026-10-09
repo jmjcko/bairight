@@ -343,6 +343,92 @@ export interface Translations {
     chatError: string;
     clearChat: string;
   };
+  productTour: {
+    navLink: string;
+    badge: string;
+    modalTitle: string;
+    modalSubtitle: string;
+    step1Title: string;
+    step1Desc: string;
+    step1Pill: string;
+    step2Title: string;
+    step2Desc: string;
+    step2Pill: string;
+    step3Title: string;
+    step3Desc: string;
+    step3Pill: string;
+    step4Title: string;
+    step4Desc: string;
+    step4Pill: string;
+    prevBtn: string;
+    nextBtn: string;
+    startBtn: string;
+    closeBtn: string;
+    openLandingPageBtn: string;
+  };
+  productGuide: {
+    badge: string;
+    heroTitle: string;
+    heroSubtitle: string;
+    startAppBtn: string;
+    backToAppBtn: string;
+    videoBadge: string;
+    videoTitle: string;
+    videoSubtitle: string;
+    showcaseStep1Tab: string;
+    showcaseStep1Title: string;
+    showcaseStep1Desc: string;
+    showcaseStep1Highlight: string;
+    showcaseStep2Tab: string;
+    showcaseStep2Title: string;
+    showcaseStep2Desc: string;
+    showcaseStep2Highlight: string;
+    showcaseStep3Tab: string;
+    showcaseStep3Title: string;
+    showcaseStep3Desc: string;
+    showcaseStep3Highlight: string;
+    showcaseStep4Tab: string;
+    showcaseStep4Title: string;
+    showcaseStep4Desc: string;
+    showcaseStep4Highlight: string;
+    comparisonTitle: string;
+    comparisonSubtitle: string;
+    colFeature: string;
+    colStandard: string;
+    colBairight: string;
+    row1Feature: string;
+    row1Standard: string;
+    row1Bairight: string;
+    row2Feature: string;
+    row2Standard: string;
+    row2Bairight: string;
+    row3Feature: string;
+    row3Standard: string;
+    row3Bairight: string;
+    row4Feature: string;
+    row4Standard: string;
+    row4Bairight: string;
+    pillarsTitle: string;
+    pillar1Title: string;
+    pillar1Desc: string;
+    pillar1Pill: string;
+    pillar2Title: string;
+    pillar2Desc: string;
+    pillar2Pill: string;
+    pillar3Title: string;
+    pillar3Desc: string;
+    pillar3Pill: string;
+    pillar4Title: string;
+    pillar4Desc: string;
+    pillar4Pill: string;
+    faqTitle: string;
+    faq1Q: string;
+    faq1A: string;
+    faq2Q: string;
+    faq2A: string;
+    faq3Q: string;
+    faq3A: string;
+  };
   disclaimer: string;
 }
 
@@ -700,6 +786,92 @@ export const translations: Record<SupportedLocale, Translations> = {
       clearChat: 'Vyčistit historii konverzace',
     },
     disclaimer: 'Veškerá doporučení a výpočty mají výhradně informativní a orientační charakter. Systém neprovádí lékařskou diagnostiku a nenahrazuje odborné vyšetření lékařem či ortopedem.',
+    productTour: {
+      navLink: 'Jak to funguje',
+      badge: 'Průvodce architekturou',
+      modalTitle: 'Poznejte sílu bAIright',
+      modalSubtitle: 'Osobní nákupní konzultant a prompt inženýr nové generace bez komerčních vlivů.',
+      step1Title: '100% Nezávislost bez sponzorovaných pozic',
+      step1Desc: 'Tradiční srovnávače cen a vyhledávače upřednostňují e-shopy s nejvyšší provizí. bAIright funguje na principu přísné objektivity – analyzuje pouze fyzické a technické parametry produktů bez reklam.',
+      step1Pill: 'Architektura: Objektivní AI',
+      step2Title: 'Parametrická diagnostika a syntéza promptu',
+      step2Desc: 'Místo vágních dotazů vás systém provede strukturovaným wizardem (došlap, rozměry, účel, rozpočet). Výsledkem je detailně sestavený prompt zkonstruovaný dle pokročilého prompt inženýrství.',
+      step2Pill: 'Engine: Diagnostický Wizard',
+      step3Title: 'RAG Paměťové jádro s dlouhodobou kontinuitou',
+      step3Desc: 'Systém si pamatuje vaše anatomické parametry, cenové limity a averze ke značkám. Nemusíte je opakovat v každé konverzaci. Svá uložená fakta máte kdykoliv pod plnou kontrolou v Paměťové kapsli.',
+      step3Pill: 'Paměť: Kontextová perzistence',
+      step4Title: 'BYOK a Zero-Knowledge bezpečnost',
+      step4Desc: 'Zvolte si libovolný model (Google Gemini, OpenAI GPT-4o, Anthropic Claude, lokální Ollama). Vaše API klíče se nikdy neukládají do databáze – zůstávají bezpečně v šifrovaném trezoru vašeho prohlížeče.',
+      step4Pill: 'Zabezpečení: Lokální šifrovaný Vault',
+      prevBtn: 'Předchozí',
+      nextBtn: 'Další',
+      startBtn: 'Spustit asistenta',
+      closeBtn: 'Zavřít',
+      openLandingPageBtn: 'Kompletní prezentace produktu',
+    },
+    productGuide: {
+      badge: 'Prezentace & Produktový manifest',
+      heroTitle: 'Konec nákupních kompromisů a manipulativních reklam',
+      heroSubtitle: 'bAIright je univerzální AI nákupní poradce a prompt inženýr. Místo sponzorovaných odkazů analyzuje skutečné fyzické, biomechanické a technické parametry produktů.',
+      startAppBtn: 'Spustit nákupního asistenta',
+      backToAppBtn: 'Zpět do aplikace',
+      videoBadge: 'Živá ukázka v akci',
+      videoTitle: 'Podívejte se, jak bAIright funguje v praxi',
+      videoSubtitle: 'Záznam reálného průchodu: od výběru kategorie a parametrické diagnostiky přes prompt inženýrství až po konzultaci.',
+      showcaseStep1Tab: '01 Zadání a kategorie',
+      showcaseStep1Title: 'Napište, co přesně chcete koupit',
+      showcaseStep1Desc: 'Zadejte své přání v přirozeném jazyce nebo zvolte z doporučených oblastí. Ať už hledáte silniční maratonské boty s širokou špičkou, ergonomickou židli nebo kávovar, bAIright okamžitě dekomponuje váš nákupní záměr.',
+      showcaseStep1Highlight: 'Přirozený jazyk • Okamžitá dekompozice záměru • Žádné reklamy ani sponzoring',
+      showcaseStep2Tab: '02 AI Parametry',
+      showcaseStep2Title: 'Automatická extrakce parametrů a spuštění průvodce',
+      showcaseStep2Desc: 'bAIright identifikuje klíčové technické, biomechanické a cenové parametry specifické pro vaši kategorii. Můžete přidat vlastní parametry nebo odebrat nepotřebné a jedním kliknutím přejít k nastavení hodnot.',
+      showcaseStep2Highlight: 'Specializovaná kritéria • Vlastní volitelné parametry • Nulový balast',
+      showcaseStep3Tab: '03 Diagnostický průvodce',
+      showcaseStep3Title: 'Vyplnění cílových hodnot a zkušeností z minulosti',
+      showcaseStep3Desc: 'Projděte intuitivní dotazník krok za krokem. Zadejte předchozí model, specifické požadavky na tlumení či rozměry, preferované značky i zakázané výrobce pro stoprocentní vyloučení chybného nákupu.',
+      showcaseStep3Highlight: 'Srovnání s předchozím modelem • Přísné filtry značek • 100% strukturovaná data',
+      showcaseStep4Tab: '04 Result Hub & Možnosti',
+      showcaseStep4Title: 'Result Hub: Zvolte si, jak chcete nakalibrovaného agenta využít',
+      showcaseStep4Desc: 'Po dokončení diagnostiky vám Result Hub dává maximální svobodu: (1) Spustit živou konzultaci přímo v bAIright přes BYOK, (2) Jedním kliknutím zkopírovat vyladěný prompt pro bezplatný ChatGPT, Claude či Perplexity bez nutnosti API klíče, (3) Stáhnout otevřenou .agent.md konfiguraci pro Custom GPTs či lokální agenty, nebo (4) Kdykoliv upravit wizard a zpětně doladit parametry.',
+      showcaseStep4Highlight: 'Interaktivní BYOK chat • Kopírování promptu (bez API klíče) • Stažení .agent.md • Nástroje pro úpravu dotazníku',
+      comparisonTitle: 'Proč tradiční vyhledávače a srovnávače selhávají',
+      comparisonSubtitle: 'Rozdíl mezi placeným zprostředkovatelem a vaším nezávislým nákupním zástupcem.',
+      colFeature: 'Vlastnost / Přístup',
+      colStandard: 'Srovnávače & Google',
+      colBairight: 'bAIright AI',
+      row1Feature: 'Objektivita doporučení',
+      row1Standard: 'Řazeno podle provizí (affiliate) a placených PPC pozic.',
+      row1Bairight: 'Čistá parametrická analýza bez jakýchkoliv sponzorů.',
+      row2Feature: 'Personalizace potřeb',
+      row2Standard: 'Generické filtry, nulové porozumění biomechanice či detailům.',
+      row2Bairight: 'Diagnostický wizard extrahuje přesná kritéria na míru.',
+      row3Feature: 'Dlouhodobá paměť (RAG)',
+      row3Standard: 'Po zavření okna se vše zapomene, musíte hledat od nuly.',
+      row3Bairight: 'Atomická paměť si pamatuje vaše míry, rozpočty a preference.',
+      row4Feature: 'Volba AI modelů & Soukromí',
+      row4Standard: 'Uzavřený black-box sbírající data pro cílení reklamy.',
+      row4Bairight: 'BYOK architektura (Gemini/OpenAI/Claude) a zero-knowledge trezor.',
+      pillarsTitle: 'Čtyři technologické pilíře',
+      pillar1Title: 'Parametrický Discovery Engine',
+      pillar1Desc: 'Strukturovaný systém otázek a diagnostických vah, který převádí vágní přání na exaktní nákupní specifikaci.',
+      pillar1Pill: 'Pilíř 1: Diagnostika',
+      pillar2Title: 'RAG Paměťové jádro',
+      pillar2Desc: 'Hybridní synchronizace paměťových karet přes Supabase s Row-Level Security ochranou a možností offline provozu.',
+      pillar2Pill: 'Pilíř 2: Kontinuita',
+      pillar3Title: 'Multi-Model Orchestrace',
+      pillar3Desc: 'Možnost provozovat asistenta nad nejmodernějšími jazykovými modely s adaptivní syntézou promptů.',
+      pillar3Pill: 'Pilíř 3: Inteligence',
+      pillar4Title: 'Zero-Knowledge Bezpečnost',
+      pillar4Desc: 'Vaše privátní API klíče a finanční limity nikdy neopustí zařízení bez vašeho vědomí.',
+      pillar4Pill: 'Pilíř 4: Důvěra',
+      faqTitle: 'Často kladené otázky',
+      faq1Q: 'Je bAIright spojen s nějakým konkrétním e-shopem?',
+      faq1A: 'Ne. bAIright je 100% nezávislý systém. Neprodává zboží ani nepřijímá provize z prodejů. Jediným cílem je vybrat produkt, který nejlépe odpovídá vašim skutečným potřebám.',
+      faq2Q: 'Co znamená zkratka BYOK?',
+      faq2A: 'Bring Your Own Key. Můžete si vložit vlastní bezplatný či placený API klíč pro Google Gemini, OpenAI nebo Claude. Klíč se ukládá lokálně a nikdy se neposílá na náš server.',
+      faq3Q: 'Jak funguje paměťové jádro (RAG)?',
+      faq3A: 'Když v průvodci zadáte např. velikost 44 nebo preferenci tichého chodu, systém si toto pravidlo zapamatuje pro budoucí konverzace. V Paměťové kapsli můžete tato fakta kdykoliv upravit či smazat.',
+    },
   },
   en: {
     theme: {
@@ -1054,5 +1226,91 @@ export const translations: Record<SupportedLocale, Translations> = {
       clearChat: 'Clear Conversation History',
     },
     disclaimer: 'All recommendations and calculations are strictly for informational and guidance purposes. The system does not provide medical diagnosis and does not replace specialist medical examination.',
+    productTour: {
+      navLink: 'How it works',
+      badge: 'Architecture Guide',
+      modalTitle: 'Discover the Power of bAIright',
+      modalSubtitle: 'Next-generation personal shopping consultant and prompt engineer free from commercial bias.',
+      step1Title: '100% Independence Without Sponsored Listings',
+      step1Desc: 'Traditional price comparison platforms and search engines prioritize retailers paying the highest commission. bAIright operates with strict objectivity—analyzing physical and technical specifications without ads.',
+      step1Pill: 'Architecture: Objective AI',
+      step2Title: 'Parametric Diagnostics & Prompt Synthesis',
+      step2Desc: 'Instead of vague questions, a structured diagnostic wizard measures your precise criteria (fit, dimensions, purpose, budget), synthesizing a high-precision prompt based on advanced prompt engineering.',
+      step2Pill: 'Engine: Diagnostic Wizard',
+      step3Title: 'RAG Memory Core with Cross-Session Continuity',
+      step3Desc: 'The system remembers your anatomical dimensions, budget caps, and brand aversions across categories. You never have to repeat them. Retain complete control over your facts in the Memory Capsule.',
+      step3Pill: 'Memory: Context Persistence',
+      step4Title: 'BYOK & Zero-Knowledge Security',
+      step4Desc: 'Choose your preferred intelligence model (Google Gemini, OpenAI GPT-4o, Anthropic Claude, or local Ollama). Your API keys are never stored in any cloud database—they remain encrypted in your local browser vault.',
+      step4Pill: 'Security: Local Encrypted Vault',
+      prevBtn: 'Previous',
+      nextBtn: 'Next',
+      startBtn: 'Launch Consultant',
+      closeBtn: 'Close',
+      openLandingPageBtn: 'View Complete Product Showcase',
+    },
+    productGuide: {
+      badge: 'Product Showcase & Manifesto',
+      heroTitle: 'The End of Shopping Compromises & Manipulative Ads',
+      heroSubtitle: 'bAIright is a universal AI shopping consultant and prompt engineer. Instead of sponsored links, it objectively analyzes authentic physical, biomechanical, and engineering specifications.',
+      startAppBtn: 'Launch Shopping Assistant',
+      backToAppBtn: 'Back to Application',
+      videoBadge: 'Live Action Showcase',
+      videoTitle: 'See How bAIright Works in Real Action',
+      videoSubtitle: 'Authentic walkthrough recording: from category discovery and parametric diagnostics to compiled prompts and consultation.',
+      showcaseStep1Tab: '01 Query & Category',
+      showcaseStep1Title: 'Tell bAIright what you want to buy',
+      showcaseStep1Desc: 'Enter any natural language query or choose from popular shopping domains. Whether it is marathon running shoes with a wide toe box, an ergonomic chair, or an espresso machine, bAIright instantly decomposes your purchase intent.',
+      showcaseStep1Highlight: 'Natural language input • Instant category decomposition • No ads or sponsored bias',
+      showcaseStep2Tab: '02 AI Parameters',
+      showcaseStep2Title: 'Automated parameter extraction & wizard setup',
+      showcaseStep2Desc: 'bAIright extracts critical technical, biomechanical, and budgetary parameters tailored to your exact product category. You can add custom criteria or remove unneeded items before launching the intake wizard.',
+      showcaseStep2Highlight: 'Tailored criteria • Dynamic custom parameters • Zero unneeded questions',
+      showcaseStep3Tab: '03 Diagnostic Wizard',
+      showcaseStep3Title: 'Answer focused questions with baseline experience',
+      showcaseStep3Desc: 'Step through an intuitive diagnostic questionnaire. Define your previous baseline products, comfort requirements, prioritized brands, and forbidden manufacturers to eliminate mismatched recommendations.',
+      showcaseStep3Highlight: 'Baseline experience comparison • Strict brand filters • 100% structured criteria',
+      showcaseStep4Tab: '04 Result Hub & AI Delivery',
+      showcaseStep4Title: 'Result Hub: Choose how you want to deploy your calibrated agent',
+      showcaseStep4Desc: 'Once diagnostic intake is complete, the Result Hub puts you in total control: (1) Launch live interactive consultation directly in bAIright using BYOK, (2) Copy the calibrated prompt with one click to use in free ChatGPT, Claude, or Perplexity without needing any API key, (3) Download the portable .agent.md specification for Custom GPTs or local agents, or (4) Revisit and fine-tune your criteria anytime.',
+      showcaseStep4Highlight: 'Interactive BYOK Chat • One-click Prompt Copy (No API Key) • Portable .agent.md Download • Non-destructive Wizard Editing',
+      comparisonTitle: 'Why Traditional Comparison Sites Fail',
+      comparisonSubtitle: 'The definitive difference between paid middlemen and your dedicated, independent shopping representative.',
+      colFeature: 'Capability / Approach',
+      colStandard: 'Comparison Sites & Google',
+      colBairight: 'bAIright AI',
+      row1Feature: 'Recommendation Objectivity',
+      row1Standard: 'Ranked by affiliate commissions and paid PPC placements.',
+      row1Bairight: 'Pure parametric evaluation without any sponsorship bias.',
+      row2Feature: 'Need Personalization',
+      row2Standard: 'Generic filters with zero comprehension of ergonomics or nuance.',
+      row2Bairight: 'Diagnostic wizard extracts tailored specifications.',
+      row3Feature: 'Persistent Memory (RAG)',
+      row3Standard: 'Everything forgotten when tab closes; restart from scratch.',
+      row3Bairight: 'Atomic memory preserves dimensions, budgets, and preferences.',
+      row4Feature: 'Model Selection & Privacy',
+      row4Standard: 'Closed black-box monetizing user telemetry for ad targeting.',
+      row4Bairight: 'BYOK architecture (Gemini/OpenAI/Claude) and local zero-knowledge vault.',
+      pillarsTitle: 'Four Core Pillars',
+      pillar1Title: 'Parametric Discovery Engine',
+      pillar1Desc: 'A structured assessment weighting system translating vague aspirations into exact shopping specifications.',
+      pillar1Pill: 'Pillar 1: Diagnostics',
+      pillar2Title: 'RAG Memory Core',
+      pillar2Desc: 'Hybrid synchronization of memory cards via Supabase with Row-Level Security and resilient offline fallback.',
+      pillar2Pill: 'Pillar 2: Continuity',
+      pillar3Title: 'Multi-Model Orchestration',
+      pillar3Desc: 'Deploy across flagship generative reasoning models with adaptive prompt compiling.',
+      pillar3Pill: 'Pillar 3: Intelligence',
+      pillar4Title: 'Zero-Knowledge Security',
+      pillar4Desc: 'Your private credentials and budgets remain exclusively client-side in an encrypted sandbox.',
+      pillar4Pill: 'Pillar 4: Trust',
+      faqTitle: 'Frequently Asked Questions',
+      faq1Q: 'Is bAIright affiliated with any specific retailer?',
+      faq1A: 'No. bAIright is 100% independent. We do not sell inventory or take referral kickbacks. Our sole objective is identifying products that align with your genuine needs.',
+      faq2Q: 'What does BYOK mean?',
+      faq2A: 'Bring Your Own Key. Connect your own free or paid API key from Google Gemini, OpenAI, or Claude. Keys are stored locally and never transmitted to our backend.',
+      faq3Q: 'How does the RAG memory core work?',
+      faq3A: 'When specifying size 44 or requesting low noise in a wizard, the engine retains this parameter across sessions. You can review, toggle, or delete any fact anytime in the Memory Capsule.',
+    },
   },
 };
