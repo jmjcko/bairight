@@ -2,7 +2,7 @@ import React from 'react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { DynamicAgentWizard } from '../DynamicAgentWizard';
-import { PRESET_ERGO_CHAIR_AGENT } from '@/lib/agent/universal-agent-schema';
+import { PRESET_ERGO_CHAIR_AGENT, PRESET_COFFEE_AGENT } from '@/lib/agent/universal-agent-schema';
 
 describe('DynamicAgentWizard Unit Test Suite (PRD v1)', () => {
   const mockOnAssessmentCompleted = vi.fn();
@@ -343,7 +343,7 @@ describe('DynamicAgentWizard Unit Test Suite (PRD v1)', () => {
     });
 
     // Clicking 'Připojit API klíč v Trezoru' triggers vault modal opening
-    const vaultBtn = screen.getByRole('button', { name: /Připojit API klíč v Trezoru/i });
+    const vaultBtn = screen.getByRole('button', { name: /Propojit vlastní AI/i });
     fireEvent.click(vaultBtn);
     expect(mockOpenSubscription).toHaveBeenCalledTimes(1);
   });
@@ -382,5 +382,38 @@ describe('DynamicAgentWizard Unit Test Suite (PRD v1)', () => {
     expect(baselineHeading).toBeInTheDocument();
     expect(baselineHeading.className).toContain('dark:text-white');
     expect(baselineHeading.className).toContain('text-slate-900');
+  });
+  it("13. Krok s možnostmi správně odděluje volbu 'Nemám vyhraněnou preferenci' od navigačního tlačítka 'Přeskočit krok'", () => {
+    render(
+      <DynamicAgentWizard
+        agent={PRESET_COFFEE_AGENT}
+        initialShowResult={false}
+      />
+    );
+
+    // Krok 0 (Baseline) -> Přejít na Krok 1 (otázka s možnostmi)
+    const continueBtn = screen.getByRole("button", { name: /^Pokračovat$/i });
+    fireEvent.click(continueBtn);
+
+    // 1. Ověření tlačítka volby "Nemám vyhraněnou preferenci (otevřený výběr)"
+    const noPrefBtn = screen.getByRole("button", { name: /Nemám vyhraněnou preferenci/i });
+    expect(noPrefBtn).toBeInTheDocument();
+    expect(noPrefBtn).toHaveTextContent(/Nechat výběr otevřený/i);
+
+    // Kliknutí na volbu bez preference
+    fireEvent.click(noPrefBtn);
+    expect(noPrefBtn).toHaveTextContent("✓");
+
+    // 2. Ověření tlačítka pro vlastní volbu "Napsat vlastní možnost"
+    const customBtn = screen.getByRole("button", { name: /Napsat vlastní možnost/i });
+    expect(customBtn).toBeInTheDocument();
+
+    // 3. Ověření navigačního tlačítka "Přeskočit krok" v dolní liště
+    const skipStepBtn = screen.getByRole("button", { name: /^Přeskočit krok$/i });
+    expect(skipStepBtn).toBeInTheDocument();
+
+    // Kliknutí na "Přeskočit krok" posune na další krok (Krok 2)
+    fireEvent.click(skipStepBtn);
+    expect(screen.getByText(/Krok 3 z/i)).toBeInTheDocument();
   });
 });

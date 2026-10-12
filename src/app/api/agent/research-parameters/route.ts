@@ -75,7 +75,7 @@ function ensureBrandParameter(params: ExtractedDomainParameter[], locale: string
 // ————————————————————————————————————————————————
 export async function POST(req: NextRequest) {
   try {
-    const { query, locale = 'en', apiKey: bodyApiKey, providerId, purchasedHistory, userFacts } = await req.json();
+    const { query, locale = 'en', apiKey: bodyApiKey, providerId, purchasedHistory, userFacts, bypassCache } = await req.json();
 
     if (!query || typeof query !== 'string' || query.trim().length === 0) {
       return NextResponse.json(
@@ -135,10 +135,12 @@ export async function POST(req: NextRequest) {
     // ——— STEP 3: Ensure brand parameter exists ———
     analysis.parameters = ensureBrandParameter(analysis.parameters, locale);
 
-    // ——— STEP 4: Cache the result ———
-    setCachedAnalysis(trimmedQuery, analysis, locale).catch((err) =>
-      console.warn('[Luke] Cache write failed (non-critical):', err)
-    );
+    // ——— STEP 4: Cache the result (skipped if bypassCache === true) ———
+    if (!bypassCache) {
+      setCachedAnalysis(trimmedQuery, analysis, locale).catch((err) =>
+        console.warn('[Luke] Cache write failed (non-critical):', err)
+      );
+    }
 
     return NextResponse.json({
       success: true,

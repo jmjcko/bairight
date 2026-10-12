@@ -983,13 +983,13 @@ export const DynamicAgentWizard: React.FC<DynamicAgentWizardProps> = ({
                     <span className="text-xs font-mono font-bold uppercase tracking-wider text-[#0099cc] dark:text-[#38bdf8] block">
                       {locale === 'en' ? `Step 1 of ${totalSteps} • Optional Baseline Experience` : `Krok 1 z ${totalSteps} • Volitelná zkušenost s produktem`}
                     </span>
-                    <h3 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white tracking-wide">
+                    <h3 className="text-lg sm:text-xl font-black text-slate-900 dark:text-white tracking-wide">
                       {locale === 'en' ? 'Current Experience & Baseline Product' : 'Dosavadní zkušenosti & Stávající produkt'}
                     </h3>
-                    <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
+                    <p className="text-sm sm:text-base text-slate-700 dark:text-slate-300 leading-relaxed font-normal sm:font-medium">
                       {locale === 'en'
-                        ? 'Do you already have experience with this product category? The agent will contrast new models directly against what you know.'
-                        : 'Máte již s touto kategorií zkušenost? Agent porovná nové modely přímo s tím, co znáte.'}
+                        ? 'The most accurate AI recommendation is built through contrast. If you already own or used a product in this category, the agent benchmarks against it to find a superior match. If buying for the first time, we start fresh.'
+                        : 'Nejpřesnější doporučení vzniká srovnáním. Pokud již model z této kategorie vlastníte nebo znáte, agent se od něj odrazí a najde lepší alternativu. Pokud kupujete poprvé, začneme s čistým stolem.'}
                     </p>
                   </div>
 
@@ -1010,10 +1010,10 @@ export const DynamicAgentWizard: React.FC<DynamicAgentWizardProps> = ({
                           : 'bg-white dark:bg-slate-900/50 border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 hover:bg-slate-50/50 dark:hover:bg-slate-900/80'
                       }`}
                     >
-                      <div className="space-y-1.5">
+                      <div className="space-y-1">
                         <div className="flex items-center justify-between">
-                          <h4 className="text-sm font-bold text-slate-900 dark:text-white tracking-wide">
-                            {locale === 'en' ? 'First purchase in this category' : 'První nákup v této kategorii'}
+                          <h4 className="text-sm sm:text-base font-bold text-slate-900 dark:text-white tracking-wide">
+                            {locale === 'en' ? 'First purchase in this category' : 'Kupuji poprvé v této kategorii'}
                           </h4>
                           {baselineMode === 'first_purchase' && (
                             <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded bg-[#0099cc]/15 text-[#0099cc] dark:text-[#38bdf8] border border-[#0099cc]/30">
@@ -1021,16 +1021,11 @@ export const DynamicAgentWizard: React.FC<DynamicAgentWizardProps> = ({
                             </span>
                           )}
                         </div>
-                        <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
+                        <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
                           {locale === 'en'
-                            ? 'I do not currently own or use a product in this category. Take me straight to expert recommendations.'
-                            : 'Zatím v této kategorii žádný produkt nevlastním ani nepoužívám. Chci přejít rovnou k doporučením.'}
+                            ? 'I do not own any model yet. Take me straight to parameter configuration.'
+                            : 'Zatím v této kategorii nic nevlastním, chci přejít rovnou k parametrům.'}
                         </p>
-                      </div>
-                      <div className="pt-2">
-                        <span className="text-xs font-mono font-semibold text-[#0099cc] dark:text-[#38bdf8]">
-                          {locale === 'en' ? 'Skip baseline form' : 'Přeskočí formulář'}
-                        </span>
                       </div>
                     </button>
 
@@ -1044,10 +1039,10 @@ export const DynamicAgentWizard: React.FC<DynamicAgentWizardProps> = ({
                           : 'bg-white dark:bg-slate-900/50 border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 hover:bg-slate-50/50 dark:hover:bg-slate-900/80'
                       }`}
                     >
-                      <div className="space-y-1.5">
+                      <div className="space-y-1">
                         <div className="flex items-center justify-between">
-                          <h4 className="text-sm font-bold text-slate-900 dark:text-white tracking-wide">
-                            {locale === 'en' ? 'I own / used a product in this category' : 'Vlastním / používal jsem produkt z téhle kategorie'}
+                          <h4 className="text-sm sm:text-base font-bold text-slate-900 dark:text-white tracking-wide">
+                            {locale === 'en' ? 'I have prior experience (Own/used a model)' : 'Mám předchozí zkušenost (Vlastním / používal jsem produkt)'}
                           </h4>
                           {baselineMode === 'has_experience' && (
                             <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded bg-[#0099cc]/15 text-[#0099cc] dark:text-[#38bdf8] border border-[#0099cc]/30">
@@ -1055,16 +1050,11 @@ export const DynamicAgentWizard: React.FC<DynamicAgentWizardProps> = ({
                             </span>
                           )}
                         </div>
-                        <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
+                        <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
                           {locale === 'en'
-                            ? 'I have experience with a specific model and want to specify what worked and what disappointed me.'
-                            : 'Používám nebo jsem používal konkrétní model a chci specifikovat, co mi vyhovovalo a co vadilo.'}
+                            ? 'I will specify my current model to benchmark what worked and what disappointed.'
+                            : 'Zadám stávající model pro přímé srovnání a specifikuji, co mi vyhovovalo a co vadilo.'}
                         </p>
-                      </div>
-                      <div className="pt-2">
-                        <span className="text-xs font-mono font-semibold text-[#0099cc] dark:text-[#38bdf8]">
-                          {locale === 'en' ? 'Open baseline form' : 'Otevře formulář níže'}
-                        </span>
                       </div>
                     </button>
                   </div>
@@ -1301,10 +1291,10 @@ export const DynamicAgentWizard: React.FC<DynamicAgentWizardProps> = ({
                               key={`${opt.value}-${optIdx}`}
                               type="button"
                               onClick={() => handleToggleChip(question, opt.value)}
-                              className={`p-4 rounded-2xl border text-left transition-all cursor-pointer flex items-start justify-between gap-3 ${
+                              className={`p-4 rounded-2xl border-2 text-left transition-all cursor-pointer flex items-start justify-between gap-3 ${
                                 isSelected
-                                  ? 'bg-[#0099cc]/5 dark:bg-[#0099cc]/15 border-2 border-[#0099cc] text-slate-900 dark:text-white ring-1 ring-[#0099cc]/30 shadow-xs'
-                                  : 'bg-white dark:bg-slate-900/50 border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:border-slate-300 dark:hover:border-slate-700 hover:bg-slate-50/50 dark:hover:bg-slate-900/80'
+                                  ? 'bg-sky-100/70 dark:bg-[#0099cc]/15 border-[#0099cc] text-slate-900 dark:text-white ring-1 ring-[#0099cc]/30 dark:ring-[#0099cc]/40 shadow-xs'
+                                  : 'bg-white dark:bg-slate-900/60 border-sky-100 dark:border-cyan-950/80 text-slate-800 dark:text-slate-200 hover:border-sky-300 dark:hover:border-cyan-700/70 hover:bg-sky-50/50 dark:hover:bg-slate-800/70'
                               }`}
                             >
                               <div className="space-y-1">
@@ -1325,32 +1315,55 @@ export const DynamicAgentWizard: React.FC<DynamicAgentWizardProps> = ({
                                   <span className="text-xs font-black leading-none">✓</span>
                                 </div>
                               ) : (
-                                <div className="w-5 h-5 rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 shrink-0 mt-0.5" />
+                                <div className="w-5 h-5 rounded-md border-2 border-sky-200 dark:border-cyan-900/80 bg-white dark:bg-slate-950 shrink-0 mt-0.5" />
                               )}
                             </button>
                           );
                         })}
-                        {/* Skip / Neutral option - Subtle clean link */}
-                        <div className="sm:col-span-2 pt-2 flex flex-col items-center gap-1.5">
-                          <button
-                            type="button"
-                            onClick={() => handleToggleChip(question, '__SKIP__')}
-                            className={`py-1.5 px-3 rounded-lg text-xs font-mono transition-colors cursor-pointer ${
-                              (Array.isArray(val) ? val.includes('__SKIP__') : val === '__SKIP__')
-                                ? 'bg-slate-100 dark:bg-slate-800 border border-[#0099cc] text-[#0099cc] dark:text-[#38bdf8] font-bold'
-                                : 'text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200'
-                            }`}
-                          >
-                            <span>{t.dynamicWizardLoading.skipChip}</span>
-                          </button>
-                        </div>
+
+                        {/* Option: No specific preference (Full width choice button) */}
+                        {(() => {
+                          const isSkipSelected = Array.isArray(val) ? val.includes('__SKIP__') : val === '__SKIP__';
+                          return (
+                            <button
+                              type="button"
+                              onClick={() => handleToggleChip(question, '__SKIP__')}
+                              className={`sm:col-span-2 p-4 rounded-2xl border-2 text-left transition-all cursor-pointer flex items-center justify-between gap-3 shadow-xs ${
+                                isSkipSelected
+                                  ? 'bg-sky-100/80 dark:bg-[#0099cc]/20 border-[#0099cc] text-slate-900 dark:text-white ring-1 ring-[#0099cc]/30 dark:ring-[#0099cc]/40'
+                                  : 'bg-sky-50/70 dark:bg-cyan-950/40 border-sky-200/90 dark:border-cyan-800/60 text-slate-800 dark:text-slate-200 hover:border-sky-400 dark:hover:border-cyan-600 hover:bg-sky-100/70 dark:hover:bg-cyan-950/70'
+                              }`}
+                            >
+                              <div className="space-y-1">
+                                <div className="flex items-center gap-2">
+                                  <span className="text-[10px] font-mono font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-sky-200/80 dark:bg-cyan-900/80 text-sky-900 dark:text-cyan-200 border border-sky-300/80 dark:border-cyan-700/60">
+                                    {t.dynamicWizardLoading.openChoiceBadge || (locale === 'en' ? 'Open choice' : 'Otevřený výběr')}
+                                  </span>
+                                  <span className={`text-sm ${isSkipSelected ? 'font-bold text-[#0077a3] dark:text-[#38bdf8]' : 'font-bold text-slate-900 dark:text-white'}`}>
+                                    {t.dynamicWizardLoading.noPreferenceOption}
+                                  </span>
+                                </div>
+                                <p className="text-xs text-slate-600 dark:text-slate-300 leading-snug">
+                                  {t.dynamicWizardLoading.noPreferenceDesc}
+                                </p>
+                              </div>
+                              {isSkipSelected ? (
+                                <div className="w-5 h-5 rounded-md bg-[#0099cc] text-white flex items-center justify-center shrink-0 shadow-xs">
+                                  <span className="text-xs font-black leading-none">✓</span>
+                                </div>
+                              ) : (
+                                <div className="w-5 h-5 rounded-md border-2 border-sky-300 dark:border-cyan-600 bg-white dark:bg-slate-950 shrink-0" />
+                              )}
+                            </button>
+                          );
+                        })()}
 
                         {/* Interactive Custom / Write-In Option */}
                         {activeCustomInputs[question.id] || customAnswerText[question.id] ? (
-                          <div className="sm:col-span-2 p-3.5 rounded-2xl bg-[#0099cc]/5 dark:bg-[#0099cc]/15 border-2 border-[#0099cc] text-slate-900 dark:text-white shadow-xs ring-1 ring-[#0099cc]/30 space-y-2 animate-in fade-in duration-200">
+                          <div className="sm:col-span-2 p-3.5 sm:p-4 rounded-2xl bg-sky-50/70 dark:bg-[#0099cc]/15 border-2 border-[#0099cc] text-slate-900 dark:text-white shadow-xs ring-1 ring-[#0099cc]/30 space-y-2.5 animate-in fade-in duration-200">
                             <div className="flex items-center justify-between">
-                              <span className="text-xs font-mono font-bold text-[#0099cc] dark:text-[#38bdf8] flex items-center gap-1.5">
-                                <PenLine className="w-3.5 h-3.5 text-[#0099cc] dark:text-[#38bdf8]" />
+                              <span className="text-xs font-mono font-bold text-[#0077a3] dark:text-[#38bdf8] flex items-center gap-1.5">
+                                <PenLine className="w-3.5 h-3.5 text-[#0077a3] dark:text-[#38bdf8]" />
                                 {t.dynamicWizardLoading.customChoice}
                               </span>
                               <button
@@ -1368,22 +1381,24 @@ export const DynamicAgentWizard: React.FC<DynamicAgentWizardProps> = ({
                               value={customAnswerText[question.id] || ''}
                               onChange={(e) => handleCustomTextChange(question, e.target.value)}
                               placeholder={locale === 'en' ? 'Write your custom answer or specific clarification...' : 'Napište vlastní odpověď či specifické upřesnění...'}
-                              className="w-full px-3.5 py-2.5 bg-white dark:bg-slate-950 rounded-xl border border-slate-200 dark:border-slate-800 focus:border-[#0099cc] text-sm text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 outline-none transition-all shadow-xs"
+                              className="w-full px-3.5 py-2.5 bg-white dark:bg-slate-950 rounded-xl border border-sky-200 dark:border-slate-800 focus:border-[#0099cc] text-sm text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 outline-none transition-all shadow-xs"
                             />
                           </div>
                         ) : (
                           <button
                             type="button"
                             onClick={() => handleActivateCustomAnswer(question.id)}
-                            className="sm:col-span-2 p-3.5 rounded-2xl border border-dashed border-slate-300 dark:border-slate-700 bg-slate-50/60 dark:bg-slate-900/30 hover:bg-slate-100/80 dark:hover:bg-slate-900/60 hover:border-[#0099cc]/60 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition-all cursor-pointer flex items-center justify-center gap-2 text-xs font-bold group"
+                            className="sm:col-span-2 p-3.5 sm:p-4 rounded-2xl border-2 border-dashed border-sky-200 dark:border-cyan-950/90 bg-white dark:bg-slate-900/40 hover:bg-sky-50/60 dark:hover:bg-slate-800/50 hover:border-[#0099cc] dark:hover:border-cyan-700/80 text-slate-700 dark:text-slate-200 transition-all cursor-pointer flex items-center justify-between text-xs sm:text-sm font-semibold shadow-xs group"
                           >
-                            <PenLine className="w-3.5 h-3.5 text-[#0099cc] dark:text-[#38bdf8] group-hover:scale-110 transition-transform" />
-                            <span>{locale === 'en' ? t.dynamicWizard.writeCustomOption : 'Napsat vlastní možnost (jiný specifický požadavek)...'}</span>
+                            <span className="flex items-center gap-2.5">
+                              <PenLine className="w-4 h-4 text-[#0077a3] dark:text-[#38bdf8] group-hover:scale-110 transition-transform" />
+                              <span>{locale === 'en' ? t.dynamicWizard.writeCustomOption : 'Napsat vlastní možnost (jiný specifický požadavek)...'}</span>
+                            </span>
+                            <span className="text-xs font-mono text-slate-400 group-hover:text-[#0099cc] transition-colors">✎</span>
                           </button>
                         )}
                       </div>
                     )}
-
                     {/* COMPONENT: TEXT (free-form text input — no predefined options) */}
                     {question.component === 'text' && (
                       <div className="pt-2 space-y-2">
@@ -1448,7 +1463,7 @@ export const DynamicAgentWizard: React.FC<DynamicAgentWizardProps> = ({
 
                 {currentStepIndex < totalSteps - 1 ? (
                   <div className="flex items-center gap-2.5">
-                    {isBaselineStep && (
+                    {isBaselineStep ? (
                       <button
                         type="button"
                         onClick={() => {
@@ -1456,10 +1471,23 @@ export const DynamicAgentWizard: React.FC<DynamicAgentWizardProps> = ({
                           setCurrentStepIndex(nextIdx);
                           persistProgress(answers, nextIdx);
                         }}
-                        className="px-4 py-2.5 rounded-xl text-xs font-bold bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 transition-colors cursor-pointer shadow-xs"
+                        className="px-4 py-2.5 sm:py-3 rounded-xl text-xs sm:text-sm font-bold bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 transition-colors cursor-pointer shadow-xs"
                         title={locale === 'en' ? "Skip baseline step and go to parameters" : "Přeskočit stávající zkušenosti a přejít na parametry"}
                       >
                         <span>{locale === 'en' ? 'Skip to Parameters' : 'Přeskočit na parametry'}</span>
+                      </button>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const nextIdx = Math.min(totalSteps - 1, currentStepIndex + 1);
+                          setCurrentStepIndex(nextIdx);
+                          persistProgress(answers, nextIdx);
+                        }}
+                        className="px-4 py-2.5 sm:py-3 rounded-xl text-xs sm:text-sm font-bold bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-300 transition-colors cursor-pointer shadow-xs"
+                        title={locale === 'en' ? "Skip this step and continue to next question" : "Přeskočit tento krok a pokračovat na další otázku"}
+                      >
+                        <span>{t.dynamicWizard.btnSkipStep}</span>
                       </button>
                     )}
                     <button
@@ -1570,19 +1598,34 @@ export const DynamicAgentWizard: React.FC<DynamicAgentWizardProps> = ({
                     }`}>
                       {hasApiKey
                         ? (locale === 'en' ? '✓ Model Connected' : '✓ Model připojen')
-                        : (locale === 'en' ? 'Requires API Key' : 'Vyžaduje API klíč')}
+                        : (locale === 'en' ? 'Requires AI Connection' : 'Vyžaduje propojení s AI')}
                     </span>
                   </div>
 
                   <div>
                     <h3 className="text-lg sm:text-xl font-black result-hub-option1-title">
-                      {locale === 'en' ? 'Chat in bAIright' : 'Spustit chat přímo v bAIright'}
+                      {locale === 'en' ? 'Chat directly in bAIright' : 'Spustit chat přímo v bAIright'}
                     </h3>
-                    <p className="text-xs sm:text-sm result-hub-option1-desc mt-1 leading-relaxed">
-                      {locale === 'en'
-                        ? 'Direct interactive discussion and tailored recommendations directly in this window.'
-                        : 'Interaktivní diskuze a výběr produktů na míru přímo v tomto okně.'}
-                    </p>
+                    {hasApiKey ? (
+                      <p className="text-xs sm:text-sm result-hub-option1-desc mt-1.5 leading-relaxed">
+                        {locale === 'en'
+                          ? 'Direct interactive discussion in this window. The assistant is loaded with your criteria and is ready to recommend and compare models.'
+                          : 'Interaktivní diskuze přímo v tomto okně. Asistent má načtené vaše parametry a je připraven porovnávat konkrétní modely na trhu.'}
+                      </p>
+                    ) : (
+                      <div className="text-xs sm:text-sm result-hub-option1-desc mt-2 leading-relaxed space-y-2">
+                        <p>
+                          {locale === 'en'
+                            ? 'You can chat directly here in the app, which remembers all your entered preferences and requirements.'
+                            : 'Můžete chatovat přímo zde v aplikaci, která si o vás pamatuje všechny zadané odpovědi a požadavky.'}
+                        </p>
+                        <p>
+                          {locale === 'en'
+                            ? 'To enable this, simply connect your existing AI subscription or free account for Google Gemini, ChatGPT, or Claude. bAIright charges zero fees, the connection is fully secure, and your key is stored strictly inside your browser.'
+                            : 'K tomu je potřeba propojit vaše stávající AI předplatné nebo bezplatný účet Google Gemini, ChatGPT či Claude. bAIright vám nic neúčtuje, propojení je bezpečné a klíč zůstává uložený výhradně ve vašem prohlížeči.'}
+                        </p>
+                      </div>
+                    )}
                   </div>
 
                   {/* Action Button & single concise caption */}
@@ -1612,7 +1655,7 @@ export const DynamicAgentWizard: React.FC<DynamicAgentWizardProps> = ({
                         }}
                         className="w-full flex items-center justify-center gap-2 py-3.5 px-4 rounded-xl bg-white hover:bg-slate-50 border border-slate-300 text-[#263238] font-bold text-xs sm:text-sm shadow-xs transition-colors cursor-pointer"
                       >
-                        <span>{locale === 'en' ? 'Connect API Key in Vault' : 'Připojit API klíč v Trezoru'}</span>
+                        <span>{locale === 'en' ? 'Connect your AI (Free Google Gemini / ChatGPT / Claude)' : 'Propojit vlastní AI (Google Gemini zdarma / ChatGPT / Claude)'}</span>
                         <span>→</span>
                       </button>
                     )}
@@ -1620,7 +1663,7 @@ export const DynamicAgentWizard: React.FC<DynamicAgentWizardProps> = ({
                     <p className="text-[11px] font-mono text-center result-hub-option1-desc">
                       {hasApiKey
                         ? (locale === 'en' ? `✓ Model ${activeProviderName} is ready` : `✓ Model ${activeProviderName} je připraven`)
-                        : (locale === 'en' ? 'Supports Gemini, GPT-4o, Claude & Ollama' : 'Podpora Gemini, GPT-4o, Claude i Ollama')}
+                        : (locale === 'en' ? 'Google Gemini is 100% free • Zero data stored on external servers' : 'Google Gemini je 100% zdarma • Žádná data neukládáme na server')}
                     </p>
                   </div>
                 </div>

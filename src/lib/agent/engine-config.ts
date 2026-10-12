@@ -6,8 +6,11 @@ export interface AIProviderConfig {
   modelName: string;
   provider: "Google AI" | "OpenAI" | "Anthropic";
   tag: string;
+  tagEn: string;
   description: string;
+  descriptionEn: string;
   contextWindow: string;
+  contextWindowEn: string;
   badgeColor: string;
   isFreemium: boolean;
   requiresKey: boolean;
@@ -22,8 +25,11 @@ export const SUPPORTED_AI_PROVIDERS: AIProviderConfig[] = [
     modelName: "gemini-2.0-flash",
     provider: "Google AI",
     tag: "100% Zdarma (AI Studio)",
+    tagEn: "100% Free (AI Studio)",
     description: "Bleskový reasoning na stabilním bezplatném tieru Google AI Studio (15 RPM / 1 500 RPD) s okamžitým fallbackem na Gemini 1.5 Flash.",
+    descriptionEn: "Lightning-fast reasoning on the stable Google AI Studio free tier (15 RPM / 1,500 RPD) with instant failover to Gemini 1.5 Flash.",
     contextWindow: "1M tokenů",
+    contextWindowEn: "1M tokens",
     badgeColor: "border-slate-700/60 text-slate-300 bg-slate-800/50",
     isFreemium: true,
     requiresKey: true,
@@ -36,8 +42,11 @@ export const SUPPORTED_AI_PROVIDERS: AIProviderConfig[] = [
     modelName: "gpt-4o",
     provider: "OpenAI",
     tag: "Univerzální standard",
+    tagEn: "Universal Standard",
     description: "Výkonný multimodální model od OpenAI pro detailní diskuze a hledání alternativ přes váš OpenAI účet.",
+    descriptionEn: "High-performance multimodal model from OpenAI for in-depth consultation and discovering market alternatives via your OpenAI account.",
     contextWindow: "128k tokenů",
+    contextWindowEn: "128k tokens",
     badgeColor: "border-slate-700/60 text-slate-300 bg-slate-800/50",
     isFreemium: false,
     requiresKey: true,
@@ -50,8 +59,11 @@ export const SUPPORTED_AI_PROVIDERS: AIProviderConfig[] = [
     modelName: "claude-3-5-sonnet-20241022",
     provider: "Anthropic",
     tag: "Hluboký reasoning",
+    tagEn: "Deep Reasoning",
     description: "Vlajkový model pro hluboký klinický a technický reasoning, analýzu biomechanických vazeb a komparaci.",
+    descriptionEn: "Flagship model for deep clinical and engineering reasoning, biomechanical analysis, and rigorous market comparison.",
     contextWindow: "200k tokenů",
+    contextWindowEn: "200k tokens",
     badgeColor: "border-slate-700/60 text-slate-300 bg-slate-800/50",
     isFreemium: false,
     requiresKey: true,

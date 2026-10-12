@@ -1,6 +1,7 @@
 'use client';
 
 import { useI18n } from "@/lib/i18n/I18nContext";
+import { useAuth } from "@/lib/auth/AuthContext";
 import React, { useState, useEffect, useMemo } from "react";
 import { 
   X, 
@@ -30,13 +31,15 @@ export const UserRAGMemoryModal: React.FC<UserRAGMemoryModalProps> = ({
   onClose,
   facts = [],
   assessments = [],
-  userName = "Jan Mynář",
+  userName: propUserName,
   onToggleFact,
   onAddFact,
   onDeleteFact,
   onDeleteAssessment,
 }) => {
   const { locale } = useI18n();
+  const { user } = useAuth();
+  const userName = propUserName !== undefined ? propUserName : (user?.name || "");
   const [activeTab, setActiveTab] = useState<"history" | "prompts" | "facts">("history");
   const [expandedAssessmentId, setExpandedAssessmentId] = useState<string | null>(null);
 
@@ -109,9 +112,11 @@ export const UserRAGMemoryModal: React.FC<UserRAGMemoryModalProps> = ({
               <h2 className="text-lg font-black text-[#263238] tracking-tight">
                 {locale === "en" ? "AI Memory & Assessment History" : "Paměť AI & Historie Posudků"}
               </h2>
-              <span className="text-[10px] font-mono px-2.5 py-0.5 rounded-full bg-[#e1f5fe] text-[#01579b] border border-[#b3e5fc] font-bold">
-                {userName}
-              </span>
+              {userName && (
+                <span className="text-[10px] font-mono px-2.5 py-0.5 rounded-full bg-[#e1f5fe] text-[#01579b] border border-[#b3e5fc] font-bold">
+                  {userName}
+                </span>
+              )}
             </div>
             <p className="text-xs text-[#546e7a] mt-0.5">
               {locale === "en" 
@@ -182,9 +187,13 @@ export const UserRAGMemoryModal: React.FC<UserRAGMemoryModalProps> = ({
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-200 pb-2.5">
               <div>
                 <div className="flex items-center gap-2">
-                  <span className="font-extrabold text-sm text-[#263238]">{userName}</span>
-                  <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-[#e1f5fe] text-[#01579b] border border-[#b3e5fc] font-bold uppercase">
-                    {locale === "en" ? "Active Personal Profile" : "Aktivní osobní profil"}
+                  <span className="font-extrabold text-sm text-[#263238]">
+                    {userName || (locale === "en" ? "Guest User" : "Nepřihlášený uživatel")}
+                  </span>
+                  <span className="text-[10px] font-mono px-2.5 py-0.5 rounded-full bg-[#e1f5fe] text-[#01579b] border border-[#b3e5fc] font-bold uppercase">
+                    {userName 
+                      ? (locale === "en" ? "Active Personal Profile" : "Aktivní osobní profil") 
+                      : (locale === "en" ? "Local Browser Profile" : "Lokální profil")}
                   </span>
                 </div>
                 <span className="text-[11px] text-[#546e7a]">
@@ -212,7 +221,7 @@ export const UserRAGMemoryModal: React.FC<UserRAGMemoryModalProps> = ({
                 <span className="text-[10px] text-[#546e7a] uppercase font-bold tracking-wide font-mono">
                   {locale === "en" ? "Name & User" : "Jméno & Uživatel"}
                 </span>
-                <span className="font-bold text-[#263238] text-xs mt-1 truncate">{userName}</span>
+                <span className="font-bold text-[#263238] text-xs mt-1 truncate">{userName || "N/A"}</span>
               </div>
 
               {personalBiometricFacts.length > 0 ? (

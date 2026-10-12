@@ -62,7 +62,7 @@ export const AgentCategoryLauncher: React.FC<AgentCategoryLauncherProps> = ({
   activeProviderId,
   currentApiKeys,
   onOpenSubscriptionModal,
-  userName = 'Jan Mynář',
+  userName: propUserName,
   initialTab = 'active',
   agents: propAgents,
   onAgentsChange,
@@ -70,6 +70,7 @@ export const AgentCategoryLauncher: React.FC<AgentCategoryLauncherProps> = ({
   const { t, locale } = useI18n();
   const { isMaterialCobalt } = useTheme();
   const { user } = useAuth();
+  const userName = propUserName !== undefined ? propUserName : (user?.name || "");
   const [query, setQuery] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
   const [activeAgentsTab, setActiveAgentsTab] = useState<'active' | 'purchased'>(initialTab);

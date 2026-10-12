@@ -383,10 +383,10 @@ export default function GuidePage() {
         {/* Bottom CTA Banner */}
         <section className="rounded-3xl border border-cyan-500/30 bg-gradient-to-b from-cyan-50 dark:from-cyan-950/30 to-white dark:to-slate-900/80 p-8 sm:p-14 text-center flex flex-col items-center gap-6 shadow-xl">
           <h2 className="text-2xl sm:text-4xl font-bold text-slate-900 dark:text-white tracking-tight">
-            Připraveni zažít nakupování s objektivní AI?
+            {pg.ctaBannerTitle}
           </h2>
           <p className="text-sm sm:text-base text-slate-600 dark:text-slate-300 max-w-xl font-sans">
-            Bez sponzorovaných výsledků, bez reklam a se stoprocentním soukromím.
+            {pg.ctaBannerSubtitle}
           </p>
           <Link
             href="/"

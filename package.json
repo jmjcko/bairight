@@ -1,6 +1,6 @@
 {
   "name": "orthostride-shopper",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "private": true,
   "scripts": {
     "dev": "next dev",
@@ -13,7 +13,9 @@
     "test:security": "vitest run src/security/__tests__/release-security-and-sanity.test.tsx",
     "test:all": "tsc --noEmit && vitest run",
     "bump:patch": "node scripts/bump-version.mjs",
-    "prepare": "git config core.hooksPath .githooks || true"
+    "prepare": "git config core.hooksPath .githooks || true",
+    "test:consistency": "vitest run src/lib/agent/__tests__/luke-consistency-golden-10.test.ts",
+    "test:consistency:update": "UPDATE_GOLDEN_10=true vitest run src/lib/agent/__tests__/luke-consistency-golden-10.test.ts"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.49.1",

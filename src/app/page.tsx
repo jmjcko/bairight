@@ -1174,7 +1174,7 @@ export default function Home() {
           <ThemeModeSwitcher />
           <LanguageSwitcher />
           <UserProfileCapsule
-            userName="Jan Mynář"
+            userName={user?.name}
             demoRunsRemaining={demoRunsRemaining}
             activeProvider={activeProvider}
             onOpenSubscriptionModal={() => setIsSubscriptionModalOpen(true)}
@@ -1189,7 +1189,7 @@ export default function Home() {
         <div className="flex-1 overflow-y-auto bg-[var(--background)] p-3 sm:p-6">
           {wizardMode === 'launcher' || !selectedAgent ? (
             <AgentCategoryLauncher
-              userName="Jan Mynář"
+              userName={user?.name}
               currentAgent={selectedAgent}
               initialTab={launcherInitialTab}
               agents={storedAgents}
@@ -1791,6 +1791,7 @@ export default function Home() {
 
       {/* 2. Persistent RAG Memory Modal */}
       <UserRAGMemoryModal
+        userName={user?.name}
         isOpen={isMemoryModalOpen}
         onClose={() => setIsMemoryModalOpen(false)}
         facts={userFacts}

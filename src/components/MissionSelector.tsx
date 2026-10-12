@@ -5,6 +5,7 @@ import { ChevronDown, Plus, Check, Download, History, Sparkles, FileText, Chevro
 import { UniversalAgentDefinition, resolveAgentIcon } from '@/lib/agent/universal-agent-schema';
 import { AgentStorageService } from '@/lib/agent/agent-storage-service';
 import { useI18n } from '@/lib/i18n/I18nContext';
+import { useAuth } from '@/lib/auth/AuthContext';
 import { ManagedAgentRegistryService } from '@/lib/agent/managed-agents-registry';
 import { getLocalizedAgent } from '@/lib/agent/agent-localization';
 
@@ -24,7 +25,7 @@ export const MissionSelector: React.FC<MissionSelectorProps> = ({
   currentAgent,
   isLauncherActive = false,
   variant = 'hero',
-  userName = 'Jan Mynář',
+  userName: propUserName,
   userAgents,
   onSelectAgent,
   onCreateNewAgent,
@@ -36,6 +37,9 @@ export const MissionSelector: React.FC<MissionSelectorProps> = ({
   const [showTemplates, setShowTemplates] = useState(false);
   const [expandedHistoryAgentId, setExpandedHistoryAgentId] = useState<string | null>(null);
   const { t, locale } = useI18n();
+  const { user } = useAuth();
+  const userName = propUserName !== undefined ? propUserName : (user?.name || "");
+  const displayUserName = userName || "N/A";
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   const activeUserAgents = userAgents !== undefined ? userAgents : internalAgents;
@@ -97,7 +101,7 @@ export const MissionSelector: React.FC<MissionSelectorProps> = ({
               </div>
               <span className="text-[11px] text-slate-400 block truncate">
                 {isLauncherActive || !currentAgent 
-                  ? t.missionSelector.historyAccount.replace('{userName}', userName) 
+                  ? (userName ? t.missionSelector.historyAccount.replace('{userName}', userName) : (locale === 'en' ? 'Local agents created in this browser' : 'Lokálně vytvoření agenti v tomto prohlížeči')) 
                   : t.missionSelector.readyForTuning}
               </span>
             </div>
@@ -140,7 +144,7 @@ export const MissionSelector: React.FC<MissionSelectorProps> = ({
             </span>
             <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-cyan-950 text-cyan-300 border border-cyan-800/50 flex items-center gap-1">
               <User className="w-3 h-3 text-cyan-400" />
-              {t.missionSelector.account} {userName}
+              {t.missionSelector.account} {displayUserName}
             </span>
           </div>
 
@@ -244,7 +248,7 @@ export const MissionSelector: React.FC<MissionSelectorProps> = ({
               <div>
                 <h5 className="text-xs font-bold text-slate-200">Zatím žádní vytvoření agenti</h5>
                 <p className="text-[11px] text-slate-400 mt-1 max-w-xs mx-auto">
-                  {t.missionSelector.noAgentsDesc.replace("{userName}", userName)}
+                  {t.missionSelector.noAgentsDesc.replace("{userName}", displayUserName)}
                 </p>
               </div>
             </div>

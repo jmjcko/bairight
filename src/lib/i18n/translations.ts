@@ -260,6 +260,7 @@ export interface Translations {
   dynamicWizard: {
     stepIndicator: string;
     btnPrevious: string;
+    btnSkipStep: string;
     btnContinue: string;
     btnEvaluate: string;
     btnEvaluating: string;
@@ -307,9 +308,13 @@ export interface Translations {
     multipleSelection: string;
     multiselectInfo: string;
     skipChip: string;
+    noPreferenceOption: string;
+    noPreferenceDesc: string;
     customChoice: string;
     communicationError: string;
     notImportant: string;
+    alternativeChoiceDivider: string;
+    openChoiceBadge: string;
   };
   promptTuner: {
     title: string;
@@ -428,6 +433,8 @@ export interface Translations {
     faq2A: string;
     faq3Q: string;
     faq3A: string;
+    ctaBannerTitle: string;
+    ctaBannerSubtitle: string;
   };
   disclaimer: string;
 }
@@ -702,6 +709,7 @@ export const translations: Record<SupportedLocale, Translations> = {
     dynamicWizard: {
       stepIndicator: 'Krok {current} z {total}',
       btnPrevious: 'Předchozí krok',
+      btnSkipStep: 'Přeskočit krok',
       btnContinue: 'Pokračovat',
       btnEvaluate: 'Dokončit a sestavit agenta',
       btnEvaluating: 'Sestavuji agenta...',
@@ -748,10 +756,14 @@ export const translations: Record<SupportedLocale, Translations> = {
       loadingDetails: 'Načítám zkalibrované váhy parametrů, profilovou RAG paměť a připravuji Agent Delivery Hub...',
       multipleSelection: 'Možno vybrat více',
       multiselectInfo: 'Můžete vybrat více možností (Multiselect)',
-      skipChip: 'Přeskočit tento krok • Nemám vyhraněnou preferenci',
+      skipChip: 'Nemám vyhraněnou preferenci (otevřený výběr)',
+      noPreferenceOption: 'Nemám vyhraněnou preferenci (otevřený výběr)',
+      noPreferenceDesc: 'Nechat výběr otevřený – AI doporučí nejvhodnější variantu podle ostatních parametrů',
       customChoice: 'Vlastní specifická volba:',
       communicationError: 'Chyba při komunikaci s vyhodnocovacím agentem.',
       notImportant: 'Není důležité',
+      alternativeChoiceDivider: 'Alternativní volba',
+      openChoiceBadge: 'Otevřený výběr',
     },
     promptTuner: {
       title: 'Živý AI Prompt Tuner & Guardrails',
@@ -871,6 +883,8 @@ export const translations: Record<SupportedLocale, Translations> = {
       faq2A: 'Bring Your Own Key. Můžete si vložit vlastní bezplatný či placený API klíč pro Google Gemini, OpenAI nebo Claude. Klíč se ukládá lokálně a nikdy se neposílá na náš server.',
       faq3Q: 'Jak funguje paměťové jádro (RAG)?',
       faq3A: 'Když v průvodci zadáte např. velikost 44 nebo preferenci tichého chodu, systém si toto pravidlo zapamatuje pro budoucí konverzace. V Paměťové kapsli můžete tato fakta kdykoliv upravit či smazat.',
+      ctaBannerTitle: 'Připraveni zažít nakupování s objektivní AI?',
+      ctaBannerSubtitle: 'Bez sponzorovaných výsledků, bez reklam a se stoprocentním soukromím.',
     },
   },
   en: {
@@ -1142,6 +1156,7 @@ export const translations: Record<SupportedLocale, Translations> = {
     dynamicWizard: {
       stepIndicator: 'Step {current} of {total}',
       btnPrevious: 'Previous Step',
+      btnSkipStep: 'Skip Step',
       btnContinue: 'Continue',
       btnEvaluate: 'Finish & Assemble Agent',
       btnEvaluating: 'Assembling agent...',
@@ -1188,10 +1203,14 @@ export const translations: Record<SupportedLocale, Translations> = {
       loadingDetails: 'Loading calibrated parameter weights, RAG memory profile, and preparing Agent Delivery Hub...',
       multipleSelection: 'Multiple selection allowed',
       multiselectInfo: 'You can select multiple options (Multiselect)',
-      skipChip: "Skip this step • No specific preference",
+      skipChip: 'No specific preference (open selection)',
+      noPreferenceOption: 'No specific preference (open selection)',
+      noPreferenceDesc: 'Keep selection open – AI will recommend the best variant based on other parameters',
       customChoice: 'Custom specific choice:',
       communicationError: 'Error communicating with evaluation agent.',
       notImportant: 'Not important',
+      alternativeChoiceDivider: 'Alternative choice',
+      openChoiceBadge: 'Open choice',
     },
     promptTuner: {
       title: 'Live AI Prompt Tuner & Guardrails',
@@ -1311,6 +1330,8 @@ export const translations: Record<SupportedLocale, Translations> = {
       faq2A: 'Bring Your Own Key. Connect your own free or paid API key from Google Gemini, OpenAI, or Claude. Keys are stored locally and never transmitted to our backend.',
       faq3Q: 'How does the RAG memory core work?',
       faq3A: 'When specifying size 44 or requesting low noise in a wizard, the engine retains this parameter across sessions. You can review, toggle, or delete any fact anytime in the Memory Capsule.',
+      ctaBannerTitle: 'Ready to Experience Objective AI Shopping?',
+      ctaBannerSubtitle: 'Zero sponsored results, zero advertisements, and one hundred percent privacy.',
     },
   },
 };

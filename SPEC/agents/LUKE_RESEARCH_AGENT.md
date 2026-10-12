@@ -452,3 +452,24 @@ Agent Luke provádí výzkum parametrů pro uživatelské dotazy **VÝHRADNĚ ž
 - Systém smí použít uložený záznam z databáze **POUZE POKUD zadaný vstup od uživatele sedí do písmene** s dotazem, který již dříve v repozitáři/databázi **prošel celým průvodcem a byl ověřen zákazníkem**.
 - Pokud dotaz nesedí do písmene s ověřeným záznamem: Systém jakoukoliv nápovědu či statický slovník ignoruje a **PROVOLÁ PROMPT PŘÍMO NA LLM GEMINI**.
 - Žádné vyhledávání podle podřetězců (jako slovo "kolo" v "tretry na kolo"), žádné odhadování kategorií z offline tabulek.
+
+
+## 🎯 Golden 10 Consistency & Regression Suite (90% Threshold)
+
+Pro garantovanou stabilitu a prevenci sémantické regrese udržuje Luke dedikovanou sadu **10 klíčových referenčních produktů (Golden 10)**:
+1. `Elektrické auto` (Automotive & Tech)
+2. `Běžecké boty` (Biomechanika & Obuv)
+3. `Pákový kávovar` (Gastro & Domácnost)
+4. `Ergonomická kancelářská židle` (Ergonomie & Zdraví)
+5. `Gravel / horské kolo` (Sport & Bike-fit)
+6. `Chytré sportovní hodinky` (Elektronika & Wearables)
+7. `Bezdrátová sluchátka s ANC` (Audio & Akustika)
+8. `Robotický vysavač` (Chytrá domácnost)
+9. `Kombinovaný dětský kočárek` (Bezpečnost & Rodina)
+10. `Aku vrtačka / šroubovák` (Dílna & Výkon)
+
+### Pravidla testu shody (Consistency Gate):
+- **Zlatý snímek**: Uložen v `scripts/luke_golden_10_snapshot.json`.
+- **Automatizovaný test**: Běží v `src/lib/agent/__tests__/luke-consistency-golden-10.test.ts` a přes `npm run test:consistency`.
+- **Striktní práh shody**: Celková podobnost musí dosahovat **≥ 90 %** (Jaccard similarity na parametrických ID, formátech komponent a brand governance). Pokud shoda klesne pod 90 %, test selže a zablokuje nasazení.
+- **Aktualizace snapshotu**: Vědomou aktualizaci etalonu lze provést příkazem `npm run test:consistency:update`.

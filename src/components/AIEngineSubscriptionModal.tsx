@@ -248,12 +248,12 @@ export const AIEngineSubscriptionModal: React.FC<AIEngineSubscriptionModalProps>
                       {provider.name}
                     </span>
                     <span className={`text-[10px] font-mono px-2 py-0.5 rounded-full border ${provider.badgeColor}`}>
-                      {provider.tag}
+                      {isEn ? provider.tagEn : provider.tag}
                     </span>
                   </div>
 
                   <div className="flex items-center gap-2 text-[10px] font-mono text-[#607d8b]">
-                    <span>{isEn ? `Memory: ${provider.contextWindow}` : `Paměť: ${provider.contextWindow}`}</span>
+                    <span>{isEn ? `Memory: ${provider.contextWindowEn}` : `Paměť: ${provider.contextWindow}`}</span>
                     {provider.requiresKey && (() => {
                       const test = testStatus[provider.id];
                       const storedVerif = verificationStatuses[provider.id];
@@ -303,7 +303,7 @@ export const AIEngineSubscriptionModal: React.FC<AIEngineSubscriptionModalProps>
                 </div>
 
                 <p className="text-xs text-[#455a64] leading-relaxed pl-6">
-                  {provider.description}
+                  {isEn ? provider.descriptionEn : provider.description}
                 </p>
 
                 {isSelected && provider.requiresKey && (

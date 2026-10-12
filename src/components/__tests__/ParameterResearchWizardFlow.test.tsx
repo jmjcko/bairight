@@ -141,7 +141,7 @@ describe('Parameter Research Agent & 3-Phase Wizard Flow (Updated PRD)', () => {
 
     // Hned na 1. kroku se zobrazí obrazovka stávajících zkušeností s 2-kartovou volbou
     expect(screen.getByText(/Dosavadní zkušenosti & Stávající produkt/i)).toBeInTheDocument();
-    expect(screen.getByText(/První nákup v této kategorii/i)).toBeInTheDocument();
+    expect(screen.getByText(/Kupuji poprvé|První nákup/i)).toBeInTheDocument();
     expect(screen.getByText(/Vlastním \/ používal jsem produkt/i)).toBeInTheDocument();
 
     // Výběr Karty B otevře formulář pro zadání stávajícího modelu a preferencí

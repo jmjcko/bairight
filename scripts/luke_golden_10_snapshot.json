@@ -1,0 +1,1212 @@
+{
+  "Elektrické auto": {
+    "keyword": "Elektrické auto",
+    "matchedDomain": "generic",
+    "categoryName": "Nákupní výběr pro Elektrické auto",
+    "agentName": "bAIright: Specialista na Elektrické auto",
+    "description": "Nákupní poradce pro výběr Elektrické auto zohledňující poznatky z fór a odborných recenzí.",
+    "parameters": [
+      {
+        "id": "primary_product_type",
+        "name": "Typ & hlavní určení",
+        "category": "Kategorie & Typologie",
+        "importance": "mandatory",
+        "suggestedComponent": "text",
+        "suggestedValues": [],
+        "rationale": "Podle zkušeností z odborných fór a recenzí je určujícím krokem zohlednit konkrétní určení pro Elektrické auto."
+      },
+      {
+        "id": "user_biometrics_health",
+        "name": "Velikost & biometrie",
+        "category": "Biometrie & Ergonomie",
+        "importance": "mandatory",
+        "suggestedComponent": "text",
+        "suggestedValues": [],
+        "rationale": "Fyzické parametry, rozměry a zdravotní limity pro Elektrické auto."
+      },
+      {
+        "id": "primary_purpose",
+        "name": "Intenzita využití",
+        "category": "Použití & Zátěž",
+        "importance": "mandatory",
+        "suggestedComponent": "text",
+        "suggestedValues": [],
+        "rationale": "Reálná frekvence používání a náročnost prostředí pro Elektrické auto."
+      },
+      {
+        "id": "technical_class",
+        "name": "Klíčové vlastnosti",
+        "category": "Funkce & Výbava",
+        "importance": "mandatory",
+        "suggestedComponent": "text",
+        "suggestedValues": [],
+        "rationale": "Specifické vlastnosti a komfortní prvky požadované pro Elektrické auto."
+      },
+      {
+        "id": "capacity_sizing",
+        "name": "Provedení & specifikace",
+        "category": "Specifikace & Provedení",
+        "importance": "mandatory",
+        "suggestedComponent": "text",
+        "suggestedValues": [],
+        "rationale": "Technické provedení a rozsah vlastností pro Elektrické auto."
+      },
+      {
+        "id": "dimensions_installation",
+        "name": "Konstrukce & ergonomie",
+        "category": "Konstrukce & Tvar",
+        "importance": "recommended",
+        "suggestedComponent": "text",
+        "suggestedValues": [],
+        "rationale": "Konstrukční vlastnosti a anatomický tvar pro Elektrické auto."
+      },
+      {
+        "id": "materials_durability",
+        "name": "Materiál & odolnost",
+        "category": "Materiál & Kvalita",
+        "importance": "mandatory",
+        "suggestedComponent": "text",
+        "suggestedValues": [],
+        "rationale": "Materiálové složení přímo ovlivňuje trvanlivost pro Elektrické auto."
+      },
+      {
+        "id": "maintenance_service",
+        "name": "Záruka & servis",
+        "category": "Záruka & Podpora",
+        "importance": "recommended",
+        "suggestedComponent": "text",
+        "suggestedValues": [],
+        "rationale": "Dostupnost náhradních dílů a záruky pro Elektrické auto."
+      },
+      {
+        "id": "budget",
+        "name": "Orientační rozpočet",
+        "category": "Rozpočet",
+        "importance": "mandatory",
+        "suggestedComponent": "chips",
+        "suggestedValues": [
+          "Zlatý střed (nejlepší poměr cena / výkon)",
+          "Prémiový segment bez omezení",
+          "Dostupná cenová hladina"
+        ],
+        "rationale": "Cenový rámec a předpokládaný rozpočet pomůže vyfiltrovat odpovídající kvalitativní třídu pro Elektrické auto."
+      },
+      {
+        "id": "brand_preferences",
+        "name": "Značky a výrobci",
+        "category": "Výrobci & Značky",
+        "importance": "recommended",
+        "suggestedComponent": "brands",
+        "suggestedValues": [
+          "Všechny ověřené značky (otevřený výběr)",
+          "Mám konkrétní preferované značky",
+          "Chci vyloučit konkrétní výrobce"
+        ],
+        "rationale": "Umožňuje uvést konkrétní preferované značky, kterým důvěřujete, a naopak striktně vyloučit výrobce, které nechcete. Otázka pro vás: Máte oblíbené značky, nebo chcete nějaké vyloučit?"
+      }
+    ],
+    "questions": [
+      {
+        "id": "q_generic_type",
+        "title": "Jaký typ a určení pro Elektrické auto hledáte?"
+      },
+      {
+        "id": "q_generic_biometrics_specs",
+        "title": "Jaké máte klíčové požadavky na ergonomii a vlastnosti pro Elektrické auto?"
+      },
+      {
+        "id": "q_generic_budget",
+        "title": "Jaký je váš předpokládaný rozpočet pro Elektrické auto?"
+      }
+    ]
+  },
+  "Běžecké boty": {
+    "keyword": "Běžecké boty",
+    "matchedDomain": "generic",
+    "categoryName": "Nákupní výběr pro Běžecké boty",
+    "agentName": "bAIright: Specialista na Běžecké boty",
+    "description": "Nákupní poradce pro výběr Běžecké boty zohledňující poznatky z fór a odborných recenzí.",
+    "parameters": [
+      {
+        "id": "primary_product_type",
+        "name": "Typ & hlavní určení",
+        "category": "Kategorie & Typologie",
+        "importance": "mandatory",
+        "suggestedComponent": "text",
+        "suggestedValues": [],
+        "rationale": "Podle zkušeností z odborných fór a recenzí je určujícím krokem zohlednit konkrétní určení pro Běžecké boty."
+      },
+      {
+        "id": "user_biometrics_health",
+        "name": "Velikost & biometrie",
+        "category": "Biometrie & Ergonomie",
+        "importance": "mandatory",
+        "suggestedComponent": "text",
+        "suggestedValues": [],
+        "rationale": "Fyzické parametry, rozměry a zdravotní limity pro Běžecké boty."
+      },
+      {
+        "id": "primary_purpose",
+        "name": "Intenzita využití",
+        "category": "Použití & Zátěž",
+        "importance": "mandatory",
+        "suggestedComponent": "text",
+        "suggestedValues": [],
+        "rationale": "Reálná frekvence používání a náročnost prostředí pro Běžecké boty."
+      },
+      {
+        "id": "technical_class",
+        "name": "Klíčové vlastnosti",
+        "category": "Funkce & Výbava",
+        "importance": "mandatory",
+        "suggestedComponent": "text",
+        "suggestedValues": [],
+        "rationale": "Specifické vlastnosti a komfortní prvky požadované pro Běžecké boty."
+      },
+      {
+        "id": "capacity_sizing",
+        "name": "Provedení & specifikace",
+        "category": "Specifikace & Provedení",
+        "importance": "mandatory",
+        "suggestedComponent": "text",
+        "suggestedValues": [],
+        "rationale": "Technické provedení a rozsah vlastností pro Běžecké boty."
+      },
+      {
+        "id": "dimensions_installation",
+        "name": "Konstrukce & ergonomie",
+        "category": "Konstrukce & Tvar",
+        "importance": "recommended",
+        "suggestedComponent": "text",
+        "suggestedValues": [],
+        "rationale": "Konstrukční vlastnosti a anatomický tvar pro Běžecké boty."
+      },
+      {
+        "id": "materials_durability",
+        "name": "Materiál & odolnost",
+        "category": "Materiál & Kvalita",
+        "importance": "mandatory",
+        "suggestedComponent": "text",
+        "suggestedValues": [],
+        "rationale": "Materiálové složení přímo ovlivňuje trvanlivost pro Běžecké boty."
+      },
+      {
+        "id": "maintenance_service",
+        "name": "Záruka & servis",
+        "category": "Záruka & Podpora",
+        "importance": "recommended",
+        "suggestedComponent": "text",
+        "suggestedValues": [],
+        "rationale": "Dostupnost náhradních dílů a záruky pro Běžecké boty."
+      },
+      {
+        "id": "budget",
+        "name": "Orientační rozpočet",
+        "category": "Rozpočet",
+        "importance": "mandatory",
+        "suggestedComponent": "chips",
+        "suggestedValues": [
+          "Zlatý střed (nejlepší poměr cena / výkon)",
+          "Prémiový segment bez omezení",
+          "Dostupná cenová hladina"
+        ],
+        "rationale": "Cenový rámec a předpokládaný rozpočet pomůže vyfiltrovat odpovídající kvalitativní třídu pro Běžecké boty."
+      },
+      {
+        "id": "brand_preferences",
+        "name": "Značky a výrobci",
+        "category": "Výrobci & Značky",
+        "importance": "recommended",
+        "suggestedComponent": "brands",
+        "suggestedValues": [
+          "Všechny ověřené značky (otevřený výběr)",
+          "Mám konkrétní preferované značky",
+          "Chci vyloučit konkrétní výrobce"
+        ],
+        "rationale": "Umožňuje uvést konkrétní preferované značky, kterým důvěřujete, a naopak striktně vyloučit výrobce, které nechcete. Otázka pro vás: Máte oblíbené značky, nebo chcete nějaké vyloučit?"
+      }
+    ],
+    "questions": [
+      {
+        "id": "q_generic_type",
+        "title": "Jaký typ a určení pro Běžecké boty hledáte?"
+      },
+      {
+        "id": "q_generic_biometrics_specs",
+        "title": "Jaké máte klíčové požadavky na ergonomii a vlastnosti pro Běžecké boty?"
+      },
+      {
+        "id": "q_generic_budget",
+        "title": "Jaký je váš předpokládaný rozpočet pro Běžecké boty?"
+      }
+    ]
+  },
+  "Pákový kávovar": {
+    "keyword": "Pákový kávovar",
+    "matchedDomain": "generic",
+    "categoryName": "Nákupní výběr pro Pákový kávovar",
+    "agentName": "bAIright: Specialista na Pákový kávovar",
+    "description": "Nákupní poradce pro výběr Pákový kávovar zohledňující poznatky z fór a odborných recenzí.",
+    "parameters": [
+      {
+        "id": "primary_product_type",
+        "name": "Typ & hlavní určení",
+        "category": "Kategorie & Typologie",
+        "importance": "mandatory",
+        "suggestedComponent": "text",
+        "suggestedValues": [],
+        "rationale": "Podle zkušeností z odborných fór a recenzí je určujícím krokem zohlednit konkrétní určení pro Pákový kávovar."
+      },
+      {
+        "id": "user_biometrics_health",
+        "name": "Velikost & biometrie",
+        "category": "Biometrie & Ergonomie",
+        "importance": "mandatory",
+        "suggestedComponent": "text",
+        "suggestedValues": [],
+        "rationale": "Fyzické parametry, rozměry a zdravotní limity pro Pákový kávovar."
+      },
+      {
+        "id": "primary_purpose",
+        "name": "Intenzita využití",
+        "category": "Použití & Zátěž",
+        "importance": "mandatory",
+        "suggestedComponent": "text",
+        "suggestedValues": [],
+        "rationale": "Reálná frekvence používání a náročnost prostředí pro Pákový kávovar."
+      },
+      {
+        "id": "technical_class",
+        "name": "Klíčové vlastnosti",
+        "category": "Funkce & Výbava",
+        "importance": "mandatory",
+        "suggestedComponent": "text",
+        "suggestedValues": [],
+        "rationale": "Specifické vlastnosti a komfortní prvky požadované pro Pákový kávovar."
+      },
+      {
+        "id": "capacity_sizing",
+        "name": "Provedení & specifikace",
+        "category": "Specifikace & Provedení",
+        "importance": "mandatory",
+        "suggestedComponent": "text",
+        "suggestedValues": [],
+        "rationale": "Technické provedení a rozsah vlastností pro Pákový kávovar."
+      },
+      {
+        "id": "dimensions_installation",
+        "name": "Konstrukce & ergonomie",
+        "category": "Konstrukce & Tvar",
+        "importance": "recommended",
+        "suggestedComponent": "text",
+        "suggestedValues": [],
+        "rationale": "Konstrukční vlastnosti a anatomický tvar pro Pákový kávovar."
+      },
+      {
+        "id": "materials_durability",
+        "name": "Materiál & odolnost",
+        "category": "Materiál & Kvalita",
+        "importance": "mandatory",
+        "suggestedComponent": "text",
+        "suggestedValues": [],
+        "rationale": "Materiálové složení přímo ovlivňuje trvanlivost pro Pákový kávovar."
+      },
+      {
+        "id": "maintenance_service",
+        "name": "Záruka & servis",
+        "category": "Záruka & Podpora",
+        "importance": "recommended",
+        "suggestedComponent": "text",
+        "suggestedValues": [],
+        "rationale": "Dostupnost náhradních dílů a záruky pro Pákový kávovar."
+      },
+      {
+        "id": "budget",
+        "name": "Orientační rozpočet",
+        "category": "Rozpočet",
+        "importance": "mandatory",
+        "suggestedComponent": "chips",
+        "suggestedValues": [
+          "Zlatý střed (nejlepší poměr cena / výkon)",
+          "Prémiový segment bez omezení",
+          "Dostupná cenová hladina"
+        ],
+        "rationale": "Cenový rámec a předpokládaný rozpočet pomůže vyfiltrovat odpovídající kvalitativní třídu pro Pákový kávovar."
+      },
+      {
+        "id": "brand_preferences",
+        "name": "Značky a výrobci",
+        "category": "Výrobci & Značky",
+        "importance": "recommended",
+        "suggestedComponent": "brands",
+        "suggestedValues": [
+          "Všechny ověřené značky (otevřený výběr)",
+          "Mám konkrétní preferované značky",
+          "Chci vyloučit konkrétní výrobce"
+        ],
+        "rationale": "Umožňuje uvést konkrétní preferované značky, kterým důvěřujete, a naopak striktně vyloučit výrobce, které nechcete. Otázka pro vás: Máte oblíbené značky, nebo chcete nějaké vyloučit?"
+      }
+    ],
+    "questions": [
+      {
+        "id": "q_generic_type",
+        "title": "Jaký typ a určení pro Pákový kávovar hledáte?"
+      },
+      {
+        "id": "q_generic_biometrics_specs",
+        "title": "Jaké máte klíčové požadavky na ergonomii a vlastnosti pro Pákový kávovar?"
+      },
+      {
+        "id": "q_generic_budget",
+        "title": "Jaký je váš předpokládaný rozpočet pro Pákový kávovar?"
+      }
+    ]
+  },
+  "Ergonomická kancelářská židle": {
+    "keyword": "Ergonomická kancelářská židle",
+    "matchedDomain": "generic",
+    "categoryName": "Nákupní výběr pro Ergonomická kancelářská židle",
+    "agentName": "bAIright: Specialista na Ergonomická kancelářská židle",
+    "description": "Nákupní poradce pro výběr Ergonomická kancelářská židle zohledňující poznatky z fór a odborných recenzí.",
+    "parameters": [
+      {
+        "id": "primary_product_type",
+        "name": "Typ & hlavní určení",
+        "category": "Kategorie & Typologie",
+        "importance": "mandatory",
+        "suggestedComponent": "text",
+        "suggestedValues": [],
+        "rationale": "Podle zkušeností z odborných fór a recenzí je určujícím krokem zohlednit konkrétní určení pro Ergonomická kancelářská židle."
+      },
+      {
+        "id": "user_biometrics_health",
+        "name": "Velikost & biometrie",
+        "category": "Biometrie & Ergonomie",
+        "importance": "mandatory",
+        "suggestedComponent": "text",
+        "suggestedValues": [],
+        "rationale": "Fyzické parametry, rozměry a zdravotní limity pro Ergonomická kancelářská židle."
+      },
+      {
+        "id": "primary_purpose",
+        "name": "Intenzita využití",
+        "category": "Použití & Zátěž",
+        "importance": "mandatory",
+        "suggestedComponent": "text",
+        "suggestedValues": [],
+        "rationale": "Reálná frekvence používání a náročnost prostředí pro Ergonomická kancelářská židle."
+      },
+      {
+        "id": "technical_class",
+        "name": "Klíčové vlastnosti",
+        "category": "Funkce & Výbava",
+        "importance": "mandatory",
+        "suggestedComponent": "text",
+        "suggestedValues": [],
+        "rationale": "Specifické vlastnosti a komfortní prvky požadované pro Ergonomická kancelářská židle."
+      },
+      {
+        "id": "capacity_sizing",
+        "name": "Provedení & specifikace",
+        "category": "Specifikace & Provedení",
+        "importance": "mandatory",
+        "suggestedComponent": "text",
+        "suggestedValues": [],
+        "rationale": "Technické provedení a rozsah vlastností pro Ergonomická kancelářská židle."
+      },
+      {
+        "id": "dimensions_installation",
+        "name": "Konstrukce & ergonomie",
+        "category": "Konstrukce & Tvar",
+        "importance": "recommended",
+        "suggestedComponent": "text",
+        "suggestedValues": [],
+        "rationale": "Konstrukční vlastnosti a anatomický tvar pro Ergonomická kancelářská židle."
+      },
+      {
+        "id": "materials_durability",
+        "name": "Materiál & odolnost",
+        "category": "Materiál & Kvalita",
+        "importance": "mandatory",
+        "suggestedComponent": "text",
+        "suggestedValues": [],
+        "rationale": "Materiálové složení přímo ovlivňuje trvanlivost pro Ergonomická kancelářská židle."
+      },
+      {
+        "id": "maintenance_service",
+        "name": "Záruka & servis",
+        "category": "Záruka & Podpora",
+        "importance": "recommended",
+        "suggestedComponent": "text",
+        "suggestedValues": [],
+        "rationale": "Dostupnost náhradních dílů a záruky pro Ergonomická kancelářská židle."
+      },
+      {
+        "id": "budget",
+        "name": "Orientační rozpočet",
+        "category": "Rozpočet",
+        "importance": "mandatory",
+        "suggestedComponent": "chips",
+        "suggestedValues": [
+          "Zlatý střed (nejlepší poměr cena / výkon)",
+          "Prémiový segment bez omezení",
+          "Dostupná cenová hladina"
+        ],
+        "rationale": "Cenový rámec a předpokládaný rozpočet pomůže vyfiltrovat odpovídající kvalitativní třídu pro Ergonomická kancelářská židle."
+      },
+      {
+        "id": "brand_preferences",
+        "name": "Značky a výrobci",
+        "category": "Výrobci & Značky",
+        "importance": "recommended",
+        "suggestedComponent": "brands",
+        "suggestedValues": [
+          "Všechny ověřené značky (otevřený výběr)",
+          "Mám konkrétní preferované značky",
+          "Chci vyloučit konkrétní výrobce"
+        ],
+        "rationale": "Umožňuje uvést konkrétní preferované značky, kterým důvěřujete, a naopak striktně vyloučit výrobce, které nechcete. Otázka pro vás: Máte oblíbené značky, nebo chcete nějaké vyloučit?"
+      }
+    ],
+    "questions": [
+      {
+        "id": "q_generic_type",
+        "title": "Jaký typ a určení pro Ergonomická kancelářská židle hledáte?"
+      },
+      {
+        "id": "q_generic_biometrics_specs",
+        "title": "Jaké máte klíčové požadavky na ergonomii a vlastnosti pro Ergonomická kancelářská židle?"
+      },
+      {
+        "id": "q_generic_budget",
+        "title": "Jaký je váš předpokládaný rozpočet pro Ergonomická kancelářská židle?"
+      }
+    ]
+  },
+  "Gravel / horské kolo": {
+    "keyword": "Gravel / horské kolo",
+    "matchedDomain": "generic",
+    "categoryName": "Nákupní výběr pro Gravel / horské kolo",
+    "agentName": "bAIright: Specialista na Gravel / horské kolo",
+    "description": "Nákupní poradce pro výběr Gravel / horské kolo zohledňující poznatky z fór a odborných recenzí.",
+    "parameters": [
+      {
+        "id": "primary_product_type",
+        "name": "Typ & hlavní určení",
+        "category": "Kategorie & Typologie",
+        "importance": "mandatory",
+        "suggestedComponent": "text",
+        "suggestedValues": [],
+        "rationale": "Podle zkušeností z odborných fór a recenzí je určujícím krokem zohlednit konkrétní určení pro Gravel / horské kolo."
+      },
+      {
+        "id": "user_biometrics_health",
+        "name": "Velikost & biometrie",
+        "category": "Biometrie & Ergonomie",
+        "importance": "mandatory",
+        "suggestedComponent": "text",
+        "suggestedValues": [],
+        "rationale": "Fyzické parametry, rozměry a zdravotní limity pro Gravel / horské kolo."
+      },
+      {
+        "id": "primary_purpose",
+        "name": "Intenzita využití",
+        "category": "Použití & Zátěž",
+        "importance": "mandatory",
+        "suggestedComponent": "text",
+        "suggestedValues": [],
+        "rationale": "Reálná frekvence používání a náročnost prostředí pro Gravel / horské kolo."
+      },
+      {
+        "id": "technical_class",
+        "name": "Klíčové vlastnosti",
+        "category": "Funkce & Výbava",
+        "importance": "mandatory",
+        "suggestedComponent": "text",
+        "suggestedValues": [],
+        "rationale": "Specifické vlastnosti a komfortní prvky požadované pro Gravel / horské kolo."
+      },
+      {
+        "id": "capacity_sizing",
+        "name": "Provedení & specifikace",
+        "category": "Specifikace & Provedení",
+        "importance": "mandatory",
+        "suggestedComponent": "text",
+        "suggestedValues": [],
+        "rationale": "Technické provedení a rozsah vlastností pro Gravel / horské kolo."
+      },
+      {
+        "id": "dimensions_installation",
+        "name": "Konstrukce & ergonomie",
+        "category": "Konstrukce & Tvar",
+        "importance": "recommended",
+        "suggestedComponent": "text",
+        "suggestedValues": [],
+        "rationale": "Konstrukční vlastnosti a anatomický tvar pro Gravel / horské kolo."
+      },
+      {
+        "id": "materials_durability",
+        "name": "Materiál & odolnost",
+        "category": "Materiál & Kvalita",
+        "importance": "mandatory",
+        "suggestedComponent": "text",
+        "suggestedValues": [],
+        "rationale": "Materiálové složení přímo ovlivňuje trvanlivost pro Gravel / horské kolo."
+      },
+      {
+        "id": "maintenance_service",
+        "name": "Záruka & servis",
+        "category": "Záruka & Podpora",
+        "importance": "recommended",
+        "suggestedComponent": "text",
+        "suggestedValues": [],
+        "rationale": "Dostupnost náhradních dílů a záruky pro Gravel / horské kolo."
+      },
+      {
+        "id": "budget",
+        "name": "Orientační rozpočet",
+        "category": "Rozpočet",
+        "importance": "mandatory",
+        "suggestedComponent": "chips",
+        "suggestedValues": [
+          "Zlatý střed (nejlepší poměr cena / výkon)",
+          "Prémiový segment bez omezení",
+          "Dostupná cenová hladina"
+        ],
+        "rationale": "Cenový rámec a předpokládaný rozpočet pomůže vyfiltrovat odpovídající kvalitativní třídu pro Gravel / horské kolo."
+      },
+      {
+        "id": "brand_preferences",
+        "name": "Značky a výrobci",
+        "category": "Výrobci & Značky",
+        "importance": "recommended",
+        "suggestedComponent": "brands",
+        "suggestedValues": [
+          "Všechny ověřené značky (otevřený výběr)",
+          "Mám konkrétní preferované značky",
+          "Chci vyloučit konkrétní výrobce"
+        ],
+        "rationale": "Umožňuje uvést konkrétní preferované značky, kterým důvěřujete, a naopak striktně vyloučit výrobce, které nechcete. Otázka pro vás: Máte oblíbené značky, nebo chcete nějaké vyloučit?"
+      }
+    ],
+    "questions": [
+      {
+        "id": "q_generic_type",
+        "title": "Jaký typ a určení pro Gravel / horské kolo hledáte?"
+      },
+      {
+        "id": "q_generic_biometrics_specs",
+        "title": "Jaké máte klíčové požadavky na ergonomii a vlastnosti pro Gravel / horské kolo?"
+      },
+      {
+        "id": "q_generic_budget",
+        "title": "Jaký je váš předpokládaný rozpočet pro Gravel / horské kolo?"
+      }
+    ]
+  },
+  "Chytré sportovní hodinky": {
+    "keyword": "Chytré sportovní hodinky",
+    "matchedDomain": "generic",
+    "categoryName": "Nákupní výběr pro Chytré sportovní hodinky",
+    "agentName": "bAIright: Specialista na Chytré sportovní hodinky",
+    "description": "Nákupní poradce pro výběr Chytré sportovní hodinky zohledňující poznatky z fór a odborných recenzí.",
+    "parameters": [
+      {
+        "id": "primary_product_type",
+        "name": "Typ & hlavní určení",
+        "category": "Kategorie & Typologie",
+        "importance": "mandatory",
+        "suggestedComponent": "text",
+        "suggestedValues": [],
+        "rationale": "Podle zkušeností z odborných fór a recenzí je určujícím krokem zohlednit konkrétní určení pro Chytré sportovní hodinky."
+      },
+      {
+        "id": "user_biometrics_health",
+        "name": "Velikost & biometrie",
+        "category": "Biometrie & Ergonomie",
+        "importance": "mandatory",
+        "suggestedComponent": "text",
+        "suggestedValues": [],
+        "rationale": "Fyzické parametry, rozměry a zdravotní limity pro Chytré sportovní hodinky."
+      },
+      {
+        "id": "primary_purpose",
+        "name": "Intenzita využití",
+        "category": "Použití & Zátěž",
+        "importance": "mandatory",
+        "suggestedComponent": "text",
+        "suggestedValues": [],
+        "rationale": "Reálná frekvence používání a náročnost prostředí pro Chytré sportovní hodinky."
+      },
+      {
+        "id": "technical_class",
+        "name": "Klíčové vlastnosti",
+        "category": "Funkce & Výbava",
+        "importance": "mandatory",
+        "suggestedComponent": "text",
+        "suggestedValues": [],
+        "rationale": "Specifické vlastnosti a komfortní prvky požadované pro Chytré sportovní hodinky."
+      },
+      {
+        "id": "capacity_sizing",
+        "name": "Provedení & specifikace",
+        "category": "Specifikace & Provedení",
+        "importance": "mandatory",
+        "suggestedComponent": "text",
+        "suggestedValues": [],
+        "rationale": "Technické provedení a rozsah vlastností pro Chytré sportovní hodinky."
+      },
+      {
+        "id": "dimensions_installation",
+        "name": "Konstrukce & ergonomie",
+        "category": "Konstrukce & Tvar",
+        "importance": "recommended",
+        "suggestedComponent": "text",
+        "suggestedValues": [],
+        "rationale": "Konstrukční vlastnosti a anatomický tvar pro Chytré sportovní hodinky."
+      },
+      {
+        "id": "materials_durability",
+        "name": "Materiál & odolnost",
+        "category": "Materiál & Kvalita",
+        "importance": "mandatory",
+        "suggestedComponent": "text",
+        "suggestedValues": [],
+        "rationale": "Materiálové složení přímo ovlivňuje trvanlivost pro Chytré sportovní hodinky."
+      },
+      {
+        "id": "maintenance_service",
+        "name": "Záruka & servis",
+        "category": "Záruka & Podpora",
+        "importance": "recommended",
+        "suggestedComponent": "text",
+        "suggestedValues": [],
+        "rationale": "Dostupnost náhradních dílů a záruky pro Chytré sportovní hodinky."
+      },
+      {
+        "id": "budget",
+        "name": "Orientační rozpočet",
+        "category": "Rozpočet",
+        "importance": "mandatory",
+        "suggestedComponent": "chips",
+        "suggestedValues": [
+          "Zlatý střed (nejlepší poměr cena / výkon)",
+          "Prémiový segment bez omezení",
+          "Dostupná cenová hladina"
+        ],
+        "rationale": "Cenový rámec a předpokládaný rozpočet pomůže vyfiltrovat odpovídající kvalitativní třídu pro Chytré sportovní hodinky."
+      },
+      {
+        "id": "brand_preferences",
+        "name": "Značky a výrobci",
+        "category": "Výrobci & Značky",
+        "importance": "recommended",
+        "suggestedComponent": "brands",
+        "suggestedValues": [
+          "Všechny ověřené značky (otevřený výběr)",
+          "Mám konkrétní preferované značky",
+          "Chci vyloučit konkrétní výrobce"
+        ],
+        "rationale": "Umožňuje uvést konkrétní preferované značky, kterým důvěřujete, a naopak striktně vyloučit výrobce, které nechcete. Otázka pro vás: Máte oblíbené značky, nebo chcete nějaké vyloučit?"
+      }
+    ],
+    "questions": [
+      {
+        "id": "q_generic_type",
+        "title": "Jaký typ a určení pro Chytré sportovní hodinky hledáte?"
+      },
+      {
+        "id": "q_generic_biometrics_specs",
+        "title": "Jaké máte klíčové požadavky na ergonomii a vlastnosti pro Chytré sportovní hodinky?"
+      },
+      {
+        "id": "q_generic_budget",
+        "title": "Jaký je váš předpokládaný rozpočet pro Chytré sportovní hodinky?"
+      }
+    ]
+  },
+  "Bezdrátová sluchátka s ANC": {
+    "keyword": "Bezdrátová sluchátka s ANC",
+    "matchedDomain": "generic",
+    "categoryName": "Nákupní výběr pro Bezdrátová sluchátka s ANC",
+    "agentName": "bAIright: Specialista na Bezdrátová sluchátka s ANC",
+    "description": "Nákupní poradce pro výběr Bezdrátová sluchátka s ANC zohledňující poznatky z fór a odborných recenzí.",
+    "parameters": [
+      {
+        "id": "primary_product_type",
+        "name": "Typ & hlavní určení",
+        "category": "Kategorie & Typologie",
+        "importance": "mandatory",
+        "suggestedComponent": "text",
+        "suggestedValues": [],
+        "rationale": "Podle zkušeností z odborných fór a recenzí je určujícím krokem zohlednit konkrétní určení pro Bezdrátová sluchátka s ANC."
+      },
+      {
+        "id": "user_biometrics_health",
+        "name": "Velikost & biometrie",
+        "category": "Biometrie & Ergonomie",
+        "importance": "mandatory",
+        "suggestedComponent": "text",
+        "suggestedValues": [],
+        "rationale": "Fyzické parametry, rozměry a zdravotní limity pro Bezdrátová sluchátka s ANC."
+      },
+      {
+        "id": "primary_purpose",
+        "name": "Intenzita využití",
+        "category": "Použití & Zátěž",
+        "importance": "mandatory",
+        "suggestedComponent": "text",
+        "suggestedValues": [],
+        "rationale": "Reálná frekvence používání a náročnost prostředí pro Bezdrátová sluchátka s ANC."
+      },
+      {
+        "id": "technical_class",
+        "name": "Klíčové vlastnosti",
+        "category": "Funkce & Výbava",
+        "importance": "mandatory",
+        "suggestedComponent": "text",
+        "suggestedValues": [],
+        "rationale": "Specifické vlastnosti a komfortní prvky požadované pro Bezdrátová sluchátka s ANC."
+      },
+      {
+        "id": "capacity_sizing",
+        "name": "Provedení & specifikace",
+        "category": "Specifikace & Provedení",
+        "importance": "mandatory",
+        "suggestedComponent": "text",
+        "suggestedValues": [],
+        "rationale": "Technické provedení a rozsah vlastností pro Bezdrátová sluchátka s ANC."
+      },
+      {
+        "id": "dimensions_installation",
+        "name": "Konstrukce & ergonomie",
+        "category": "Konstrukce & Tvar",
+        "importance": "recommended",
+        "suggestedComponent": "text",
+        "suggestedValues": [],
+        "rationale": "Konstrukční vlastnosti a anatomický tvar pro Bezdrátová sluchátka s ANC."
+      },
+      {
+        "id": "materials_durability",
+        "name": "Materiál & odolnost",
+        "category": "Materiál & Kvalita",
+        "importance": "mandatory",
+        "suggestedComponent": "text",
+        "suggestedValues": [],
+        "rationale": "Materiálové složení přímo ovlivňuje trvanlivost pro Bezdrátová sluchátka s ANC."
+      },
+      {
+        "id": "maintenance_service",
+        "name": "Záruka & servis",
+        "category": "Záruka & Podpora",
+        "importance": "recommended",
+        "suggestedComponent": "text",
+        "suggestedValues": [],
+        "rationale": "Dostupnost náhradních dílů a záruky pro Bezdrátová sluchátka s ANC."
+      },
+      {
+        "id": "budget",
+        "name": "Orientační rozpočet",
+        "category": "Rozpočet",
+        "importance": "mandatory",
+        "suggestedComponent": "chips",
+        "suggestedValues": [
+          "Zlatý střed (nejlepší poměr cena / výkon)",
+          "Prémiový segment bez omezení",
+          "Dostupná cenová hladina"
+        ],
+        "rationale": "Cenový rámec a předpokládaný rozpočet pomůže vyfiltrovat odpovídající kvalitativní třídu pro Bezdrátová sluchátka s ANC."
+      },
+      {
+        "id": "brand_preferences",
+        "name": "Značky a výrobci",
+        "category": "Výrobci & Značky",
+        "importance": "recommended",
+        "suggestedComponent": "brands",
+        "suggestedValues": [
+          "Všechny ověřené značky (otevřený výběr)",
+          "Mám konkrétní preferované značky",
+          "Chci vyloučit konkrétní výrobce"
+        ],
+        "rationale": "Umožňuje uvést konkrétní preferované značky, kterým důvěřujete, a naopak striktně vyloučit výrobce, které nechcete. Otázka pro vás: Máte oblíbené značky, nebo chcete nějaké vyloučit?"
+      }
+    ],
+    "questions": [
+      {
+        "id": "q_generic_type",
+        "title": "Jaký typ a určení pro Bezdrátová sluchátka s ANC hledáte?"
+      },
+      {
+        "id": "q_generic_biometrics_specs",
+        "title": "Jaké máte klíčové požadavky na ergonomii a vlastnosti pro Bezdrátová sluchátka s ANC?"
+      },
+      {
+        "id": "q_generic_budget",
+        "title": "Jaký je váš předpokládaný rozpočet pro Bezdrátová sluchátka s ANC?"
+      }
+    ]
+  },
+  "Robotický vysavač": {
+    "keyword": "Robotický vysavač",
+    "matchedDomain": "generic",
+    "categoryName": "Nákupní výběr pro Robotický vysavač",
+    "agentName": "bAIright: Specialista na Robotický vysavač",
+    "description": "Nákupní poradce pro výběr Robotický vysavač zohledňující poznatky z fór a odborných recenzí.",
+    "parameters": [
+      {
+        "id": "primary_product_type",
+        "name": "Typ & hlavní určení",
+        "category": "Kategorie & Typologie",
+        "importance": "mandatory",
+        "suggestedComponent": "text",
+        "suggestedValues": [],
+        "rationale": "Podle zkušeností z odborných fór a recenzí je určujícím krokem zohlednit konkrétní určení pro Robotický vysavač."
+      },
+      {
+        "id": "user_biometrics_health",
+        "name": "Velikost & biometrie",
+        "category": "Biometrie & Ergonomie",
+        "importance": "mandatory",
+        "suggestedComponent": "text",
+        "suggestedValues": [],
+        "rationale": "Fyzické parametry, rozměry a zdravotní limity pro Robotický vysavač."
+      },
+      {
+        "id": "primary_purpose",
+        "name": "Intenzita využití",
+        "category": "Použití & Zátěž",
+        "importance": "mandatory",
+        "suggestedComponent": "text",
+        "suggestedValues": [],
+        "rationale": "Reálná frekvence používání a náročnost prostředí pro Robotický vysavač."
+      },
+      {
+        "id": "technical_class",
+        "name": "Klíčové vlastnosti",
+        "category": "Funkce & Výbava",
+        "importance": "mandatory",
+        "suggestedComponent": "text",
+        "suggestedValues": [],
+        "rationale": "Specifické vlastnosti a komfortní prvky požadované pro Robotický vysavač."
+      },
+      {
+        "id": "capacity_sizing",
+        "name": "Provedení & specifikace",
+        "category": "Specifikace & Provedení",
+        "importance": "mandatory",
+        "suggestedComponent": "text",
+        "suggestedValues": [],
+        "rationale": "Technické provedení a rozsah vlastností pro Robotický vysavač."
+      },
+      {
+        "id": "dimensions_installation",
+        "name": "Konstrukce & ergonomie",
+        "category": "Konstrukce & Tvar",
+        "importance": "recommended",
+        "suggestedComponent": "text",
+        "suggestedValues": [],
+        "rationale": "Konstrukční vlastnosti a anatomický tvar pro Robotický vysavač."
+      },
+      {
+        "id": "materials_durability",
+        "name": "Materiál & odolnost",
+        "category": "Materiál & Kvalita",
+        "importance": "mandatory",
+        "suggestedComponent": "text",
+        "suggestedValues": [],
+        "rationale": "Materiálové složení přímo ovlivňuje trvanlivost pro Robotický vysavač."
+      },
+      {
+        "id": "maintenance_service",
+        "name": "Záruka & servis",
+        "category": "Záruka & Podpora",
+        "importance": "recommended",
+        "suggestedComponent": "text",
+        "suggestedValues": [],
+        "rationale": "Dostupnost náhradních dílů a záruky pro Robotický vysavač."
+      },
+      {
+        "id": "budget",
+        "name": "Orientační rozpočet",
+        "category": "Rozpočet",
+        "importance": "mandatory",
+        "suggestedComponent": "chips",
+        "suggestedValues": [
+          "Zlatý střed (nejlepší poměr cena / výkon)",
+          "Prémiový segment bez omezení",
+          "Dostupná cenová hladina"
+        ],
+        "rationale": "Cenový rámec a předpokládaný rozpočet pomůže vyfiltrovat odpovídající kvalitativní třídu pro Robotický vysavač."
+      },
+      {
+        "id": "brand_preferences",
+        "name": "Značky a výrobci",
+        "category": "Výrobci & Značky",
+        "importance": "recommended",
+        "suggestedComponent": "brands",
+        "suggestedValues": [
+          "Všechny ověřené značky (otevřený výběr)",
+          "Mám konkrétní preferované značky",
+          "Chci vyloučit konkrétní výrobce"
+        ],
+        "rationale": "Umožňuje uvést konkrétní preferované značky, kterým důvěřujete, a naopak striktně vyloučit výrobce, které nechcete. Otázka pro vás: Máte oblíbené značky, nebo chcete nějaké vyloučit?"
+      }
+    ],
+    "questions": [
+      {
+        "id": "q_generic_type",
+        "title": "Jaký typ a určení pro Robotický vysavač hledáte?"
+      },
+      {
+        "id": "q_generic_biometrics_specs",
+        "title": "Jaké máte klíčové požadavky na ergonomii a vlastnosti pro Robotický vysavač?"
+      },
+      {
+        "id": "q_generic_budget",
+        "title": "Jaký je váš předpokládaný rozpočet pro Robotický vysavač?"
+      }
+    ]
+  },
+  "Kombinovaný dětský kočárek": {
+    "keyword": "Kombinovaný dětský kočárek",
+    "matchedDomain": "generic",
+    "categoryName": "Nákupní výběr pro Kombinovaný dětský kočárek",
+    "agentName": "bAIright: Specialista na Kombinovaný dětský kočárek",
+    "description": "Nákupní poradce pro výběr Kombinovaný dětský kočárek zohledňující poznatky z fór a odborných recenzí.",
+    "parameters": [
+      {
+        "id": "primary_product_type",
+        "name": "Typ & hlavní určení",
+        "category": "Kategorie & Typologie",
+        "importance": "mandatory",
+        "suggestedComponent": "text",
+        "suggestedValues": [],
+        "rationale": "Podle zkušeností z odborných fór a recenzí je určujícím krokem zohlednit konkrétní určení pro Kombinovaný dětský kočárek."
+      },
+      {
+        "id": "user_biometrics_health",
+        "name": "Velikost & biometrie",
+        "category": "Biometrie & Ergonomie",
+        "importance": "mandatory",
+        "suggestedComponent": "text",
+        "suggestedValues": [],
+        "rationale": "Fyzické parametry, rozměry a zdravotní limity pro Kombinovaný dětský kočárek."
+      },
+      {
+        "id": "primary_purpose",
+        "name": "Intenzita využití",
+        "category": "Použití & Zátěž",
+        "importance": "mandatory",
+        "suggestedComponent": "text",
+        "suggestedValues": [],
+        "rationale": "Reálná frekvence používání a náročnost prostředí pro Kombinovaný dětský kočárek."
+      },
+      {
+        "id": "technical_class",
+        "name": "Klíčové vlastnosti",
+        "category": "Funkce & Výbava",
+        "importance": "mandatory",
+        "suggestedComponent": "text",
+        "suggestedValues": [],
+        "rationale": "Specifické vlastnosti a komfortní prvky požadované pro Kombinovaný dětský kočárek."
+      },
+      {
+        "id": "capacity_sizing",
+        "name": "Provedení & specifikace",
+        "category": "Specifikace & Provedení",
+        "importance": "mandatory",
+        "suggestedComponent": "text",
+        "suggestedValues": [],
+        "rationale": "Technické provedení a rozsah vlastností pro Kombinovaný dětský kočárek."
+      },
+      {
+        "id": "dimensions_installation",
+        "name": "Konstrukce & ergonomie",
+        "category": "Konstrukce & Tvar",
+        "importance": "recommended",
+        "suggestedComponent": "text",
+        "suggestedValues": [],
+        "rationale": "Konstrukční vlastnosti a anatomický tvar pro Kombinovaný dětský kočárek."
+      },
+      {
+        "id": "materials_durability",
+        "name": "Materiál & odolnost",
+        "category": "Materiál & Kvalita",
+        "importance": "mandatory",
+        "suggestedComponent": "text",
+        "suggestedValues": [],
+        "rationale": "Materiálové složení přímo ovlivňuje trvanlivost pro Kombinovaný dětský kočárek."
+      },
+      {
+        "id": "maintenance_service",
+        "name": "Záruka & servis",
+        "category": "Záruka & Podpora",
+        "importance": "recommended",
+        "suggestedComponent": "text",
+        "suggestedValues": [],
+        "rationale": "Dostupnost náhradních dílů a záruky pro Kombinovaný dětský kočárek."
+      },
+      {
+        "id": "budget",
+        "name": "Orientační rozpočet",
+        "category": "Rozpočet",
+        "importance": "mandatory",
+        "suggestedComponent": "chips",
+        "suggestedValues": [
+          "Zlatý střed (nejlepší poměr cena / výkon)",
+          "Prémiový segment bez omezení",
+          "Dostupná cenová hladina"
+        ],
+        "rationale": "Cenový rámec a předpokládaný rozpočet pomůže vyfiltrovat odpovídající kvalitativní třídu pro Kombinovaný dětský kočárek."
+      },
+      {
+        "id": "brand_preferences",
+        "name": "Značky a výrobci",
+        "category": "Výrobci & Značky",
+        "importance": "recommended",
+        "suggestedComponent": "brands",
+        "suggestedValues": [
+          "Všechny ověřené značky (otevřený výběr)",
+          "Mám konkrétní preferované značky",
+          "Chci vyloučit konkrétní výrobce"
+        ],
+        "rationale": "Umožňuje uvést konkrétní preferované značky, kterým důvěřujete, a naopak striktně vyloučit výrobce, které nechcete. Otázka pro vás: Máte oblíbené značky, nebo chcete nějaké vyloučit?"
+      }
+    ],
+    "questions": [
+      {
+        "id": "q_generic_type",
+        "title": "Jaký typ a určení pro Kombinovaný dětský kočárek hledáte?"
+      },
+      {
+        "id": "q_generic_biometrics_specs",
+        "title": "Jaké máte klíčové požadavky na ergonomii a vlastnosti pro Kombinovaný dětský kočárek?"
+      },
+      {
+        "id": "q_generic_budget",
+        "title": "Jaký je váš předpokládaný rozpočet pro Kombinovaný dětský kočárek?"
+      }
+    ]
+  },
+  "Aku vrtačka / šroubovák": {
+    "keyword": "Aku vrtačka / šroubovák",
+    "matchedDomain": "generic",
+    "categoryName": "Nákupní výběr pro Aku vrtačka / šroubovák",
+    "agentName": "bAIright: Specialista na Aku vrtačka / šroubovák",
+    "description": "Nákupní poradce pro výběr Aku vrtačka / šroubovák zohledňující poznatky z fór a odborných recenzí.",
+    "parameters": [
+      {
+        "id": "primary_product_type",
+        "name": "Typ & hlavní určení",
+        "category": "Kategorie & Typologie",
+        "importance": "mandatory",
+        "suggestedComponent": "text",
+        "suggestedValues": [],
+        "rationale": "Podle zkušeností z odborných fór a recenzí je určujícím krokem zohlednit konkrétní určení pro Aku vrtačka / šroubovák."
+      },
+      {
+        "id": "user_biometrics_health",
+        "name": "Velikost & biometrie",
+        "category": "Biometrie & Ergonomie",
+        "importance": "mandatory",
+        "suggestedComponent": "text",
+        "suggestedValues": [],
+        "rationale": "Fyzické parametry, rozměry a zdravotní limity pro Aku vrtačka / šroubovák."
+      },
+      {
+        "id": "primary_purpose",
+        "name": "Intenzita využití",
+        "category": "Použití & Zátěž",
+        "importance": "mandatory",
+        "suggestedComponent": "text",
+        "suggestedValues": [],
+        "rationale": "Reálná frekvence používání a náročnost prostředí pro Aku vrtačka / šroubovák."
+      },
+      {
+        "id": "technical_class",
+        "name": "Klíčové vlastnosti",
+        "category": "Funkce & Výbava",
+        "importance": "mandatory",
+        "suggestedComponent": "text",
+        "suggestedValues": [],
+        "rationale": "Specifické vlastnosti a komfortní prvky požadované pro Aku vrtačka / šroubovák."
+      },
+      {
+        "id": "capacity_sizing",
+        "name": "Provedení & specifikace",
+        "category": "Specifikace & Provedení",
+        "importance": "mandatory",
+        "suggestedComponent": "text",
+        "suggestedValues": [],
+        "rationale": "Technické provedení a rozsah vlastností pro Aku vrtačka / šroubovák."
+      },
+      {
+        "id": "dimensions_installation",
+        "name": "Konstrukce & ergonomie",
+        "category": "Konstrukce & Tvar",
+        "importance": "recommended",
+        "suggestedComponent": "text",
+        "suggestedValues": [],
+        "rationale": "Konstrukční vlastnosti a anatomický tvar pro Aku vrtačka / šroubovák."
+      },
+      {
+        "id": "materials_durability",
+        "name": "Materiál & odolnost",
+        "category": "Materiál & Kvalita",
+        "importance": "mandatory",
+        "suggestedComponent": "text",
+        "suggestedValues": [],
+        "rationale": "Materiálové složení přímo ovlivňuje trvanlivost pro Aku vrtačka / šroubovák."
+      },
+      {
+        "id": "maintenance_service",
+        "name": "Záruka & servis",
+        "category": "Záruka & Podpora",
+        "importance": "recommended",
+        "suggestedComponent": "text",
+        "suggestedValues": [],
+        "rationale": "Dostupnost náhradních dílů a záruky pro Aku vrtačka / šroubovák."
+      },
+      {
+        "id": "budget",
+        "name": "Orientační rozpočet",
+        "category": "Rozpočet",
+        "importance": "mandatory",
+        "suggestedComponent": "chips",
+        "suggestedValues": [
+          "Zlatý střed (nejlepší poměr cena / výkon)",
+          "Prémiový segment bez omezení",
+          "Dostupná cenová hladina"
+        ],
+        "rationale": "Cenový rámec a předpokládaný rozpočet pomůže vyfiltrovat odpovídající kvalitativní třídu pro Aku vrtačka / šroubovák."
+      },
+      {
+        "id": "brand_preferences",
+        "name": "Značky a výrobci",
+        "category": "Výrobci & Značky",
+        "importance": "recommended",
+        "suggestedComponent": "brands",
+        "suggestedValues": [
+          "Všechny ověřené značky (otevřený výběr)",
+          "Mám konkrétní preferované značky",
+          "Chci vyloučit konkrétní výrobce"
+        ],
+        "rationale": "Umožňuje uvést konkrétní preferované značky, kterým důvěřujete, a naopak striktně vyloučit výrobce, které nechcete. Otázka pro vás: Máte oblíbené značky, nebo chcete nějaké vyloučit?"
+      }
+    ],
+    "questions": [
+      {
+        "id": "q_generic_type",
+        "title": "Jaký typ a určení pro Aku vrtačka / šroubovák hledáte?"
+      },
+      {
+        "id": "q_generic_biometrics_specs",
+        "title": "Jaké máte klíčové požadavky na ergonomii a vlastnosti pro Aku vrtačka / šroubovák?"
+      },
+      {
+        "id": "q_generic_budget",
+        "title": "Jaký je váš předpokládaný rozpočet pro Aku vrtačka / šroubovák?"
+      }
+    ]
+  }
+}
