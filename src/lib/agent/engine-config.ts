@@ -18,12 +18,12 @@ export interface AIProviderConfig {
 export const SUPPORTED_AI_PROVIDERS: AIProviderConfig[] = [
   {
     id: "google_gemini",
-    name: "Google Gemini 3.6 Flash / Pro",
-    modelName: "gemini-3.6-flash",
+    name: "Google Gemini 2.0 Flash / 1.5",
+    modelName: "gemini-2.0-flash",
     provider: "Google AI",
     tag: "100% Zdarma (AI Studio)",
-    description: "Bleskový reasoning s 2M tokenovou pamětí. V Google AI Studio si můžete za 30 sekund vygenerovat bezplatný klíč.",
-    contextWindow: "2M tokenů",
+    description: "Bleskový reasoning na stabilním bezplatném tieru Google AI Studio (15 RPM / 1 500 RPD) s okamžitým fallbackem na Gemini 1.5 Flash.",
+    contextWindow: "1M tokenů",
     badgeColor: "border-slate-700/60 text-slate-300 bg-slate-800/50",
     isFreemium: true,
     requiresKey: true,

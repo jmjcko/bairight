@@ -37,7 +37,7 @@ describe("HeaderEngineSwitcher Unit Tests", () => {
     fireEvent.click(button);
 
     expect(screen.getByText("Výběr AI Modelu (BYOK)")).toBeInTheDocument();
-    const geminiOption = screen.getByText("Google Gemini 3.6 Flash / Pro");
+    const geminiOption = screen.getByText("Google Gemini 2.0 Flash / 1.5");
     fireEvent.click(geminiOption);
 
     expect(onSelect).toHaveBeenCalledWith("google_gemini");

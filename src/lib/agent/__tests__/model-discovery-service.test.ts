@@ -14,6 +14,8 @@ describe('ModelDiscoveryService Unit & Resilience Test Suite', () => {
 
   it('1. Returns resilient default candidates when no API key is provided', async () => {
     const candidates = await ModelDiscoveryService.getCandidateModels('google_gemini');
+    expect(candidates[0]).toBe('gemini-2.0-flash');
+    expect(candidates[1]).toBe('gemini-1.5-flash');
     expect(candidates).toContain('gemini-2.5-flash');
     expect(candidates).toContain('gemini-3.8-flash');
     expect(candidates.length).toBeGreaterThan(2);

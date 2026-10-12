@@ -491,6 +491,7 @@ const [researchError, setResearchError] = useState<string | null>(null);
           </div>
 
           <h1 className="text-3xl sm:text-5xl font-black text-[#263238] tracking-tight leading-tight">
+            <span className="sr-only">bAIright — {t.launcher.badge}: </span>
             {t.launcher.heroTitle}
           </h1>
 

@@ -22,9 +22,11 @@ export class ModelDiscoveryService {
 
   // Resilient static defaults used only when offline or network discovery fails
   public static readonly DEFAULT_GEMINI_MODELS = [
-    'gemini-2.5-flash',
     'gemini-2.0-flash',
     'gemini-1.5-flash',
+    'gemini-2.0-flash-lite',
+    'gemini-1.5-pro',
+    'gemini-2.5-flash',
     'gemini-3.8-flash',
     'gemini-3.5-flash',
     'gemini-flash-latest',
@@ -158,7 +160,8 @@ export class ModelDiscoveryService {
       }
 
       // Known exceptionally stable models get an extra boost
-      if (name === 'gemini-2.5-flash') score += 20;
+      if (name === 'gemini-2.0-flash' || name === 'gemini-2.5-flash') score += 20;
+      if (name === 'gemini-1.5-flash') score += 15;
 
       candidates.push({
         name,

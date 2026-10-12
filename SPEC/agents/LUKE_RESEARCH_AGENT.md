@@ -440,11 +440,13 @@ Environment  jsdom was created 25 times · 24.52s total, 39% of tracked time
    - If the overall similarity score across all 100 categories is **≥ 80%**, the test passes ().
    - If overall similarity drops below 80%, a **Regression Drift Failure** is flagged (), blocking deployment.
 
-## ⚡ Výhradní použití LLM Gemini (Zákaz offline generátoru)
+## ⚡ Výhradní použití LLM Gemini (Zákaz offline generátoru) & Model Resilience
 
-Agent Luke provádí výzkum parametrů pro uživatelské dotazy **VÝHRADNĚ živým dotazem přes Gemini Flash LLM**.
-- **Zákaz offline generátoru**: Systém nepoužívá žádný offline generátor parametrů ani statické šablony.
-- Každé vyhledávání (pokud již není uloženo v databázi webu `parameter_cache`) posílá dotaz přímo na Gemini Flash API.
+Agent Luke provádí výzkum parametrů pro uživatelské dotazy **VÝHRADNĚ živým dotazem přes Gemini Flash LLM**:
+- **Primární produkční model**: **`gemini-2.0-flash`** (plná podpora pro bezplatný tier Google AI Studio s 15 RPM / 1 500 RPD).
+- **Okamžitý stabilní fallback**: **`gemini-1.5-flash`** (automatický failover v případě vyčerpání limitu či spike výpadku bez přerušení uživatelského toku).
+- **Garance kvality parametrů**: Všechny modely striktně dodržují generování 8–12 hlubokých technických parametrů, izolaci značek (`brand_preferences`), vysvětlující `rationale` a validní doporučené hodnoty.
+- Každé vyhledávání (pokud již není uloženo v databázi webu `parameter_cache`) posílá dotaz přímo na Gemini Flash API s failover řetězcem.
 
 ### 8. 🎯 Pravidlo přesné shody do písmene pro databázi (Letter-for-Letter Match Only)
 - Systém smí použít uložený záznam z databáze **POUZE POKUD zadaný vstup od uživatele sedí do písmene** s dotazem, který již dříve v repozitáři/databázi **prošel celým průvodcem a byl ověřen zákazníkem**.
