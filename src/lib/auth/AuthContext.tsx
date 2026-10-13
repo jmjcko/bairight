@@ -152,10 +152,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             access_token: accessToken,
             refresh_token: refreshToken,
           }).then(async ({ data, error }) => {
-            if (!error && data?.session?.user && isMounted) {
-              const authUser = data.session.user;
+            const authUser = data?.session?.user || data?.user;
+            if (!error && authUser && isMounted) {
+              const userId = authUser.user_metadata?.sub || authUser.user_metadata?.provider_id || authUser.id;
               const profile: UserProfile = {
-                id: authUser.id,
+                id: userId,
                 email: authUser.email || "",
                 name:
                   authUser.user_metadata?.name ||
@@ -169,15 +170,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 preferredLocale: getSavedLocale(),
               };
 
-              const canonicalId = await syncUserProfileToDatabase(profile);
-              if (canonicalId) {
-                profile.id = canonicalId;
-              }
               setUser(profile);
               if (typeof window !== "undefined") {
                 localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(profile));
                 window.history.replaceState(null, "", window.location.pathname);
               }
+              void syncUserProfileToDatabase(profile);
             }
           });
         }
@@ -192,8 +190,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const { data } = supabase.auth.onAuthStateChange(async (event, session) => {
         if (session?.user && isMounted) {
           const authUser = session.user;
+          const userId = authUser.user_metadata?.sub || authUser.user_metadata?.provider_id || authUser.id;
           const profile: UserProfile = {
-            id: authUser.id,
+            id: userId,
             email: authUser.email || "",
             name:
               authUser.user_metadata?.name ||
@@ -207,15 +206,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             preferredLocale: getSavedLocale(),
           };
 
-          const canonicalId = await syncUserProfileToDatabase(profile);
-          if (canonicalId) {
-            profile.id = canonicalId;
-          }
-
           setUser(profile);
           if (typeof window !== "undefined") {
             localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(profile));
           }
+          void syncUserProfileToDatabase(profile);
         } else if (event === "SIGNED_OUT" && isMounted) {
           setUser(null);
           if (typeof window !== "undefined") {
@@ -229,8 +224,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       void supabase.auth.getSession().then(async ({ data: { session } }) => {
         if (session?.user && isMounted) {
           const authUser = session.user;
+          const userId = authUser.user_metadata?.sub || authUser.user_metadata?.provider_id || authUser.id;
           const profile: UserProfile = {
-            id: authUser.id,
+            id: userId,
             email: authUser.email || "",
             name:
               authUser.user_metadata?.name ||
@@ -243,14 +239,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             provider: "google",
             preferredLocale: getSavedLocale(),
           };
-          const canonicalId = await syncUserProfileToDatabase(profile);
-          if (canonicalId) {
-            profile.id = canonicalId;
-          }
           setUser(profile);
           if (typeof window !== "undefined") {
             localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(profile));
           }
+          void syncUserProfileToDatabase(profile);
         }
       });
     }
