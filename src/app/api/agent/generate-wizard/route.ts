@@ -24,13 +24,13 @@ export async function POST(req: NextRequest) {
     // 1. Perform domain parameter discovery and ontology mapping
     const domainAnalysis: DomainAnalysisResult = discoverDomainParameters(trimmedPrompt, locale);
 
-    // 2. Try real LLM dynamic generation if an API key is available
-    const effectiveKey = apiKey || (
-      providerId === 'google_gemini' ? process.env.GOOGLE_GEMINI_API_KEY :
-      providerId === 'openai_gpt4o' ? process.env.OPENAI_API_KEY :
-      providerId === 'anthropic_claude' ? process.env.ANTHROPIC_API_KEY :
-      process.env.GOOGLE_GEMINI_API_KEY || process.env.OPENAI_API_KEY
-    );
+    // 2. Wizard schema synthesis ALWAYS operates on Server Gemini 2.0 Flash
+    const effectiveKey =
+      process.env.GOOGLE_GEMINI_API_KEY ||
+      process.env.GEMINI_API_KEY ||
+      process.env.NEXT_PUBLIC_GEMINI_API_KEY ||
+      process.env.GOOGLE_API_KEY ||
+      (apiKey && apiKey.startsWith('AIza') ? apiKey : undefined);
 
     let generatedAgent: UniversalAgentDefinition | null = null;
     const effectiveParameters = (customParameters && customParameters.length > 0)
@@ -40,7 +40,7 @@ export async function POST(req: NextRequest) {
     if (effectiveKey) {
       try {
         const effectiveAnalysis = { ...domainAnalysis, parameters: effectiveParameters };
-        generatedAgent = await generateAgentWithLLM(trimmedPrompt, effectiveAnalysis, effectiveKey, providerId, locale);
+        generatedAgent = await generateAgentWithLLM(trimmedPrompt, effectiveAnalysis, effectiveKey, 'google_gemini', locale);
       } catch (llmErr) {
         console.warn('Dynamic LLM wizard generation failed, using domain discovery heuristics:', llmErr);
       }

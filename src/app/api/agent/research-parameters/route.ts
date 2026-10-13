@@ -102,21 +102,22 @@ export async function POST(req: NextRequest) {
       });
     }
 
-    // ——— STEP 2: Key Resolution (Client BYOK or Server Env Keys) ———
+    // ——— STEP 2: Key Resolution (Luke ALWAYS operates on Server Gemini 2.0 Flash) ———
+    // Platform rule: Agent Luke is the core intake engine, strictly independent of user chat BYOK keys!
     const effectiveKey =
-      bodyApiKey ||
       process.env.GOOGLE_GEMINI_API_KEY ||
       process.env.GEMINI_API_KEY ||
       process.env.NEXT_PUBLIC_GEMINI_API_KEY ||
-      process.env.GOOGLE_API_KEY;
+      process.env.GOOGLE_API_KEY ||
+      (bodyApiKey && bodyApiKey.startsWith('AIza') ? bodyApiKey : undefined);
 
     let analysis: DomainAnalysisResult | null = null;
     let source = 'luke_domain_discovery';
 
     if (effectiveKey) {
       try {
-        console.log(`[Luke] Calling Gemini Flash research for: "${trimmedQuery}"`);
-        analysis = await researchParametersWithLuke(trimmedQuery, effectiveKey, providerId || 'google_gemini', locale, purchasedHistory, userFacts);
+        console.log(`[Luke] Calling Server Gemini Flash research for: "${trimmedQuery}"`);
+        analysis = await researchParametersWithLuke(trimmedQuery, effectiveKey, 'google_gemini', locale, purchasedHistory, userFacts);
         if (analysis && analysis.parameters && analysis.parameters.length >= 8) {
           source = 'luke_gemini_flash';
         }
@@ -135,8 +136,9 @@ export async function POST(req: NextRequest) {
     // ——— STEP 3: Ensure brand parameter exists ———
     analysis.parameters = ensureBrandParameter(analysis.parameters, locale);
 
-    // ——— STEP 4: Cache the result (skipped if bypassCache === true) ———
-    if (!bypassCache) {
+    // ——— STEP 4: Cache the result ONLY IF REAL LIVE LUKE GENERATION SUCCEEDED ———
+    // Never pollute cache with generic domain discovery fallbacks!
+    if (!bypassCache && source !== 'luke_domain_discovery') {
       setCachedAnalysis(trimmedQuery, analysis, locale).catch((err) =>
         console.warn('[Luke] Cache write failed (non-critical):', err)
       );

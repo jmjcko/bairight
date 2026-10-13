@@ -21,7 +21,7 @@ export interface AIProviderConfig {
 export const SUPPORTED_AI_PROVIDERS: AIProviderConfig[] = [
   {
     id: "google_gemini",
-    name: "Google Gemini 2.0 Flash / 1.5",
+    name: "Google Gemini",
     modelName: "gemini-2.0-flash",
     provider: "Google AI",
     tag: "100% Zdarma (AI Studio)",
@@ -38,7 +38,7 @@ export const SUPPORTED_AI_PROVIDERS: AIProviderConfig[] = [
   },
   {
     id: "openai_gpt4o",
-    name: "OpenAI GPT-4o / o3-mini",
+    name: "OpenAI ChatGPT",
     modelName: "gpt-4o",
     provider: "OpenAI",
     tag: "Univerzální standard",
@@ -55,7 +55,7 @@ export const SUPPORTED_AI_PROVIDERS: AIProviderConfig[] = [
   },
   {
     id: "anthropic_claude",
-    name: "Claude 3.5 Sonnet / 3.7",
+    name: "Anthropic Claude",
     modelName: "claude-3-5-sonnet-20241022",
     provider: "Anthropic",
     tag: "Hluboký reasoning",

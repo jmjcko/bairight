@@ -69,18 +69,27 @@ export async function POST(req: NextRequest) {
         });
       } catch (llmErr: any) {
         console.warn('Live LLM conversation call failed, falling back to conversational synthesizer:', llmErr);
-        if (llmErr?.message?.includes('ANTHROPIC_CREDIT_EXHAUSTED')) {
+        if (llmErr?.message?.includes('ANTHROPIC_CREDIT_EXHAUSTED:')) {
+          const rawDetail = llmErr.message.replace('ANTHROPIC_CREDIT_EXHAUSTED:', '').trim();
           assistantContent = locale === 'en'
-            ? `### ⚠️ Anthropic API Credit Balance Exhausted
+            ? `### Anthropic API Credit Balance Issue
 
-Your Anthropic Claude API key is valid, but your Anthropic Console account balance is \zsh or exhausted. Anthropic requires a prepaid credit balance to process inference.
+Anthropic API rejected the request with the following message:
+> "${rawDetail}"
 
-👉 **To continue:** Add credits in [Anthropic Console (Billing)](https://console.anthropic.com/settings/plans), or switch to **Google Gemini** (100% free with no credit card required).`
-            : `### ⚠️ Vyčerpaný kredit na účtu Anthropic API
+**Troubleshooting steps:**
+- If you recently purchased credits (e.g. 5 USD), **generate a brand new API key** in [Anthropic Console (API Keys)](https://console.anthropic.com/settings/keys). Existing keys often cache the blocked status for 15–30 minutes after purchase.
+- Verify that the API key was created under the exact same Workspace/Organization where the credit was purchased.
+- Or switch to **Google Gemini** (100% free with no credit card required).`
+            : `### Problém s kreditem Anthropic API
 
-Váš Claude API klíč je platný, ale váš účet v Anthropic Console má nulový kredit (\zsh). Anthropic vyžaduje předplacení kreditu (např. 5 USD) pro provolávání modelů.
+Anthropic API zamítlo požadavek s touto oficiální zprávou:
+> "${rawDetail}"
 
-👉 **Jak pokračovat:** Dobijte kredit v [Anthropic Console (Billing)](https://console.anthropic.com/settings/plans), nebo přepněte na **Google Gemini** (100% zdarma bez nutnosti platební karty).`;
+**Doporučený postup řešení:**
+1. **Vygenerujte si NOVÝ API klíč:** Pokud jste kredit (5 USD) dobili nedávno, stávající API klíč má u platební brány Anthropicu zakešovaný stav "bez kreditu". Vytvoření nového klíče v [Anthropic Console (API Keys)](https://console.anthropic.com/settings/keys) problém okamžitě odblokuje.
+2. **Ověřte Organizaci:** Zkontrolujte, že je klíč vytvořen pod stejnou organizací, kde svítí kredit 5 USD.
+3. **Nebo přepněte na Google Gemini:** 100% zdarma bez nutnosti kreditu.`;
         }
       }
     }
@@ -601,13 +610,41 @@ ${chatIntent === "conversational_dialogue" ? "3. KONVERZAČNÍ KONZULTANT: Pří
   }
 
   if (providerId === 'anthropic_claude') {
-    const formattedMessages = [
-      ...history.slice(-6).map((m) => ({
-        role: m.role === 'assistant' ? 'assistant' : 'user',
-        content: m.content,
-      })),
-      { role: 'user', content: message },
-    ];
+    // Sanitize conversation history: ensure it starts with a user message and strictly alternates roles
+    let sanitizedHistory = history.slice(-6);
+    if (
+      sanitizedHistory.length > 0 &&
+      sanitizedHistory[sanitizedHistory.length - 1].role === 'user' &&
+      sanitizedHistory[sanitizedHistory.length - 1].content === message
+    ) {
+      sanitizedHistory = sanitizedHistory.slice(0, -1);
+    }
+    while (sanitizedHistory.length > 0 && sanitizedHistory[0].role === 'assistant') {
+      sanitizedHistory = sanitizedHistory.slice(1);
+    }
+
+    const payloadMessages: Array<{ role: 'user' | 'assistant'; content: string }> = [];
+    let lastRole: 'user' | 'assistant' | null = null;
+
+    for (const m of sanitizedHistory) {
+      const role = m.role === 'assistant' ? 'assistant' : 'user';
+      if (role === lastRole && payloadMessages.length > 0) {
+        payloadMessages[payloadMessages.length - 1].content += `
+
+${m.content}`;
+      } else {
+        payloadMessages.push({ role, content: m.content });
+        lastRole = role;
+      }
+    }
+
+    if (lastRole === 'user' && payloadMessages.length > 0) {
+      payloadMessages[payloadMessages.length - 1].content += `
+
+${message}`;
+    } else {
+      payloadMessages.push({ role: 'user', content: message });
+    }
 
     const res = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
@@ -620,7 +657,7 @@ ${chatIntent === "conversational_dialogue" ? "3. KONVERZAČNÍ KONZULTANT: Pří
         model: 'claude-3-5-sonnet-20241022',
         max_tokens: 4096,
         system: systemPrompt,
-        messages: formattedMessages,
+        messages: payloadMessages,
       }),
     });
 

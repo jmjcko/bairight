@@ -70,7 +70,14 @@ export async function getCachedAnalysis(
       memEntry.analysis.categoryName?.startsWith('Nákupní') ||
       memEntry.analysis.parameters?.some(p => p.name === 'Značky a výrobci' || p.name.includes('Typ &') || p.name.includes('Velikost &') || p.name.includes('Intenzita'))
     );
-    if (!hasCzechInEn) {
+    const hasNoSuggestedValues = Boolean(
+      memEntry.analysis.parameters &&
+      memEntry.analysis.parameters.length > 0 &&
+      memEntry.analysis.parameters
+        .filter((p) => p.id !== 'brand_preferences' && p.suggestedComponent !== 'brands')
+        .every((p) => !p.suggestedValues || p.suggestedValues.length === 0)
+    );
+    if (!hasCzechInEn && !hasNoSuggestedValues) {
       return { analysis: memEntry.analysis, source: 'mem_cache' };
     }
     MEM_CACHE.delete(key);
@@ -114,7 +121,15 @@ export async function getCachedAnalysis(
       analysis.parameters?.some(p => p.name === 'Značky a výrobci' || p.name.includes('Typ &') || p.name.includes('Velikost &') || p.name.includes('Intenzita'))
     );
 
-    if (isStaleGeneric || hasCzechInEn) {
+    const hasNoSuggestedValues = Boolean(
+      analysis.parameters &&
+      analysis.parameters.length > 0 &&
+      analysis.parameters
+        .filter((p) => p.id !== 'brand_preferences' && p.suggestedComponent !== 'brands')
+        .every((p) => !p.suggestedValues || p.suggestedValues.length === 0)
+    );
+
+    if (isStaleGeneric || hasCzechInEn || hasNoSuggestedValues) {
       console.log(`[ParameterCache] Purging stale generic/untranslated cache for: "${query}" (${locale})`);
       MEM_CACHE.delete(key);
       sb.from('parameter_cache').delete().eq('cache_key', key).then(() => {});
