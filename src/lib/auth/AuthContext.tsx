@@ -140,6 +140,75 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
       });
 
+    // Native Supabase Auth Session Synchronization (Path A: Strict RLS)
+    let authSubscription: any = null;
+    if (supabase && typeof supabase.auth?.onAuthStateChange === "function") {
+      const { data } = supabase.auth.onAuthStateChange(async (event, session) => {
+        if (session?.user && isMounted) {
+          const authUser = session.user;
+          const profile: UserProfile = {
+            id: authUser.id,
+            email: authUser.email || "",
+            name:
+              authUser.user_metadata?.name ||
+              authUser.user_metadata?.full_name ||
+              authUser.email?.split("@")[0] ||
+              "User",
+            avatarUrl:
+              authUser.user_metadata?.avatar_url ||
+              authUser.user_metadata?.picture,
+            provider: "google",
+            preferredLocale: getSavedLocale(),
+          };
+
+          const canonicalId = await syncUserProfileToDatabase(profile);
+          if (canonicalId) {
+            profile.id = canonicalId;
+          }
+
+          setUser(profile);
+          if (typeof window !== "undefined") {
+            localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(profile));
+          }
+        } else if (event === "SIGNED_OUT" && isMounted) {
+          setUser(null);
+          if (typeof window !== "undefined") {
+            localStorage.removeItem(LOCAL_STORAGE_KEY);
+          }
+        }
+      });
+      authSubscription = data?.subscription;
+
+      // Check existing active session on load
+      void supabase.auth.getSession().then(async ({ data: { session } }) => {
+        if (session?.user && isMounted) {
+          const authUser = session.user;
+          const profile: UserProfile = {
+            id: authUser.id,
+            email: authUser.email || "",
+            name:
+              authUser.user_metadata?.name ||
+              authUser.user_metadata?.full_name ||
+              authUser.email?.split("@")[0] ||
+              "User",
+            avatarUrl:
+              authUser.user_metadata?.avatar_url ||
+              authUser.user_metadata?.picture,
+            provider: "google",
+            preferredLocale: getSavedLocale(),
+          };
+          const canonicalId = await syncUserProfileToDatabase(profile);
+          if (canonicalId) {
+            profile.id = canonicalId;
+          }
+          setUser(profile);
+          if (typeof window !== "undefined") {
+            localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(profile));
+          }
+        }
+      });
+    }
+
     // 3. Load GIS Script dynamically
     if (typeof window !== "undefined" && !document.getElementById("google-gis-script")) {
       const script = document.createElement("script");
@@ -152,6 +221,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     return () => {
       isMounted = false;
+      if (authSubscription?.unsubscribe) authSubscription.unsubscribe();
     };
   }, []);
 
@@ -214,6 +284,29 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const loginWithGoogle = async () => {
     setIsLoading(true);
     try {
+      // 1. Primary Path (Path A): Native Supabase OAuth (Issues genuine auth.uid() session for strict RLS)
+      if (supabase && typeof supabase.auth?.signInWithOAuth === "function") {
+        const redirectUrl = typeof window !== "undefined" ? window.location.origin : undefined;
+        const { data: oauthData, error: oauthError } = await supabase.auth.signInWithOAuth({
+          provider: "google",
+          options: {
+            redirectTo: redirectUrl,
+          },
+        });
+
+        if (!oauthError && oauthData?.url) {
+          if (typeof window !== "undefined") {
+            window.location.href = oauthData.url;
+          }
+          return;
+        }
+
+        if (oauthError) {
+          console.warn("Supabase signInWithOAuth fallback notice:", oauthError.message);
+        }
+      }
+
+      // 2. Fallback Path: Google GIS Client ID & Token Client (if Supabase OAuth not configured)
       const clientIdToUse = googleClientId || process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || (typeof window !== "undefined" ? localStorage.getItem(CLIENT_ID_KEY) : "");
 
       if (!clientIdToUse) {

@@ -37,6 +37,11 @@ export const HeaderEngineSwitcher: React.FC<HeaderEngineSwitcherProps> = ({
   const { locale } = useI18n();
   const { themeStyle, setThemeStyle } = useTheme();
   const [isOpen, setIsOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const [keysState, setKeysState] = useState<Record<string, string>>(currentApiKeys);
   const [verificationStatuses, setVerificationStatuses] = useState<Record<string, any>>({});
@@ -72,6 +77,7 @@ export const HeaderEngineSwitcher: React.FC<HeaderEngineSwitcherProps> = ({
   const hasKeyForActive = Boolean(keysState[activeProvider.id]?.trim());
   const activeVerif = verificationStatuses[activeProvider.id];
   const isActiveInvalid = Boolean(hasKeyForActive && activeVerif && !activeVerif.isValid);
+  const effectiveLocale = mounted ? locale : 'en';
 
 
 
@@ -81,6 +87,7 @@ export const HeaderEngineSwitcher: React.FC<HeaderEngineSwitcherProps> = ({
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
+        suppressHydrationWarning
         className={`flex items-center gap-1.5 sm:gap-2 px-2 sm:px-3 h-8 rounded-lg text-xs font-medium border transition-all cursor-pointer shadow-sm backdrop-blur-md ${
           !hasKeyForActive
             ? "bg-amber-950/40 border-amber-500/50 text-amber-200 hover:border-amber-400"
@@ -88,7 +95,7 @@ export const HeaderEngineSwitcher: React.FC<HeaderEngineSwitcherProps> = ({
             ? "bg-rose-950/50 border-rose-500/60 text-rose-200 hover:border-rose-400 shadow-[0_0_12px_rgba(244,63,94,0.2)]"
             : "bg-[#f4f6f8] border-slate-200 text-[#263238] hover:bg-[#eceff1]"
         }`}
-        title={locale === "en" ? "Switch AI Engine & Manage Keys (BYOK)" : "Přepnout AI Engine & Správu Klíčů (BYOK)"}
+        title={effectiveLocale === "en" ? "Switch AI Engine & Manage Keys (BYOK)" : "Přepnout AI Engine & Správu Klíčů (BYOK)"}
       >
         {/* Status Dot */}
         <span className="relative flex h-2 w-2 shrink-0">
@@ -116,12 +123,12 @@ export const HeaderEngineSwitcher: React.FC<HeaderEngineSwitcherProps> = ({
             {activeProvider.provider}
           </span>
           {!hasKeyForActive ? (
-            <span className="hidden sm:inline-block text-[10px] px-1.5 py-0.5 rounded bg-amber-950/80 border border-amber-500/60 text-amber-300 font-mono font-semibold tracking-wide">
-              {locale === "en" ? "No key" : "Bez klíče"}
+            <span suppressHydrationWarning className="hidden sm:inline-block text-[10px] px-1.5 py-0.5 rounded bg-amber-950/80 border border-amber-500/60 text-amber-300 font-mono font-semibold tracking-wide">
+              {effectiveLocale === "en" ? "No key" : "Bez klíče"}
             </span>
           ) : isActiveInvalid ? (
-            <span className="hidden sm:inline-block text-[10px] px-1.5 py-0.5 rounded bg-rose-950/90 border border-rose-500/70 text-rose-300 font-mono font-bold tracking-wide">
-              {locale === "en" ? "! Invalid key" : "! Neplatný klíč"}
+            <span suppressHydrationWarning className="hidden sm:inline-block text-[10px] px-1.5 py-0.5 rounded bg-rose-950/90 border border-rose-500/70 text-rose-300 font-mono font-bold tracking-wide">
+              {effectiveLocale === "en" ? "! Invalid key" : "! Neplatný klíč"}
             </span>
           ) : (
             <span className="hidden sm:inline-block text-[10px] px-1.5 py-0.5 rounded bg-[#e1f5fe] border border-[#b3e5fc] text-[#01579b] font-mono font-bold">
