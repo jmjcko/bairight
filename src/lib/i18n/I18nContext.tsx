@@ -74,13 +74,16 @@ export function persistLocale(newLocale: SupportedLocale): void {
 }
 
 export const I18nProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const [locale, setLocaleState] = useState<SupportedLocale>(() => getSavedLocale());
+  // Always initialize with 'en' on the first render to match SSR and eliminate React hydration error #418
+  const [locale, setLocaleState] = useState<SupportedLocale>('en');
 
   useEffect(() => {
     const saved = getSavedLocale();
-    setLocaleState(saved);
+    if (saved && saved !== 'en') {
+      setLocaleState(saved);
+    }
     if (typeof document !== 'undefined') {
-      document.documentElement.lang = saved;
+      document.documentElement.lang = saved || 'en';
     }
   }, []);
 

@@ -53,6 +53,7 @@ export const UserProfileCapsule: React.FC<UserProfileCapsuleProps> = ({
           onClick={() => setIsLoginModalOpen(true)}
           className="flex items-center gap-2 px-3 h-8 rounded-lg bg-white hover:bg-[#f4f6f8] border border-slate-200 text-xs font-medium text-[#263238] transition-all cursor-pointer shadow-xs"
           title={locale === "en" ? "Sign in with Google" : "Přihlásit se přes Google"}
+          suppressHydrationWarning
         >
           {/* Google Icon SVG */}
           <svg className="w-3.5 h-3.5 shrink-0" viewBox="0 0 24 24">
@@ -73,7 +74,7 @@ export const UserProfileCapsule: React.FC<UserProfileCapsuleProps> = ({
               d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.31 0 3.26 2.7 1.29 6.58l3.99 3.15c.95-2.83 3.6-4.98 6.72-4.98z"
             />
           </svg>
-          <span className="font-semibold text-[#0099cc] font-bold">{locale === "en" ? "Sign in" : "Přihlásit se"}</span>
+          <span className="font-semibold text-[#0099cc] font-bold" suppressHydrationWarning>{locale === "en" ? "Sign in" : "Přihlásit se"}</span>
         </button>
       ) : (
         <div className="relative">
