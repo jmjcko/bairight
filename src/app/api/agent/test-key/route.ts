@@ -55,14 +55,67 @@ export async function POST(req: NextRequest) {
         if (!res.ok) {
           const errData = await res.json().catch(() => ({}));
           const errMsg = errData?.error?.message || `HTTP ${res.status}`;
+          if (res.status === 401 || errMsg.toLowerCase().includes('invalid api key') || errMsg.toLowerCase().includes('incorrect api key')) {
+            return NextResponse.json({
+              ok: false,
+              error: 'Neplatný OpenAI API klíč. Zkontrolujte prosím svůj klíč v OpenAI Platform (platform.openai.com/api-keys).',
+            });
+          }
+          if (errMsg.toLowerCase().includes('insufficient_quota') || errMsg.toLowerCase().includes('quota') || errMsg.toLowerCase().includes('billing')) {
+            return NextResponse.json({
+              ok: true,
+              creditWarning: true,
+              detectedProvider: 'openai_gpt4o',
+              model: 'gpt-4o',
+              message: 'Klíč je platný, ale váš OpenAI účet hlásí vyčerpaný kredit. Pro spuštění konverzace dobijte kredit v platform.openai.com/billing.',
+            });
+          }
           return NextResponse.json({ ok: false, error: `Neplatný OpenAI API klíč (${errMsg}).` });
+        }
+
+        const discoveredModels = await ModelDiscoveryService.discoverOpenAIModels(key).catch(() => []);
+        const preferredModel = discoveredModels[0] || 'gpt-4o';
+        const modelsSummary = discoveredModels.length > 0 ? ` (Dostupné modely: ${discoveredModels.slice(0, 3).join(', ')})` : '';
+
+        // Optional check for quota exhaustion via minimal chat request
+        try {
+          const testMsgRes = await fetch('https://api.openai.com/v1/chat/completions', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${key}`,
+            },
+            body: JSON.stringify({
+              model: preferredModel,
+              max_tokens: 5,
+              messages: [{ role: 'user', content: 'Hi' }],
+            }),
+          });
+
+          if (!testMsgRes.ok) {
+            const testErrData = await testMsgRes.json().catch(() => ({}));
+            const testErrMsg = testErrData?.error?.message || '';
+            if (testErrMsg.toLowerCase().includes('insufficient_quota') || testErrMsg.toLowerCase().includes('quota') || testErrMsg.toLowerCase().includes('billing')) {
+              return NextResponse.json({
+                ok: true,
+                creditWarning: true,
+                detectedProvider: 'openai_gpt4o',
+                model: preferredModel,
+                discoveredModels,
+                message: 'Klíč je platný, ale váš OpenAI účet hlásí vyčerpaný kredit. Pro spuštění konverzace dobijte kredit v platform.openai.com/billing.',
+              });
+            }
+          }
+        } catch {
+          // Ignore secondary chat check errors
         }
 
         return NextResponse.json({
           ok: true,
           detectedProvider: 'openai_gpt4o',
-          model: 'gpt-4o',
-          message: 'OpenAI API klíč je platný a připojený k GPT-4o!',
+          model: preferredModel,
+          discoveredModels,
+          message: `OpenAI API klíč je platný a připojený k ${preferredModel}!${modelsSummary}`,
         });
       } catch (err: any) {
         return NextResponse.json({ ok: false, error: `Chyba spojení s OpenAI: ${err.message}` });

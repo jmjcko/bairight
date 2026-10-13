@@ -210,4 +210,116 @@ describe('POST /api/agent/test-key Anthropic & Provider Validation Suite', () =>
     expect(data.creditWarning).toBe(true);
     expect(data.message).toContain('nulový kredit');
   });
+
+  it('8. Successfully validates OpenAI key and discovers models prioritizing GPT-4o', async () => {
+    const fetchMock = vi.fn().mockImplementation(async (url: string) => {
+      if (url.includes('/v1/models')) {
+        return {
+          ok: true,
+          status: 200,
+          json: async () => ({
+            data: [
+              { id: 'gpt-4o-mini', object: 'model' },
+              { id: 'gpt-4o', object: 'model' },
+              { id: 'text-embedding-3-small', object: 'model' },
+            ],
+          }),
+        };
+      }
+      if (url.includes('/v1/chat/completions')) {
+        return {
+          ok: true,
+          status: 200,
+          json: async () => ({
+            choices: [{ message: { content: 'Hello' } }],
+          }),
+        };
+      }
+      return { ok: false, status: 404 };
+    });
+    global.fetch = fetchMock;
+
+    const req = new NextRequest('http://localhost:3000/api/agent/test-key', {
+      method: 'POST',
+      body: JSON.stringify({
+        providerId: 'openai_gpt4o',
+        apiKey: 'sk-proj-validOpenAIKey1234567890abcdef',
+      }),
+    });
+
+    const res = await POST(req);
+    expect(res.status).toBe(200);
+    const data = await res.json();
+    expect(data.ok).toBe(true);
+    expect(data.detectedProvider).toBe('openai_gpt4o');
+    expect(data.model).toBe('gpt-4o');
+    expect(data.discoveredModels).toContain('gpt-4o');
+    expect(data.discoveredModels).toContain('gpt-4o-mini');
+  });
+
+  it('9. Rejects invalid OpenAI key with 401 error message', async () => {
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: false,
+      status: 401,
+      json: async () => ({
+        error: { message: 'Incorrect API key provided: sk-proj-***' },
+      }),
+    });
+    global.fetch = fetchMock;
+
+    const req = new NextRequest('http://localhost:3000/api/agent/test-key', {
+      method: 'POST',
+      body: JSON.stringify({
+        providerId: 'openai_gpt4o',
+        apiKey: 'sk-proj-invalidKey123456',
+      }),
+    });
+
+    const res = await POST(req);
+    const data = await res.json();
+    expect(data.ok).toBe(false);
+    expect(data.error).toContain('Neplatný OpenAI API klíč');
+  });
+
+  it('10. Detects OpenAI quota / credit exhaustion gracefully with creditWarning', async () => {
+    const fetchMock = vi.fn().mockImplementation(async (url: string) => {
+      if (url.includes('/v1/models')) {
+        return {
+          ok: true,
+          status: 200,
+          json: async () => ({
+            data: [{ id: 'gpt-4o', object: 'model' }],
+          }),
+        };
+      }
+      if (url.includes('/v1/chat/completions')) {
+        return {
+          ok: false,
+          status: 429,
+          json: async () => ({
+            error: {
+              code: 'insufficient_quota',
+              message: 'You exceeded your current quota, please check your plan and billing details.',
+            },
+          }),
+        };
+      }
+      return { ok: false, status: 404 };
+    });
+    global.fetch = fetchMock;
+
+    const req = new NextRequest('http://localhost:3000/api/agent/test-key', {
+      method: 'POST',
+      body: JSON.stringify({
+        providerId: 'openai_gpt4o',
+        apiKey: 'sk-proj-unfundedAccountKey123',
+      }),
+    });
+
+    const res = await POST(req);
+    const data = await res.json();
+    expect(data.ok).toBe(true);
+    expect(data.creditWarning).toBe(true);
+    expect(data.message).toContain('vyčerpaný kredit');
+  });
 });

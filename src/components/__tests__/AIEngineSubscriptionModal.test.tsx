@@ -75,4 +75,55 @@ describe("AIEngineSubscriptionModal - Zero-Knowledge BYOK Security Notice", () =
     const saveButton = screen.getByRole("button", { name: /Aktivovat & Uložit Vault/i });
     expect(saveButton).toBeDisabled();
   });
+
+  it("renders step-by-step onboarding guide auto-expanded in Czech with clear steps", async () => {
+    const { fireEvent } = await import("@testing-library/react");
+    localStorage.setItem("bairight_locale", "cs");
+
+    render(
+      <I18nProvider>
+        <AIEngineSubscriptionModal
+          isOpen={true}
+          onClose={vi.fn()}
+          activeProviderId="google_gemini"
+          onSaveProvider={vi.fn()}
+        />
+      </I18nProvider>
+    );
+
+    const guideToggle = screen.getByRole("button", { name: /Návod krok za krokem/i });
+    expect(guideToggle).toBeInTheDocument();
+
+    // Auto-expanded by default for missing key
+    expect(screen.getByText(/100% ZDARMA bez platební karty/i)).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /Google AI Studio/i })).toBeInTheDocument();
+    expect(screen.getByText(/Vytvořte API klíč/i)).toBeInTheDocument();
+
+    // Toggling collapses it
+    fireEvent.click(guideToggle);
+    expect(screen.queryByText(/100% ZDARMA bez platební karty/i)).not.toBeInTheDocument();
+  });
+
+  it("renders step-by-step onboarding guide auto-expanded in English with pricing clarification", async () => {
+    localStorage.setItem("bairight_locale", "en");
+
+    render(
+      <I18nProvider>
+        <AIEngineSubscriptionModal
+          isOpen={true}
+          onClose={vi.fn()}
+          activeProviderId="openai_gpt4o"
+          onSaveProvider={vi.fn()}
+        />
+      </I18nProvider>
+    );
+
+    const guideToggle = screen.getByRole("button", { name: /Step-by-step setup guide/i });
+    expect(guideToggle).toBeInTheDocument();
+
+    // Auto-expanded by default for missing key
+    expect(screen.getByText(/Consumer ChatGPT Plus.*does NOT apply to API access/i)).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /OpenAI Billing/i })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /API Keys/i })).toBeInTheDocument();
+  });
 });

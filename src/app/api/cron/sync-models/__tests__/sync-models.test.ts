@@ -66,6 +66,7 @@ describe('AI Provider Model Sync Cron (/api/cron/sync-models)', () => {
     expect(data.providers.anthropic_claude.topModel).toBe('claude-sonnet-5-5');
     expect(data.summary).toContain('google_gemini');
     expect(data.summary).toContain('anthropic_claude');
+    expect(data.summary).toContain('openai_gpt4o');
   });
 
   it('3. Authorizes request via URL query parameter (?secret=...)', async () => {

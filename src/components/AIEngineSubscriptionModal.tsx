@@ -20,6 +20,119 @@ interface AIEngineSubscriptionModalProps {
 
 const EMPTY_KEYS: Record<string, string> = {};
 
+interface ProviderGuideStep {
+  step: string;
+  prefix: string;
+  prefixEn: string;
+  linkText?: string;
+  linkTextEn?: string;
+  url?: string;
+  suffix?: string;
+  suffixEn?: string;
+}
+
+interface ProviderGuide {
+  pricingNotice: string;
+  pricingNoticeEn: string;
+  isFree: boolean;
+  steps: ProviderGuideStep[];
+}
+
+const PROVIDER_GUIDES: Record<AIProviderId, ProviderGuide> = {
+  google_gemini: {
+    pricingNotice: "100% ZDARMA bez platební karty (v Google AI Studio).",
+    pricingNoticeEn: "100% FREE with no credit card required (in Google AI Studio).",
+    isFree: true,
+    steps: [
+      {
+        step: "1",
+        prefix: "Otevřete",
+        prefixEn: "Open",
+        linkText: "Google AI Studio →",
+        linkTextEn: "Google AI Studio →",
+        url: "https://aistudio.google.com/app/apikey",
+        suffix: "a přihlaste se svým Google účtem.",
+        suffixEn: "and sign in with your Google account.",
+      },
+      {
+        step: "2",
+        prefix: "Vytvořte API klíč kliknutím na 'Create API key' a zkopírujte vygenerovaný kód (AIzaSy...).",
+        prefixEn: "Click 'Create API key' and copy your generated key string (AIzaSy...).",
+      },
+      {
+        step: "3",
+        prefix: "Vložte klíč do pole níže a klikněte na 'Test klíče'.",
+        prefixEn: "Paste the key below and click 'Test Key'.",
+      },
+    ],
+  },
+  anthropic_claude: {
+    pricingNotice: "POZOR: Předplatné Claude Pro neplatí pro API, je vyžadován předplacený kredit (min. $5).",
+    pricingNoticeEn: "NOTE: Consumer Claude Pro does NOT apply to API. Prepaid credit (min. $5) is required.",
+    isFree: false,
+    steps: [
+      {
+        step: "1",
+        prefix: "V",
+        prefixEn: "In",
+        linkText: "Anthropic Billing →",
+        linkTextEn: "Anthropic Billing →",
+        url: "https://console.anthropic.com/settings/plans",
+        suffix: "dobijte počáteční kredit (min. 5 USD).",
+        suffixEn: "add initial balance (min. $5).",
+      },
+      {
+        step: "2",
+        prefix: "V",
+        prefixEn: "In",
+        linkText: "API Keys →",
+        linkTextEn: "API Keys →",
+        url: "https://console.anthropic.com/settings/keys",
+        suffix: "vytvořte klíč ('sk-ant-api03-...').",
+        suffixEn: "create your key ('sk-ant-api03-...').",
+      },
+      {
+        step: "3",
+        prefix: "Zkopírujte klíč, vložte jej níže a klikněte na 'Test klíče'.",
+        prefixEn: "Copy your key, paste below and click 'Test Key'.",
+      },
+    ],
+  },
+  openai_gpt4o: {
+    pricingNotice: "POZOR: Spotřebitelské ChatGPT Plus ($20) neplatí pro API, na platformě je nutný kredit (min. $5).",
+    pricingNoticeEn: "NOTE: Consumer ChatGPT Plus ($20) does NOT apply to API access. Prepaid balance (min. $5) is required.",
+    isFree: false,
+    steps: [
+      {
+        step: "1",
+        prefix: "V",
+        prefixEn: "In",
+        linkText: "OpenAI Billing →",
+        linkTextEn: "OpenAI Billing →",
+        url: "https://platform.openai.com/settings/organization/billing",
+        suffix: "dobijte kredit (min. 5 USD).",
+        suffixEn: "top up balance (min. $5).",
+      },
+      {
+        step: "2",
+        prefix: "V",
+        prefixEn: "In",
+        linkText: "API Keys →",
+        linkTextEn: "API Keys →",
+        url: "https://platform.openai.com/api-keys",
+        suffix: "vytvořte Secret key ('sk-proj-...').",
+        suffixEn: "create Secret key ('sk-proj-...').",
+      },
+      {
+        step: "3",
+        prefix: "Zkopírujte klíč, vložte jej níže a klikněte na 'Test klíče'.",
+        prefixEn: "Copy your key, paste below and click 'Test Key'.",
+      },
+    ],
+  },
+};
+
+
 export const AIEngineSubscriptionModal: React.FC<AIEngineSubscriptionModalProps> = ({
   isOpen,
   onClose,
@@ -36,11 +149,21 @@ export const AIEngineSubscriptionModal: React.FC<AIEngineSubscriptionModalProps>
   const [showKey, setShowKey] = useState<Record<string, boolean>>({});
   const [testStatus, setTestStatus] = useState<Record<string, { loading: boolean; ok?: boolean; message?: string }>>({});
   const [verificationStatuses, setVerificationStatuses] = useState<Record<string, any>>({});
+  const [expandedGuides, setExpandedGuides] = useState<Record<string, boolean>>({
+    google_gemini: false,
+    anthropic_claude: false,
+    openai_gpt4o: false,
+  });
   const [isSaved, setIsSaved] = useState<boolean>(false);
 
   useEffect(() => {
     setActiveId(activeProviderId);
-  }, [activeProviderId]);
+    setExpandedGuides({
+      google_gemini: true,
+      anthropic_claude: true,
+      openai_gpt4o: true,
+    });
+  }, [activeProviderId, isOpen]);
 
   const currentKeysString = JSON.stringify(currentApiKeys);
   useEffect(() => {
@@ -174,7 +297,7 @@ export const AIEngineSubscriptionModal: React.FC<AIEngineSubscriptionModalProps>
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-950/85 backdrop-blur-md animate-in fade-in duration-200 overflow-y-auto">
       <div 
-        className="w-full max-w-2xl bg-white border border-slate-200 rounded-2xl shadow-2xl shadow-[0_20px_60px_rgba(0,0,0,0.8)] overflow-hidden flex flex-col relative text-left my-auto"
+        className="w-full max-w-3xl sm:max-w-4xl bg-white border border-slate-200 rounded-2xl shadow-2xl shadow-[0_20px_60px_rgba(0,0,0,0.8)] overflow-hidden flex flex-col relative text-left my-auto"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header with Monospace Tag */}
@@ -202,25 +325,25 @@ export const AIEngineSubscriptionModal: React.FC<AIEngineSubscriptionModalProps>
           </div>
         </div>
 
-        {/* Zero-Knowledge Security Notice (Zero Cloud Sync Mandate) */}
-        <div className="mx-5 sm:mx-6 mt-4 p-4 rounded-2xl bg-[#f8fafc] border border-slate-200 text-[#37474f] space-y-1.5 font-sans">
-          <div className="flex items-center justify-between">
-            <span className="text-[10px] font-mono font-bold tracking-widest text-[#01579b] uppercase bg-[#e1f5fe] px-2 py-0.5 rounded-md border border-[#b3e5fc]">
+        {/* Zero-Knowledge Security Notice (Dedicated Fixed Section with Clean Divider) */}
+        <div className="px-5 sm:px-6 py-3 bg-[#f8fafc] dark:bg-slate-900/60 border-b border-slate-200 dark:border-slate-800">
+          <div className="flex items-center justify-between mb-1">
+            <span className="text-[10px] font-mono font-bold tracking-wider text-[#01579b] dark:text-cyan-400 uppercase bg-[#e1f5fe] dark:bg-cyan-950/60 px-2 py-0.5 rounded border border-[#b3e5fc] dark:border-cyan-500/30">
               {isEn ? 'ZERO-KNOWLEDGE SECURITY POLICY' : 'BEZPEČNOSTNÍ ZÁRUKA (ZERO-KNOWLEDGE VAULT)'}
             </span>
-            <span className="text-[10px] font-mono text-[#01579b] font-bold">
+            <span className="text-[10px] font-mono text-[#01579b] dark:text-cyan-400 font-bold">
               {isEn ? 'LOCAL ONLY' : 'POUZE LOKÁLNĚ'}
             </span>
           </div>
-          <p className="text-xs text-[#455a64] leading-relaxed">
+          <p className="text-[11px] text-[#455a64] dark:text-slate-400 leading-relaxed">
             {isEn
-              ? 'For your protection, your personal API keys are NEVER synchronized to our database or cloud. They are stored strictly within this browser’s encrypted local Vault. When accessing bAIright from a new device (e.g. mobile or another computer), you will need to re-enter your API key.'
-              : 'Z bezpečnostních důvodů (Zero-Knowledge) se vaše API klíče NIKDY neukládají do naší databáze ani do cloudu. Jsou uloženy výhradně v šifrovaném Vaultu tohoto prohlížeče. Pokud se přihlásíte na novém zařízení (např. mobil nebo jiný počítač), bude potřeba API klíč pro přímý chat zadat znovu.'}
+              ? 'For your protection, your personal API keys are NEVER synchronized to our database or cloud. They are stored strictly within this browser’s encrypted local Vault. When accessing bAIright from a new device, you will need to re-enter your API key.'
+              : 'Z bezpečnostních důvodů (Zero-Knowledge) se vaše API klíče NIKDY neukládají do naší databáze ani do cloudu. Jsou uloženy výhradně v šifrovaném Vaultu tohoto prohlížeče. Pokud se přihlásíte na novém zařízení, bude potřeba API klíč pro přímý chat zadat znovu.'}
           </p>
         </div>
 
         {/* Modal Body - Provider Cards */}
-        <div className="p-5 sm:p-6 overflow-y-auto space-y-3 max-h-[50vh]">
+        <div className="p-5 sm:p-6 overflow-y-auto space-y-3.5 max-h-[62vh]">
           {SUPPORTED_AI_PROVIDERS.map((provider: AIProviderConfig) => {
             const isSelected = provider.id === activeId;
             const hasKey = Boolean(apiKeys[provider.id]?.trim());
@@ -228,7 +351,10 @@ export const AIEngineSubscriptionModal: React.FC<AIEngineSubscriptionModalProps>
             return (
               <div
                 key={provider.id}
-                onClick={() => setActiveId(provider.id)}
+                onClick={() => {
+                  setActiveId(provider.id);
+                  setExpandedGuides((prev) => ({ ...prev, [provider.id]: true }));
+                }}
                 className={`p-4 rounded-2xl border transition-all cursor-pointer ${
                   isSelected
                     ? "bg-[#f0f9ff] border-[#0099cc] shadow-[0_0_20px_rgba(6,182,212,0.1)]"
@@ -263,7 +389,7 @@ export const AIEngineSubscriptionModal: React.FC<AIEngineSubscriptionModalProps>
 
                       if (!hasKey) {
                         return (
-                          <span className="px-2 py-0.5 rounded bg-slate-800/80 text-[#607d8b] border border-slate-700/50">
+                          <span className="px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-700">
                             {isEn ? "Key Required" : "Vyžaduje klíč"}
                           </span>
                         );
@@ -315,17 +441,61 @@ export const AIEngineSubscriptionModal: React.FC<AIEngineSubscriptionModalProps>
                       <label className="text-xs font-bold text-slate-800 dark:text-cyan-300 font-mono">
                         <span>{isEn ? `Your ${provider.provider} API Key:` : `Váš ${provider.provider} API Klíč:`}</span>
                       </label>
-                      {provider.apiKeyHelpUrl && (
-                        <a
-                          href={provider.apiKeyHelpUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-[10px] text-[#0077a3] hover:text-[#005577] dark:text-cyan-400 font-bold underline font-mono"
-                        >
-                          <span>{isEn ? 'Get API Key →' : 'Získat klíč →'}</span>
-                        </a>
-                      )}
+                      <button
+                        type="button"
+                        onClick={() => setExpandedGuides((prev) => ({ ...prev, [provider.id]: !prev[provider.id] }))}
+                        className="text-[11px] font-mono text-cyan-600 dark:text-cyan-400 hover:underline flex items-center gap-1 cursor-pointer font-bold"
+                      >
+                        <span>{isEn ? "Step-by-step setup guide" : "Návod krok za krokem"}</span>
+                        <span className="text-[10px]">{expandedGuides[provider.id] ? "▴" : "▾"}</span>
+                      </button>
                     </div>
+
+                    {/* Collapsible Step-by-Step Onboarding Guide */}
+                    {expandedGuides[provider.id] && (() => {
+                      const guide = PROVIDER_GUIDES[provider.id];
+                      if (!guide) return null;
+                      return (
+                        <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-900/80 border border-slate-200 dark:border-cyan-500/20 space-y-2 text-xs animate-in fade-in duration-200">
+                          {/* Pricing & Credit Notice */}
+                          <div className={`px-2.5 py-1.5 rounded-lg font-mono text-[11px] border leading-normal ${
+                            guide.isFree 
+                              ? "bg-emerald-50 dark:bg-emerald-950/40 border-emerald-200 dark:border-emerald-500/30 text-emerald-800 dark:text-emerald-300"
+                              : "bg-amber-50 dark:bg-amber-950/40 border-amber-200 dark:border-amber-500/30 text-amber-800 dark:text-amber-300"
+                          }`}>
+                            <strong className="font-bold">{isEn ? "NOTE: " : "POZNÁMKA: "}</strong>
+                            <span>{isEn ? guide.pricingNoticeEn : guide.pricingNotice}</span>
+                          </div>
+
+                          {/* Concise Steps List */}
+                          <div className="space-y-1.5 pt-0.5">
+                            {guide.steps.map((st) => (
+                              <div key={st.step} className="flex items-center gap-2 py-1 px-2.5 rounded-lg bg-white dark:bg-slate-800/50 border border-slate-200/80 dark:border-slate-700/50 text-[11px]">
+                                <span className="px-1.5 py-0.5 rounded bg-cyan-100 dark:bg-cyan-950/80 border border-cyan-200 dark:border-cyan-500/30 text-cyan-800 dark:text-cyan-300 font-mono text-[10px] font-bold shrink-0">
+                                  [{st.step}]
+                                </span>
+                                <div className="text-slate-700 dark:text-slate-300 flex-1 min-w-0 flex items-center flex-wrap gap-1 leading-normal">
+                                  <span>{isEn ? st.prefixEn : st.prefix}</span>
+                                  {st.url && (
+                                    <a
+                                      href={st.url}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      className="text-cyan-600 dark:text-cyan-400 hover:underline font-mono font-bold inline-flex items-center"
+                                    >
+                                      {isEn ? st.linkTextEn : st.linkText}
+                                    </a>
+                                  )}
+                                  {(isEn ? st.suffixEn : st.suffix) && (
+                                    <span>{isEn ? st.suffixEn : st.suffix}</span>
+                                  )}
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      );
+                    })()}
 
                     <div className="flex items-center gap-2">
                       <div className="relative flex-1 flex items-center">

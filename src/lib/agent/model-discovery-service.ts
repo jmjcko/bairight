@@ -533,14 +533,45 @@ export class ModelDiscoveryService {
             if (response.success && response.data !== undefined) {
               this.lastSuccessfulModel.set(providerKey, freshModel);
               console.info(`[ModelDiscoveryService] On-the-fly recovery successful with newly discovered model: "${freshModel}"`);
-              return { result: response.data, modelUsed: freshModel };
+              return { result: response.data, modelUsed: freshModel, failureLogs, attemptedModels: Array.from(attempted) };
             }
-          } catch (freshErr) {
+            failureLogs.push(`${freshModel}: HTTP ${response.status || 'ERR'} (${response.errorBody || 'failed'})`);
+          } catch (freshErr: any) {
+            failureLogs.push(`${freshModel}: EXCEPTION (${freshErr?.message || String(freshErr)})`);
             console.warn(`[ModelDiscoveryService] Fresh model "${freshModel}" failed:`, freshErr);
           }
         }
-      } catch (discoveryErr) {
+      } catch (discoveryErr: any) {
+        failureLogs.push(`Live Gemini discovery exception: ${discoveryErr?.message || String(discoveryErr)}`);
         console.warn('[ModelDiscoveryService] On-the-fly live discovery failed:', discoveryErr);
+      }
+    }
+
+    // If all initial candidate models failed for OpenAI GPT-4o, trigger ON-THE-FLY live discovery!
+    if (providerId === 'openai_gpt4o' && apiKey) {
+      try {
+        console.info('[ModelDiscoveryService] Initial OpenAI candidate models exhausted. Triggering real-time live discovery...');
+        const freshModels = await this.discoverOpenAIModels(apiKey);
+        const unattemptedFresh = freshModels.filter((m) => !attempted.has(m) && !this.blacklistedModels.has(m));
+
+        for (const freshModel of unattemptedFresh) {
+          attempted.add(freshModel);
+          try {
+            const response = await executeFn(freshModel);
+            if (response.success && response.data !== undefined) {
+              this.lastSuccessfulModel.set(providerKey, freshModel);
+              console.info(`[ModelDiscoveryService] On-the-fly recovery successful with newly discovered OpenAI model: "${freshModel}"`);
+              return { result: response.data, modelUsed: freshModel, failureLogs, attemptedModels: Array.from(attempted) };
+            }
+            failureLogs.push(`${freshModel}: HTTP ${response.status || 'ERR'} (${response.errorBody || 'failed'})`);
+          } catch (freshErr: any) {
+            failureLogs.push(`${freshModel}: EXCEPTION (${freshErr?.message || String(freshErr)})`);
+            console.warn(`[ModelDiscoveryService] Fresh OpenAI model "${freshModel}" failed:`, freshErr);
+          }
+        }
+      } catch (discoveryErr: any) {
+        failureLogs.push(`Live OpenAI discovery exception: ${discoveryErr?.message || String(discoveryErr)}`);
+        console.warn('[ModelDiscoveryService] On-the-fly OpenAI live discovery failed:', discoveryErr);
       }
     }
 

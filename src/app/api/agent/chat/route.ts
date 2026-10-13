@@ -112,24 +112,54 @@ Anthropic API zamítlo požadavek s touto oficiální zprávou:
 1. **Vygenerujte si NOVÝ API klíč:** Pokud jste kredit (5 USD) dobili nedávno, stávající API klíč má u platební brány Anthropicu zakešovaný stav "bez kreditu". Vytvoření nového klíče v [Anthropic Console (API Keys)](https://console.anthropic.com/settings/keys) problém okamžitě odblokuje.
 2. **Ověřte Organizaci:** Zkontrolujte, že je klíč vytvořen pod stejnou organizací, kde svítí kredit 5 USD.
 3. **Nebo přepněte na Google Gemini:** 100% zdarma bez nutnosti kreditu.`;
-        } else if (errMsg.includes('401') || errMsg.toLowerCase().includes('invalid x-api-key') || errMsg.toLowerCase().includes('invalid api key')) {
+        } else if (errMsg.includes('OPENAI_CREDIT_EXHAUSTED:') || errMsg.toLowerCase().includes('insufficient_quota') || errMsg.toLowerCase().includes('exceeded your current quota')) {
+          const rawDetail = errMsg.replace('OPENAI_CREDIT_EXHAUSTED:', '').trim();
           assistantContent = locale === 'en'
-            ? `### Invalid Anthropic API Key (HTTP 401)
+            ? `### OpenAI API Credit Quota Issue
 
-The Anthropic API rejected this key as invalid (\`invalid x-api-key\`).
-Please open **BYOK** in the app header, test your key with **Test Key**, or generate a new key in [Anthropic Console](https://console.anthropic.com/settings/keys).`
-            : `### Neplatný Anthropic API klíč (HTTP 401)
+OpenAI API rejected the request with the following message:
+> "${rawDetail}"
 
-Anthropic API odmítlo zadaný API klíč jako neplatný (\`invalid x-api-key\`).
-Otevřete prosím **BYOK** v záhlaví, ověřte svůj klíč tlačítkem **Test klíče** nebo vygenerujte nový v [Anthropic Console](https://console.anthropic.com/settings/keys).`;
+**How to resolve:**
+1. Check your prepaid balance in [OpenAI Platform Billing](https://platform.openai.com/settings/organization/billing).
+2. Note that a consumer **ChatGPT Plus subscription ($20/mo)** does NOT provide developer API credits. API access requires a prepaid balance (min. $5).
+3. If you just topped up credits, generate a new secret key in [OpenAI API Keys](https://platform.openai.com/api-keys) to bypass caching.
+4. Or switch to **Google Gemini** (100% free with no credit card required).`
+            : `### Problém s kreditem OpenAI API
+
+OpenAI API zamítlo požadavek s touto zprávou:
+> "${rawDetail}"
+
+**Doporučený postup řešení:**
+1. Zkontrolujte zůstatek předplaceného kreditu v [OpenAI Platform Billing](https://platform.openai.com/settings/organization/billing).
+2. **Pozor:** Běžné spotřebitelské předplatné **ChatGPT Plus ($20/měsíc)** se na vývojářské API nevztahuje. Vývojářské API vyžaduje samostatně dobitý kredit (min. $5).
+3. Pokud jste kredit právě dobili, vygenerujte nový API klíč v [OpenAI API Keys](https://platform.openai.com/api-keys) pro okamžité uplatnění.
+4. Nebo přepněte na **Google Gemini** (100% zdarma bez nutnosti platební karty).`;
+        } else if (errMsg.includes('401') || errMsg.toLowerCase().includes('invalid x-api-key') || errMsg.toLowerCase().includes('invalid api key') || errMsg.toLowerCase().includes('incorrect api key')) {
+          const provName = providerId === 'anthropic_claude' ? 'Anthropic' : providerId === 'openai_gpt4o' ? 'OpenAI' : 'Google Gemini';
+          const helpUrl = providerId === 'anthropic_claude'
+            ? 'https://console.anthropic.com/settings/keys'
+            : providerId === 'openai_gpt4o'
+            ? 'https://platform.openai.com/api-keys'
+            : 'https://aistudio.google.com/app/apikey';
+
+          assistantContent = locale === 'en'
+            ? `### Invalid ${provName} API Key (HTTP 401)
+
+The ${provName} API rejected this key as invalid.
+Please open **BYOK** in the app header, test your key with **Test Key**, or generate a new key in [${provName} Console](${helpUrl}).`
+            : `### Neplatný ${provName} API klíč (HTTP 401)
+
+${provName} API odmítlo zadaný API klíč jako neplatný.
+Otevřete prosím **BYOK** v záhlaví, ověřte svůj klíč tlačítkem **Test klíče** nebo vygenerujte nový v [${provName} Console](${helpUrl}).`;
         } else if (errMsg.includes('503') || errMsg.includes('429') || errMsg.toLowerCase().includes('rate_limit') || errMsg.toLowerCase().includes('overloaded')) {
           const provName = providerId === 'google_gemini' ? 'Google Gemini' : providerId === 'anthropic_claude' ? 'Anthropic Claude' : 'OpenAI GPT-4o';
           assistantContent = locale === 'en'
-            ? `### ⚠️ Temporary AI Provider Overload (503 / 429)
+            ? `### Temporary AI Provider Overload (503 / 429)
 
 The AI provider (**${provName}**) is currently experiencing a temporary server demand spike or rate limit (HTTP 503 / 429).
 All your wizard criteria and parameters are safely preserved in memory. Please wait a few seconds and send your query again.`
-            : `### ⚠️ Dočasné přetížení AI poskytovatele (503 / 429)
+            : `### Dočasné přetížení AI poskytovatele (503 / 429)
 
 Poskytovatel AI modelu (**${provName}**) hlásí momentální vysoké vytížení serverů nebo vyčerpání minutové kvóty (HTTP 503 / 429).
 Všechna vaše kritéria a parametry z průvodce jsou bezpečně uloženy v paměti. Vyčkejte prosím několik sekund a pošlete svůj dotaz znovu.`;
@@ -648,23 +678,79 @@ ${chatIntent === "conversational_dialogue" ? "3. KONVERZAČNÍ KONZULTANT: Pří
       { role: 'user', content: message },
     ];
 
-    const res = await fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${apiKey}`,
+    let authOrBillingError: Error | null = null;
+    let lastErrorDetail = '';
+
+    const failoverRes = await ModelDiscoveryService.executeWithResilientFailover<string>({
+      providerId: 'openai_gpt4o',
+      apiKey,
+      executeFn: async (model) => {
+        try {
+          console.log(`[OpenAI chat] Invoking OpenAI API model "${model}", messages count: ${formattedMessages.length}`);
+          const res = await fetch('https://api.openai.com/v1/chat/completions', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${apiKey}`,
+            },
+            body: JSON.stringify({
+              model,
+              messages: formattedMessages,
+              temperature: 0.7,
+              max_tokens: 4096,
+            }),
+          });
+
+          if (!res.ok) {
+            const errData = await res.json().catch(() => ({}));
+            const errMsg = errData?.error?.message || `HTTP ${res.status}`;
+            if (errMsg.toLowerCase().includes('insufficient_quota') || errMsg.toLowerCase().includes('quota') || errMsg.toLowerCase().includes('billing')) {
+              authOrBillingError = new Error(`OPENAI_CREDIT_EXHAUSTED: ${errMsg}`);
+              throw authOrBillingError;
+            }
+            if (res.status === 401 || errMsg.toLowerCase().includes('invalid api key') || errMsg.toLowerCase().includes('incorrect api key')) {
+              authOrBillingError = new Error(`OpenAI HTTP 401: ${errMsg}`);
+              throw authOrBillingError;
+            }
+            lastErrorDetail = `[${model}: HTTP ${res.status} - ${errMsg}]`;
+            console.warn(`[OpenAI chat] Model "${model}" failed:`, res.status, errMsg);
+            return {
+              success: false,
+              status: res.status,
+              errorBody: errMsg,
+              error: new Error(`OpenAI HTTP ${res.status}: ${errMsg}`),
+            };
+          }
+
+          const data = await res.json();
+          const text = data?.choices?.[0]?.message?.content || '';
+          return { success: true, data: text };
+        } catch (fetchErr: any) {
+          if (authOrBillingError) throw authOrBillingError;
+          lastErrorDetail = `[${model}: Exception - ${fetchErr?.message || String(fetchErr)}]`;
+          return {
+            success: false,
+            status: 500,
+            errorBody: fetchErr?.message || String(fetchErr),
+            error: fetchErr,
+          };
+        }
       },
-      body: JSON.stringify({
-        model: 'gpt-4o',
-        messages: formattedMessages,
-        temperature: 0.7,
-        max_tokens: 4096,
-      }),
     });
 
-    if (!res.ok) throw new Error(`OpenAI HTTP ${res.status}`);
-    const data = await res.json();
-    return data?.choices?.[0]?.message?.content || '';
+    if (authOrBillingError) {
+      throw authOrBillingError;
+    }
+
+    if (failoverRes.result && failoverRes.result.trim()) {
+      return failoverRes.result;
+    }
+
+    const failureSummary = failoverRes.failureLogs && failoverRes.failureLogs.length > 0
+      ? failoverRes.failureLogs.join('; ')
+      : lastErrorDetail || 'žádný OpenAI model v registru neodpověděl';
+
+    throw new Error(`OpenAI API: Žádný z modelů neodpověděl. Detail chyby: ${failureSummary}`);
   }
 
   if (providerId === 'anthropic_claude') {

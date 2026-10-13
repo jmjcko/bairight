@@ -154,6 +154,9 @@ export const HeaderEngineSwitcher: React.FC<HeaderEngineSwitcherProps> = ({
                   onClick={() => {
                     onSelectProvider(provider.id);
                     setIsOpen(false);
+                    if (!hasKey) {
+                      onOpenVaultModal();
+                    }
                   }}
                   className={`w-full flex items-center justify-between p-2.5 rounded-xl text-left text-xs transition-all cursor-pointer ${
                     isSelected
