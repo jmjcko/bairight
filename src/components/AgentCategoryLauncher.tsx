@@ -690,16 +690,16 @@ const [researchError, setResearchError] = useState<string | null>(null);
 
       {/* Researched Domain Parameter Discovery & Interactive Tuner */}
       {researchedAnalysis && !isResearching && (
-        <form onSubmit={handleCreateCustomWizard} className="rounded-2xl border border-cyan-500/25 bg-[#091121]/90 p-6 sm:p-8 text-left space-y-5 shadow-xl animate-in fade-in duration-300">
-              <div className="flex items-center justify-between gap-3 border-b border-cyan-500/25 pb-3.5">
-                <div className="flex items-center gap-3.5 min-w-0">
-                  <div className="min-w-0">
+        <form onSubmit={handleCreateCustomWizard} className="rounded-2xl border border-cyan-500/25 bg-[#091121]/90 p-4 sm:p-6 md:p-8 text-left space-y-5 shadow-xl animate-in fade-in duration-300">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3.5 border-b border-cyan-500/25 pb-3.5">
+                <div className="flex items-center gap-3.5 min-w-0 w-full sm:w-auto">
+                  <div className="min-w-0 w-full">
                     <div className="flex items-center gap-2 flex-wrap">
                       <h4 className="param-discovery-header-title text-base sm:text-lg font-bold text-slate-900 dark:text-white tracking-tight">
                         {researchedAnalysis.categoryName}
                       </h4>
                     </div>
-                    <p className="param-discovery-header-subtitle text-xs text-slate-600 dark:text-slate-400 mt-0.5 leading-normal">
+                    <p className="param-discovery-header-subtitle text-xs text-slate-600 dark:text-slate-400 mt-1 leading-relaxed">
                       {locale === 'en' 
                         ? 'AI prepared key criteria. Start the advisor directly, or select parameters for intake questions below.' 
                         : 'AI připravila klíčová kritéria. Můžete rovnou spustit průvodce, nebo vyberte parametry pro dotazník níže.'}
@@ -707,7 +707,7 @@ const [researchError, setResearchError] = useState<string | null>(null);
                   </div>
                 </div>
 
-                <div className="flex items-center gap-2.5 shrink-0 self-end sm:self-center">
+                <div className="flex items-center gap-2 sm:gap-2.5 w-full sm:w-auto justify-end shrink-0">
                   <button
                     type="button"
                     onClick={handleCancelResearch}
@@ -730,7 +730,7 @@ const [researchError, setResearchError] = useState<string | null>(null);
                   <button
                     type="submit"
                     disabled={selectedParamIds.size === 0 || isGenerating}
-                    className="px-5 py-2.5 rounded-xl bg-[#0099cc] hover:bg-[#0088b8] text-white text-xs sm:text-sm font-bold shadow-md hover:shadow-lg disabled:opacity-40 disabled:cursor-not-allowed transition-all cursor-pointer flex items-center justify-center gap-2 shrink-0 active:scale-95"
+                    className="flex-1 sm:flex-initial px-4 sm:px-5 py-2.5 rounded-xl bg-[#0099cc] hover:bg-[#0088b8] text-white text-xs sm:text-sm font-bold shadow-md hover:shadow-lg disabled:opacity-40 disabled:cursor-not-allowed transition-all cursor-pointer flex items-center justify-center gap-2 shrink-0 active:scale-95"
                   >
                     {isGenerating ? (
                       <>
