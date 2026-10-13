@@ -1,3 +1,4 @@
+import { parseAnthropicKey, buildAnthropicHeaders } from "./anthropic-helper";
 import { ModelDiscoveryService } from "./model-discovery-service";
 import { IntakeFormData, AgentPrescriptionResult } from './markdown-agent-loader';
 import { EUROPEAN_CATALOG_2E_MODELS } from './tools/scan-eshops';
@@ -427,18 +428,17 @@ async function callOpenAI(apiKey: string, prompt: string): Promise<AgentPrescrip
  * Evaluates with Anthropic Claude API with dynamic failover
  */
 async function callAnthropic(apiKey: string, prompt: string): Promise<AgentPrescriptionResult | null> {
+  const creds = parseAnthropicKey(apiKey);
   const failoverRes = await ModelDiscoveryService.executeWithResilientFailover<AgentPrescriptionResult>({
     providerId: 'anthropic_claude',
-    apiKey,
+    apiKey: creds.apiKey,
     executeFn: async (model) => {
       try {
         const response = await fetch('https://api.anthropic.com/v1/messages', {
           method: 'POST',
-          headers: {
+          headers: buildAnthropicHeaders(creds, {
             'Content-Type': 'application/json',
-            'x-api-key': apiKey,
-            'anthropic-version': '2023-06-01',
-          },
+          }),
           body: JSON.stringify({
             model,
             max_tokens: 3500,

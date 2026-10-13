@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { processAgentConversation } from '../agent-executor';
 import { INITIAL_USER_FACTS, INITIAL_ASSESSMENT_RECORDS } from '../engine-config';
 import { POST as chatHandler } from '@/app/api/agent/chat/route';
@@ -203,5 +203,52 @@ describe('Conversational Agent Chat & Parameter Responsiveness', () => {
     expect(content).toContain('independent purchasing consultant');
     expect(content).not.toContain('# Expert Purchasing Recommendation');
     expect(content).not.toContain('## Top 3 Recommended Models');
+  });
+
+  it('8. Anthropic Claude correctly extracts text from multi-block thinking and text responses without failing', async () => {
+    const fetchMock = vi.fn().mockImplementation(async (url: string, options: any) => {
+      if (url.includes('/v1/models')) {
+        return {
+          ok: true,
+          status: 200,
+          json: async () => ({
+            data: [{ id: 'claude-sonnet-5-5' }, { id: 'claude-haiku-5-5' }],
+          }),
+        };
+      }
+      if (url.includes('/v1/messages')) {
+        return {
+          ok: true,
+          status: 200,
+          json: async () => ({
+            id: 'msg_test123',
+            type: 'message',
+            role: 'assistant',
+            content: [
+              { type: 'thinking', thinking: 'Deep reasoning trace...' },
+              { type: 'text', text: 'Zde jsou doporučené 3 modely obuvi na základě vašich parametrů.' },
+            ],
+          }),
+        };
+      }
+      return { ok: false, status: 404 };
+    });
+    global.fetch = fetchMock;
+
+    const req = new NextRequest('http://localhost:3000/api/agent/chat', {
+      method: 'POST',
+      body: JSON.stringify({
+        sessionId: 'session-anthropic-multiblock',
+        message: 'Doporuč mi 3 modely',
+        providerId: 'anthropic_claude',
+        apiKey: 'sk-ant-api03-testkey1234567890',
+        locale: 'cs',
+      }),
+    });
+
+    const res = await chatHandler(req);
+    expect(res.status).toBe(200);
+    const data = await res.json();
+    expect(data.message.content).toContain('Zde jsou doporučené 3 modely');
   });
 });

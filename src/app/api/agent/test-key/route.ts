@@ -1,4 +1,5 @@
 import { ModelDiscoveryService } from '@/lib/agent/model-discovery-service';
+import { parseAnthropicKey, buildAnthropicHeaders } from '@/lib/agent/anthropic-helper';
 import { NextRequest, NextResponse } from 'next/server';
 
 export async function POST(req: NextRequest) {
@@ -68,35 +69,46 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // 3. Anthropic Claude
+    // 3. Anthropic Claude (supports both workspace-scoped keys & user keys with workspace ID)
     if (providerId === 'anthropic_claude' || key.startsWith('sk-ant-')) {
       try {
+        const creds = parseAnthropicKey(key);
+
         // Step A: Attempt fast & token-free validation via /v1/models
         const modelsRes = await fetch('https://api.anthropic.com/v1/models', {
           method: 'GET',
-          headers: {
-            'x-api-key': key,
-            'anthropic-version': '2023-06-01',
-          },
+          headers: buildAnthropicHeaders(creds),
         });
 
         if (modelsRes.ok) {
-          const modelsData = await modelsRes.json().catch(() => ({}));
-          const discoveredModels: string[] = Array.isArray(modelsData?.data)
-            ? modelsData.data.map((m: any) => m.id)
-            : [];
-          const preferredModel = discoveredModels.find((m) => m.includes('claude-3-7')) || discoveredModels.find((m) => m.includes('claude-3-5-sonnet')) || 'claude-3-5-sonnet';
+          const discoveredModels = await ModelDiscoveryService.discoverClaudeModels(key).catch(() => []);
+          const preferredModel = discoveredModels[0] || 'claude-sonnet-5-5';
 
+          console.log('[Anthropic test-key] Discovered models:', discoveredModels);
+          const modelsSummary = discoveredModels.length > 0 ? ` (Dostupné modely: ${discoveredModels.slice(0, 3).join(', ')})` : '';
           return NextResponse.json({
             ok: true,
             detectedProvider: 'anthropic_claude',
             model: preferredModel,
-            message: 'Claude API klíč je platný a připravený k analýze!',
+            discoveredModels,
+            message: `Claude API klíč je platný a připravený k analýze!${modelsSummary}`,
           });
         }
 
         const modelsErrData = await modelsRes.json().catch(() => ({}));
         const modelsErrMsg = (modelsErrData?.error?.message || `HTTP ${modelsRes.status}`).toLowerCase();
+
+        // Detect missing workspace ID on User / multi-workspace keys
+        if (
+          modelsErrMsg.includes('not scoped to a workspace') ||
+          modelsErrMsg.includes('anthropic-workspace-id')
+        ) {
+          return NextResponse.json({
+            ok: false,
+            error:
+              'Tento Anthropic klíč je typu User/Multi-Workspace (sk-ant-usr-...) a vyžaduje Workspace ID. Zadejte jej prosím ve formátu "KLÍČ:wrkspc_ID" (Workspace ID najdete v console.anthropic.com -> Workspaces), nebo v konzoli vytvořte klíč přímo uvnitř konkrétního Workspace.',
+          });
+        }
 
         // Explicit invalid key rejection
         if (
@@ -129,13 +141,11 @@ export async function POST(req: NextRequest) {
         // Step B: Fallback to /v1/messages check if /v1/models returns an unexpected status
         const msgRes = await fetch('https://api.anthropic.com/v1/messages', {
           method: 'POST',
-          headers: {
+          headers: buildAnthropicHeaders(creds, {
             'Content-Type': 'application/json',
-            'x-api-key': key,
-            'anthropic-version': '2023-06-01',
-          },
+          }),
           body: JSON.stringify({
-            model: 'claude-3-5-sonnet-20241022',
+            model: 'claude-sonnet-5-5',
             max_tokens: 5,
             messages: [{ role: 'user', content: 'Hi' }],
           }),
@@ -152,6 +162,17 @@ export async function POST(req: NextRequest) {
 
         const msgErrData = await msgRes.json().catch(() => ({}));
         const msgErrMsg = (msgErrData?.error?.message || `HTTP ${msgRes.status}`);
+
+        if (
+          msgErrMsg.toLowerCase().includes('not scoped to a workspace') ||
+          msgErrMsg.toLowerCase().includes('anthropic-workspace-id')
+        ) {
+          return NextResponse.json({
+            ok: false,
+            error:
+              'Tento Anthropic klíč je typu User/Multi-Workspace (sk-ant-usr-...) a vyžaduje Workspace ID. Zadejte jej prosím ve formátu "KLÍČ:wrkspc_ID" (Workspace ID najdete v console.anthropic.com -> Workspaces), nebo v konzoli vytvořte klíč přímo uvnitř konkrétního Workspace.',
+          });
+        }
 
         if (
           msgErrMsg.toLowerCase().includes('credit') ||

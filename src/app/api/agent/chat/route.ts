@@ -1,3 +1,4 @@
+import { parseAnthropicKey, buildAnthropicHeaders } from "@/lib/agent/anthropic-helper";
 import { ModelDiscoveryService } from "@/lib/agent/model-discovery-service";
 import { NextRequest, NextResponse } from 'next/server';
 import { ProfileStorageManager } from '@/lib/storage/profile-storage';
@@ -68,9 +69,30 @@ export async function POST(req: NextRequest) {
           locale,
         });
       } catch (llmErr: any) {
-        console.warn('Live LLM conversation call failed, falling back to conversational synthesizer:', llmErr);
-        if (llmErr?.message?.includes('ANTHROPIC_CREDIT_EXHAUSTED:')) {
-          const rawDetail = llmErr.message.replace('ANTHROPIC_CREDIT_EXHAUSTED:', '').trim();
+        console.warn('Live LLM conversation call failed:', llmErr);
+        const errMsg = String(llmErr?.message || '');
+
+        if (errMsg.includes('ANTHROPIC_WORKSPACE_REQUIRED:') || errMsg.toLowerCase().includes('not scoped to a workspace') || errMsg.toLowerCase().includes('anthropic-workspace-id')) {
+          const rawDetail = errMsg.replace('ANTHROPIC_WORKSPACE_REQUIRED:', '').trim();
+          assistantContent = locale === 'en'
+            ? `### Anthropic Workspace ID Required
+
+Anthropic API rejected the request because this is an unscoped User API key (\`sk-ant-usr-...\`):
+> "${rawDetail}"
+
+**How to resolve:**
+1. In the header BYOK modal, enter your key as \`KEY:wrkspc_ID\` (Workspace ID can be found in [Anthropic Console -> Workspaces](https://console.anthropic.com/settings/workspaces)).
+2. Or generate a key directly inside a specific Workspace (e.g. Default) in [Anthropic Console](https://console.anthropic.com/settings/keys).`
+            : `### Vyžadováno Anthropic Workspace ID
+
+Anthropic API zamítlo požadavek, protože tento klíč je typu User/Multi-Workspace (\`sk-ant-usr-...\`):
+> "${rawDetail}"
+
+**Jak problém vyřešit:**
+1. V modálu BYOK v záhlaví aplikace zadejte klíč ve formátu \`KLÍČ:wrkspc_ID\` (Workspace ID najdete v [Anthropic Console -> Workspaces](https://console.anthropic.com/settings/workspaces)).
+2. Nebo v [Anthropic Console](https://console.anthropic.com/settings/keys) vygenerujte klíč přímo uvnitř konkrétního Workspace (např. Default Workspace).`;
+        } else if (errMsg.includes('ANTHROPIC_CREDIT_EXHAUSTED:') || errMsg.toLowerCase().includes('credit balance is too low')) {
+          const rawDetail = errMsg.replace('ANTHROPIC_CREDIT_EXHAUSTED:', '').trim();
           assistantContent = locale === 'en'
             ? `### Anthropic API Credit Balance Issue
 
@@ -90,6 +112,42 @@ Anthropic API zamítlo požadavek s touto oficiální zprávou:
 1. **Vygenerujte si NOVÝ API klíč:** Pokud jste kredit (5 USD) dobili nedávno, stávající API klíč má u platební brány Anthropicu zakešovaný stav "bez kreditu". Vytvoření nového klíče v [Anthropic Console (API Keys)](https://console.anthropic.com/settings/keys) problém okamžitě odblokuje.
 2. **Ověřte Organizaci:** Zkontrolujte, že je klíč vytvořen pod stejnou organizací, kde svítí kredit 5 USD.
 3. **Nebo přepněte na Google Gemini:** 100% zdarma bez nutnosti kreditu.`;
+        } else if (errMsg.includes('401') || errMsg.toLowerCase().includes('invalid x-api-key') || errMsg.toLowerCase().includes('invalid api key')) {
+          assistantContent = locale === 'en'
+            ? `### Invalid Anthropic API Key (HTTP 401)
+
+The Anthropic API rejected this key as invalid (\`invalid x-api-key\`).
+Please open **BYOK** in the app header, test your key with **Test Key**, or generate a new key in [Anthropic Console](https://console.anthropic.com/settings/keys).`
+            : `### Neplatný Anthropic API klíč (HTTP 401)
+
+Anthropic API odmítlo zadaný API klíč jako neplatný (\`invalid x-api-key\`).
+Otevřete prosím **BYOK** v záhlaví, ověřte svůj klíč tlačítkem **Test klíče** nebo vygenerujte nový v [Anthropic Console](https://console.anthropic.com/settings/keys).`;
+        } else if (errMsg.includes('503') || errMsg.includes('429') || errMsg.toLowerCase().includes('rate_limit') || errMsg.toLowerCase().includes('overloaded')) {
+          const provName = providerId === 'google_gemini' ? 'Google Gemini' : providerId === 'anthropic_claude' ? 'Anthropic Claude' : 'OpenAI GPT-4o';
+          assistantContent = locale === 'en'
+            ? `### ⚠️ Temporary AI Provider Overload (503 / 429)
+
+The AI provider (**${provName}**) is currently experiencing a temporary server demand spike or rate limit (HTTP 503 / 429).
+All your wizard criteria and parameters are safely preserved in memory. Please wait a few seconds and send your query again.`
+            : `### ⚠️ Dočasné přetížení AI poskytovatele (503 / 429)
+
+Poskytovatel AI modelu (**${provName}**) hlásí momentální vysoké vytížení serverů nebo vyčerpání minutové kvóty (HTTP 503 / 429).
+Všechna vaše kritéria a parametry z průvodce jsou bezpečně uloženy v paměti. Vyčkejte prosím několik sekund a pošlete svůj dotaz znovu.`;
+        } else if (errMsg) {
+          const provName = providerId === 'google_gemini' ? 'Google Gemini' : providerId === 'anthropic_claude' ? 'Anthropic Claude' : 'OpenAI GPT-4o';
+          assistantContent = locale === 'en'
+            ? `### ${provName} API Error
+
+The AI provider returned the following error:
+> "${errMsg}"
+
+Please check your key and settings in the header BYOK menu, or try your request again.`
+            : `### Chyba ${provName} API
+
+Poskytovatel AI modelu vrátil následující chybové hlášení:
+> "${errMsg}"
+
+Zkontrolujte prosím svůj klíč a nastavení v menu BYOK v záhlaví aplikace, nebo zkuste dotaz odeslat znovu.`;
         }
       }
     }
@@ -646,31 +704,110 @@ ${message}`;
       payloadMessages.push({ role: 'user', content: message });
     }
 
-    const res = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': apiKey.trim(),
-        'anthropic-version': '2023-06-01',
+    const creds = parseAnthropicKey(apiKey);
+    let authOrBillingError: Error | null = null;
+    let lastErrorDetail = "";
+
+    const failoverRes = await ModelDiscoveryService.executeWithResilientFailover<string>({
+      providerId: 'anthropic_claude',
+      apiKey: apiKey,
+      executeFn: async (model) => {
+        try {
+          console.log(`[Anthropic chat] Invoking Claude API model "${model}", messages count: ${payloadMessages.length}`);
+          const res = await fetch('https://api.anthropic.com/v1/messages', {
+            method: 'POST',
+            headers: buildAnthropicHeaders(creds, {
+              'Content-Type': 'application/json',
+            }),
+            body: JSON.stringify({
+              model,
+              max_tokens: 4096,
+              system: systemPrompt,
+              messages: payloadMessages,
+            }),
+          });
+
+          if (!res.ok) {
+            const errData = await res.json().catch(() => ({}));
+            const errMsg = errData?.error?.message || `HTTP ${res.status}`;
+            if (errMsg.toLowerCase().includes('credit') || errMsg.toLowerCase().includes('balance') || errMsg.toLowerCase().includes('billing')) {
+              authOrBillingError = new Error(`ANTHROPIC_CREDIT_EXHAUSTED: ${errMsg}`);
+              throw authOrBillingError;
+            }
+            if (errMsg.toLowerCase().includes('not scoped to a workspace') || errMsg.toLowerCase().includes('anthropic-workspace-id')) {
+              authOrBillingError = new Error(`ANTHROPIC_WORKSPACE_REQUIRED: Tento User klíč (sk-ant-usr-...) vyžaduje Workspace ID. Zadejte jej ve formátu KLÍČ:wrkspc_ID, nebo vygenerujte klíč uvnitř konkrétního Workspace v console.anthropic.com.`);
+              throw authOrBillingError;
+            }
+            if (res.status === 401 || errMsg.toLowerCase().includes('invalid x-api-key')) {
+              authOrBillingError = new Error(`Claude HTTP 401: ${errMsg}`);
+              throw authOrBillingError;
+            }
+            lastErrorDetail = `[${model}: HTTP ${res.status} - ${errMsg}]`;
+            console.warn(`[Anthropic chat] Model "${model}" failed:`, res.status, errMsg);
+            return {
+              success: false,
+              status: res.status,
+              errorBody: errMsg,
+              error: new Error(`Claude HTTP ${res.status}: ${errMsg}`),
+            };
+          }
+
+          const data = await res.json();
+          let text = '';
+          if (Array.isArray(data?.content)) {
+            text = data.content
+              .filter((c: any) => c.type === 'text')
+              .map((c: any) => c.text)
+              .join('')
+              .trim();
+            if (!text) {
+              const firstBlock = data.content[0];
+              if (firstBlock?.text) text = String(firstBlock.text).trim();
+              else if (firstBlock?.thinking) text = String(firstBlock.thinking).trim();
+            }
+          } else if (typeof data?.text === 'string') {
+            text = data.text.trim();
+          }
+
+          if (!text) {
+            lastErrorDetail = `[${model}: Prázdná odpověď z Claude API (0 textových tokenů)]`;
+            console.warn(`[Anthropic chat] Model "${model}" returned empty text payload:`, JSON.stringify(data));
+            return {
+              success: false,
+              status: 200,
+              errorBody: 'Empty content in Claude response',
+              error: new Error('Empty response from Claude API'),
+            };
+          }
+
+          return { success: true, data: text };
+        } catch (fetchErr: any) {
+          if (authOrBillingError) throw authOrBillingError;
+          lastErrorDetail = `[${model}: Exception - ${fetchErr?.message || String(fetchErr)}]`;
+          console.error(`[Anthropic chat] Model "${model}" threw exception:`, fetchErr);
+          return {
+            success: false,
+            status: 500,
+            errorBody: fetchErr?.message || String(fetchErr),
+            error: fetchErr,
+          };
+        }
       },
-      body: JSON.stringify({
-        model: 'claude-3-5-sonnet-20241022',
-        max_tokens: 4096,
-        system: systemPrompt,
-        messages: payloadMessages,
-      }),
     });
 
-    if (!res.ok) {
-      const errData = await res.json().catch(() => ({}));
-      const errMsg = errData?.error?.message || `HTTP ${res.status}`;
-      if (errMsg.toLowerCase().includes('credit') || errMsg.toLowerCase().includes('balance') || errMsg.toLowerCase().includes('billing')) {
-        throw new Error(`ANTHROPIC_CREDIT_EXHAUSTED: ${errMsg}`);
-      }
-      throw new Error(`Claude HTTP ${res.status}: ${errMsg}`);
+    if (authOrBillingError) {
+      throw authOrBillingError;
     }
-    const data = await res.json();
-    return data?.content?.[0]?.text || '';
+
+    if (failoverRes.result && failoverRes.result.trim()) {
+      return failoverRes.result;
+    }
+
+    const failureSummary = failoverRes.failureLogs && failoverRes.failureLogs.length > 0
+      ? failoverRes.failureLogs.join('; ')
+      : lastErrorDetail || 'žádný model v registru neodpověděl';
+
+    throw new Error(`Claude API: Žádný z modelů neodpověděl. Detail chyby: ${failureSummary}`);
   }
 
   // Dynamic, self-healing model resolution via ModelDiscoveryService with real-time failover

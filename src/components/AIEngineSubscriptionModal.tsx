@@ -366,6 +366,14 @@ export const AIEngineSubscriptionModal: React.FC<AIEngineSubscriptionModalProps>
                       </button>
                     </div>
 
+                    {provider.id === "anthropic_claude" && (
+                      <div className="text-[10px] text-[#607d8b] font-mono leading-tight">
+                        {isEn
+                          ? "Format: standard sk-ant-api03-... or user key sk-ant-usr-...:wrkspc_id"
+                          : "Formát: standardní sk-ant-api03-... nebo user klíč sk-ant-usr-...:wrkspc_id"}
+                      </div>
+                    )}
+
                     {testStatus[provider.id]?.message && (
                       <div
                         className={`p-2.5 rounded-xl text-xs flex items-center gap-2 animate-in fade-in duration-200 border ${

@@ -1,3 +1,4 @@
+import { parseAnthropicKey, buildAnthropicHeaders } from "./anthropic-helper";
 import { AIProviderId } from './engine-config';
 
 export interface ModelCandidate {
@@ -41,9 +42,13 @@ export class ModelDiscoveryService {
   ];
 
   public static readonly DEFAULT_CLAUDE_MODELS = [
-    'claude-3-5-sonnet-20241022',
+    'claude-sonnet-5-5',
+    'claude-opus-5-5',
+    'claude-haiku-5-5',
     'claude-3-7-sonnet-latest',
+    'claude-3-5-sonnet-latest',
     'claude-3-5-haiku-latest',
+    'claude-3-5-sonnet-20241022',
   ];
 
   /**
@@ -55,10 +60,52 @@ export class ModelDiscoveryService {
     options?: { forceRefresh?: boolean }
   ): Promise<string[]> {
     if (providerId === 'openai_gpt4o') {
-      return [...this.DEFAULT_OPENAI_MODELS];
+      if (!apiKey) {
+        return this.filterAvailable(this.DEFAULT_OPENAI_MODELS);
+      }
+      const cacheKey = `openai_${apiKey.slice(-8)}`;
+      if (!options?.forceRefresh) {
+        const cached = this.cache.get(cacheKey);
+        if (cached && Date.now() - cached.timestamp < this.CACHE_TTL_MS) {
+          const available = this.filterAvailable(cached.models);
+          if (available.length > 0) return available;
+        }
+      }
+      try {
+        const discovered = await this.discoverOpenAIModels(apiKey);
+        if (discovered && discovered.length > 0) {
+          this.cache.set(cacheKey, { models: discovered, timestamp: Date.now() });
+          const available = this.filterAvailable(discovered);
+          if (available.length > 0) return available;
+        }
+      } catch (e) {
+        console.warn('[ModelDiscoveryService] Dynamic OpenAI discovery failed, using fallbacks:', e);
+      }
+      return this.filterAvailable(this.DEFAULT_OPENAI_MODELS);
     }
     if (providerId === 'anthropic_claude') {
-      return [...this.DEFAULT_CLAUDE_MODELS];
+      if (!apiKey) {
+        return this.filterAvailable(this.DEFAULT_CLAUDE_MODELS);
+      }
+      const cacheKey = `claude_${apiKey.slice(-8)}`;
+      if (!options?.forceRefresh) {
+        const cached = this.cache.get(cacheKey);
+        if (cached && Date.now() - cached.timestamp < this.CACHE_TTL_MS) {
+          const available = this.filterAvailable(cached.models);
+          if (available.length > 0) return available;
+        }
+      }
+      try {
+        const discovered = await this.discoverClaudeModels(apiKey);
+        if (discovered && discovered.length > 0) {
+          this.cache.set(cacheKey, { models: discovered, timestamp: Date.now() });
+          const available = this.filterAvailable(discovered);
+          if (available.length > 0) return available;
+        }
+      } catch (e) {
+        console.warn('[ModelDiscoveryService] Dynamic Claude discovery failed, using fallbacks:', e);
+      }
+      return this.filterAvailable(this.DEFAULT_CLAUDE_MODELS);
     }
 
     // Google Gemini dynamic discovery
@@ -94,6 +141,151 @@ export class ModelDiscoveryService {
    * excludes non-conversational specialized models (TTS, Image, Embedding, Robotics, etc.),
    * and ranks them by latency (Flash tier) and version.
    */
+  /**
+   * Queries Anthropic API for active models available to the key,
+   * prioritizing Sonnet / flagship models over smaller or specialized ones.
+   */
+  /**
+   * Queries OpenAI API for active conversational models, prioritizing GPT-4o / frontier models.
+   */
+  public static async discoverOpenAIModels(apiKey: string): Promise<string[]> {
+    const res = await fetch('https://api.openai.com/v1/models', {
+      method: 'GET',
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+      },
+    });
+    if (!res.ok) {
+      throw new Error(`OpenAI listModels HTTP ${res.status}`);
+    }
+    const data = await res.json();
+    const rawModels: any[] = data?.data || [];
+    const models: string[] = [];
+    for (const m of rawModels) {
+      const id = m.id || '';
+      if (
+        (id.startsWith('gpt-4') || id.startsWith('gpt-5') || id.startsWith('o1') || id.startsWith('o3') || id.startsWith('o4')) &&
+        !id.includes('audio') &&
+        !id.includes('realtime') &&
+        !id.includes('transcribe') &&
+        !id.includes('embedding')
+      ) {
+        models.push(id);
+        this.blacklistedModels.delete(id);
+      }
+    }
+    models.sort((a, b) => {
+      let aScore = 0;
+      let bScore = 0;
+      if (a === 'gpt-4o' || a.startsWith('gpt-5')) aScore += 50;
+      if (b === 'gpt-4o' || b.startsWith('gpt-5')) bScore += 50;
+      if (a.includes('mini')) aScore += 20;
+      if (b.includes('mini')) bScore += 20;
+      return bScore - aScore;
+    });
+    return models.length > 0 ? models : [...this.DEFAULT_OPENAI_MODELS];
+  }
+
+  /**
+   * Daily Synchronizer: audits active models across all 3 AI providers,
+   * caches valid models, tests health, and returns a verified registry summary.
+   */
+  public static async syncAllProviders(keys?: {
+    gemini?: string;
+    claude?: string;
+    openai?: string;
+  }): Promise<{
+    timestamp: string;
+    providers: Record<string, { ok: boolean; models: string[]; topModel?: string; error?: string }>;
+  }> {
+    const effectiveGemini = keys?.gemini || process.env.GOOGLE_GEMINI_API_KEY || process.env.GEMINI_API_KEY || '';
+    const effectiveClaude = keys?.claude || process.env.ANTHROPIC_API_KEY || '';
+    const effectiveOpenAI = keys?.openai || process.env.OPENAI_API_KEY || '';
+
+    const results: Record<string, { ok: boolean; models: string[]; topModel?: string; error?: string }> = {};
+
+    // 1. Google Gemini
+    if (effectiveGemini) {
+      try {
+        const geminiModels = await this.discoverGeminiModels(effectiveGemini);
+        this.cache.set(`gemini_${effectiveGemini.slice(-8)}`, { models: geminiModels, timestamp: Date.now() });
+        results.google_gemini = { ok: true, models: geminiModels, topModel: geminiModels[0] };
+      } catch (err: any) {
+        results.google_gemini = { ok: false, models: this.DEFAULT_GEMINI_MODELS, topModel: this.DEFAULT_GEMINI_MODELS[0], error: err.message };
+      }
+    } else {
+      results.google_gemini = { ok: true, models: this.DEFAULT_GEMINI_MODELS, topModel: this.DEFAULT_GEMINI_MODELS[0] };
+    }
+
+    // 2. Anthropic Claude
+    if (effectiveClaude) {
+      try {
+        const claudeModels = await this.discoverClaudeModels(effectiveClaude);
+        this.cache.set(`claude_${effectiveClaude.slice(-8)}`, { models: claudeModels, timestamp: Date.now() });
+        results.anthropic_claude = { ok: true, models: claudeModels, topModel: claudeModels[0] };
+      } catch (err: any) {
+        results.anthropic_claude = { ok: false, models: this.DEFAULT_CLAUDE_MODELS, topModel: this.DEFAULT_CLAUDE_MODELS[0], error: err.message };
+      }
+    } else {
+      results.anthropic_claude = { ok: true, models: this.DEFAULT_CLAUDE_MODELS, topModel: this.DEFAULT_CLAUDE_MODELS[0] };
+    }
+
+    // 3. OpenAI GPT-4o
+    if (effectiveOpenAI) {
+      try {
+        const openaiModels = await this.discoverOpenAIModels(effectiveOpenAI);
+        this.cache.set(`openai_${effectiveOpenAI.slice(-8)}`, { models: openaiModels, timestamp: Date.now() });
+        results.openai_gpt4o = { ok: true, models: openaiModels, topModel: openaiModels[0] };
+      } catch (err: any) {
+        results.openai_gpt4o = { ok: false, models: this.DEFAULT_OPENAI_MODELS, topModel: this.DEFAULT_OPENAI_MODELS[0], error: err.message };
+      }
+    } else {
+      results.openai_gpt4o = { ok: true, models: this.DEFAULT_OPENAI_MODELS, topModel: this.DEFAULT_OPENAI_MODELS[0] };
+    }
+
+    return {
+      timestamp: new Date().toISOString(),
+      providers: results,
+    };
+  }
+
+  public static async discoverClaudeModels(apiKey: string): Promise<string[]> {
+    const creds = parseAnthropicKey(apiKey);
+    const headers = buildAnthropicHeaders(creds);
+    const res = await fetch('https://api.anthropic.com/v1/models', {
+      method: 'GET',
+      headers,
+    });
+    if (!res.ok) {
+      throw new Error(`Anthropic listModels HTTP ${res.status}`);
+    }
+    const data = await res.json();
+    const rawModels: any[] = data?.data || [];
+    const models: string[] = [];
+    for (const m of rawModels) {
+      if (m.id && typeof m.id === 'string') {
+        models.push(m.id);
+        this.blacklistedModels.delete(m.id);
+      }
+    }
+    models.sort((a, b) => {
+      const aLower = a.toLowerCase();
+      const bLower = b.toLowerCase();
+      let aScore = 0;
+      let bScore = 0;
+      if (aLower.includes('sonnet')) aScore += 50;
+      if (bLower.includes('sonnet')) bScore += 50;
+      if (aLower.includes('5-5') || aLower.includes('5.5')) aScore += 40;
+      if (bLower.includes('5-5') || bLower.includes('5.5')) bScore += 40;
+      if (aLower.includes('3-7') || aLower.includes('3.7')) aScore += 25;
+      if (bLower.includes('3-7') || bLower.includes('3.7')) bScore += 25;
+      if (aLower.includes('opus')) aScore += 20;
+      if (bLower.includes('opus')) bScore += 20;
+      return bScore - aScore;
+    });
+    return models;
+  }
+
   public static async discoverGeminiModels(apiKey: string): Promise<string[]> {
     const url = `https://generativelanguage.googleapis.com/v1beta/models?key=${apiKey}`;
     const res = await fetch(url, { headers: { 'Content-Type': 'application/json' } });
@@ -231,11 +423,17 @@ export class ModelDiscoveryService {
       errorBody?: string;
       error?: any;
     }>;
-  }): Promise<{ result: T | null; modelUsed?: string }> {
+  }): Promise<{ result: T | null; modelUsed?: string; failureLogs?: string[]; attemptedModels?: string[] }> {
     const { providerId, apiKey, executeFn } = params;
 
     // Get current candidate models
-    const initialCandidates = await this.getCandidateModels(providerId, apiKey);
+    let initialCandidates = await this.getCandidateModels(providerId, apiKey);
+    if (initialCandidates.length === 0) {
+      // Clear blacklists for this provider to allow fresh retry
+      console.warn(`[ModelDiscoveryService] All candidates blacklisted for ${providerId}, clearing blacklist to retry live models.`);
+      this.blacklistedModels.clear();
+      initialCandidates = await this.getCandidateModels(providerId, apiKey, { forceRefresh: true });
+    }
     const candidateQueue: string[] = [...initialCandidates];
 
     // If we have a previously successful model for this key, prioritize it at the front
@@ -247,7 +445,14 @@ export class ModelDiscoveryService {
       candidateQueue.unshift(lastWorking);
     }
 
+    if (initialCandidates.length === 0) {
+      if (providerId === 'anthropic_claude') initialCandidates = [...this.DEFAULT_CLAUDE_MODELS];
+      else if (providerId === 'openai_gpt4o') initialCandidates = [...this.DEFAULT_OPENAI_MODELS];
+      else initialCandidates = [...this.DEFAULT_GEMINI_MODELS];
+    }
+
     const attempted = new Set<string>();
+    const failureLogs: string[] = [];
 
     while (candidateQueue.length > 0) {
       const model = candidateQueue.shift()!;
@@ -262,12 +467,13 @@ export class ModelDiscoveryService {
         if (response.success && response.data !== undefined) {
           // Success! Remember this working model for future calls
           this.lastSuccessfulModel.set(providerKey, model);
-          return { result: response.data, modelUsed: model };
+          return { result: response.data, modelUsed: model, failureLogs, attemptedModels: Array.from(attempted) };
         }
 
         // Handle failure
         const status = response.status;
         const errorBody = response.errorBody;
+        failureLogs.push(`${model}: HTTP ${status || 'ERR'} (${errorBody || 'failed'})`);
 
         if (status === 404 || status === 410) {
           const suggestedReplacement = this.markModelUnavailable(model, errorBody);
@@ -280,7 +486,36 @@ export class ModelDiscoveryService {
           if (process.env.NODE_ENV !== 'test') await new Promise((resolve) => setTimeout(resolve, 600));
         }
       } catch (err: any) {
+        failureLogs.push(`${model}: EXCEPTION (${err?.message || String(err)})`);
         console.warn(`[ModelDiscoveryService] Exception calling model "${model}":`, err?.message || err);
+      }
+    }
+
+    // If all initial candidate models failed for Anthropic Claude, trigger ON-THE-FLY live discovery!
+    if (providerId === 'anthropic_claude' && apiKey) {
+      try {
+        console.info('[ModelDiscoveryService] Initial Claude candidate models exhausted. Triggering real-time live discovery...');
+        const freshModels = await this.discoverClaudeModels(apiKey);
+        const unattemptedFresh = freshModels.filter((m) => !attempted.has(m) && !this.blacklistedModels.has(m));
+
+        for (const freshModel of unattemptedFresh) {
+          attempted.add(freshModel);
+          try {
+            const response = await executeFn(freshModel);
+            if (response.success && response.data !== undefined) {
+              this.lastSuccessfulModel.set(providerKey, freshModel);
+              console.info(`[ModelDiscoveryService] On-the-fly recovery successful with newly discovered Claude model: "${freshModel}"`);
+              return { result: response.data, modelUsed: freshModel, failureLogs, attemptedModels: Array.from(attempted) };
+            }
+            failureLogs.push(`${freshModel}: HTTP ${response.status || 'ERR'} (${response.errorBody || 'failed'})`);
+          } catch (freshErr: any) {
+            failureLogs.push(`${freshModel}: EXCEPTION (${freshErr?.message || String(freshErr)})`);
+            console.warn(`[ModelDiscoveryService] Fresh Claude model "${freshModel}" failed:`, freshErr);
+          }
+        }
+      } catch (discoveryErr: any) {
+        failureLogs.push(`Live discovery exception: ${discoveryErr?.message || String(discoveryErr)}`);
+        console.warn('[ModelDiscoveryService] On-the-fly Claude live discovery failed:', discoveryErr);
       }
     }
 
@@ -310,7 +545,7 @@ export class ModelDiscoveryService {
     }
 
     // All LLM candidate models failed -> safety net will trigger in caller
-    return { result: null, modelUsed: undefined };
+    return { result: null, modelUsed: undefined, failureLogs, attemptedModels: Array.from(attempted) };
   }
 
   public static reset(): void {

@@ -56,7 +56,7 @@ export const SUPPORTED_AI_PROVIDERS: AIProviderConfig[] = [
   {
     id: "anthropic_claude",
     name: "Anthropic Claude",
-    modelName: "claude-3-5-sonnet-20241022",
+    modelName: "claude-sonnet-5-5",
     provider: "Anthropic",
     tag: "Hluboký reasoning",
     tagEn: "Deep Reasoning",
@@ -68,7 +68,7 @@ export const SUPPORTED_AI_PROVIDERS: AIProviderConfig[] = [
     isFreemium: false,
     requiresKey: true,
     apiKeyHelpUrl: "https://console.anthropic.com/settings/keys",
-    placeholderKey: "sk-ant-api03-...",
+    placeholderKey: "sk-ant-api03-... nebo sk-ant-usr-...:wrkspc_id",
   },
 ];
 
