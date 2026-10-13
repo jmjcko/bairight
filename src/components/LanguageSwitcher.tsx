@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { useI18n } from '@/lib/i18n/I18nContext';
 import { SupportedLocale } from '@/lib/i18n/translations';
-import { X } from 'lucide-react';
+
 
 interface LanguageSwitcherProps {
   className?: string;
@@ -51,20 +51,20 @@ export const LanguageSwitcher: React.FC<LanguageSwitcherProps> = ({ className = 
           <button
             type="button"
             onClick={() => setNoticeLocale(null)}
-            className="p-1.5 rounded-lg bg-[#f4f6f8] hover:bg-[#eceff1] border border-slate-200 text-[#546e7a] hover:text-[#263238] transition-colors cursor-pointer shrink-0"
+            className="w-7 h-7 rounded-lg bg-[#f4f6f8] hover:bg-[#eceff1] border border-slate-200 text-[#546e7a] hover:text-[#263238] transition-colors cursor-pointer shrink-0 flex items-center justify-center font-mono text-xs"
             aria-label={noticeLocale === 'cs' ? 'Zavřít oznámení' : 'Close notification'}
           >
-            <X className="w-4 h-4" />
+            ✕
           </button>
         </div>
 
-        {/* Information Points: Clean typography & High Contrast Material Cards */}
+        {/* Information Points: Clean typography & Unified High Contrast Material Cards */}
         <div className="space-y-3 text-xs text-[#37474f] leading-relaxed font-sans">
           <div className="p-3.5 rounded-xl bg-[#f8fafc] border border-slate-200 space-y-1">
             <span className="font-bold text-[#01579b] text-xs block">
               {noticeLocale === 'cs' ? '1. Rozhraní aplikace & Navigace' : '1. Application UI & Navigation'}
             </span>
-            <p className="text-[#455a64] leading-relaxed">
+            <p className="text-[#37474f] leading-relaxed">
               {noticeLocale === 'cs'
                 ? 'Veškeré ovládací prvky, dotazníky, nákupní filtry a systémové hlášky jsou nyní v češtině.'
                 : 'All controls, questionnaires, shopping filters, and system messages are now fully in English.'}
@@ -75,15 +75,15 @@ export const LanguageSwitcher: React.FC<LanguageSwitcherProps> = ({ className = 
             <span className="font-bold text-[#01579b] text-xs block">
               {noticeLocale === 'cs' ? '2. Nový výzkum (Agent Luke) & Stažení (.md)' : '2. New Research (Agent Luke) & Downloads (.md)'}
             </span>
-            <p className="text-[#455a64] leading-relaxed">
+            <p className="text-[#37474f] leading-relaxed">
               {noticeLocale === 'cs'
                 ? 'Každá nově zadaná kategorie zboží bude analyzována v češtině a vytvoří plně českého agenta včetně českého systémového promptu a českého souboru .agent.md ke stažení.'
                 : 'Any newly researched product category will be analyzed in English and will generate a fully English agent including prompt directives and downloadable .agent.md.'}
             </p>
           </div>
 
-          <div className="p-3.5 rounded-xl bg-[#e1f5fe]/40 border border-[#b3e5fc] space-y-1">
-            <span className="font-bold text-[#014377] text-xs block">
+          <div className="p-3.5 rounded-xl bg-[#f8fafc] border border-slate-200 space-y-1">
+            <span className="font-bold text-[#01579b] text-xs block">
               {noticeLocale === 'cs' ? '3. Ochrana rozpracovaného agenta' : '3. Active Agent Protection'}
             </span>
             <p className="text-[#37474f] leading-relaxed">
@@ -93,7 +93,7 @@ export const LanguageSwitcher: React.FC<LanguageSwitcherProps> = ({ className = 
             </p>
           </div>
 
-          <div className="p-2.5 rounded-lg bg-[#f1f5f9] border border-slate-200 text-[11px] font-mono text-[#37474f] leading-relaxed">
+          <div className="p-2.5 rounded-lg bg-[#f8fafc] border border-slate-200 text-[11px] font-mono text-[#607d8b] leading-relaxed">
             {noticeLocale === 'cs'
               ? 'Trvalé uložení: Vaše volba byla zapsána do cookies, localStorage i uživatelského profilu pro všechna příští přihlášení.'
               : 'Persistent storage: Your preference has been saved to cookies, localStorage, and your account profile for future logins.'}
