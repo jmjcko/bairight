@@ -112,6 +112,47 @@ export const AgentCategoryLauncher: React.FC<AgentCategoryLauncherProps> = ({
   const [researchedAnalysis, setResearchedAnalysis] = useState<DomainAnalysisResult | null>(null);
   const [isResearching, setIsResearching] = useState(false);
   const [researchNotice, setResearchNotice] = useState<string | null>(null);
+  const [researchSeconds, setResearchSeconds] = useState(0);
+
+  useEffect(() => {
+    let timer: NodeJS.Timeout;
+    if (isResearching) {
+      setResearchSeconds(0);
+      timer = setInterval(() => {
+        setResearchSeconds((prev) => prev + 1);
+      }, 1000);
+    } else {
+      setResearchSeconds(0);
+    }
+    return () => clearInterval(timer);
+  }, [isResearching]);
+
+  const getLukeJediMessage = (seconds: number, isEn: boolean) => {
+    const step = Math.floor(seconds / 3) % 5;
+    switch (step) {
+      case 0:
+        return isEn
+          ? "Luke ignites his green lightsaber, cutting through marketing fluff..."
+          : "Luke zažehává zelený světelný meč a prosekává se marketingovým balastem...";
+      case 1:
+        return isEn
+          ? "Jedi market research in progress, sensing true quality through the Force..."
+          : "Probíhá Jedi rešerše trhu a technických specifikací s pomocí Síly...";
+      case 2:
+        return isEn
+          ? "Luke targets vendor compromises (uncovering hidden product flaws)..."
+          : "Luke odhaluje slabiny Impéria (skryté vady a kompromisy výrobců)...";
+      case 3:
+        return isEn
+          ? "Scanning independent reviews and real user sentiment across the galaxy..."
+          : "Skenuji nezávislé recenze a reálné zkušenosti uživatelů napříč galaxií...";
+      case 4:
+      default:
+        return isEn
+          ? "Luke is finalizing custom parameters. The Force is strong with this purchase."
+          : "Luke dokončuje parametry na míru. Síla je s vaším nákupem silná.";
+    }
+  };
     const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [toastType, setToastType] = useState<'success' | 'error' | 'info'>('success');
 
@@ -567,17 +608,44 @@ const [researchError, setResearchError] = useState<string | null>(null);
         </form>
       </div>
 
-          {/* Researching Animation Progress Card */}
+          {/* Researching Animation Progress Card — Luke Skywalker Green Lightsaber Protocol */}
           {isResearching && (
-            <Card active className="p-6 text-center space-y-3 animate-pulse shadow-2xl">
-              <div className="w-8 h-8 rounded-full border-2 border-cyan-400 border-t-transparent animate-spin mx-auto" />
-              <div>
+            <Card active className="p-6 text-center space-y-4 shadow-2xl border border-emerald-500/30 bg-slate-950/90 dark:bg-slate-950/95 relative overflow-hidden">
+              {/* Green ambient aura */}
+              <div className="absolute inset-0 bg-radial from-emerald-500/10 via-transparent to-transparent pointer-events-none" />
+
+              <div className="relative z-10 space-y-3">
+                {/* Header Tag & Live Ticker */}
+                <div className="flex items-center justify-center gap-2">
+                  <span className="text-[10px] font-mono font-bold uppercase tracking-widest text-emerald-400 bg-emerald-950/80 border border-emerald-500/40 px-2.5 py-0.5 rounded shadow-xs">
+                    AGENT LUKE
+                  </span>
+                  <span className="text-[10px] font-mono font-bold text-emerald-300/90 bg-slate-900 border border-emerald-500/20 px-2 py-0.5 rounded">
+                    {researchSeconds}s
+                  </span>
+                </div>
+
+                {/* Target Query */}
                 <h4 className="text-sm font-bold text-white font-mono flex items-center justify-center gap-2">
-                  <span>{locale === 'en' ? 'AI conducting deep market research for:' : 'AI provádí hloubkový průzkum trhu pro:'}</span>
-                  <span className="text-cyan-300 font-sans font-bold">{query.trim()}</span>
+                  <span>{locale === 'en' ? 'Deep market analysis for:' : 'Hloubkový průzkum trhu pro:'}</span>
+                  <span className="text-emerald-300 font-sans font-bold">„{query.trim()}“</span>
                 </h4>
-                <p className="text-xs text-slate-400 mt-1 max-w-xl mx-auto leading-relaxed">
-                  {locale === 'en' ? 'Browsing expert reviews, community forums, and technical manufacturer specs to identify true decision criteria...' : 'Procházím odborné recenze, komunitní fóra a technické specifikace výrobců pro nalezení skutečných rozhodovacích parametrů...'}
+
+                {/* Compact Green Neon Spinner & Pulse Center */}
+                <div className="relative w-8 h-8 mx-auto flex items-center justify-center my-1.5">
+                  <div className="w-8 h-8 rounded-full border-2 border-emerald-400 border-t-transparent animate-spin shadow-[0_0_12px_rgba(34,197,94,0.35)]" />
+                  <div className="absolute w-2 h-2 rounded-full bg-emerald-400 animate-ping opacity-75" />
+                </div>
+
+                {/* Dynamic Witty Luke Quote */}
+                <p className="text-xs font-semibold text-emerald-200/95 max-w-md mx-auto leading-relaxed animate-in fade-in duration-300">
+                  {getLukeJediMessage(researchSeconds, locale === "en")}
+                </p>
+
+                <p className="text-[11px] text-slate-400 max-w-lg mx-auto leading-relaxed font-sans">
+                  {locale === 'en'
+                    ? 'Scanning expert teardowns, community discussions & technical specs to isolate genuine decision criteria...'
+                    : 'Procházím odborné recenze, komunitní fóra a technické specifikace pro nalezení skutečných parametrů...'}
                 </p>
               </div>
             </Card>

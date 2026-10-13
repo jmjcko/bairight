@@ -9,9 +9,9 @@ describe('BuyMeACoffee Floating Capsule & Modal Flow', () => {
     const onClick = vi.fn();
     render(<BuyMeACoffeeFloatingButton onClick={onClick} locale="cs" />);
 
-    const button = screen.getByRole('button', { name: /Pozvat bAIright na kávu/i });
+    const button = screen.getByRole('button', { name: /Pozvat Luka na kávu/i });
     expect(button).toBeInTheDocument();
-    expect(screen.getByText('Pozvat na kávu')).toBeInTheDocument();
+    expect(screen.getByText('Pozvat Luka na kávu')).toBeInTheDocument();
 
     fireEvent.click(button);
     expect(onClick).toHaveBeenCalledTimes(1);
@@ -21,9 +21,9 @@ describe('BuyMeACoffee Floating Capsule & Modal Flow', () => {
     const onClick = vi.fn();
     render(<BuyMeACoffeeFloatingButton onClick={onClick} locale="en" />);
 
-    const button = screen.getByRole('button', { name: /Support bAIright on Buy Me a Coffee/i });
+    const button = screen.getByRole('button', { name: /Support Luke/i });
     expect(button).toBeInTheDocument();
-    expect(screen.getByText('Buy Me a Coffee')).toBeInTheDocument();
+    expect(screen.getByText('Buy Luke a coffee')).toBeInTheDocument();
 
     fireEvent.click(button);
     expect(onClick).toHaveBeenCalledTimes(1);
@@ -44,9 +44,9 @@ describe('BuyMeACoffee Floating Capsule & Modal Flow', () => {
     expect(screen.getByText('NEZÁVISLÝ VÝVOJ • PODPORA')).toBeInTheDocument();
     expect(screen.getByText('Podpořte vývoj bAIright')).toBeInTheDocument();
     expect(screen.getByText(/100% nezávislého/i)).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: /Pozvat na kávu/i })).toHaveAttribute(
+    expect(screen.getByRole('link', { name: /Pozvat Luka na kávu/i })).toHaveAttribute(
       'href',
-      'https://buymeacoffee.com/bairight'
+      'https://buy.stripe.com/9B6dRa2iv75R4EP2T49sk01'
     );
 
     fireEvent.click(screen.getByRole('button', { name: /Zavřít a pokračovat/i }));
@@ -68,9 +68,9 @@ describe('BuyMeACoffee Floating Capsule & Modal Flow', () => {
     expect(screen.getByText('INDEPENDENT PROJECT • SUPPORT')).toBeInTheDocument();
     expect(screen.getByText('Support bAIright Development')).toBeInTheDocument();
     expect(screen.getByText(/100% independent/i)).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: /Support on Buy Me a Coffee/i })).toHaveAttribute(
+    expect(screen.getByRole('link', { name: /Support Luke on Stripe/i })).toHaveAttribute(
       'href',
-      'https://buymeacoffee.com/bairight'
+      'https://buy.stripe.com/9B6dRa2iv75R4EP2T49sk01'
     );
   });
 });

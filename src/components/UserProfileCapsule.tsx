@@ -1,7 +1,11 @@
 'use client';
+
+import { APP_VERSION } from '@/lib/version';
 import { useI18n } from '@/lib/i18n/I18nContext';
 
 import React, { useState, useRef, useEffect } from "react";
+import Link from "next/link";
+import { isUserAdmin } from "@/lib/auth/admin-check";
 import { ChevronDown } from "lucide-react";
 import { AIProviderConfig } from "@/lib/agent/engine-config";
 import { useAuth } from "@/lib/auth/AuthContext";
@@ -147,6 +151,17 @@ export const UserProfileCapsule: React.FC<UserProfileCapsuleProps> = ({
                   </button>
                 )}
 
+                {isUserAdmin(user?.email) && (
+                  <Link
+                    href="/admin/feedback"
+                    onClick={() => setIsDropdownOpen(false)}
+                    className="w-full flex items-center justify-between px-2.5 py-2 rounded-lg bg-[#e1f5fe]/80 hover:bg-[#e1f5fe] text-[#01579b] font-semibold transition-colors cursor-pointer"
+                  >
+                    <span>{locale === "en" ? "Admin: Feedback" : "Admin: Zpětná vazba"}</span>
+                    <span className="text-[9px] font-mono font-bold px-1.5 py-0.5 rounded bg-[#01579b] text-white">ADMIN</span>
+                  </Link>
+                )}
+
                 <button
                   onClick={() => {
                     setIsDropdownOpen(false);
@@ -156,6 +171,12 @@ export const UserProfileCapsule: React.FC<UserProfileCapsuleProps> = ({
                 >
                   <span>{locale === "en" ? "Sign out" : "Odhlásit se"}</span>
                 </button>
+              </div>
+
+              {/* Version Footer */}
+              <div className="pt-2 border-t border-slate-200 flex items-center justify-between text-[10px] font-mono text-[#78909c] px-1">
+                <span>bAIright</span>
+                <span>{APP_VERSION}</span>
               </div>
             </div>
           )}

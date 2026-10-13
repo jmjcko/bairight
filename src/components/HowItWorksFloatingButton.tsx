@@ -17,7 +17,7 @@ export const HowItWorksFloatingButton: React.FC<HowItWorksFloatingButtonProps> =
   return (
     <div
       aria-label="How it works guide"
-      className="fixed bottom-[124px] sm:bottom-[66px] right-4 sm:right-6 z-40 print:hidden pointer-events-auto bg-transparent border-0 shadow-none p-0 m-0"
+      className="fixed bottom-[110px] sm:bottom-[122px] right-4 sm:right-6 z-40 print:hidden pointer-events-auto bg-transparent border-0 shadow-none p-0 m-0"
     >
       <button
         type="button"

@@ -1,5 +1,7 @@
 'use client';
 
+import { APP_VERSION } from '@/lib/version';
+
 import { useI18n } from "@/lib/i18n/I18nContext";
 import { useAuth } from "@/lib/auth/AuthContext";
 import React, { useState, useEffect, useMemo } from "react";
@@ -702,14 +704,19 @@ export const UserRAGMemoryModal: React.FC<UserRAGMemoryModalProps> = ({
         </div>
 
         {/* Footer */}
-        <div className="p-4 sm:p-5 border-t border-slate-200 bg-[#f8fafc] flex items-center justify-between">
-          <span className="text-xs text-[#546e7a] font-sans">
-            {locale === "en" ? (
-              <>Active RAG: <strong className="text-[#263238] font-bold">{activeFactsCount} facts</strong> and <strong className="text-[#263238] font-bold">{assessments.length} protocols</strong> ready for prompt enrichment.</>
-            ) : (
-              <>Aktivní RAG: <strong className="text-[#263238] font-bold">{activeFactsCount} faktů</strong> a <strong className="text-[#263238] font-bold">{assessments.length} zpráv</strong> připraveno k obohacení promptu.</>
-            )}
-          </span>
+        <div className="p-4 sm:p-5 border-t border-slate-200 bg-[#f8fafc] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <span className="text-xs text-[#546e7a] font-sans">
+              {locale === "en" ? (
+                <>Active RAG: <strong className="text-[#263238] font-bold">{activeFactsCount} facts</strong> and <strong className="text-[#263238] font-bold">{assessments.length} protocols</strong> ready for prompt enrichment.</>
+              ) : (
+                <>Aktivní RAG: <strong className="text-[#263238] font-bold">{activeFactsCount} faktů</strong> a <strong className="text-[#263238] font-bold">{assessments.length} zpráv</strong> připraveno k obohacení promptu.</>
+              )}
+            </span>
+            <span className="text-[10px] font-mono text-slate-400 font-semibold px-2 py-0.5 rounded bg-slate-200/50">
+              {APP_VERSION}
+            </span>
+          </div>
 
           <button
             onClick={onClose}

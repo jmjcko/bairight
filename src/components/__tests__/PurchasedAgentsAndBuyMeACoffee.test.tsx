@@ -81,9 +81,9 @@ describe('Purchased Agents & Buy Me a Coffee Celebration Flow (PRD & SDLC)', () 
       expect(screen.getByText(/Did bAIright help you save time and make the right choice\?/i)).toBeInTheDocument();
 
       // Buy me a coffee link
-      const bmcLink = screen.getByRole('link', { name: /Support on Buy Me a Coffee/i });
+      const bmcLink = screen.getByRole('link', { name: /Support Luke on Stripe/i });
       expect(bmcLink).toBeInTheDocument();
-      expect(bmcLink).toHaveAttribute('href', 'https://buymeacoffee.com/bairight');
+      expect(bmcLink).toHaveAttribute('href', 'https://buy.stripe.com/9B6dRa2iv75R4EP2T49sk01');
       expect(bmcLink).toHaveAttribute('target', '_blank');
 
       // Close button
@@ -107,7 +107,7 @@ describe('Purchased Agents & Buy Me a Coffee Celebration Flow (PRD & SDLC)', () 
       expect(screen.getByText('Gratulujeme k nákupu!')).toBeInTheDocument();
       expect(screen.getByText(/Váš nákupní rádce pro/i)).toBeInTheDocument();
       expect(screen.getByText(/Pomohl vám bAIright ušetřit čas a vybrat ten správný produkt\?/i)).toBeInTheDocument();
-      expect(screen.getByRole('link', { name: /Pozvat na kávu \(Buy Me a Coffee\)/i })).toBeInTheDocument();
+      expect(screen.getByRole('link', { name: /Pozvat Luka na kávu \(Stripe\)/i })).toBeInTheDocument();
       expect(screen.getByRole('button', { name: /Zavřít a pokračovat/i })).toBeInTheDocument();
     });
   });

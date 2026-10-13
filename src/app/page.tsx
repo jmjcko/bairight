@@ -1,6 +1,5 @@
 'use client';
 import { AgentMessageRenderer } from '@/components/AgentMessageRenderer';
-import { APP_VERSION } from '@/lib/version';
 
 
 import React, { useState, useEffect, useRef, useMemo } from 'react';
@@ -19,6 +18,8 @@ import { UniversalAgentPromptModal } from '@/components/UniversalAgentPromptModa
 import { BuyMeACoffeeFloatingButton } from '@/components/BuyMeACoffeeFloatingButton';
 import { HowItWorksFloatingButton } from '@/components/HowItWorksFloatingButton';
 import { BuyMeACoffeeModal } from '@/components/BuyMeACoffeeModal';
+import { FeedbackFloatingButton } from '@/components/FeedbackFloatingButton';
+import { FeedbackModal } from '@/components/FeedbackModal';
 import { ProductTourModal } from '@/components/ProductTourModal';
 import { 
   UniversalAgentDefinition,
@@ -226,6 +227,7 @@ export default function Home() {
   const [isPromptModalOpen, setIsPromptModalOpen] = useState(false);
   const [isGlobalCoffeeModalOpen, setIsGlobalCoffeeModalOpen] = useState(false);
   const [isTourModalOpen, setIsTourModalOpen] = useState(false);
+  const [isFeedbackModalOpen, setIsFeedbackModalOpen] = useState(false);
   const [activeFontId, setActiveFontId] = useState<string>('space-grotesk');
 
   // Universal Agent & BYOK State
@@ -1104,7 +1106,9 @@ export default function Home() {
       <header className="h-14 sm:h-16 border-b border-slate-200/80 bg-white px-3 sm:px-6 lg:px-8 flex items-center justify-between gap-2 lg:gap-4 shrink-0 z-20 shadow-xs relative">
         {/* Left: Brand Logo */}
         <div className="flex items-center gap-2.5 shrink-0">
-          <Logo size="md" onClick={handleGoHome} />
+          <div className="flex items-center group cursor-pointer" onClick={handleGoHome}>
+            <Logo size="md" />
+          </div>
         </div>
 
         {/* Center: Centered Mode Switcher in flex flow (Zero overlap on smaller / medium resolutions) */}
@@ -1824,17 +1828,14 @@ export default function Home() {
       {/* 6. Version watermark & Floating Action Capsules (hidden in Chat view to avoid overlapping input & send button) */}
       {activeTab !== 'chat' && (
         <>
-          <div 
-            className="fixed bottom-[166px] sm:bottom-[108px] right-4 sm:right-6 z-40 print:hidden select-none pointer-events-none text-right"
-            aria-hidden="true"
-          >
-            <span className="text-[10px] font-mono font-semibold text-slate-400 dark:text-slate-500 tracking-wider px-1">
-              {APP_VERSION}
-            </span>
-          </div>
+
 
           <HowItWorksFloatingButton
             onClick={() => setIsTourModalOpen(true)}
+            locale={locale}
+          />
+          <FeedbackFloatingButton
+            onClick={() => setIsFeedbackModalOpen(true)}
             locale={locale}
           />
           <BuyMeACoffeeFloatingButton
@@ -1857,6 +1858,11 @@ export default function Home() {
             window.location.href = "/guide";
           }
         }}
+      />
+      <FeedbackModal
+        isOpen={isFeedbackModalOpen}
+        onClose={() => setIsFeedbackModalOpen(false)}
+        locale={locale}
       />
     </div>
   );

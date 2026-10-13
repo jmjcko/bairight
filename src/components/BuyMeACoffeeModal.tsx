@@ -27,12 +27,25 @@ export const BuyMeACoffeeModal: React.FC<BuyMeACoffeeModalProps> = ({
     setMounted(true);
   }, []);
 
+  // Dynamically inject the Stripe Buy Button script when modal is opened
+  useEffect(() => {
+    if (!isOpen) return;
+    const existingScript = document.querySelector('script[src="https://js.stripe.com/v3/buy-button.js"]');
+    if (!existingScript) {
+      const script = document.createElement('script');
+      script.src = 'https://js.stripe.com/v3/buy-button.js';
+      script.async = true;
+      document.body.appendChild(script);
+    }
+  }, [isOpen]);
+
   if (!isOpen) return null;
 
   const effectiveUrl =
     buyMeACoffeeUrl ||
+    process.env.NEXT_PUBLIC_STRIPE_COFFEE_URL ||
     process.env.NEXT_PUBLIC_BUYMEACOFFEE_URL ||
-    'https://buymeacoffee.com/bairight';
+    'https://buy.stripe.com/9B6dRa2iv75R4EP2T49sk01';
 
   const isEn = locale === 'en';
 
@@ -122,9 +135,28 @@ export const BuyMeACoffeeModal: React.FC<BuyMeACoffeeModalProps> = ({
             </h3>
             <p className="text-xs text-[#455a64] dark:text-slate-300 leading-relaxed">
               {isEn
-                ? 'We build bAIright as an independent AI shopping consultant with zero sponsored ads. If it saved you money or research fatigue, we would be honored if you supported our ongoing development with a coffee.'
-                : 'Vyvíjíme bAIright jako nezávislého nákupního rádce bez sponzorovaných reklam. Pokud vám ušetřil peníze nebo trápení s výběrem, budeme moc rádi, když náš vývoj podpoříte pozváním na kávu.'}
+                ? 'Support continuous development and multi-model research servers by buying Luke a coffee via Stripe.'
+                : 'Podpořte další vývoj a provoz multi-modelových rešeršních serverů pozváním Luka na kávu přes Stripe.'}
             </p>
+          </div>
+
+          {/* Option A: Elevated Stripe Buy Button Container (Terminal card) */}
+          <div className="bg-white rounded-2xl p-4 sm:p-5 border border-slate-200 dark:border-slate-700/60 shadow-xl flex flex-col items-center justify-center space-y-3">
+            <div className="w-full flex justify-center min-h-[160px] items-center text-slate-800">
+              <stripe-buy-button
+                buy-button-id="buy_btn_1UQ7iKJilOZPRB0iGR7kfxY5"
+                publishable-key="pk_live_51TEXuiJilOZPRB0iE2CdmkahQ8gNHwDs5sHbBlHvyBOxyLq00EHMGygC2A6bGAdw75XLTMJAQUmyI0UO53URLrhb00YnyZoQ9O"
+              />
+            </div>
+            <a
+              href={effectiveUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1.5 text-xs font-semibold text-cyan-600 hover:text-cyan-700 transition-colors"
+            >
+              <span>{isEn ? 'Open direct payment on Stripe' : 'Otevřít přímou platbu na Stripe'}</span>
+              <ExternalLink className="w-3.5 h-3.5" />
+            </a>
           </div>
         </div>
 
@@ -145,7 +177,7 @@ export const BuyMeACoffeeModal: React.FC<BuyMeACoffeeModalProps> = ({
             onClick={onClose}
             className="w-full sm:w-auto flex items-center justify-center gap-2 px-6 py-2.5 rounded-xl text-xs font-bold bg-[#0099cc] hover:bg-[#0088b8] text-white shadow-[0_0_20px_rgba(0,153,204,0.35)] transition-all cursor-pointer text-center"
           >
-            <span>{isEn ? 'Support on Buy Me a Coffee' : 'Pozvat na kávu (Buy Me a Coffee)'}</span>
+            <span>{isEn ? 'Support Luke on Stripe' : 'Pozvat Luka na kávu (Stripe)'}</span>
             <ExternalLink className="w-3.5 h-3.5" />
           </a>
         </div>

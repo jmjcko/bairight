@@ -17,12 +17,12 @@ export const BuyMeACoffeeFloatingButton: React.FC<BuyMeACoffeeFloatingButtonProp
   return (
     <div
       aria-label="Support bAIright"
-      className="fixed bottom-20 sm:bottom-6 right-4 sm:right-6 z-40 print:hidden pointer-events-auto !bg-transparent !border-0 !shadow-none p-0 m-0"
+      className="fixed bottom-4 sm:bottom-6 right-4 sm:right-6 z-40 print:hidden pointer-events-auto !bg-transparent !border-0 !shadow-none p-0 m-0"
     >
       <button
         type="button"
         onClick={onClick}
-        aria-label={isEn ? 'Support bAIright on Buy Me a Coffee' : 'Pozvat bAIright na kávu (Buy Me a Coffee)'}
+        aria-label={isEn ? 'Support Luke (Buy Luke a coffee)' : 'Pozvat Luka na kávu (Buy Luke a coffee)'}
         className="group flex items-center gap-2 px-4 py-2 rounded-full bg-[#0099cc] hover:bg-[#0088b8] active:scale-95 text-white border border-[#33b5e5]/40 shadow-[0_4px_16px_rgba(0,153,204,0.35)] hover:shadow-[0_6px_22px_rgba(0,153,204,0.5)] transition-all duration-200 cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#0099cc]/50"
       >
         {/* Minimalist vector coffee cup SVG */}
@@ -43,7 +43,7 @@ export const BuyMeACoffeeFloatingButton: React.FC<BuyMeACoffeeFloatingButtonProp
           <line x1="14" y1="2" x2="14" y2="4" />
         </svg>
         <span className="text-xs font-bold tracking-tight text-white whitespace-nowrap">
-          {isEn ? 'Buy Me a Coffee' : 'Pozvat na kávu'}
+          {isEn ? 'Buy Luke a coffee' : 'Pozvat Luka na kávu'}
         </span>
       </button>
     </div>

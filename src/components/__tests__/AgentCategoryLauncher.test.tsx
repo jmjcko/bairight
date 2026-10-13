@@ -389,5 +389,36 @@ describe('AgentCategoryLauncher Unit Test Suite (PRD v1)', () => {
 
     expect(screen.getByText('Prop Cloud Synced Agent')).toBeInTheDocument();
   });
-});
+  it("15. Displays Luke Skywalker Green Lightsaber Jedi research animation during parameter discovery", async () => {
+    // Delay fetch response to observe the loading animation
+    let resolveFetch: any;
+    global.fetch = vi.fn().mockImplementation(() => new Promise((resolve) => {
+      resolveFetch = resolve;
+    }));
 
+    render(<AgentCategoryLauncher onSelectAgent={mockOnSelectAgent} />);
+
+    const searchInput = screen.getByPlaceholderText(/Kancelářská ergonomická židle/i);
+    fireEvent.change(searchInput, { target: { value: "herní sluchátka" } });
+
+    const researchBtn = screen.getByRole("button", { name: /Začít/i });
+    fireEvent.click(researchBtn);
+
+    // Verify Luke Jedi Lightsaber Protocol appears
+    expect(screen.getByText(/AGENT LUKE/i)).toBeInTheDocument();
+    expect(screen.getByText(/Luke zažehává zelený světelný meč/i)).toBeInTheDocument();
+
+    // Resolve fetch
+    resolveFetch({
+      ok: true,
+      json: async () => ({
+        success: true,
+        analysis: discoverDomainParameters("herní sluchátka"),
+      }),
+    });
+
+    await waitFor(() => {
+      expect(screen.queryByText(/Luke zažehává/i)).not.toBeInTheDocument();
+    });
+  });
+});
