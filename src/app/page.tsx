@@ -1706,7 +1706,7 @@ export default function Home() {
 
       {/* Global Interactive Modals */}
       
-      {/* Mobile Bottom Navigation Bar (Cyber-glass Style) */}
+      {/* Mobile Bottom Navigation Bar (Material Style) */}
       <nav 
         aria-label="Mobile Navigation" 
         className="sm:hidden border-t border-cyan-500/20 bg-[#0B121E]/95 backdrop-blur-xl px-3 py-1.5 flex items-center justify-around shrink-0 z-30 shadow-[0_-4px_25px_rgba(0,0,0,0.6)] safe-area-bottom"

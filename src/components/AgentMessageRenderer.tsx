@@ -88,7 +88,7 @@ interface ParsedModelBlock {
 }
 
 /**
- * Cyber-glass Agent Message Renderer
+ * Material Agent Message Renderer
  * Renders structured Markdown with clear typographic hierarchy,
  * dedicated model cards, and zero icon clutter.
  */

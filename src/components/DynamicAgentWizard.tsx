@@ -2434,7 +2434,7 @@ export const DynamicAgentWizard: React.FC<DynamicAgentWizardProps> = ({
         isSubmitting={isSubmitting}
       />
 
-      {/* BYOK Required Notice Modal (Cyber-glass) */}
+      {/* BYOK Required Notice Modal (Material) */}
       {showBYOKHintModal && mounted && typeof document !== 'undefined' && createPortal(
         <div
           role="dialog"

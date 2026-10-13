@@ -247,7 +247,7 @@ export default function MaterialRedesignPreviewPage() {
             <span className="font-bold">Gemini 2.0</span>
           </div>
 
-          {/* Return to Classic Cyber-Glass Mode */}
+          {/* Return to Classic Material Mode */}
           <Link
             href="/"
             className="px-3.5 py-1.5 rounded-full bg-[#263238] hover:bg-[#37474f] text-white text-xs font-medium transition-all shadow-xs flex items-center gap-1 cursor-pointer"

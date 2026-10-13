@@ -1,9 +1,7 @@
 'use client';
-import { useI18n } from '@/lib/i18n/I18nContext';
-
+import { useI18n } from "@/lib/i18n/I18nContext";
 import React, { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
-import { X, LogIn, Sparkles, Database, Shield } from "lucide-react";
 import { useAuth } from "@/lib/auth/AuthContext";
 
 interface GoogleLoginModalProps {
@@ -34,17 +32,17 @@ export const GoogleLoginModal: React.FC<GoogleLoginModalProps> = ({ isOpen, onCl
         {/* Close Button */}
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 p-2 rounded-lg text-[#607d8b] hover:text-[#263238] hover:bg-slate-800/60 transition-colors cursor-pointer"
+          className="absolute top-4 right-4 p-2 rounded-lg text-[#607d8b] hover:text-[#263238] hover:bg-slate-100 transition-colors cursor-pointer font-mono text-sm"
           title="Zavřít"
         >
-          <X className="w-5 h-5" />
+          ✕
         </button>
 
         {/* Header */}
         <div className="text-center space-y-1.5 pt-1">
-          <div className="mx-auto w-12 h-12 rounded-xl bg-gradient-to-tr from-cyan-600/30 to-teal-500/30 border border-cyan-400/40 flex items-center justify-center text-cyan-300 shadow-md">
-            <LogIn className="w-6 h-6 text-cyan-400" />
-          </div>
+          <span className="inline-block text-[10px] font-mono font-bold tracking-widest text-[#01579b] uppercase bg-[#e1f5fe] px-2.5 py-0.5 rounded-md border border-[#b3e5fc] mb-1">
+            {locale === "en" ? "GOOGLE ACCOUNT • SECURE LOGIN" : "GOOGLE ÚČET • ZABEZPEČENÉ PŘIHLÁŠENÍ"}
+          </span>
           <h2 className="text-xl font-bold font-sans text-[#263238]">
             {locale === "en" ? "Sign in to bAIright" : "Přihlášení do bAIright"}
           </h2>
@@ -56,34 +54,34 @@ export const GoogleLoginModal: React.FC<GoogleLoginModalProps> = ({ isOpen, onCl
         {/* Benefits Info Section */}
         <div className="space-y-3 bg-[#f4f6f8] p-4 rounded-xl border border-slate-200 text-xs">
           <div className="flex items-start gap-2.5">
-            <Sparkles className="w-4 h-4 text-cyan-400 shrink-0 mt-0.5" />
+            <span className="w-2 h-2 rounded-full bg-[#0288d1] shrink-0 mt-1.5" />
             <div>
               <span className="font-semibold text-[#263238]">{locale === "en" ? "Persisted Market Research" : "Persistovaný výzkum trhu"}</span>
-              <p className="text-[#607d8b] text-[11px]">Ukládejte si nalezené parametry a vygenerované prompty do svého profilu.</p>
+              <p className="text-[#607d8b] text-[11px]">{locale === "en" ? "Save your discovered parameters and generated prompts to your profile." : "Ukládejte si nalezené parametry a vygenerované prompty do svého profilu."}</p>
             </div>
           </div>
           <div className="flex items-start gap-2.5">
-            <Database className="w-4 h-4 text-teal-400 shrink-0 mt-0.5" />
+            <span className="w-2 h-2 rounded-full bg-[#00897b] shrink-0 mt-1.5" />
             <div>
               <span className="font-semibold text-[#263238]">{locale === "en" ? "Personal RAG Memory" : "Osobní RAG Paměť"}</span>
-              <p className="text-[#607d8b] text-[11px]">{locale === "en" ? "Sync your preferences, sizes, and requirements" : "Synchronizujte své preference, velikosti a biomechanická data"}.</p>
+              <p className="text-[#607d8b] text-[11px]">{locale === "en" ? "Sync your preferences, sizes, and requirements." : "Synchronizujte své preference, velikosti a biomechanická data."}</p>
             </div>
           </div>
           <div className="flex items-start gap-2.5">
-            <Shield className="w-4 h-4 text-cyan-400 shrink-0 mt-0.5" />
+            <span className="w-2 h-2 rounded-full bg-[#0288d1] shrink-0 mt-1.5" />
             <div>
               <span className="font-semibold text-[#263238]">{locale === "en" ? "Privacy Protection & BYOK" : "Ochrana soukromí & BYOK"}</span>
-              <p className="text-[#607d8b] text-[11px]">Klíče API jsou bezpečně uchovávány a nikdy neuniknou do bundle.</p>
+              <p className="text-[#607d8b] text-[11px]">{locale === "en" ? "API keys are safely stored in your local browser vault and never leak to bundles." : "Klíče API jsou bezpečně uchovávány a nikdy neuniknou do bundle."}</p>
             </div>
           </div>
         </div>
 
-        {/* Standardized Unified Google Sign-In Button */}
+        {/* Standardized Unified Google Sign-In Button (Material Design) */}
         <div className="py-1 flex flex-col items-center justify-center min-h-[50px]">
           <button
             onClick={() => loginWithGoogle()}
             disabled={isLoading}
-            className="w-full max-w-[320px] flex items-center justify-center gap-3 px-5 py-3 rounded-full bg-slate-900 hover:bg-slate-850 border border-cyan-500/40 hover:border-cyan-400 text-[#263238] font-semibold text-sm transition-all shadow-md cursor-pointer hover:shadow-[0_0_20px_rgba(6,182,212,0.25)] hover:scale-[1.02] active:scale-[0.98]"
+            className="w-full max-w-[320px] flex items-center justify-center gap-3 px-5 py-2.5 rounded-full bg-white hover:bg-slate-50 border border-slate-300 hover:border-slate-400 text-[#263238] font-medium text-sm transition-all shadow-sm hover:shadow cursor-pointer hover:scale-[1.01] active:scale-[0.99]"
           >
             <svg className="w-5 h-5 shrink-0" viewBox="0 0 24 24">
               <path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.665-5.17 3.665-9.17z"/>
@@ -96,7 +94,7 @@ export const GoogleLoginModal: React.FC<GoogleLoginModalProps> = ({ isOpen, onCl
         </div>
 
         {/* Footer info */}
-        <p className="text-center text-[11px] text-slate-500 pt-1">
+        <p className="text-center text-[11px] text-[#607d8b] pt-1">
           {locale === "en" ? "By signing in, you agree to bAIright terms of service and privacy policy." : "Přihlášením souhlasíte s podmínkami použití bAIright a zásadami ochrany osobních údajů."}
         </p>
       </div>

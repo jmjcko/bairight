@@ -152,7 +152,7 @@ export const LanguageSwitcher: React.FC<LanguageSwitcherProps> = ({ className = 
         </button>
       </div>
 
-      {/* Cyber-glass System Notification on Language Switch via Portal to document.body */}
+      {/* Material System Notification on Language Switch via Portal to document.body */}
       {modalContent && mounted && typeof document !== 'undefined'
         ? createPortal(modalContent, document.body)
         : null}

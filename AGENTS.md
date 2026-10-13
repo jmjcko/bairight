@@ -9,7 +9,7 @@ This repository (`bAIright` / `shoes`) operates under the **3Pillar AIRE SDLC Ag
 - **Product:** **bAIright** (Universal AI Shopping Consultant & Prompt Engineering Engine).
 - **Core Technology Stack:**
   - **Framework:** Next.js 15 (App Router), React 19, TypeScript.
-  - **Styling:** Vanilla CSS design system (Cyber-glass aesthetic, dark mode `#070d18` with glowing cyan `#06b6d4` & teal `#14b8a6` accents).
+  - **Styling:** Google Material Design system (Material Admin theme, Soft Neutral Canvas `#f4f6f8`, Pure White Cards `#ffffff`, Deep Slate `#263238` with Material Blue `#01579b` & `#e1f5fe` accents).
   - **AI & Reasoning Engine:** Multi-Model Orchestration (Google Gemini 2.0 / 1.5, OpenAI GPT-4o, Anthropic Claude 3.5, Local Ollama via BYOK).
   - **Testing:** Vitest + React Testing Library (100% test pass rate required).
   - **Localization:** Bilingual (English `en` is the primary default, Czech `cs` is 100% supported selectable locale. Every new feature, modal, button, prompt, and test suite must always include full EN and CZ versions, guaranteeing 100% functionality and parity across both locales).
@@ -17,7 +17,7 @@ This repository (`bAIright` / `shoes`) operates under the **3Pillar AIRE SDLC Ag
 ---
 
 ## 🚫 STRICT DESIGN & PRODUCT SPECIFICATION: ZERO ICONS & ZERO GENERIC EMOTICONS
-- **MANDATORY PRODUCT PRINCIPLE**: The bAIright UI is strictly an ultra-clean, serious, modern Cyber-glass application.
+- **MANDATORY PRODUCT PRINCIPLE**: The bAIright UI is strictly an ultra-clean, serious, modern Google Material Design application.
 - **STRICTLY FORBIDDEN ACROSS ALL SCREENS & COMPONENTS**:
   - **NO emojis or generic emoticons** (e.g. 🤖, 💎, 🧠, ⚡, 🔥, ✨, 🏀, 👟, 🎯, etc.) anywhere in titles, cards, pickers, loaders, instructions, badges, or buttons.
   - **NO decorative icon boxes or avatar containers** (e.g. `<div className="w-9 h-9 ..."><Bot .../></div>`, `<Sparkles>`, `<Cpu>`, generic robot heads, or category icon containers).

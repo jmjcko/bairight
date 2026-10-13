@@ -207,7 +207,7 @@ export default function GuidePage() {
             </div>
           </div>
 
-          {/* Cyber-Glass Mockup Frame */}
+          {/* Material Mockup Frame */}
           <div className="w-full rounded-2xl sm:rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/50 shadow-2xl shadow-[0_20px_70px_rgba(6,182,212,0.18)] overflow-hidden">
             {/* Window Chrome Header Bar */}
             <div className="h-10 px-4 sm:px-6 bg-slate-100 dark:bg-slate-950/80 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">

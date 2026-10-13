@@ -17,7 +17,7 @@ Tento dokument detailně popisuje architekturu multi-modelové integrace (Bring 
      - **Anthropic Claude** (Klinický a biomechanický reasoning, Sonnet řada, podpora Workspace ID).
      - **OpenAI ChatGPT** (Univerzální standard, GPT-4o a odlehčená řada GPT-4o-mini).
 
-3. **Striktní Cyber-glass Design & Zero Icons Mandát**:
+3. **Striktní Google Material Design Design & Zero Icons Mandát**:
    - Veškeré UI komponenty BYOK Vaultu a nápovědy striktně dodržují princip **Zero Icons & Zero Generic Emoticons** (žádné dekorativní ikony, žádné robotí hlavy, čistá typografie, monospace indikátory stavu a decentní cyan/teal linky).
 
 ---
@@ -27,7 +27,7 @@ Tento dokument detailně popisuje architekturu multi-modelové integrace (Bring 
 ```
 +-----------------------------------------------------------------------------------+
 |                            AIEngineSubscriptionModal                              |
-|   (Cyber-glass UI, Zero-Knowledge Vault, Step-by-Step Onboarding Guides [1]-[4])  |
+|   (Google Material Design UI, Zero-Knowledge Vault, Step-by-Step Onboarding Guides [1]-[4])  |
 +-----------------------------------------------------------------------------------+
                                        |
                                        v
@@ -117,7 +117,7 @@ Centrální mozek multi-modelové integrace:
 | **Claude Live Discovery & Failover** | Statický seznam kandidátů mohl zastarat nebo selhat při změně modelů Anthropicem. | Implementováno dynamické volání `discoverClaudeModels`, váhové skórování verzí a sledování `failureLogs`. | `src/lib/agent/model-discovery-service.ts` |
 | **OpenAI Failover & Quota Detekce** | OpenAI bylo voláno přímo s `gpt-4o` natvrdo bez failoveru; 429 quota padalo na generickou chybu. | Povýšení na `executeWithResilientFailover`, on-the-fly discovery, detekce `insufficient_quota` a bilingvní nápověda. | `src/app/api/agent/chat/route.ts`, `src/lib/agent/model-discovery-service.ts`, `src/app/api/agent/test-key/route.ts` |
 | **Denní kontrola modelů (Cron)** | Absence automatické rutiny na prověřování aktivních modelů poskytovatelů. | Vytvořen zabezpečený endpoint `/api/cron/sync-models` pro Vercel Cron a automatizované audity. | `src/app/api/cron/sync-models/route.ts` |
-| **Uživatelský Onboarding (Návod)** | Uživatelé tápali, jak klíče získat a proč jim nefunguje ChatGPT Plus / Claude Pro předplatné. | Implementován rozbalovací bilingvní průvodce krok za krokem [1]-[4] s vysvětlením platebních modelů v Cyber-glass stylu. | `src/components/AIEngineSubscriptionModal.tsx` |
+| **Uživatelský Onboarding (Návod)** | Uživatelé tápali, jak klíče získat a proč jim nefunguje ChatGPT Plus / Claude Pro předplatné. | Implementován rozbalovací bilingvní průvodce krok za krokem [1]-[4] s vysvětlením platebních modelů v Google Material Design stylu. | `src/components/AIEngineSubscriptionModal.tsx` |
 | **Kolize UI tlačítek v chatu** | Plovoucí tlačítka „Jak to funguje“ a „Koupit kafe“ překrývala input zpráv na stránce chatu. | Podmíněno zobrazení na `{activeTab !== 'chat' && (...) }`. | `src/app/page.tsx` |
 | **Překryv hlavičky na menších rozlišeních** | Absolutně centrovaný blok navigace kolidoval s profilem a přepínačem enginů. | Přechod na čistý Flexbox (`flex-1 min-w-0`), oříznutí textu agenta (`truncate`) a responzivní skrytí doplňkových prvků na mobilech/tabletech. | `src/app/page.tsx`, `src/components/UserProfileCapsule.tsx` |
 
