@@ -321,6 +321,15 @@ const [researchError, setResearchError] = useState<string | null>(null);
     setCustomParamInput('');
   };
 
+  const handleCancelResearch = () => {
+    setResearchedAnalysis(null);
+    setQuery('');
+    setActiveParameters([]);
+    setSelectedParamIds(new Set());
+    setSuggestedPool([]);
+    setResearchError(null);
+  };
+
   const handleResetParameters = () => {
     if (researchedAnalysis) {
       setActiveParameters(researchedAnalysis.parameters);
@@ -701,6 +710,16 @@ const [researchError, setResearchError] = useState<string | null>(null);
                 <div className="flex items-center gap-2.5 shrink-0 self-end sm:self-center">
                   <button
                     type="button"
+                    onClick={handleCancelResearch}
+                    className="p-2.5 rounded-xl bg-slate-100 dark:bg-slate-900 hover:bg-rose-50 dark:hover:bg-rose-950/40 text-slate-500 hover:text-rose-600 dark:text-slate-400 dark:hover:text-rose-400 border border-slate-200 dark:border-slate-800 hover:border-rose-300 dark:hover:border-rose-800 text-xs transition-colors cursor-pointer flex items-center justify-center shrink-0"
+                    title={locale === "en" ? "Cancel research & return to home" : "Zrušit rešerši a vrátit se na úvod"}
+                    aria-label={locale === "en" ? "Cancel research" : "Zrušit rešerši"}
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+
+                  <button
+                    type="button"
                     onClick={handleResetParameters}
                     className="p-2.5 rounded-xl bg-slate-100 dark:bg-slate-900 hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-cyan-300 border border-slate-200 dark:border-slate-800 text-xs transition-colors cursor-pointer flex items-center justify-center shrink-0"
                     title={locale === "en" ? "Reset default parameters" : "Obnovit výchozí parametry"}
@@ -1078,7 +1097,7 @@ const [researchError, setResearchError] = useState<string | null>(null);
                             {agent.questions.length} {locale === 'en' ? 'questions' : 'otázek'}
                           </span>
                           {isCompleted ? (
-                            <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-300 dark:border-emerald-700/50 text-emerald-800 dark:text-emerald-300 font-semibold">
+                            <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-[#e1f5fe] dark:bg-cyan-950/40 border border-[#b3e5fc] dark:border-cyan-700/50 text-[#01579b] dark:text-cyan-300 font-semibold">
                               {locale === 'en' ? 'Completed' : 'Dokončeno'}
                             </span>
                           ) : hasProgress ? (
@@ -1093,7 +1112,7 @@ const [researchError, setResearchError] = useState<string | null>(null);
                             <button
                               type="button"
                               onClick={(e) => handleMarkPurchased(e, rawAgent)}
-                              className="p-1.5 rounded-lg text-slate-500 hover:text-emerald-400 hover:bg-emerald-950/40 border border-transparent hover:border-emerald-500/30 transition-all cursor-pointer"
+                              className="p-1.5 rounded-lg text-slate-500 hover:text-cyan-600 dark:hover:text-cyan-400 hover:bg-cyan-50 dark:hover:bg-cyan-950/40 border border-transparent hover:border-cyan-500/30 transition-all cursor-pointer"
                               title={locale === 'en' ? 'Mark as Purchased (Move to History & Support)' : 'Označit jako zakoupené (Přesunout do historie)'}
                               aria-label={`${locale === 'en' ? 'Mark as purchased' : 'Označit jako zakoupené'} ${agent.name}`}
                             >

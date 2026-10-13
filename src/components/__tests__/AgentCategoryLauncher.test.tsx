@@ -421,4 +421,34 @@ describe('AgentCategoryLauncher Unit Test Suite (PRD v1)', () => {
       expect(screen.queryByText(/Luke zažehává/i)).not.toBeInTheDocument();
     });
   });
+
+  it("16. Clicking cancel research button dismisses parameters discovery and returns to clean home", async () => {
+    global.fetch = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        success: true,
+        analysis: discoverDomainParameters("koloběžka freestyle"),
+      }),
+    });
+
+    render(<AgentCategoryLauncher onSelectAgent={mockOnSelectAgent} />);
+
+    const searchInput = screen.getByPlaceholderText(/Kancelářská ergonomická židle/i) as HTMLInputElement;
+    fireEvent.change(searchInput, { target: { value: "koloběžka freestyle" } });
+
+    const researchBtn = screen.getByRole("button", { name: /Začít/i });
+    fireEvent.click(researchBtn);
+
+    // Parameter discovery header has cancel research button
+    await waitFor(() => {
+      expect(screen.getByRole("button", { name: /Zrušit rešerši/i })).toBeInTheDocument();
+    });
+
+    const cancelBtn = screen.getByRole("button", { name: /Zrušit rešerši/i });
+    fireEvent.click(cancelBtn);
+
+    // Parameter card is dismissed and input is cleared
+    expect(screen.queryByRole("button", { name: /Zrušit rešerši/i })).not.toBeInTheDocument();
+    expect(searchInput.value).toBe("");
+  });
 });
