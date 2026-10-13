@@ -140,6 +140,52 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
       });
 
+    // 0. Extract and establish session from URL hash if returning from OAuth redirect
+    if (typeof window !== "undefined" && window.location.hash && window.location.hash.includes("access_token=")) {
+      try {
+        const hash = window.location.hash.substring(1);
+        const params = new URLSearchParams(hash);
+        const accessToken = params.get("access_token");
+        const refreshToken = params.get("refresh_token");
+        if (accessToken && refreshToken && supabase && typeof supabase.auth?.setSession === "function") {
+          void supabase.auth.setSession({
+            access_token: accessToken,
+            refresh_token: refreshToken,
+          }).then(async ({ data, error }) => {
+            if (!error && data?.session?.user && isMounted) {
+              const authUser = data.session.user;
+              const profile: UserProfile = {
+                id: authUser.id,
+                email: authUser.email || "",
+                name:
+                  authUser.user_metadata?.name ||
+                  authUser.user_metadata?.full_name ||
+                  authUser.email?.split("@")[0] ||
+                  "User",
+                avatarUrl:
+                  authUser.user_metadata?.avatar_url ||
+                  authUser.user_metadata?.picture,
+                provider: "google",
+                preferredLocale: getSavedLocale(),
+              };
+
+              const canonicalId = await syncUserProfileToDatabase(profile);
+              if (canonicalId) {
+                profile.id = canonicalId;
+              }
+              setUser(profile);
+              if (typeof window !== "undefined") {
+                localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(profile));
+                window.history.replaceState(null, "", window.location.pathname);
+              }
+            }
+          });
+        }
+      } catch (err) {
+        console.warn("Could not process OAuth hash redirect:", err);
+      }
+    }
+
     // Native Supabase Auth Session Synchronization (Path A: Strict RLS)
     let authSubscription: any = null;
     if (supabase && typeof supabase.auth?.onAuthStateChange === "function") {
