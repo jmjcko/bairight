@@ -33,9 +33,24 @@ const LOCAL_STORAGE_KEY = "bairight_user_session";
 const CLIENT_ID_KEY = "bairight_google_client_id";
 
 // Helper to decode JWT token payload from Google GIS
-export function decodeGoogleJwt(token: string): { email?: string; name?: string; picture?: string; sub?: string } | null {
+export function decodeGoogleJwt(token: string): {
+  email?: string;
+  name?: string;
+  picture?: string;
+  sub?: string;
+  user_metadata?: {
+    email?: string;
+    full_name?: string;
+    name?: string;
+    picture?: string;
+    avatar_url?: string;
+    sub?: string;
+    provider_id?: string;
+  };
+} | null {
   try {
     const base64Url = token.split(".")[1];
+    if (!base64Url) return null;
     const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
     const jsonPayload = decodeURIComponent(
       atob(base64)
@@ -141,47 +156,82 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       });
 
     // 0. Extract and establish session from URL hash if returning from OAuth redirect
-    if (typeof window !== "undefined" && window.location.hash && window.location.hash.includes("access_token=")) {
+    const processOAuthHash = () => {
+      if (typeof window === "undefined" || !window.location.hash || !window.location.hash.includes("access_token=")) {
+        return;
+      }
       try {
         const hash = window.location.hash.substring(1);
         const params = new URLSearchParams(hash);
         const accessToken = params.get("access_token");
         const refreshToken = params.get("refresh_token");
-        if (accessToken && refreshToken && supabase && typeof supabase.auth?.setSession === "function") {
-          void supabase.auth.setSession({
-            access_token: accessToken,
-            refresh_token: refreshToken,
-          }).then(async ({ data, error }) => {
-            const authUser = data?.session?.user || data?.user;
-            if (!error && authUser && isMounted) {
-              const userId = authUser.user_metadata?.sub || authUser.user_metadata?.provider_id || authUser.id;
-              const profile: UserProfile = {
+
+        if (accessToken) {
+          // 0a. Instantly decode user profile from access_token JWT for 0ms lag UI update
+          const decoded = decodeGoogleJwt(accessToken);
+          if (decoded && isMounted) {
+            const meta = decoded.user_metadata || {};
+            const email = decoded.email || meta.email || "";
+            const userId = meta.sub || meta.provider_id || decoded.sub || email;
+            if (email) {
+              const immediateProfile: UserProfile = {
                 id: userId,
-                email: authUser.email || "",
-                name:
-                  authUser.user_metadata?.name ||
-                  authUser.user_metadata?.full_name ||
-                  authUser.email?.split("@")[0] ||
-                  "User",
-                avatarUrl:
-                  authUser.user_metadata?.avatar_url ||
-                  authUser.user_metadata?.picture,
+                email,
+                name: meta.full_name || meta.name || decoded.name || email.split("@")[0] || "User",
+                avatarUrl: meta.avatar_url || meta.picture || decoded.picture,
                 provider: "google",
                 preferredLocale: getSavedLocale(),
               };
 
-              setUser(profile);
-              if (typeof window !== "undefined") {
-                localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(profile));
-                window.history.replaceState(null, "", window.location.pathname);
-              }
-              void syncUserProfileToDatabase(profile);
+              setUser(immediateProfile);
+              localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(immediateProfile));
+              window.history.replaceState(null, "", window.location.pathname);
+              void syncUserProfileToDatabase(immediateProfile);
             }
-          });
+          }
+
+          // 0b. Establish native Supabase authenticated session in background (enables strict RLS)
+          if (refreshToken && supabase && typeof supabase.auth?.setSession === "function") {
+            void supabase.auth.setSession({
+              access_token: accessToken,
+              refresh_token: refreshToken,
+            }).then(async ({ data, error }) => {
+              const authUser = data?.session?.user || data?.user;
+              if (!error && authUser && isMounted) {
+                const userId = authUser.user_metadata?.sub || authUser.user_metadata?.provider_id || authUser.id;
+                const profile: UserProfile = {
+                  id: userId,
+                  email: authUser.email || "",
+                  name:
+                    authUser.user_metadata?.name ||
+                    authUser.user_metadata?.full_name ||
+                    authUser.email?.split("@")[0] ||
+                    "User",
+                  avatarUrl:
+                    authUser.user_metadata?.avatar_url ||
+                    authUser.user_metadata?.picture,
+                  provider: "google",
+                  preferredLocale: getSavedLocale(),
+                };
+
+                setUser(profile);
+                if (typeof window !== "undefined") {
+                  localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(profile));
+                  window.history.replaceState(null, "", window.location.pathname);
+                }
+                void syncUserProfileToDatabase(profile);
+              }
+            });
+          }
         }
       } catch (err) {
         console.warn("Could not process OAuth hash redirect:", err);
       }
+    };
+
+    processOAuthHash();
+    if (typeof window !== "undefined") {
+      window.addEventListener("hashchange", processOAuthHash);
     }
 
     // Native Supabase Auth Session Synchronization (Path A: Strict RLS)
@@ -260,6 +310,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     return () => {
       isMounted = false;
+      if (typeof window !== "undefined") {
+        window.removeEventListener("hashchange", processOAuthHash);
+      }
       if (authSubscription?.unsubscribe) authSubscription.unsubscribe();
     };
   }, []);

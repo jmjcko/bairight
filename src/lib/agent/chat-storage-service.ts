@@ -4,18 +4,26 @@
  * and synchronizes with Supabase cloud (chat_threads & chat_messages tables) for authenticated users.
  */
 
-import { supabase } from "@/lib/supabase";
+import { supabase, DEFAULT_SUPABASE_URL, DEFAULT_SUPABASE_ANON_KEY } from "@/lib/supabase";
 import { AgentChatMessage } from "./types";
 
 const CHAT_PREFIX = "bairight_chat_messages_";
 
 export class ChatStorageService {
   static isCloudSyncEnabled(): boolean {
-    const url = process.env.NEXT_PUBLIC_SUPABASE_URL || "";
+    const url =
+      process.env.NEXT_PUBLIC_SUPABASE_URL ||
+      process.env.NEXT_SUPABASE_URL ||
+      process.env.SUPABASE_URL ||
+      DEFAULT_SUPABASE_URL;
     const key =
       process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ||
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
-      "";
+      process.env.NEXT_SUPABASE_PUBLISHABLE_KEY ||
+      process.env.NEXT_SUPABASE_ANON_KEY ||
+      process.env.SUPABASE_PUBLISHABLE_KEY ||
+      process.env.SUPABASE_ANON_KEY ||
+      DEFAULT_SUPABASE_ANON_KEY;
     return Boolean(
       supabase &&
       url &&

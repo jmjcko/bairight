@@ -12,7 +12,7 @@ import {
   parseAgentFromMarkdown, 
   resolveAgentIcon 
 } from './universal-agent-schema';
-import { supabase } from '@/lib/supabase';
+import { supabase, DEFAULT_SUPABASE_URL, DEFAULT_SUPABASE_ANON_KEY } from '@/lib/supabase';
 
 const STORAGE_KEY = 'bairight_all_agents_v2';
 const LEGACY_STORAGE_KEY = 'bairight_custom_agents_v1';
@@ -22,11 +22,19 @@ export class AgentStorageService {
    * Checks if Supabase client is configured for cloud persistence
    */
   static isCloudSyncEnabled(): boolean {
-    const url = process.env.NEXT_PUBLIC_SUPABASE_URL || "";
+    const url =
+      process.env.NEXT_PUBLIC_SUPABASE_URL ||
+      process.env.NEXT_SUPABASE_URL ||
+      process.env.SUPABASE_URL ||
+      DEFAULT_SUPABASE_URL;
     const key =
       process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ||
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
-      "";
+      process.env.NEXT_SUPABASE_PUBLISHABLE_KEY ||
+      process.env.NEXT_SUPABASE_ANON_KEY ||
+      process.env.SUPABASE_PUBLISHABLE_KEY ||
+      process.env.SUPABASE_ANON_KEY ||
+      DEFAULT_SUPABASE_ANON_KEY;
     return Boolean(
       supabase &&
       url &&
