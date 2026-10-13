@@ -1101,66 +1101,68 @@ export default function Home() {
   return (
     <div className="flex h-screen flex-col bg-[#f4f6f8] text-[#263238] overflow-hidden font-sans">
       {/* Top Navbar: Clean Executive Header */}
-      <header className="h-14 sm:h-16 border-b border-slate-200/80 bg-white px-3 sm:px-8 flex items-center justify-between shrink-0 z-20 shadow-xs relative">
+      <header className="h-14 sm:h-16 border-b border-slate-200/80 bg-white px-3 sm:px-6 lg:px-8 flex items-center justify-between gap-2 lg:gap-4 shrink-0 z-20 shadow-xs relative">
         {/* Left: Brand Logo */}
         <div className="flex items-center gap-2.5 shrink-0">
           <Logo size="md" onClick={handleGoHome} />
         </div>
 
-        {/* Center: Centered Mode Switcher (Contextual — only visible when inside an active agent, Result Hub or Chat) */}
-        {(wizardMode === "active_agent" || activeTab === "chat" || selectedAgent !== null) && (
-          <div className="segmented-tabs-wrapper hidden sm:flex items-center justify-center absolute left-1/2 -translate-x-1/2 pointer-events-auto">
-          <div className="segmented-tabs-container flex items-center gap-1.5 p-1 rounded-xl bg-[#f4f6f8] border border-slate-200 text-xs font-sans">
-            <button
-              onClick={() => {
-                const activeOrStored = selectedAgent || (typeof window !== 'undefined' ? AgentStorageService.getAllAgents()[0] : null);
-                if (activeOrStored) {
-                  const isCompleted = isAgentCompleted(activeOrStored);
-                  handleSelectAgent(activeOrStored, isCompleted);
-                  setWizardInitialShowResult(isCompleted);
-                  setWizardMode('active_agent');
-                }
-                setActiveTab('wizard');
-              }}
-              style={activeTab === "wizard" ? { backgroundColor: "#0099cc", color: "#ffffff" } : undefined}
-              className={`segmented-tab-btn px-4 py-1.5 rounded-lg transition-all cursor-pointer font-semibold ${
-                activeTab === "wizard"
-                  ? "segmented-tab-active !bg-[#0099cc] !text-white shadow-xs"
-                  : "text-[#607d8b] hover:text-[#263238]"
-              }`}
-            >
-              {t.header.wizardTab}
-            </button>
-            <button
-              onClick={() => {
-                setActiveTab('chat');
-                setIsSidebarSwitchingAgent(false);
-                const userStoredAgents = AgentStorageService.getAllAgents();
-                setStoredAgents(userStoredAgents);
-                if (selectedAgent && !userStoredAgents.some((a) => a.id === selectedAgent.id)) {
-                  setSelectedAgent(null);
-                }
-              }}
-              style={activeTab === "chat" ? { backgroundColor: "#0099cc", color: "#ffffff" } : undefined}
-              className={`segmented-tab-btn px-4 py-1.5 rounded-lg transition-all cursor-pointer flex items-center gap-1.5 font-semibold ${
-                activeTab === "chat"
-                  ? "segmented-tab-active !bg-[#0099cc] !text-white shadow-xs"
-                  : "text-[#607d8b] hover:text-[#263238]"
-              }`}
-            >
-              <span>{t.header.chatTab}</span>
-              {selectedAgent && !isSidebarSwitchingAgent ? (
-                <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-[#e1f5fe] text-[#01579b] border border-[#b3e5fc] font-sans font-bold hidden md:inline">
-                  {selectedAgent.name}
-                </span>
-              ) : null}
-            </button>
+        {/* Center: Centered Mode Switcher in flex flow (Zero overlap on smaller / medium resolutions) */}
+        {(wizardMode === "active_agent" || activeTab === "chat" || selectedAgent !== null) ? (
+          <div className="segmented-tabs-wrapper hidden md:flex items-center justify-center flex-1 min-w-0 mx-2 pointer-events-auto">
+            <div className="segmented-tabs-container flex items-center gap-1.5 p-1 rounded-xl bg-[#f4f6f8] border border-slate-200 text-xs font-sans shrink-0">
+              <button
+                onClick={() => {
+                  const activeOrStored = selectedAgent || (typeof window !== 'undefined' ? AgentStorageService.getAllAgents()[0] : null);
+                  if (activeOrStored) {
+                    const isCompleted = isAgentCompleted(activeOrStored);
+                    handleSelectAgent(activeOrStored, isCompleted);
+                    setWizardInitialShowResult(isCompleted);
+                    setWizardMode('active_agent');
+                  }
+                  setActiveTab('wizard');
+                }}
+                style={activeTab === "wizard" ? { backgroundColor: "#0099cc", color: "#ffffff" } : undefined}
+                className={`segmented-tab-btn px-3 sm:px-4 py-1.5 rounded-lg transition-all cursor-pointer font-semibold whitespace-nowrap ${
+                  activeTab === "wizard"
+                    ? "segmented-tab-active !bg-[#0099cc] !text-white shadow-xs"
+                    : "text-[#607d8b] hover:text-[#263238]"
+                }`}
+              >
+                {t.header.wizardTab}
+              </button>
+              <button
+                onClick={() => {
+                  setActiveTab('chat');
+                  setIsSidebarSwitchingAgent(false);
+                  const userStoredAgents = AgentStorageService.getAllAgents();
+                  setStoredAgents(userStoredAgents);
+                  if (selectedAgent && !userStoredAgents.some((a) => a.id === selectedAgent.id)) {
+                    setSelectedAgent(null);
+                  }
+                }}
+                style={activeTab === "chat" ? { backgroundColor: "#0099cc", color: "#ffffff" } : undefined}
+                className={`segmented-tab-btn px-3 sm:px-4 py-1.5 rounded-lg transition-all cursor-pointer flex items-center gap-1.5 font-semibold whitespace-nowrap ${
+                  activeTab === "chat"
+                    ? "segmented-tab-active !bg-[#0099cc] !text-white shadow-xs"
+                    : "text-[#607d8b] hover:text-[#263238]"
+                }`}
+              >
+                <span>{t.header.chatTab}</span>
+                {selectedAgent && !isSidebarSwitchingAgent ? (
+                  <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-[#e1f5fe] text-[#01579b] border border-[#b3e5fc] font-sans font-bold hidden lg:inline max-w-[100px] xl:max-w-[160px] truncate">
+                    {selectedAgent.name}
+                  </span>
+                ) : null}
+              </button>
+            </div>
           </div>
-        </div>
+        ) : (
+          <div className="flex-1" />
         )}
 
         {/* Right: User Profile & Customization Capsules */}
-        <div className="flex items-center gap-1.5 sm:gap-3 shrink-0">
+        <div className="flex items-center gap-1.5 sm:gap-2.5 shrink-0 ml-auto">
           <HeaderEngineSwitcher
             activeProviderId={activeProviderId}
             onSelectProvider={(pId: AIProviderId) => {
@@ -1171,7 +1173,9 @@ export default function Home() {
             currentApiKeys={apiKeys}
           />
 
-          <ThemeModeSwitcher />
+          <div className="hidden xl:inline-flex">
+            <ThemeModeSwitcher />
+          </div>
           <LanguageSwitcher />
           <UserProfileCapsule
             userName={user?.name}
@@ -1817,24 +1821,28 @@ export default function Home() {
         agent={selectedAgent}
       />
 
-      {/* 6. Version watermark & Floating Action Capsules */}
-      <div 
-        className="fixed bottom-[166px] sm:bottom-[108px] right-4 sm:right-6 z-40 print:hidden select-none pointer-events-none text-right"
-        aria-hidden="true"
-      >
-        <span className="text-[10px] font-mono font-semibold text-slate-400 dark:text-slate-500 tracking-wider px-1">
-          {APP_VERSION}
-        </span>
-      </div>
+      {/* 6. Version watermark & Floating Action Capsules (hidden in Chat view to avoid overlapping input & send button) */}
+      {activeTab !== 'chat' && (
+        <>
+          <div 
+            className="fixed bottom-[166px] sm:bottom-[108px] right-4 sm:right-6 z-40 print:hidden select-none pointer-events-none text-right"
+            aria-hidden="true"
+          >
+            <span className="text-[10px] font-mono font-semibold text-slate-400 dark:text-slate-500 tracking-wider px-1">
+              {APP_VERSION}
+            </span>
+          </div>
 
-      <HowItWorksFloatingButton
-        onClick={() => setIsTourModalOpen(true)}
-        locale={locale}
-      />
-      <BuyMeACoffeeFloatingButton
-        onClick={() => setIsGlobalCoffeeModalOpen(true)}
-        locale={locale}
-      />
+          <HowItWorksFloatingButton
+            onClick={() => setIsTourModalOpen(true)}
+            locale={locale}
+          />
+          <BuyMeACoffeeFloatingButton
+            onClick={() => setIsGlobalCoffeeModalOpen(true)}
+            locale={locale}
+          />
+        </>
+      )}
       <BuyMeACoffeeModal
         isOpen={isGlobalCoffeeModalOpen}
         onClose={() => setIsGlobalCoffeeModalOpen(false)}

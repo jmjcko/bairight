@@ -38,10 +38,10 @@ export const UserProfileCapsule: React.FC<UserProfileCapsuleProps> = ({
 
   return (
     <div className="flex items-center gap-1.5 sm:gap-2 relative" ref={dropdownRef}>
-      {/* RAG Memory Quick Button */}
+      {/* RAG Memory Quick Button (responsive: visible on xl screens; accessible in profile dropdown on all screens) */}
       <button
         onClick={onOpenMemoryModal}
-        className="hidden md:flex items-center gap-1.5 px-3 h-8 rounded-lg bg-[#f4f6f8] hover:bg-[#eceff1] border border-slate-200 text-xs transition-all cursor-pointer group shadow-xs text-[#263238] hover:text-[#0099cc]"
+        className="hidden xl:flex items-center gap-1.5 px-3 h-8 rounded-lg bg-[#f4f6f8] hover:bg-[#eceff1] border border-slate-200 text-xs transition-all cursor-pointer group shadow-xs text-[#263238] hover:text-[#0099cc]"
         title={locale === "en" ? "Show personal AI memory, biometrics and history" : "Zobrazit osobní paměť AI, biometrii a historii posudků"}
       >
         <span className="text-xs font-mono font-medium">{locale === "en" ? "AI Memory" : "Paměť AI"}</span>
