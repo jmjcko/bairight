@@ -175,7 +175,7 @@ export const BuyMeACoffeeModal: React.FC<BuyMeACoffeeModalProps> = ({
             target="_blank"
             rel="noopener noreferrer"
             onClick={onClose}
-            className="w-full sm:w-auto flex items-center justify-center gap-2 px-6 py-2.5 rounded-xl text-xs font-bold bg-[#0099cc] hover:bg-[#0088b8] text-white shadow-[0_0_20px_rgba(0,153,204,0.35)] transition-all cursor-pointer text-center"
+            className="w-full sm:w-auto flex items-center justify-center gap-2 px-6 py-2.5 rounded-xl text-xs font-bold !bg-[#059669] hover:!bg-[#10b981] !text-white shadow-[0_0_20px_rgba(16,185,129,0.4)] transition-all cursor-pointer text-center"
           >
             <span>{isEn ? 'Support Luke on Stripe' : 'Pozvat Luka na kávu (Stripe)'}</span>
             <ExternalLink className="w-3.5 h-3.5" />

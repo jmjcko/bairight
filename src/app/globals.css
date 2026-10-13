@@ -572,9 +572,7 @@ body.material-mode .bg-gradient-to-r.from-cyan-500.to-teal-400,
 [data-theme="google-material"] .bg-cyan-500,
 body.material-mode .bg-cyan-500,
 [data-theme="google-material"] .bg-teal-500,
-body.material-mode .bg-teal-500,
-[data-theme="google-material"] .bg-emerald-600,
-body.material-mode .bg-emerald-600 {
+body.material-mode .bg-teal-500 {
   background-image: none !important;
   background-color: var(--md-primary) !important;
   color: var(--md-on-primary) !important;

@@ -6,18 +6,20 @@ import { SupportedLocale } from '@/lib/i18n/translations';
 interface FeedbackFloatingButtonProps {
   onClick: () => void;
   locale: SupportedLocale;
+  className?: string;
 }
 
 export const FeedbackFloatingButton: React.FC<FeedbackFloatingButtonProps> = ({
   onClick,
   locale,
+  className = "",
 }) => {
   const isEn = locale === 'en';
 
   return (
     <div
       aria-label="Community Feedback"
-      className="fixed bottom-[58px] sm:bottom-[70px] right-4 sm:right-6 z-40 print:hidden pointer-events-auto bg-transparent border-0 shadow-none p-0 m-0"
+      className={"pointer-events-auto bg-transparent border-0 shadow-none p-0 m-0 " + (className || "")}
     >
       <button
         type="button"

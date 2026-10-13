@@ -6,24 +6,26 @@ import { SupportedLocale } from '@/lib/i18n/translations';
 interface BuyMeACoffeeFloatingButtonProps {
   onClick: () => void;
   locale: SupportedLocale;
+  className?: string;
 }
 
 export const BuyMeACoffeeFloatingButton: React.FC<BuyMeACoffeeFloatingButtonProps> = ({
   onClick,
   locale,
+  className = "",
 }) => {
   const isEn = locale === 'en';
 
   return (
     <div
       aria-label="Support bAIright"
-      className="fixed bottom-4 sm:bottom-6 right-4 sm:right-6 z-40 print:hidden pointer-events-auto !bg-transparent !border-0 !shadow-none p-0 m-0"
+      className={"pointer-events-auto !bg-transparent !border-0 !shadow-none p-0 m-0 " + (className || "")}
     >
       <button
         type="button"
         onClick={onClick}
         aria-label={isEn ? 'Support Luke (Buy Luke a coffee)' : 'Pozvat Luka na kávu (Buy Luke a coffee)'}
-        className="group flex items-center gap-2 px-4 py-2 rounded-full bg-[#0099cc] hover:bg-[#0088b8] active:scale-95 text-white border border-[#33b5e5]/40 shadow-[0_4px_16px_rgba(0,153,204,0.35)] hover:shadow-[0_6px_22px_rgba(0,153,204,0.5)] transition-all duration-200 cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#0099cc]/50"
+        className="group flex items-center gap-2 px-4 py-2 rounded-full !bg-[#059669] hover:!bg-[#10b981] active:scale-95 !text-white border border-[#34d399]/40 shadow-[0_4px_16px_rgba(16,185,129,0.4)] hover:shadow-[0_6px_22px_rgba(16,185,129,0.6)] transition-all duration-200 cursor-pointer focus:outline-none focus:ring-2 focus:ring-emerald-500/50"
       >
         {/* Minimalist vector coffee cup SVG */}
         <svg
