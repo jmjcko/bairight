@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Luke Consistency Lab (Internal)',
+  title: 'Luke (Internal) | bAIright',
   description: 'Interní neindexovaná laboratoř pro testování a ověřování sémantické konzistence Agenta Lukea bez mezipaměti.',
   robots: {
     index: false,

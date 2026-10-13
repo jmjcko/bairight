@@ -67,8 +67,21 @@ export async function POST(req: NextRequest) {
           apiKey: effectiveKey,
           locale,
         });
-      } catch (llmErr) {
+      } catch (llmErr: any) {
         console.warn('Live LLM conversation call failed, falling back to conversational synthesizer:', llmErr);
+        if (llmErr?.message?.includes('ANTHROPIC_CREDIT_EXHAUSTED')) {
+          assistantContent = locale === 'en'
+            ? `### ⚠️ Anthropic API Credit Balance Exhausted
+
+Your Anthropic Claude API key is valid, but your Anthropic Console account balance is \zsh or exhausted. Anthropic requires a prepaid credit balance to process inference.
+
+👉 **To continue:** Add credits in [Anthropic Console (Billing)](https://console.anthropic.com/settings/plans), or switch to **Google Gemini** (100% free with no credit card required).`
+            : `### ⚠️ Vyčerpaný kredit na účtu Anthropic API
+
+Váš Claude API klíč je platný, ale váš účet v Anthropic Console má nulový kredit (\zsh). Anthropic vyžaduje předplacení kreditu (např. 5 USD) pro provolávání modelů.
+
+👉 **Jak pokračovat:** Dobijte kredit v [Anthropic Console (Billing)](https://console.anthropic.com/settings/plans), nebo přepněte na **Google Gemini** (100% zdarma bez nutnosti platební karty).`;
+        }
       }
     }
 
@@ -600,7 +613,7 @@ ${chatIntent === "conversational_dialogue" ? "3. KONVERZAČNÍ KONZULTANT: Pří
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'x-api-key': apiKey,
+        'x-api-key': apiKey.trim(),
         'anthropic-version': '2023-06-01',
       },
       body: JSON.stringify({
@@ -611,7 +624,14 @@ ${chatIntent === "conversational_dialogue" ? "3. KONVERZAČNÍ KONZULTANT: Pří
       }),
     });
 
-    if (!res.ok) throw new Error(`Claude HTTP ${res.status}`);
+    if (!res.ok) {
+      const errData = await res.json().catch(() => ({}));
+      const errMsg = errData?.error?.message || `HTTP ${res.status}`;
+      if (errMsg.toLowerCase().includes('credit') || errMsg.toLowerCase().includes('balance') || errMsg.toLowerCase().includes('billing')) {
+        throw new Error(`ANTHROPIC_CREDIT_EXHAUSTED: ${errMsg}`);
+      }
+      throw new Error(`Claude HTTP ${res.status}: ${errMsg}`);
+    }
     const data = await res.json();
     return data?.content?.[0]?.text || '';
   }

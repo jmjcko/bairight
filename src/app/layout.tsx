@@ -27,7 +27,7 @@ export const viewport: Viewport = {
   themeColor: "#f4f6f8",
 };
 
-const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://bairight.app';
+const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://bairight.pro';
 
 export const metadata: Metadata = {
   metadataBase: new URL(baseUrl),

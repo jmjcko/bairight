@@ -93,7 +93,7 @@ export const AIEngineSubscriptionModal: React.FC<AIEngineSubscriptionModalProps>
   };
 
   const handleTestKey = async (providerId: string) => {
-    const key = apiKeys[providerId];
+    const key = apiKeys[providerId]?.trim();
     if (!key) {
       setTestStatus((prev) => ({
         ...prev,
@@ -119,7 +119,7 @@ export const AIEngineSubscriptionModal: React.FC<AIEngineSubscriptionModalProps>
         body: JSON.stringify({ providerId, apiKey: key }),
       });
       const data = await res.json();
-      const isValid = Boolean(data.ok || data.valid);
+      const isValid = Boolean(data.ok || data.valid || data.creditWarning);
 
       VaultService.setKeyVerificationStatus(providerId, isValid, data.error, data.model);
       setVerificationStatuses(VaultService.getAllVerificationStatuses());
@@ -159,7 +159,7 @@ export const AIEngineSubscriptionModal: React.FC<AIEngineSubscriptionModalProps>
     if (isSelectedKeyFailed) return;
 
     Object.entries(apiKeys).forEach(([pid, k]) => {
-      VaultService.saveApiKey(pid, k);
+      if (k && typeof k === "string") { VaultService.saveApiKey(pid, k.trim()); }
     });
 
     onSaveProvider(activeId, apiKeys);
@@ -312,7 +312,7 @@ export const AIEngineSubscriptionModal: React.FC<AIEngineSubscriptionModalProps>
                     onClick={(e) => e.stopPropagation()}
                   >
                     <div className="flex items-center justify-between">
-                      <label className="text-xs font-semibold text-cyan-300 font-mono">
+                      <label className="text-xs font-bold text-slate-800 dark:text-cyan-300 font-mono">
                         <span>{isEn ? `Your ${provider.provider} API Key:` : `Váš ${provider.provider} API Klíč:`}</span>
                       </label>
                       {provider.apiKeyHelpUrl && (
@@ -320,7 +320,7 @@ export const AIEngineSubscriptionModal: React.FC<AIEngineSubscriptionModalProps>
                           href={provider.apiKeyHelpUrl}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="text-[10px] text-cyan-400 hover:text-cyan-300 underline font-mono"
+                          className="text-[10px] text-[#0077a3] hover:text-[#005577] dark:text-cyan-400 font-bold underline font-mono"
                         >
                           <span>{isEn ? 'Get API Key →' : 'Získat klíč →'}</span>
                         </a>

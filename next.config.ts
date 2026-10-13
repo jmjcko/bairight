@@ -13,6 +13,15 @@ const nextConfig: NextConfig = {
   // In Next.js 14.2+, allowedDevOrigins is top-level
   // @ts-ignore
   allowedDevOrigins: ['*.lhr.life', '*.localhost.run', 'localhost:3000'],
+  async redirects() {
+    return [
+      {
+        source: '/luke-lab',
+        destination: '/luke',
+        permanent: true,
+      },
+    ];
+  },
   async headers() {
     return [
       {

@@ -1004,28 +1004,35 @@ export const DynamicAgentWizard: React.FC<DynamicAgentWizardProps> = ({
                         handleValueChange('baselineLikes', '');
                         handleValueChange('baselineDislikes', '');
                       }}
-                      className={`p-5 rounded-2xl border text-left transition-all cursor-pointer flex flex-col justify-between gap-3 ${
+                      className={`p-5 rounded-2xl border text-left transition-all cursor-pointer flex flex-col justify-between gap-3 shadow-xs ${
                         baselineMode === 'first_purchase'
-                          ? 'bg-[#0099cc]/5 dark:bg-[#0099cc]/15 border-2 border-[#0099cc] ring-1 ring-[#0099cc]/30 shadow-xs'
-                          : 'bg-white dark:bg-slate-900/50 border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 hover:bg-slate-50/50 dark:hover:bg-slate-900/80'
+                          ? 'bg-sky-50/80 dark:bg-[#0099cc]/15 border-[#0099cc] ring-1 ring-[#0099cc]/30 dark:ring-[#0099cc]/40'
+                          : 'bg-white dark:bg-slate-900/60 border-sky-300 dark:border-cyan-500/40 hover:border-[#0099cc] dark:hover:border-cyan-400 hover:bg-sky-50/50 dark:hover:bg-slate-800/70'
                       }`}
                     >
-                      <div className="space-y-1">
-                        <div className="flex items-center justify-between">
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between gap-2">
+                          <span className="text-[10px] font-mono font-bold tracking-wider px-2 py-0.5 rounded bg-sky-100 dark:bg-cyan-950/80 text-sky-800 dark:text-cyan-300 border border-sky-200 dark:border-cyan-700/60 uppercase">
+                            {locale === 'en' ? 'Fresh Start' : 'Nový výběr'}
+                          </span>
+                          {baselineMode === 'first_purchase' ? (
+                            <div className="w-5 h-5 rounded-md bg-[#0099cc] text-white flex items-center justify-center shrink-0 shadow-xs">
+                              <span className="text-xs font-black leading-none">✓</span>
+                            </div>
+                          ) : (
+                            <div className="w-5 h-5 rounded-md border border-sky-300 dark:border-cyan-500/50 bg-white dark:bg-slate-950 shrink-0" />
+                          )}
+                        </div>
+                        <div>
                           <h4 className="text-sm sm:text-base font-bold text-slate-900 dark:text-white tracking-wide">
                             {locale === 'en' ? 'First purchase in this category' : 'Kupuji poprvé v této kategorii'}
                           </h4>
-                          {baselineMode === 'first_purchase' && (
-                            <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded bg-[#0099cc]/15 text-[#0099cc] dark:text-[#38bdf8] border border-[#0099cc]/30">
-                              {locale === 'en' ? 'SELECTED' : 'ZVOLENO'}
-                            </span>
-                          )}
+                          <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed mt-1">
+                            {locale === 'en'
+                              ? 'I do not own any model yet. Take me straight to parameter configuration.'
+                              : 'Zatím v této kategorii nic nevlastním, chci přejít rovnou k parametrům.'}
+                          </p>
                         </div>
-                        <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
-                          {locale === 'en'
-                            ? 'I do not own any model yet. Take me straight to parameter configuration.'
-                            : 'Zatím v této kategorii nic nevlastním, chci přejít rovnou k parametrům.'}
-                        </p>
                       </div>
                     </button>
 
@@ -1033,28 +1040,35 @@ export const DynamicAgentWizard: React.FC<DynamicAgentWizardProps> = ({
                     <button
                       type="button"
                       onClick={() => setBaselineMode('has_experience')}
-                      className={`p-5 rounded-2xl border text-left transition-all cursor-pointer flex flex-col justify-between gap-3 ${
+                      className={`p-5 rounded-2xl border text-left transition-all cursor-pointer flex flex-col justify-between gap-3 shadow-xs ${
                         baselineMode === 'has_experience'
-                          ? 'bg-[#0099cc]/5 dark:bg-[#0099cc]/15 border-2 border-[#0099cc] ring-1 ring-[#0099cc]/30 shadow-xs'
-                          : 'bg-white dark:bg-slate-900/50 border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 hover:bg-slate-50/50 dark:hover:bg-slate-900/80'
+                          ? 'bg-sky-50/80 dark:bg-[#0099cc]/15 border-[#0099cc] ring-1 ring-[#0099cc]/30 dark:ring-[#0099cc]/40'
+                          : 'bg-white dark:bg-slate-900/60 border-sky-300 dark:border-cyan-500/40 hover:border-[#0099cc] dark:hover:border-cyan-400 hover:bg-sky-50/50 dark:hover:bg-slate-800/70'
                       }`}
                     >
-                      <div className="space-y-1">
-                        <div className="flex items-center justify-between">
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between gap-2">
+                          <span className="text-[10px] font-mono font-bold tracking-wider px-2 py-0.5 rounded bg-sky-100 dark:bg-cyan-950/80 text-sky-800 dark:text-cyan-300 border border-sky-200 dark:border-cyan-700/60 uppercase">
+                            {locale === 'en' ? 'AI Benchmark' : 'AI Srovnání'}
+                          </span>
+                          {baselineMode === 'has_experience' ? (
+                            <div className="w-5 h-5 rounded-md bg-[#0099cc] text-white flex items-center justify-center shrink-0 shadow-xs">
+                              <span className="text-xs font-black leading-none">✓</span>
+                            </div>
+                          ) : (
+                            <div className="w-5 h-5 rounded-md border border-sky-300 dark:border-cyan-500/50 bg-white dark:bg-slate-950 shrink-0" />
+                          )}
+                        </div>
+                        <div>
                           <h4 className="text-sm sm:text-base font-bold text-slate-900 dark:text-white tracking-wide">
                             {locale === 'en' ? 'I have prior experience (Own/used a model)' : 'Mám předchozí zkušenost (Vlastním / používal jsem produkt)'}
                           </h4>
-                          {baselineMode === 'has_experience' && (
-                            <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded bg-[#0099cc]/15 text-[#0099cc] dark:text-[#38bdf8] border border-[#0099cc]/30">
-                              {locale === 'en' ? 'SELECTED' : 'ZVOLENO'}
-                            </span>
-                          )}
+                          <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed mt-1">
+                            {locale === 'en'
+                              ? 'I will specify my current model to benchmark what worked and what disappointed.'
+                              : 'Zadám stávající model pro přímé srovnání a specifikuji, co mi vyhovovalo a co vadilo.'}
+                          </p>
                         </div>
-                        <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
-                          {locale === 'en'
-                            ? 'I will specify my current model to benchmark what worked and what disappointed.'
-                            : 'Zadám stávající model pro přímé srovnání a specifikuji, co mi vyhovovalo a co vadilo.'}
-                        </p>
                       </div>
                     </button>
                   </div>
@@ -1291,10 +1305,10 @@ export const DynamicAgentWizard: React.FC<DynamicAgentWizardProps> = ({
                               key={`${opt.value}-${optIdx}`}
                               type="button"
                               onClick={() => handleToggleChip(question, opt.value)}
-                              className={`p-4 rounded-2xl border-2 text-left transition-all cursor-pointer flex items-start justify-between gap-3 ${
+                              className={`p-4 rounded-2xl border text-left transition-all cursor-pointer flex items-start justify-between gap-3 ${
                                 isSelected
                                   ? 'bg-sky-100/70 dark:bg-[#0099cc]/15 border-[#0099cc] text-slate-900 dark:text-white ring-1 ring-[#0099cc]/30 dark:ring-[#0099cc]/40 shadow-xs'
-                                  : 'bg-white dark:bg-slate-900/60 border-sky-100 dark:border-cyan-950/80 text-slate-800 dark:text-slate-200 hover:border-sky-300 dark:hover:border-cyan-700/70 hover:bg-sky-50/50 dark:hover:bg-slate-800/70'
+                                  : 'bg-white dark:bg-slate-900/60 border-sky-300 dark:border-cyan-500/40 text-slate-800 dark:text-slate-200 hover:border-[#0099cc] dark:hover:border-cyan-400 hover:bg-sky-50/50 dark:hover:bg-slate-800/70'
                               }`}
                             >
                               <div className="space-y-1">
@@ -1315,7 +1329,7 @@ export const DynamicAgentWizard: React.FC<DynamicAgentWizardProps> = ({
                                   <span className="text-xs font-black leading-none">✓</span>
                                 </div>
                               ) : (
-                                <div className="w-5 h-5 rounded-md border-2 border-sky-200 dark:border-cyan-900/80 bg-white dark:bg-slate-950 shrink-0 mt-0.5" />
+                                <div className="w-5 h-5 rounded-md border border-sky-300 dark:border-cyan-500/50 bg-white dark:bg-slate-950 shrink-0 mt-0.5" />
                               )}
                             </button>
                           );
@@ -1328,10 +1342,10 @@ export const DynamicAgentWizard: React.FC<DynamicAgentWizardProps> = ({
                             <button
                               type="button"
                               onClick={() => handleToggleChip(question, '__SKIP__')}
-                              className={`sm:col-span-2 p-4 rounded-2xl border-2 text-left transition-all cursor-pointer flex items-center justify-between gap-3 shadow-xs ${
+                              className={`sm:col-span-2 p-4 rounded-2xl border text-left transition-all cursor-pointer flex items-center justify-between gap-3 shadow-xs ${
                                 isSkipSelected
                                   ? 'bg-sky-100/80 dark:bg-[#0099cc]/20 border-[#0099cc] text-slate-900 dark:text-white ring-1 ring-[#0099cc]/30 dark:ring-[#0099cc]/40'
-                                  : 'bg-sky-50/70 dark:bg-cyan-950/40 border-sky-200/90 dark:border-cyan-800/60 text-slate-800 dark:text-slate-200 hover:border-sky-400 dark:hover:border-cyan-600 hover:bg-sky-100/70 dark:hover:bg-cyan-950/70'
+                                  : 'bg-sky-50/70 dark:bg-cyan-950/40 border-sky-300 dark:border-cyan-500/40 text-slate-800 dark:text-slate-200 hover:border-[#0099cc] dark:hover:border-cyan-400 hover:bg-sky-100/70 dark:hover:bg-cyan-950/70'
                               }`}
                             >
                               <div className="space-y-1">
@@ -1352,7 +1366,7 @@ export const DynamicAgentWizard: React.FC<DynamicAgentWizardProps> = ({
                                   <span className="text-xs font-black leading-none">✓</span>
                                 </div>
                               ) : (
-                                <div className="w-5 h-5 rounded-md border-2 border-sky-300 dark:border-cyan-600 bg-white dark:bg-slate-950 shrink-0" />
+                                <div className="w-5 h-5 rounded-md border border-sky-300 dark:border-cyan-500/50 bg-white dark:bg-slate-950 shrink-0" />
                               )}
                             </button>
                           );
@@ -1360,7 +1374,7 @@ export const DynamicAgentWizard: React.FC<DynamicAgentWizardProps> = ({
 
                         {/* Interactive Custom / Write-In Option */}
                         {activeCustomInputs[question.id] || customAnswerText[question.id] ? (
-                          <div className="sm:col-span-2 p-3.5 sm:p-4 rounded-2xl bg-sky-50/70 dark:bg-[#0099cc]/15 border-2 border-[#0099cc] text-slate-900 dark:text-white shadow-xs ring-1 ring-[#0099cc]/30 space-y-2.5 animate-in fade-in duration-200">
+                          <div className="sm:col-span-2 p-3.5 sm:p-4 rounded-2xl bg-sky-50/70 dark:bg-[#0099cc]/15 border border-[#0099cc] text-slate-900 dark:text-white shadow-xs ring-1 ring-[#0099cc]/30 space-y-2.5 animate-in fade-in duration-200">
                             <div className="flex items-center justify-between">
                               <span className="text-xs font-mono font-bold text-[#0077a3] dark:text-[#38bdf8] flex items-center gap-1.5">
                                 <PenLine className="w-3.5 h-3.5 text-[#0077a3] dark:text-[#38bdf8]" />
@@ -1388,7 +1402,7 @@ export const DynamicAgentWizard: React.FC<DynamicAgentWizardProps> = ({
                           <button
                             type="button"
                             onClick={() => handleActivateCustomAnswer(question.id)}
-                            className="sm:col-span-2 p-3.5 sm:p-4 rounded-2xl border-2 border-dashed border-sky-200 dark:border-cyan-950/90 bg-white dark:bg-slate-900/40 hover:bg-sky-50/60 dark:hover:bg-slate-800/50 hover:border-[#0099cc] dark:hover:border-cyan-700/80 text-slate-700 dark:text-slate-200 transition-all cursor-pointer flex items-center justify-between text-xs sm:text-sm font-semibold shadow-xs group"
+                            className="sm:col-span-2 p-3.5 sm:p-4 rounded-2xl border border-dashed border-sky-300 dark:border-cyan-500/40 bg-white dark:bg-slate-900/40 hover:bg-sky-50/60 dark:hover:bg-slate-800/50 hover:border-[#0099cc] dark:hover:border-cyan-400 text-slate-700 dark:text-slate-200 transition-all cursor-pointer flex items-center justify-between text-xs sm:text-sm font-semibold shadow-xs group"
                           >
                             <span className="flex items-center gap-2.5">
                               <PenLine className="w-4 h-4 text-[#0077a3] dark:text-[#38bdf8] group-hover:scale-110 transition-transform" />
@@ -1463,33 +1477,18 @@ export const DynamicAgentWizard: React.FC<DynamicAgentWizardProps> = ({
 
                 {currentStepIndex < totalSteps - 1 ? (
                   <div className="flex items-center gap-2.5">
-                    {isBaselineStep ? (
-                      <button
-                        type="button"
-                        onClick={() => {
-                          const nextIdx = 1;
-                          setCurrentStepIndex(nextIdx);
-                          persistProgress(answers, nextIdx);
-                        }}
-                        className="px-4 py-2.5 sm:py-3 rounded-xl text-xs sm:text-sm font-bold bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 transition-colors cursor-pointer shadow-xs"
-                        title={locale === 'en' ? "Skip baseline step and go to parameters" : "Přeskočit stávající zkušenosti a přejít na parametry"}
-                      >
-                        <span>{locale === 'en' ? 'Skip to Parameters' : 'Přeskočit na parametry'}</span>
-                      </button>
-                    ) : (
-                      <button
-                        type="button"
-                        onClick={() => {
-                          const nextIdx = Math.min(totalSteps - 1, currentStepIndex + 1);
-                          setCurrentStepIndex(nextIdx);
-                          persistProgress(answers, nextIdx);
-                        }}
-                        className="px-4 py-2.5 sm:py-3 rounded-xl text-xs sm:text-sm font-bold bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-300 transition-colors cursor-pointer shadow-xs"
-                        title={locale === 'en' ? "Skip this step and continue to next question" : "Přeskočit tento krok a pokračovat na další otázku"}
-                      >
-                        <span>{t.dynamicWizard.btnSkipStep}</span>
-                      </button>
-                    )}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const nextIdx = Math.min(totalSteps - 1, currentStepIndex + 1);
+                        setCurrentStepIndex(nextIdx);
+                        persistProgress(answers, nextIdx);
+                      }}
+                      className="px-4 py-2.5 sm:py-3 rounded-xl text-xs sm:text-sm font-bold bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-300 transition-colors cursor-pointer shadow-xs"
+                      title={locale === 'en' ? "Skip this step and continue to next question" : "Přeskočit tento krok a pokračovat na další otázku"}
+                    >
+                      <span>{t.dynamicWizard.btnSkipStep}</span>
+                    </button>
                     <button
                       onClick={() => {
                         const nextIdx = Math.min(totalSteps - 1, currentStepIndex + 1);

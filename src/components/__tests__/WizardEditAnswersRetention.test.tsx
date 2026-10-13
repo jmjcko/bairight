@@ -104,7 +104,7 @@ describe('Wizard Edit Mode: Answer Retention & Non-Destructive Navigation', () =
     expect(screen.getByDisplayValue('Nothing ear')).toBeInTheDocument();
 
     // Click "Skip to Parameters" / "Přeskočit na parametry"
-    const skipBtn = screen.getByRole('button', { name: /Skip to Parameters|Přeskočit na parametry/i });
+    const skipBtn = screen.getByRole('button', { name: /Skip Step|Přeskočit krok|Skip to Parameters|Přeskočit na parametry/i });
     fireEvent.click(skipBtn);
 
     // Step 1: Fit & Tip Style should show In-Ear as selected (checkmark indicator)
@@ -121,7 +121,7 @@ describe('Wizard Edit Mode: Answer Retention & Non-Destructive Navigation', () =
     );
 
     // On Step 0: Click skip to parameters
-    fireEvent.click(screen.getByRole('button', { name: /Skip to Parameters|Přeskočit na parametry/i }));
+    fireEvent.click(screen.getByRole('button', { name: /Skip Step|Přeskočit krok|Skip to Parameters|Přeskočit na parametry/i }));
 
     // On Step 1: Click Continue to Step 2
     fireEvent.click(screen.getByRole('button', { name: /Continue|Pokračovat/i }));
@@ -171,7 +171,7 @@ describe('Wizard Edit Mode: Answer Retention & Non-Destructive Navigation', () =
     fireEvent.click(editBtn);
 
     // Questionnaire opens at Step 0. Advance to Step 1.
-    fireEvent.click(screen.getByRole('button', { name: /Skip to Parameters|Přeskočit na parametry/i }));
+    fireEvent.click(screen.getByRole('button', { name: /Skip Step|Přeskočit krok|Skip to Parameters|Přeskočit na parametry/i }));
 
     // Quick save button should be visible on Step 1 in Edit Mode
     const saveBtn = screen.getByRole('button', { name: /Save|Uložit/i });

@@ -149,7 +149,7 @@ describe('Parameter Research Agent & 3-Phase Wizard Flow (Updated PRD)', () => {
     fireEvent.click(cardB);
 
     expect(screen.getByPlaceholderText(/DeLonghi Magnifica S \/ Hoka Clifton 8/i)).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /Přeskočit na parametry/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Přeskočit krok|Přeskočit na parametry/i })).toBeInTheDocument();
 
     // Proklikáme se přes parametry až na poslední krok (krok 11)
     for (let i = 0; i < 10; i++) {

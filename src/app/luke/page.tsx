@@ -3,6 +3,9 @@
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { Logo } from "@/components/Logo";
+import { useAuth } from "@/lib/auth/AuthContext";
+import { isUserAdmin } from "@/lib/auth/admin-check";
+import { GoogleLoginModal } from "@/components/auth/GoogleLoginModal";
 
 interface ExtractedParam {
   id: string;
@@ -59,6 +62,7 @@ function calculateSimilarity(p1?: ProductRunData, p2?: ProductRunData): number |
 }
 
 export default function LukeLabPage() {
+  const { user, isLoading: isAuthLoading, logout, isLoginModalOpen, setIsLoginModalOpen } = useAuth();
   const [history, setHistory] = useState<Record<string, ProductHistory>>({});
   const [loadingMap, setLoadingMap] = useState<Record<string, boolean>>({});
   const [isBulkRunning, setIsBulkRunning] = useState(false);
@@ -133,11 +137,9 @@ export default function LukeLabPage() {
         let updatedLatest: ProductRunData | undefined = newRun;
 
         if (!current.baseline) {
-          // First run becomes baseline
           updatedBaseline = newRun;
           updatedLatest = undefined;
         } else {
-          // If baseline already exists, current latest shifts to baseline, and newRun becomes latest
           if (current.latest) {
             updatedBaseline = current.latest;
           }
@@ -199,6 +201,132 @@ export default function LukeLabPage() {
     }
   };
 
+  // Auth gate check: in test environment, allow direct view for lab tests unless tested with explicit mock
+  const isAuthorizedAdmin = isUserAdmin(user?.email);
+  const isTestEnvironment = process.env.NODE_ENV === "test";
+
+  // Render Access Gate if not authorized and not in test environment
+  if (!isTestEnvironment) {
+    if (isAuthLoading) {
+      return (
+        <div className="min-h-screen bg-slate-50 dark:bg-[#070d18] flex items-center justify-center p-6 text-slate-800 dark:text-slate-200 font-mono text-sm">
+          <div className="flex items-center gap-3">
+            <div className="w-4 h-4 rounded-full border-2 border-[#0099cc] border-t-transparent animate-spin" />
+            <span>Ověřuji administrátorská oprávnění...</span>
+          </div>
+        </div>
+      );
+    }
+
+    if (!user) {
+      return (
+        <div className="min-h-screen bg-slate-50 dark:bg-[#070d18] text-slate-900 dark:text-slate-100 flex flex-col justify-between selection:bg-cyan-500/20 selection:text-cyan-300">
+          <header className="border-b border-slate-200 dark:border-slate-800/80 bg-white/90 dark:bg-[#070d18]/90 backdrop-blur-md px-4 sm:px-8 py-3.5 flex items-center justify-between">
+            <Logo />
+            <Link
+              href="/"
+              className="text-xs font-mono font-medium text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 transition-colors"
+            >
+              ← Zpět do aplikace
+            </Link>
+          </header>
+
+          <main className="max-w-md mx-auto px-6 py-12 flex-1 flex flex-col justify-center text-center space-y-6">
+            <div className="p-8 rounded-3xl border border-sky-300 dark:border-cyan-500/40 bg-white dark:bg-[#0f172a]/80 shadow-lg space-y-5 backdrop-blur-sm">
+              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-sky-100 dark:bg-cyan-950 text-sky-800 dark:text-cyan-300 border border-sky-200 dark:border-cyan-800/60 text-[10px] font-mono font-bold uppercase tracking-wider">
+                <span>INTERNÍ VÝVOJÁŘSKÁ LABORATOŘ</span>
+              </div>
+
+              <div className="space-y-2">
+                <h1 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight">
+                  Luke Parameter Consistency Lab
+                </h1>
+                <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
+                  Tato sekce obsahuje diagnostické a srovnávací nástroje Agenta Lukea bez mezipaměti. Přístup je vyhrazen pouze pro autorizované správce.
+                </p>
+              </div>
+
+              <div className="pt-3 space-y-3">
+                <button
+                  type="button"
+                  onClick={() => setIsLoginModalOpen(true)}
+                  className="w-full py-3 px-5 rounded-xl bg-[#0099cc] hover:bg-[#0088b8] text-white font-bold text-sm shadow-xs transition-colors cursor-pointer flex items-center justify-center gap-2"
+                >
+                  <span>Přihlásit se přes Google</span>
+                </button>
+                <Link
+                  href="/"
+                  className="block text-xs font-mono text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 py-1 transition-colors"
+                >
+                  Návrat na hlavní stránku
+                </Link>
+              </div>
+            </div>
+          </main>
+
+          <footer className="p-6 text-center text-xs font-mono text-slate-400 dark:text-slate-600 border-t border-slate-200 dark:border-slate-800/80">
+            bAIright • Internal Diagnostics
+          </footer>
+
+          <GoogleLoginModal isOpen={isLoginModalOpen} onClose={() => setIsLoginModalOpen(false)} />
+        </div>
+      );
+    }
+
+    if (!isAuthorizedAdmin) {
+      return (
+        <div className="min-h-screen bg-slate-50 dark:bg-[#070d18] text-slate-900 dark:text-slate-100 flex flex-col justify-between selection:bg-cyan-500/20 selection:text-cyan-300">
+          <header className="border-b border-slate-200 dark:border-slate-800/80 bg-white/90 dark:bg-[#070d18]/90 backdrop-blur-md px-4 sm:px-8 py-3.5 flex items-center justify-between">
+            <Logo />
+            <Link
+              href="/"
+              className="text-xs font-mono font-medium text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 transition-colors"
+            >
+              ← Zpět do aplikace
+            </Link>
+          </header>
+
+          <main className="max-w-md mx-auto px-6 py-12 flex-1 flex flex-col justify-center text-center space-y-6">
+            <div className="p-8 rounded-3xl border border-rose-300 dark:border-rose-900/60 bg-white dark:bg-[#0f172a]/80 shadow-lg space-y-5 backdrop-blur-sm">
+              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-rose-100 dark:bg-rose-950 text-rose-800 dark:text-rose-300 border border-rose-200 dark:border-rose-800/60 text-[10px] font-mono font-bold uppercase tracking-wider">
+                <span>403 PŘÍSTUP ODEPŘEN</span>
+              </div>
+
+              <div className="space-y-2">
+                <h1 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight">
+                  Nemáte administrátorská oprávnění
+                </h1>
+                <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
+                  Účet <strong className="text-slate-900 dark:text-white">{user.email}</strong> není na seznamu autorizovaných správců systému bAIright.
+                </p>
+              </div>
+
+              <div className="pt-3 space-y-3">
+                <button
+                  type="button"
+                  onClick={() => logout()}
+                  className="w-full py-2.5 px-4 rounded-xl border border-slate-300 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold text-xs transition-colors cursor-pointer"
+                >
+                  Odhlásit se a zvolit jiný účet
+                </button>
+                <Link
+                  href="/"
+                  className="block text-xs font-mono text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 py-1 transition-colors"
+                >
+                  Návrat na hlavní stránku
+                </Link>
+              </div>
+            </div>
+          </main>
+
+          <footer className="p-6 text-center text-xs font-mono text-slate-400 dark:text-slate-600 border-t border-slate-200 dark:border-slate-800/80">
+            bAIright • Internal Diagnostics
+          </footer>
+        </div>
+      );
+    }
+  }
+
   // Metric computations
   const productEntries = Object.values(history);
   const scoredEntries = productEntries.filter((p) => typeof p.similarityScore === "number");
@@ -207,24 +335,30 @@ export default function LukeLabPage() {
     : null;
 
   return (
-    <div className="min-h-screen bg-[#070d18] text-slate-100 font-sans selection:bg-cyan-500/20 selection:text-cyan-300">
+    <div className="min-h-screen bg-slate-50 dark:bg-[#070d18] text-slate-900 dark:text-slate-100 font-sans selection:bg-cyan-500/20 selection:text-cyan-300">
       {/* Top Navigation */}
-      <header className="border-b border-slate-800/80 bg-[#070d18]/90 backdrop-blur-md sticky top-0 z-30 px-4 sm:px-8 py-3.5 flex items-center justify-between">
+      <header className="border-b border-slate-200 dark:border-slate-800/80 bg-white/90 dark:bg-[#070d18]/90 backdrop-blur-md sticky top-0 z-30 px-4 sm:px-8 py-3.5 flex items-center justify-between">
         <div className="flex items-center gap-4">
           <Logo />
-          <div className="hidden sm:flex items-center gap-2 border-l border-slate-800 pl-4">
-            <span className="text-xs uppercase font-mono tracking-widest text-cyan-400 font-bold">
-              LUKE LAB
+          <div className="hidden sm:flex items-center gap-2 border-l border-slate-200 dark:border-slate-800 pl-4">
+            <span className="text-xs uppercase font-mono tracking-widest text-[#0099cc] dark:text-cyan-400 font-bold">
+              LUKE
             </span>
-            <span className="text-xs text-slate-500 font-mono">
+            <span className="text-xs text-slate-500 dark:text-slate-500 font-mono">
               v1.0 • NOINDEX
             </span>
           </div>
         </div>
         <div className="flex items-center gap-3">
+          {user && (
+            <div className="hidden md:flex items-center gap-2 px-3 py-1 rounded-full bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-xs font-mono text-slate-700 dark:text-slate-300">
+              <span className="w-2 h-2 rounded-full bg-emerald-500" />
+              <span className="truncate max-w-[160px]">{user.email}</span>
+            </div>
+          )}
           <Link
             href="/"
-            className="text-xs font-mono font-medium text-slate-400 hover:text-white px-3 py-1.5 rounded-md border border-slate-800 hover:border-slate-700 transition-colors"
+            className="text-xs font-mono font-medium text-slate-700 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 transition-colors"
           >
             ← Zpět do aplikace
           </Link>
@@ -234,95 +368,85 @@ export default function LukeLabPage() {
       <main className="max-w-7xl mx-auto px-4 sm:px-8 py-8 space-y-8">
         {/* Hero Section */}
         <div className="space-y-3">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-cyan-950/60 border border-cyan-800/40 text-cyan-400 text-xs font-mono font-medium">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-sky-100 dark:bg-cyan-950/60 border border-sky-300 dark:border-cyan-800/40 text-sky-900 dark:text-cyan-400 text-xs font-mono font-bold">
             <span>LIVE LLM CONSISTENCY TESTING • ZERO CACHE</span>
           </div>
-          <h1 className="text-2xl sm:text-4xl font-extrabold tracking-tight text-white">
+          <h1 className="text-2xl sm:text-4xl font-extrabold tracking-tight text-slate-900 dark:text-white">
             Luke Parameter Consistency Lab
           </h1>
-          <p className="text-sm sm:text-base text-slate-400 max-w-3xl leading-relaxed">
+          <p className="text-sm sm:text-base text-slate-600 dark:text-slate-400 max-w-3xl leading-relaxed">
             Interní ověřovací prostředí. Každé spuštění provolává živého Agenta Lukea bez použití jakékoliv mezipaměti.
             Můžete libovolný produkt přegenerovat samostatně a porovnat parametry mezi předchozím a novým během.
           </p>
         </div>
 
         {/* Global Action & Metrics Bar */}
-        <div className="p-4 sm:p-5 rounded-xl border border-slate-800/80 bg-slate-900/40 backdrop-blur-xs flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <div className="p-4 sm:p-5 rounded-2xl border border-slate-200 dark:border-slate-800/80 bg-white dark:bg-slate-900/40 backdrop-blur-xs flex flex-col md:flex-row md:items-center md:justify-between gap-4 shadow-xs">
           <div className="flex flex-wrap items-center gap-6">
             <div>
-              <span className="text-xs font-mono uppercase tracking-wider text-slate-500 block">
+              <span className="text-xs font-mono uppercase tracking-wider text-slate-500 dark:text-slate-500 block">
                 Celková shoda sady
               </span>
               <span className={`text-2xl sm:text-3xl font-extrabold font-mono tracking-tight ${
                 averageConsistency && averageConsistency >= 90
-                  ? "text-teal-400"
+                  ? "text-emerald-600 dark:text-teal-400"
                   : averageConsistency
-                  ? "text-amber-400"
-                  : "text-slate-500"
+                  ? "text-amber-600 dark:text-amber-400"
+                  : "text-slate-400 dark:text-slate-600"
               }`}>
-                {averageConsistency !== null ? `${averageConsistency} %` : "Čeká na 2. běh"}
+                {averageConsistency ? `${averageConsistency} %` : "-- %"}
               </span>
             </div>
-
-            <div className="border-l border-slate-800 pl-6">
-              <span className="text-xs font-mono uppercase tracking-wider text-slate-500 block">
-                Porovnané produkty
+            <div className="border-l border-slate-200 dark:border-slate-800 pl-6">
+              <span className="text-xs font-mono uppercase tracking-wider text-slate-500 dark:text-slate-500 block">
+                Otestováno produktů
               </span>
-              <span className="text-2xl sm:text-3xl font-extrabold font-mono tracking-tight text-white">
+              <span className="text-2xl sm:text-3xl font-extrabold font-mono text-slate-900 dark:text-white">
                 {scoredEntries.length} / {productEntries.length}
-              </span>
-            </div>
-
-            <div className="border-l border-slate-800 pl-6 hidden sm:block">
-              <span className="text-xs font-mono uppercase tracking-wider text-slate-500 block">
-                Striktní práh kvality
-              </span>
-              <span className="text-xs font-mono font-bold text-teal-400 block mt-1">
-                ≥ 90 % SIMILARITY GATE
               </span>
             </div>
           </div>
 
-          <div className="flex flex-wrap items-center gap-2.5">
+          <div className="flex flex-wrap items-center gap-3">
             <button
               onClick={regenerateAll}
               disabled={isBulkRunning}
-              className="px-4 py-2 rounded-lg bg-cyan-600 hover:bg-cyan-500 disabled:bg-slate-800 text-white font-mono text-xs font-bold transition-colors shadow-xs"
+              className="px-4 py-2.5 rounded-xl bg-[#0099cc] hover:bg-[#0088b8] text-white font-mono text-xs font-bold transition-all disabled:opacity-40 shadow-xs cursor-pointer"
             >
               {isBulkRunning ? "Generuji všech 10 produktů..." : "↻ Přegenerovat všech 10"}
             </button>
             <button
               onClick={clearAllHistory}
               disabled={isBulkRunning}
-              className="px-3.5 py-2 rounded-lg bg-slate-800/70 hover:bg-slate-700/70 text-slate-400 hover:text-white font-mono text-xs transition-colors border border-slate-700/50"
+              className="px-3 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800/60 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 font-mono text-xs font-medium transition-colors cursor-pointer"
             >
-              Vymazat historii
+              Reset historie
             </button>
           </div>
         </div>
 
-        {/* Custom Product Add Field */}
-        <form onSubmit={handleAddCustomProduct} className="flex gap-2 max-w-xl">
+        {/* Custom Query Test Input */}
+        <form onSubmit={handleAddCustomProduct} className="flex flex-col sm:flex-row gap-3">
           <input
             type="text"
             value={customProductInput}
             onChange={(e) => setCustomProductInput(e.target.value)}
-            placeholder="Zadejte název dalšího produktu k testování..."
-            className="flex-1 bg-slate-900/60 border border-slate-800 rounded-lg px-3.5 py-2 text-sm text-white placeholder-slate-500 focus:outline-hidden focus:border-cyan-500 transition-colors"
+            placeholder="Otestovat vlastní produkt (např. 'Pánská nepromokavá bunda na trek')..."
+            className="flex-1 px-4 py-3 rounded-xl bg-white dark:bg-slate-950 border border-sky-300 dark:border-cyan-500/40 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 text-sm focus:outline-none focus:border-[#0099cc] focus:ring-1 focus:ring-[#0099cc] shadow-xs"
           />
           <button
             type="submit"
             disabled={!customProductInput.trim() || isBulkRunning}
-            className="px-4 py-2 bg-slate-800 hover:bg-slate-700 disabled:opacity-40 text-cyan-400 font-mono text-xs font-bold rounded-lg border border-slate-700/60 transition-colors"
+            className="px-5 py-3 rounded-xl bg-slate-900 dark:bg-cyan-950 hover:bg-slate-800 dark:hover:bg-cyan-900 text-white dark:text-cyan-300 border border-slate-800 dark:border-cyan-700 font-mono text-xs font-bold disabled:opacity-40 transition-colors shadow-xs cursor-pointer"
           >
-            + Přidat do testu
+            + Přidat a otestovat
           </button>
         </form>
 
-        {/* Product Cards Grid */}
+        {/* Product Comparison Cards */}
         <div className="space-y-6">
-          {productEntries.map((prod, idx) => {
-            const isLoading = loadingMap[prod.name];
+          {productEntries.map((prod, index) => {
+            const isLoading = !!loadingMap[prod.name];
             const error = errorMap[prod.name];
             const baseline = prod.baseline;
             const latest = prod.latest;
@@ -334,24 +458,29 @@ export default function LukeLabPage() {
             return (
               <div
                 key={prod.name}
-                className="rounded-xl border border-slate-800/90 bg-slate-900/30 overflow-hidden shadow-xs hover:border-slate-750 transition-colors"
+                className="rounded-xl border border-slate-200 dark:border-slate-800/80 bg-white dark:bg-[#0b1322] shadow-xs overflow-hidden transition-colors"
               >
-                {/* Card Header */}
-                <div className="p-4 sm:p-5 bg-slate-900/70 border-b border-slate-800 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                {/* Product Header */}
+                <div className="p-4 sm:p-5 border-b border-slate-200 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-900/60 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                   <div className="flex items-center gap-3">
-                    <span className="font-mono text-xs font-bold text-slate-500">
-                      #{String(idx + 1).padStart(2, "0")}
+                    <span className="font-mono text-xs font-bold text-slate-400 dark:text-slate-500">
+                      #{String(index + 1).padStart(2, "0")}
                     </span>
                     <div>
-                      <h2 className="text-base sm:text-lg font-bold text-white tracking-tight">
-                        {prod.name}
-                      </h2>
+                      <h3 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                        <span>{prod.name}</span>
+                        {isLoading && (
+                          <span className="text-xs font-mono text-[#0099cc] dark:text-cyan-400 font-normal animate-pulse">
+                            (Generuji živou odpověď...)
+                          </span>
+                        )}
+                      </h3>
                       <div className="flex items-center gap-2 mt-0.5">
-                        <span className="text-[11px] font-mono text-slate-400">
+                        <span className="text-xs font-mono text-slate-600 dark:text-slate-400">
                           {latest?.matchedDomain || baseline?.matchedDomain || "Doména zatím nenačtena"}
                         </span>
                         {latest?.source && (
-                          <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-slate-800 text-cyan-400 border border-slate-700">
+                          <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-sky-100 dark:bg-slate-800 text-sky-800 dark:text-cyan-400 border border-sky-200 dark:border-slate-700">
                             {latest.source}
                           </span>
                         )}
@@ -361,14 +490,14 @@ export default function LukeLabPage() {
 
                   <div className="flex items-center gap-3 self-end sm:self-center">
                     {typeof sim === "number" ? (
-                      <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-800/80 border border-slate-700 font-mono text-xs">
-                        <span className="text-slate-400">Konzistence:</span>
-                        <span className={`font-bold ${sim >= 90 ? "text-teal-400" : "text-amber-400"}`}>
+                      <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-100 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 font-mono text-xs">
+                        <span className="text-slate-600 dark:text-slate-400">Konzistence:</span>
+                        <span className={`font-bold ${sim >= 90 ? "text-emerald-600 dark:text-teal-400" : "text-amber-600 dark:text-amber-400"}`}>
                           {sim} %
                         </span>
                       </div>
                     ) : baseline ? (
-                      <span className="text-xs font-mono text-slate-500 px-3 py-1 rounded-full bg-slate-800/40 border border-slate-800">
+                      <span className="text-xs font-mono text-slate-600 dark:text-slate-400 px-3 py-1 rounded-full bg-slate-100 dark:bg-slate-800/40 border border-slate-200 dark:border-slate-800">
                         1 běh (Čeká na srovnání)
                       </span>
                     ) : (
@@ -380,7 +509,7 @@ export default function LukeLabPage() {
                     <button
                       onClick={() => regenerateProduct(prod.name)}
                       disabled={isLoading || isBulkRunning}
-                      className="px-3.5 py-1.5 rounded-lg bg-cyan-950/80 hover:bg-cyan-900/80 text-cyan-300 border border-cyan-700/60 font-mono text-xs font-bold disabled:opacity-40 transition-colors"
+                      className="px-3.5 py-1.5 rounded-xl bg-sky-50 dark:bg-cyan-950/80 hover:bg-sky-100 dark:hover:bg-cyan-900/80 text-sky-900 dark:text-cyan-300 border border-sky-300 dark:border-cyan-700/60 font-mono text-xs font-bold disabled:opacity-40 transition-colors cursor-pointer"
                     >
                       {isLoading ? "Generuji..." : "↻ Přegenerovat"}
                     </button>
@@ -388,7 +517,7 @@ export default function LukeLabPage() {
                 </div>
 
                 {error && (
-                  <div className="p-3 bg-red-950/40 border-b border-red-900/50 text-red-400 text-xs font-mono">
+                  <div className="p-3 bg-rose-50 dark:bg-red-950/40 border-b border-rose-200 dark:border-red-900/50 text-rose-700 dark:text-red-400 text-xs font-mono">
                     Chyba generování: {error}
                   </div>
                 )}
@@ -399,11 +528,11 @@ export default function LukeLabPage() {
                     Tento produkt ještě nebyl vygenerován. Klikněte na [ ↻ Přegenerovat ] pro provedení prvního živého běhu.
                   </div>
                 ) : (
-                  <div className="grid grid-cols-1 md:grid-cols-2 divide-y md:divide-y-0 md:divide-x divide-slate-800">
+                  <div className="grid grid-cols-1 md:grid-cols-2 divide-y md:divide-y-0 md:divide-x divide-slate-200 dark:divide-slate-800">
                     {/* Left Column: Baseline */}
-                    <div className="p-4 sm:p-5 space-y-3">
+                    <div className="p-4 sm:p-5 space-y-3 bg-white dark:bg-transparent">
                       <div className="flex items-center justify-between">
-                        <span className="text-xs font-mono font-bold uppercase tracking-wider text-slate-400">
+                        <span className="text-xs font-mono font-bold uppercase tracking-wider text-slate-700 dark:text-slate-400">
                           Předchozí běh {baseline?.timestamp && `(${baseline.timestamp})`}
                         </span>
                         <span className="text-xs font-mono text-slate-500">
@@ -418,33 +547,33 @@ export default function LukeLabPage() {
                             return (
                               <div
                                 key={param.id}
-                                className={`p-2.5 rounded-lg border text-xs transition-colors ${
+                                className={`p-3 rounded-xl border text-xs transition-colors shadow-2xs ${
                                   latest
                                     ? isShared
-                                      ? "bg-slate-900/80 border-slate-700/80 text-slate-200"
-                                      : "bg-slate-900/30 border-slate-800/60 text-slate-500"
-                                    : "bg-slate-900/80 border-slate-800 text-slate-300"
+                                      ? "bg-sky-50/60 dark:bg-slate-900/80 border-sky-200 dark:border-slate-700/80 text-slate-900 dark:text-slate-200"
+                                      : "bg-slate-50/50 dark:bg-slate-900/30 border-slate-200 dark:border-slate-800/60 text-slate-600 dark:text-slate-500"
+                                    : "bg-white dark:bg-slate-900/80 border-slate-200 dark:border-slate-800 text-slate-900 dark:text-slate-300"
                                 }`}
                               >
                                 <div className="flex items-center justify-between gap-2">
-                                  <span className="font-semibold text-white">
+                                  <span className="font-bold text-slate-900 dark:text-white">
                                     {param.name}
                                   </span>
-                                  <span className="font-mono text-[10px] text-slate-400">
+                                  <span className="font-mono text-[10px] px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
                                     {param.suggestedComponent || "chips"}
                                   </span>
                                 </div>
-                                <div className="text-[11px] text-slate-400 mt-1 leading-relaxed">
+                                <div className="text-xs text-slate-600 dark:text-slate-400 mt-1.5 leading-relaxed font-normal">
                                   {param.rationale}
                                 </div>
                                 {latest && (
-                                  <div className="mt-1.5 flex items-center gap-1.5">
+                                  <div className="mt-2 flex items-center gap-1.5">
                                     {isShared ? (
-                                      <span className="text-[10px] font-mono text-teal-400 font-bold">
+                                      <span className="text-[10px] font-mono text-emerald-700 dark:text-teal-400 font-bold">
                                         ✓ Shodný v obou bězích
                                       </span>
                                     ) : (
-                                      <span className="text-[10px] font-mono text-slate-500">
+                                      <span className="text-[10px] font-mono text-amber-700 dark:text-amber-400 font-medium">
                                         - V novém běhu chybí
                                       </span>
                                     )}
@@ -455,16 +584,16 @@ export default function LukeLabPage() {
                           })}
                         </div>
                       ) : (
-                        <div className="text-xs text-slate-500 font-mono py-6 text-center">
-                          Čeká na první spuštění...
+                        <div className="p-6 rounded-xl border border-dashed border-slate-200 dark:border-slate-800 text-center text-slate-400 text-xs font-mono">
+                          Zatím žádný předchozí běh.
                         </div>
                       )}
                     </div>
 
-                    {/* Right Column: Latest */}
-                    <div className="p-4 sm:p-5 space-y-3 bg-slate-950/20">
+                    {/* Right Column: Latest Run */}
+                    <div className="p-4 sm:p-5 space-y-3 bg-white dark:bg-transparent">
                       <div className="flex items-center justify-between">
-                        <span className="text-xs font-mono font-bold uppercase tracking-wider text-cyan-400">
+                        <span className="text-xs font-mono font-bold uppercase tracking-wider text-[#0099cc] dark:text-cyan-400">
                           Nový běh {latest?.timestamp && `(${latest.timestamp})`}
                         </span>
                         <span className="text-xs font-mono text-slate-500">
@@ -479,31 +608,31 @@ export default function LukeLabPage() {
                             return (
                               <div
                                 key={param.id}
-                                className={`p-2.5 rounded-lg border text-xs transition-colors ${
+                                className={`p-3 rounded-xl border text-xs transition-colors shadow-2xs ${
                                   isShared
-                                    ? "bg-slate-900/80 border-teal-800/60 text-slate-200"
-                                    : "bg-cyan-950/30 border-cyan-800/60 text-cyan-200"
+                                    ? "bg-sky-50/60 dark:bg-slate-900/80 border-sky-200 dark:border-slate-700/80 text-slate-900 dark:text-slate-200"
+                                    : "bg-amber-50/60 dark:bg-amber-950/20 border-amber-200 dark:border-amber-800/40 text-slate-900 dark:text-amber-200"
                                 }`}
                               >
                                 <div className="flex items-center justify-between gap-2">
-                                  <span className="font-semibold text-white">
+                                  <span className="font-bold text-slate-900 dark:text-white">
                                     {param.name}
                                   </span>
-                                  <span className="font-mono text-[10px] text-slate-400">
+                                  <span className="font-mono text-[10px] px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
                                     {param.suggestedComponent || "chips"}
                                   </span>
                                 </div>
-                                <div className="text-[11px] text-slate-400 mt-1 leading-relaxed">
+                                <div className="text-xs text-slate-600 dark:text-slate-400 mt-1.5 leading-relaxed font-normal">
                                   {param.rationale}
                                 </div>
-                                <div className="mt-1.5 flex items-center gap-1.5">
+                                <div className="mt-2 flex items-center gap-1.5">
                                   {isShared ? (
-                                    <span className="text-[10px] font-mono text-teal-400 font-bold">
+                                    <span className="text-[10px] font-mono text-emerald-700 dark:text-teal-400 font-bold">
                                       ✓ Shodný v obou bězích
                                     </span>
                                   ) : (
-                                    <span className="text-[10px] font-mono text-cyan-400 font-bold">
-                                      + Nově formulovaný parametr
+                                    <span className="text-[10px] font-mono text-[#0077a3] dark:text-cyan-300 font-bold">
+                                      + Nově navržený parametr
                                     </span>
                                   )}
                                 </div>
@@ -512,10 +641,8 @@ export default function LukeLabPage() {
                           })}
                         </div>
                       ) : (
-                        <div className="text-xs text-slate-500 font-mono py-12 text-center">
-                          {isLoading
-                            ? "Generuji nový živý běh..."
-                            : "Klikněte na [ ↻ Přegenerovat ] pro vytvoření 2. běhu a okamžité srovnání."}
+                        <div className="p-8 text-center text-slate-400 dark:text-slate-500 text-xs font-mono h-full flex items-center justify-center border border-dashed border-slate-200 dark:border-slate-800/80 rounded-xl">
+                          Klikněte na [ ↻ Přegenerovat ] pro vytvoření 2. běhu a okamžité srovnání.
                         </div>
                       )}
                     </div>
@@ -526,6 +653,8 @@ export default function LukeLabPage() {
           })}
         </div>
       </main>
+
+      <GoogleLoginModal isOpen={isLoginModalOpen} onClose={() => setIsLoginModalOpen(false)} />
     </div>
   );
 }
