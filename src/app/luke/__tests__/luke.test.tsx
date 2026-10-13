@@ -128,4 +128,43 @@ describe('LukeLabPage Consistency & Diff Interface Unit Tests', () => {
       expect(screen.getByText(/Konzistence:/)).toBeInTheDocument();
     });
   });
+
+  it('4. Correctly matches semantically equivalent parameters like ANC, Multipoint, Kodeky with high consistency', async () => {
+    const headphoneHistory = {
+      'Bezdrátová sluchátka s ANC': {
+        name: 'Bezdrátová sluchátka s ANC',
+        baseline: {
+          timestamp: '10:00:00',
+          matchedDomain: 'Audio',
+          parameters: [
+            { id: 'anc_tech', name: 'Technologie ANC', category: 'Funkce' },
+            { id: 'multipoint_conn', name: 'Multipoint spojení', category: 'Konektivita' },
+            { id: 'bt_codecs', name: 'Bluetooth kodeky', category: 'Audio' },
+          ],
+        },
+        latest: {
+          timestamp: '11:00:00',
+          matchedDomain: 'Audio',
+          parameters: [
+            { id: 'anc_level', name: 'Úroveň ANC', category: 'Funkce' },
+            { id: 'multipoint_pairing', name: 'Multipoint připojení', category: 'Konektivita' },
+            { id: 'audio_codecs', name: 'Audio kodeky', category: 'Audio' },
+          ],
+        },
+      },
+    };
+    localStorage.setItem('bairight_luke_lab_history', JSON.stringify(headphoneHistory));
+
+    render(<LukeLabPage />);
+
+    // Should render headphone card
+    expect(screen.getByText('Bezdrátová sluchátka s ANC')).toBeInTheDocument();
+
+    // Verify all 3 are marked as matched (Shodný)
+    await waitFor(() => {
+      expect(screen.getByText(/✓ Shodný \(Úroveň ANC\)/)).toBeInTheDocument();
+      expect(screen.getByText(/✓ Shodný \(Multipoint připojení\)/)).toBeInTheDocument();
+      expect(screen.getByText(/✓ Shodný \(Audio kodeky\)/)).toBeInTheDocument();
+    });
+  });
 });

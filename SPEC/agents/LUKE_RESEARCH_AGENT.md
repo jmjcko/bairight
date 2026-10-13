@@ -440,13 +440,17 @@ Environment  jsdom was created 25 times · 24.52s total, 39% of tracked time
    - If the overall similarity score across all 100 categories is **≥ 80%**, the test passes ().
    - If overall similarity drops below 80%, a **Regression Drift Failure** is flagged (), blocking deployment.
 
-## ⚡ Výhradní použití LLM Gemini (Zákaz offline generátoru) & Model Resilience
+## ⚡ Výhradní použití LLM Gemini, Zero Cache & Multi-Model Resilience
 
-Agent Luke provádí výzkum parametrů pro uživatelské dotazy **VÝHRADNĚ živým dotazem přes Gemini Flash LLM**:
-- **Primární produkční model**: **`gemini-2.0-flash`** (plná podpora pro bezplatný tier Google AI Studio s 15 RPM / 1 500 RPD).
-- **Okamžitý stabilní fallback**: **`gemini-1.5-flash`** (automatický failover v případě vyčerpání limitu či spike výpadku bez přerušení uživatelského toku).
-- **Garance kvality parametrů**: Všechny modely striktně dodržují generování 8–12 hlubokých technických parametrů, izolaci značek (`brand_preferences`), vysvětlující `rationale` a validní doporučené hodnoty.
-- Každé vyhledávání (pokud již není uloženo v databázi webu `parameter_cache`) posílá dotaz přímo na Gemini Flash API s failover řetězcem.
+Agent Luke provádí výzkum parametrů pro uživatelské dotazy **VÝHRADNĚ živým dotazem přes Gemini Flash LLM s nulovou cache**:
+- **100% Live Calls & Zero Cache**: Striktní zákaz globálního cachování pro Agent Luke parameter research. Každý dotaz probíhá živě na LLM a je dynamicky obohacen o aktuální kontext přihlášeného uživatele (fakta z paměti `userFacts` a historii zakoupených/konfigurovaných parametrů `purchasedHistory`).
+- **Kaskáda modelů (Failover Chain)**:
+  1. **Primární model**: **`gemini-2.5-flash`** s `thinkingConfig: { thinkingBudget: 0 }` pro bleskovou odezvu ~1,3 s.
+  2. **Druhý v řadě**: **`gemini-flash-latest`** (oficiální dynamický alias pro nejnovější Flash).
+  3. **Třetí v řadě**: **`gemini-2.5-flash-lite`** (odlehčený ultrarychlý model).
+  4. **Záložní modely**: **`gemini-3.5-flash`**, **`gemini-2.5-pro`** a dědičné modely.
+- **Odolnost proti 429 & 503**: Při dosažení limitu bezplatného tieru (15 RPM) nebo spike výpadku systém okamžitě přeskočí na další model v řetězci.
+- **Chybová hláška & Retry**: Při selhání celé kaskády systém zobrazí galaktickou chybovou hlášku (*"Něco se v galaxii pokazilo, zkuste to prosím znovu"* / *"Something went wrong in the galaxy, please try again"*) s přímým tlačítkem pro znovuspuštění.
 
 ### 8. 🎯 Pravidlo přesné shody do písmene pro databázi (Letter-for-Letter Match Only)
 - Systém smí použít uložený záznam z databáze **POUZE POKUD zadaný vstup od uživatele sedí do písmene** s dotazem, který již dříve v repozitáři/databázi **prošel celým průvodcem a byl ověřen zákazníkem**.

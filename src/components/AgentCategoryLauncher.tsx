@@ -186,6 +186,7 @@ const [researchError, setResearchError] = useState<string | null>(null);
       const res = await fetch(`/api/agent/research-parameters?locale=${locale}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        signal: AbortSignal.timeout(90000),
         body: JSON.stringify({
           query: target,
           locale,
@@ -226,13 +227,15 @@ const [researchError, setResearchError] = useState<string | null>(null);
       let errorMsg: string;
       try {
         const errData = await res.json();
-        errorMsg = errData?.error || (locale === 'en' ? 'Parameter analysis failed.' : 'Analýza parametrů selhala.');
+        errorMsg = errData?.error || (locale === 'en' ? 'Something went wrong in the galaxy, please try again.' : 'Něco se v galaxii pokazilo, zkuste to prosím znovu.');
       } catch {
-        errorMsg = locale === 'en' ? 'Parameter analysis failed. Please try again.' : 'Analýza parametrů selhala. Zkuste to prosím znovu.';
+        errorMsg = locale === 'en' ? 'Something went wrong in the galaxy, please try again.' : 'Něco se v galaxii pokazilo, zkuste to prosím znovu.';
       }
       throw new Error(errorMsg);
     } catch (err: any) {
-      const msg = err?.message || (locale === 'en' ? 'Parameter analysis failed. Please try again.' : 'Analýza parametrů selhala. Zkuste to prosím znovu.');
+      const isAbort = err?.name === 'TimeoutError' || err?.name === 'AbortError';
+      const defaultMsg = locale === 'en' ? 'Something went wrong in the galaxy, please try again.' : 'Něco se v galaxii pokazilo, zkuste to prosím znovu.';
+      const msg = isAbort ? defaultMsg : (err?.message || defaultMsg);
       console.error('[Luke] Research failed:', msg);
       setResearchError(msg);
       setLastFailedQuery(target);
@@ -660,18 +663,15 @@ const [researchError, setResearchError] = useState<string | null>(null);
             </Card>
           )}
 
-          {/* Luke Research Error Card — no generic fallback, user must retry */}
+          {/* Luke Research Error Card — galaxy error with retry */}
           {researchError && !isResearching && (
-            <Card error className="p-6 text-center space-y-4 shadow-2xl">
-              <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-red-950/80 border border-red-500/50 text-red-400 mx-auto">
-                <AlertTriangle className="w-6 h-6 text-amber-400" />
-              </div>
+            <Card error className="p-6 text-center space-y-4 shadow-2xl border border-red-500/30">
               <div>
-                <h4 className="text-sm font-bold text-red-300 font-mono">
-                  {locale === 'en' ? 'Parameter research failed' : 'Výzkum parametrů selhal'}
+                <h4 className="text-sm font-bold text-red-400 font-mono">
+                  {locale === 'en' ? 'Something went wrong in the galaxy' : 'Něco se v galaxii pokazilo'}
                 </h4>
                 <p className="text-xs text-slate-400 mt-2 max-w-sm mx-auto leading-relaxed">
-                  {researchError}
+                  {researchError.includes('galaxii') || researchError.includes('galaxy') ? researchError : `${locale === 'en' ? 'Parameter research failed' : 'Výzkum parametrů selhal'}: ${researchError}`}
                 </p>
               </div>
               <Button
@@ -680,10 +680,10 @@ const [researchError, setResearchError] = useState<string | null>(null);
                   setResearchError(null);
                   if (lastFailedQuery) handleResearchParameters(lastFailedQuery);
                 }}
-                className="gap-2 font-mono text-xs"
+                className="gap-2 font-mono text-xs cursor-pointer"
               >
-                <RefreshCw className="w-4 h-4 animate-spin text-cyan-400" />
-                <span>Zkusit znovu</span>
+                <RefreshCw className="w-4 h-4 text-cyan-400" />
+                <span>{locale === 'en' ? 'Try again' : 'Zkusit znovu'}</span>
               </Button>
             </Card>
           )}

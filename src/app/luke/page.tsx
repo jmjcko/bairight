@@ -43,22 +43,119 @@ const DEFAULT_PRODUCTS = [
   "Aku vrtačka / šroubovák",
 ];
 
+function cleanSemanticText(str: string): string {
+  return str
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/\([^)]*\)/g, "") // oříznutí jednotek v závorkách: (WLTP), (kWh), (DC/AC)
+    .replace(/[^a-z0-9\s]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+const GENERIC_STOPWORDS = new Set([
+  "a", "i", "se", "pro", "v", "ve", "na", "k", "ke", "nebo", "the", "and", "for", "with",
+  "typ", "druh", "uroven", "hlavni", "zakladni", "dalsi", "jine", "system", "vlastnosti", "funkce",
+  "parametr", "hodnota", "stupen", "auto", "vozu"
+]);
+
+function stemCzechWord(w: string): string {
+  return w
+    .replace(/(ovy|ove|ova|ym|ymi|ych|ich|ou|em|am|um|eho|emu|ce|ky|ek|ka|ku|ko|im|i|y|e|a|u|o)$/, "")
+    .trim();
+}
+
+function getNameKeywords(name: string): string[] {
+  const clean = cleanSemanticText(name);
+  return clean
+    .split(" ")
+    .map((w) => w.trim())
+    .filter((w) => w.length >= 3 && !GENERIC_STOPWORDS.has(w));
+}
+
+function getSemanticKeywords(name: string, id: string): Set<string> {
+  const text = `${cleanSemanticText(name)} ${cleanSemanticText(id.replace(/_/g, " "))}`;
+  const tokens = text.split(" ").filter((w) => w.length > 2 && !GENERIC_STOPWORDS.has(w));
+  return new Set(tokens);
+}
+
+function findSemanticMatch(param: ExtractedParam, candidateList: ExtractedParam[]): ExtractedParam | null {
+  if (!candidateList || candidateList.length === 0) return null;
+
+  // 1. Přímá shoda ID
+  const exactId = candidateList.find((c) => c.id === param.id);
+  if (exactId) return exactId;
+
+  // 2. Přesná normalizovaná shoda názvu
+  const nameClean = cleanSemanticText(param.name);
+  const exactName = candidateList.find((c) => cleanSemanticText(c.name) === nameClean);
+  if (exactName) return exactName;
+
+  // 3. Podřetězcová shoda (např. "Dojezd" v "Reálný dojezd", "Konstrukce" v "Konstrukce sluchátek")
+  const subName = candidateList.find((c) => {
+    const cClean = cleanSemanticText(c.name);
+    return (cClean.length >= 4 && nameClean.includes(cClean)) || (nameClean.length >= 4 && cClean.includes(nameClean));
+  });
+  if (subName) return subName;
+
+  // 4. Shoda specifického klíčového slova v názvu (např. "ANC", "Multipoint", "Kodeky")
+  const paramKw = getNameKeywords(param.name);
+  for (const c of candidateList) {
+    const cKw = getNameKeywords(c.name);
+    // Přímá shoda slova v názvu
+    const hasDirectMatch = paramKw.some((pk) => cKw.includes(pk));
+    if (hasDirectMatch) return c;
+
+    // Kmenová shoda (např. kodek vs kodeky, nabijeni vs nabiti)
+    const paramStems = paramKw.map(stemCzechWord).filter((s) => s.length >= 3);
+    const cStems = cKw.map(stemCzechWord).filter((s) => s.length >= 3);
+    const hasStemMatch = paramStems.some((ps) => cStems.includes(ps));
+    if (hasStemMatch) return c;
+  }
+
+  // 5. Tokenový překryv (Jaccard s klíčovými slovy z názvu i ID)
+  const kw = getSemanticKeywords(param.name, param.id);
+  let bestMatch: ExtractedParam | null = null;
+  let maxScore = 0;
+
+  for (const c of candidateList) {
+    const cKw = getSemanticKeywords(c.name, c.id);
+    let intersect = 0;
+    kw.forEach((k) => {
+      if (cKw.has(k)) intersect++;
+    });
+    const union = new Set([...kw, ...cKw]).size;
+    const jaccard = union > 0 ? intersect / union : 0;
+
+    if (intersect >= 2 || (intersect >= 1 && (kw.size <= 2 || cKw.size <= 2)) || jaccard >= 0.4) {
+      if (jaccard > maxScore) {
+        maxScore = jaccard;
+        bestMatch = c;
+      }
+    }
+  }
+
+  return bestMatch;
+}
+
 function calculateSimilarity(p1?: ProductRunData, p2?: ProductRunData): number | undefined {
-  if (!p1 || !p2) return undefined;
-  const ids1 = new Set(p1.parameters.map((p) => p.id));
-  const ids2 = new Set(p2.parameters.map((p) => p.id));
+  if (!p1 || !p2 || !p1.parameters || !p2.parameters) return undefined;
+  if (p1.parameters.length === 0 && p2.parameters.length === 0) return 100;
 
   let matchCount = 0;
-  ids1.forEach((id) => {
-    if (ids2.has(id)) matchCount++;
+  p1.parameters.forEach((param) => {
+    if (findSemanticMatch(param, p2.parameters)) {
+      matchCount++;
+    }
   });
 
-  const union = new Set([...ids1, ...ids2]).size;
-  if (union === 0) return 100;
+  const totalParams = Math.max(p1.parameters.length, p2.parameters.length);
+  if (totalParams === 0) return 100;
 
-  const idSim = (matchCount / union) * 100;
-  const domainBonus = p1.matchedDomain === p2.matchedDomain ? 100 : 60;
-  return Math.round(idSim * 0.8 + domainBonus * 0.2);
+  const simRatio = (matchCount / totalParams) * 100;
+  const domainBonus = p1.matchedDomain === p2.matchedDomain ? 100 : 70;
+  return Math.round(simRatio * 0.85 + domainBonus * 0.15);
 }
 
 export default function LukeLabPage() {
@@ -543,7 +640,9 @@ export default function LukeLabPage() {
                       {baseline ? (
                         <div className="space-y-2">
                           {baseline.parameters.map((param) => {
-                            const isShared = latestIds.has(param.id);
+                            const match = findSemanticMatch(param, latest?.parameters || []);
+                            const isShared = Boolean(match);
+                            const isWordingNuance = isShared && match?.name !== param.name;
                             return (
                               <div
                                 key={param.id}
@@ -567,10 +666,10 @@ export default function LukeLabPage() {
                                   {param.rationale}
                                 </div>
                                 {latest && (
-                                  <div className="mt-2 flex items-center gap-1.5">
+                                  <div className="mt-2 flex items-center gap-1.5 flex-wrap">
                                     {isShared ? (
                                       <span className="text-[10px] font-mono text-emerald-700 dark:text-teal-400 font-bold">
-                                        ✓ Shodný v obou bězích
+                                        {isWordingNuance ? `✓ Shodný (${match?.name})` : "✓ Shodný v obou bězích"}
                                       </span>
                                     ) : (
                                       <span className="text-[10px] font-mono text-amber-700 dark:text-amber-400 font-medium">
@@ -604,7 +703,9 @@ export default function LukeLabPage() {
                       {latest ? (
                         <div className="space-y-2">
                           {latest.parameters.map((param) => {
-                            const isShared = baselineIds.has(param.id);
+                            const match = findSemanticMatch(param, baseline?.parameters || []);
+                            const isShared = Boolean(match);
+                            const isWordingNuance = isShared && match?.name !== param.name;
                             return (
                               <div
                                 key={param.id}
@@ -625,10 +726,10 @@ export default function LukeLabPage() {
                                 <div className="text-xs text-slate-600 dark:text-slate-400 mt-1.5 leading-relaxed font-normal">
                                   {param.rationale}
                                 </div>
-                                <div className="mt-2 flex items-center gap-1.5">
+                                <div className="mt-2 flex items-center gap-1.5 flex-wrap">
                                   {isShared ? (
                                     <span className="text-[10px] font-mono text-emerald-700 dark:text-teal-400 font-bold">
-                                      ✓ Shodný v obou bězích
+                                      {isWordingNuance ? `✓ Shodný (${match?.name})` : "✓ Shodný v obou bězích"}
                                     </span>
                                   ) : (
                                     <span className="text-[10px] font-mono text-[#0077a3] dark:text-cyan-300 font-bold">

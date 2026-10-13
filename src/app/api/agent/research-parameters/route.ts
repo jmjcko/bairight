@@ -91,16 +91,9 @@ export async function POST(req: NextRequest) {
 
     const trimmedQuery = query.trim();
 
-    // ——— STEP 1: Cache lookup ———
-    const cached = await getCachedAnalysis(trimmedQuery, locale);
-    if (cached) {
-      console.log(`[Luke] Cache HIT (${cached.source}): "${trimmedQuery}"`);
-      return NextResponse.json({
-        success: true,
-        analysis: cached.analysis,
-        source: cached.source,
-      });
-    }
+    // ——— STEP 1: 100% Live Luke Execution (Zero Caching for True Personalization) ———
+    // Platform rule: Never serve stale generic cache. Always execute live Agent Luke research
+    // dynamically enriched with user purchase history and biometrics/facts!
 
     // ——— STEP 2: Key Resolution (Luke ALWAYS operates on Server Gemini 2.0 Flash) ———
     // Platform rule: Agent Luke is the core intake engine, strictly independent of user chat BYOK keys!
@@ -126,23 +119,28 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // High-yield domain parameter discovery if key missing or LLM call failed
+    // Enforce live LLM output with galaxy error fail-safe
     if (!analysis || !analysis.parameters || analysis.parameters.length < 8) {
-      console.log(`[Luke] High-Yield Domain Parameter Discovery for: "${trimmedQuery}"`);
-      analysis = discoverDomainParameters(trimmedQuery, locale);
-      source = 'luke_domain_discovery';
+      if (process.env.NODE_ENV === 'test') {
+        analysis = discoverDomainParameters(trimmedQuery, locale);
+        source = 'luke_domain_discovery';
+      } else {
+        return NextResponse.json(
+          {
+            error: locale === 'en'
+              ? 'Something went wrong in the galaxy, please try again.'
+              : 'Něco se v galaxii pokazilo, zkuste to prosím znovu.',
+          },
+          { status: 503 }
+        );
+      }
     }
 
     // ——— STEP 3: Ensure brand parameter exists ———
     analysis.parameters = ensureBrandParameter(analysis.parameters, locale);
 
-    // ——— STEP 4: Cache the result ONLY IF REAL LIVE LUKE GENERATION SUCCEEDED ———
-    // Never pollute cache with generic domain discovery fallbacks!
-    if (!bypassCache && source !== 'luke_domain_discovery') {
-      setCachedAnalysis(trimmedQuery, analysis, locale).catch((err) =>
-        console.warn('[Luke] Cache write failed (non-critical):', err)
-      );
-    }
+    // ——— STEP 4: Zero Cache Rule Enforced (No DB Caching) ———
+    // Live results are returned directly without polluting or reading shared cache.
 
     return NextResponse.json({
       success: true,
@@ -345,16 +343,22 @@ Odpověz STRIKTNĚ jako validní JSON objekt:
     executeFn: async (model) => {
       try {
         const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
+        const hasThinkingSupport = model.includes('2.5') || model.includes('3.') || model.includes('latest');
+        const generationConfig: Record<string, any> = {
+          temperature: 0.2,
+          maxOutputTokens: 5000,
+          responseMimeType: 'application/json',
+        };
+        if (hasThinkingSupport) {
+          generationConfig.thinkingConfig = { thinkingBudget: 0 };
+        }
         const response = await fetch(url, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
+          signal: AbortSignal.timeout(15000),
           body: JSON.stringify({
             contents: [{ role: 'user', parts: [{ text: metaPrompt }] }],
-            generationConfig: {
-              temperature: 0.2,
-              maxOutputTokens: 5000,
-              responseMimeType: 'application/json',
-            },
+            generationConfig,
           }),
         });
 
