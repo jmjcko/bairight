@@ -120,7 +120,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Enforce live LLM output with galaxy error fail-safe
-    if (!analysis || !analysis.parameters || analysis.parameters.length < 8) {
+    if (!analysis || !analysis.parameters || analysis.parameters.length < 4) {
       if (process.env.NODE_ENV === 'test') {
         analysis = discoverDomainParameters(trimmedQuery, locale);
         source = 'luke_domain_discovery';
@@ -195,15 +195,18 @@ async function researchParametersWithLuke(
   const metaPrompt = isEn ? `
 ${languageInstruction}
 
-You are an expert purchase analyst and technical specification writer in the bAIright system. Your task is to break down any user-specified product category into a list of 8 to 12 most critical parameters that a buyer must consider before making a final decision.
+You are an expert purchase analyst and technical specification writer in the bAIright system. Your task is to break down any user-specified product category into a comprehensive list of critical purchasing parameters that a buyer must consider before making a final decision, targeting 11 to 14 parameters for complex engineering/sports/machinery products.
 
 Input entity (Product): "${categoryQuery}"${historySection}
 
 Parameter generation rules:
 
-1. Scope: Generate strictly 8 to 12 parameters.
+1. Differentiated Scope & Natural Saturation:
+   - Complex Categories (bicycles, laptops/PCs, automobiles, espresso machines, Hi-Fi audio, power tools, appliances): Target 11 to 14 parameters. You are STRICTLY FORBIDDEN from stopping prematurely at 8 items. Systematically decompose all critical hardware subsystems (e.g. for bikes: frame material, drivetrain/groupset, wheelset & rim material, braking system, tyres & clearance, vibration damping, cockpit/seatpost material, total weight, rider biometrics, and brand preferences).
+   - General Consumer Products (backpacks, apparel, general furniture): Target 7 to 9 parameters.
+   - Inherently Simple Everyday Products (basic ceramic mug, drinking glass, mousepad): Target 4 to 6 parameters. Strictly DO NOT invent artificial padding, irrelevant technologies (e.g. no thermal fuses or operating voltages for a mug), or vague clichés just to hit a quota. Stop naturally where real consumer decision criteria end.
 
-2. Complexity: Parameters must cover the full spectrum of the buying decision (1-2 focused on user context/purpose and market typology, the rest on key technical specifications typical for this product). For body-related products, include body biometrics and ergonomics.
+2. Complexity: Parameters must cover the full spectrum of the buying decision (for broad categories 1-2 focused on user context/purpose and market typology; for specific sub-categories zoom directly into specialized technical specs without redundant purpose questions). For products worn or used on the body (bikes, footwear, chairs, skis, mattresses), ALWAYS include practical biometric and sizing parameters (height, leg inseam, foot width, body weight) mapped to real-world sizing (e.g. XS to XL, 54/56cm, standard vs 2E wide) rather than abstract geometric jargon.
 
 3. Clarity: Each parameter must have a short explanatory description for a layperson (rationale, max 100 characters) explaining why it matters and what the risk of a wrong choice is, based on insights from reviews and forums.
 
@@ -214,6 +217,12 @@ Parameter generation rules:
 6. Strict ban on clichés & static fallbacks: STRICTLY FORBIDDEN: vague clichés ("Price", "Color", "Appearance", "Quality", "Ergonomics"). No boilerplate phrases about installation space or power consumption for non-appliances.
 
 7. History check: If a query for this product has been made on our platform before, take into account the previously offered parameters.
+
+8. Zero Redundancy & Context Zooming: If the input query explicitly specifies a sub-category, purpose, style, or technology (e.g., "silniční endurance kolo", "road endurance bike", "dual boiler espresso machine", "trail running shoes zero drop"):
+   - STRICTLY FORBIDDEN: Generating parameters that re-ask what is already specified in the query (e.g. DO NOT ask "Purpose: racing vs endurance" or "Geometry: race vs endurance" when the user already requested an endurance road bike).
+   - CONTEXT ZOOMING: Instead of generic umbrella typology or redundant purpose questions, zoom one level deeper into the specific technical trade-offs of that sub-category (e.g. for endurance road bike: vibration dampening technology, tyre clearance 30–38mm, climbing gear ratios, cockpit ergonomics, bag mounting points). Only include general purpose/typology segmentation when the query is broad or ambiguous (e.g. generic "bike" or "coffee machine").
+
+9. Technical & Technological Maturity: Always evaluate the engineering generation and technological tier of the product (e.g. electronic wireless shifting Di2/AXS vs mechanical cable on bikes, brushless vs brushed motors on tools, digital PID regulation & dual boiler vs bimetal thermostats on espresso machines, OLED/Mini-LED 144Hz vs 60Hz LED on displays, LiDAR vs bump navigation on robot vacuums, adaptive hybrid ANC on audio). Ensure buyers can explicitly choose between baseline technology and modern pro-grade technological maturity.
 
 Output structure (generate valid JSON):
 Respond STRICTLY as a valid JSON object:
@@ -240,15 +249,18 @@ Respond STRICTLY as a valid JSON object:
 }`.trim() : `
 ${languageInstruction}
 
-Jsi expertní nákupní analytik a technický specifikátor v expertním systému bAIright. Tvým úkolem je rozpadnout jakoukoliv uživatelem zadanou kategorii zboží na seznam 8 až 12 nejkritičtějších parametrů, které musí kupující zvážit před finálním rozhodnutím.
+Jsi expertní nákupní analytik a technický specifikátor v expertním systému bAIright. Tvým úkolem je rozpadnout jakoukoliv uživatelem zadanou kategorii zboží na ucelený seznam nejkritičtějších parametrů, které musí kupující zvážit před finálním rozhodnutím (u komplexních inženýrských, sportovních a technologických kategorií 11 až 14 parametrů).
 
 Vstupní entita (Zboží): "${categoryQuery}"${historySection}
 
 Pravidla pro generování parametrů:
 
-1. Rozsah: Vygeneruj striktně 8 až 12 parametrů.
+1. Diferencovaný rozsah & Přirozená saturace:
+   - Komplexní inženýrské, sportovní, motoristické a technologické kategorie (jízdní kola, auta, notebooky/PC, espresso kávovary, Hi-Fi audio, aku nářadí, spotřebiče): Cílem je 11 až 14 parametrů. Je STRIKTNĚ ZAKÁZÁNO zastavit se předčasně na 8 položkách. Systematicky dekomponuj všechny klíčové konstrukční podsestavy a kritéria (u kol: materiál rámu, pohon/řazení, zapletená kola a materiál ráfků, brzdový systém, pláště a průchodnost rámu, technologie tlumení vibrací, kokpit/sedlovka, celková hmotnost kola, biometrie/velikost postavy a preferované značky).
+   - Běžné spotřební zboží (batohy, oblečení, běžné nádobí): Cílem je 7 až 9 parametrů.
+   - Specificky jednoduché předměty denní potřeby (keramický hrnek na kávu, sklenice, podložka pod myš): Cílem je 4 až 6 parametrů. STRIKTNĚ ZAKÁZÁNO vymýšlet umělou vatu, nerelevantní technologie (např. žádné tepelné pojistky či provozní napětí u hrnku) nebo vágní klišé jen pro splnění kvóty. Skonči přirozeně na hranici reálných nákupních rozdílů na trhu.
 
-2. Komplexita: Parametry musí pokrývat celé spektrum výběru (1-2 zaměřené na uživatelský kontext/účel a typologii trhu, zbytek na klíčové technické specifikace typické pro dané zboží). U produktů vázaných na tělo zařaď biometrii a ergonomii.
+2. Komplexita: Parametry musí pokrývat celé spektrum výběru (u obecných kategorií 1-2 zaměřené na uživatelský kontext/účel a typologii trhu; u specifických podkategorií jdi rovnou do specializovaných technických parametrů bez duplicitních otázek na již zadaný účel). U produktů vázaných na tělo (kola, obuv, židle, lyže, matrace) VŽDY zařaď praktické biometrické a rozměrové parametry (výška postavy, délka nohou inseam, šířka chodidla, hmotnost) přímo navázané na reálné velikosti (např. XS až XL, velikost rámu 54/56cm, standard vs 2E široké chodidlo), nikoliv abstraktní žargon.
 
 3. Srozumitelnost: Každý parametr musí mít krátký vysvětlující popis pro laika (rationale, max 100 znaků), proč je daná věc důležitá a jaké je riziko špatné volby na základě poznatků z recenzí a fór.
 
@@ -259,6 +271,12 @@ Pravidla pro generování parametrů:
 6. Striktní zákaz klišé & statických fallbacků: STRIKTNÍ ZÁKAZ VÁGNÍCH KLIŠÉ ("Cena", "Barva", "Vzhled", "Kvalita", "Ergonomie"). Žádné šablonové fráze o montáži či spotřebě u ne-spotřebičů.
 
 7. Ověření historie webu: Pokud již na našem webu proběhl dotaz na toto zboží, zohledni dříve nabízené parametry z databáze.
+
+8. Nulová redundance & Hloubkový zoom kontextu (Zero Redundancy & Context Zooming): Pečlivě analyzuj vstupní dotaz uživatele. Pokud dotaz již explicitně specifikuje podkategorii, účel, styl nebo technologii (např. "silniční endurance kolo", "road endurance bike", "dual boiler espresso kávovar", "trailové běžecké boty s nulovým dropem", "herní notebook 144hz"):
+   - STRIKTNÍ ZÁKAZ: Generovat parametry, které se znovu ptají na to, co je již v zadání rozhodnuto (např. NEPTAT SE na "Účel použití: závody vs. vytrvalost/endurance" ani na "Geometrie rámu: závodní vs. endurance", když uživatel výslovně zadal endurance silniční kolo).
+   - HLOUBKOVÝ ZOOM: Místo obecné typologie nebo duplicitního účelu jdi o úroveň hlouběji do specifických technických nuancí dané podkategorie (např. u endurance silničního kola: technologie tlumení vibrací rámu/sedlovky, průchodnost plášťů 30–38 mm, převodový rozsah na stoupání, ergonomie řídítek, úchyty na brašny). Obecné rozdělení účelu a typologie zařaď POUZE tehdy, pokud je zadání široké nebo nejednoznačné (např. obecné "kolo" nebo "kávovar").
+
+9. Technická & Technologická vyspělost: Vždy vyhodnoť inženýrskou generaci a úroveň technologické vyspělosti produktu (např. elektronické bezdrátové řazení Di2/AXS vs. mechanické lanko u kola; bezuhlíkový brushless motor vs. uhlíkový motor u nářadí; digitální PID regulace & duální bojler vs. bimetalový termostat u kávovaru; OLED/Mini-LED 144Hz vs. 60Hz LED u TV/monitorů; LiDAR laserová navigace vs. narážecí gyroskop u robotického vysavače; adaptivní hybridní ANC u sluchátek). Umožni kupujícímu explicitně zvolit mezi základní technologií a moderním špičkovým standardem.
 
 Struktura výstupu (vygeneruj validní JSON):
 Odpověz STRIKTNĚ jako validní JSON objekt:

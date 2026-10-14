@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest';
 import * as fs from 'fs';
 import * as path from 'path';
 import { discoverDomainParameters } from '../domain-parameter-discovery';
+import { buildLukeSystemPrompt } from '../luke-agent-prompt';
 
 describe('Agent Luke: Prompt Governance & Contract Integrity Test Suite', () => {
   const rootDir = process.cwd();
@@ -85,6 +86,46 @@ describe('Agent Luke: Prompt Governance & Contract Integrity Test Suite', () => 
       expect(content).toMatch(/specifikace|specs/i);
     });
 
+    it("1.9 Specifikace nařizuje pravidlo Nulové redundance a kontextového zoomu (Zero Redundancy & Context Zooming)", () => {
+      const canonicalSpec = fs.readFileSync(path.join(rootDir, "SPEC", "agents", "LUKE_RESEARCH_AGENT.md"), "utf-8");
+      expect(canonicalSpec).toMatch(/Zero Redundancy & Context Zooming/i);
+      expect(canonicalSpec).toContain("silniční endurance kolo");
+
+      const generalSpec = fs.readFileSync(lukeSpecPath, "utf-8");
+      expect(generalSpec).toMatch(/Zero Redundancy & Context Zooming/i);
+    });
+
+    it("1.10 Specifikace nařizuje praktickou biometrickou personalizaci a reálné rozměry", () => {
+      const canonicalSpec = fs.readFileSync(path.join(rootDir, "SPEC", "agents", "LUKE_RESEARCH_AGENT.md"), "utf-8");
+      expect(canonicalSpec).toMatch(/Practical Biometric Personalization/i);
+      expect(canonicalSpec).toMatch(/Výška postavy & Velikost rámu/i);
+
+      const generalSpec = fs.readFileSync(lukeSpecPath, "utf-8");
+      expect(generalSpec).toMatch(/Praktická volba velikosti/i);
+    });
+
+    it("1.11 Specifikace nařizuje přirozenou saturaci parametrů a zákaz umělé vaty (Natural Saturation & Anti-Padding)", () => {
+      const canonicalSpec = fs.readFileSync(path.join(rootDir, "SPEC", "agents", "LUKE_RESEARCH_AGENT.md"), "utf-8");
+      expect(canonicalSpec).toMatch(/Natural Parameter Saturation & Anti-Padding/i);
+      expect(canonicalSpec).toMatch(/ceramic coffee mug/i);
+
+      const generalSpec = fs.readFileSync(lukeSpecPath, "utf-8");
+      expect(generalSpec).toMatch(/Anti-Padding/i);
+
+      const routeContent = fs.readFileSync(routeCodePath, "utf-8");
+      expect(routeContent).toMatch(/Natural Saturation/i);
+      expect(routeContent).toMatch(/Přirozená saturace/i);
+    });
+
+    it("1.12 Specifikace nařizuje 5 nákupních pilířů včetně Technické & Technologické vyspělosti", () => {
+      const canonicalSpec = fs.readFileSync(path.join(rootDir, "SPEC", "agents", "LUKE_RESEARCH_AGENT.md"), "utf-8");
+      expect(canonicalSpec).toMatch(/Five Universal Purchasing Pillars/i);
+      expect(canonicalSpec).toMatch(/Technological Maturity/i);
+
+      const generalSpec = fs.readFileSync(lukeSpecPath, "utf-8");
+      expect(generalSpec).toMatch(/Technická & Technologická vyspělost/i);
+    });
+
   // =========================================================================
   // 2. KONTROLA SYNCHRONIZACE S RUNTIME PROMPTEM (src/app/api/agent/.../route.ts)
   // =========================================================================
@@ -97,7 +138,9 @@ describe('Agent Luke: Prompt Governance & Contract Integrity Test Suite', () => 
       expect(routeContent).toMatch(/expertní nákupní analytik a technický specifikátor/i);
 
       // 2. Rozsah 8 až 12 parametrů
-      expect(routeContent).toMatch(/8 až (?:10|12)/i);
+      expect(routeContent).toMatch(/(?:8|10|11) až (?:10|12|14)/i);
+      expect(routeContent).toMatch(/11 až 14/i);
+      expect(routeContent).toMatch(/11 to 14/i);
 
       // 3. Izolace značek
       expect(routeContent).toContain('brand_preferences');
@@ -119,6 +162,30 @@ describe('Agent Luke: Prompt Governance & Contract Integrity Test Suite', () => 
       expect(routeContent).toMatch(/recenzí/i);
       expect(routeContent).toMatch(/fór/i);
       expect(routeContent).toMatch(/technické specifikace/i);
+    });
+
+    it("2.4 API route a buildLukeSystemPrompt obsahují pravidlo Nulové redundance a kontextového zoomu v EN i CZ verzi", () => {
+      const routeContent = fs.readFileSync(routeCodePath, "utf-8");
+      // EN route prompt
+      expect(routeContent).toContain("Zero Redundancy & Context Zooming");
+      // CZ route prompt
+      expect(routeContent).toContain("Nulová redundance & Hloubkový zoom kontextu");
+
+      // System prompt
+      const systemPrompt = buildLukeSystemPrompt("silniční endurance kolo", "en");
+      expect(systemPrompt).toContain("Zero Redundancy & Context Zooming");
+    });
+
+    it("2.5 API route a buildLukeSystemPrompt obsahují pravidlo Technické & Technologické vyspělosti v EN i CZ verzi", () => {
+      const routeContent = fs.readFileSync(routeCodePath, "utf-8");
+      // EN route prompt
+      expect(routeContent).toContain("Technical & Technological Maturity");
+      // CZ route prompt
+      expect(routeContent).toContain("Technická & Technologická vyspělost");
+
+      // System prompt
+      const systemPrompt = buildLukeSystemPrompt("aku vrtačka", "en");
+      expect(systemPrompt).toContain("Technical & Technological Maturity");
     });
 
   // =========================================================================
