@@ -965,7 +965,7 @@ const [researchError, setResearchError] = useState<string | null>(null);
               </div>
 
               {/* Bottom Action Bar: Clean Parameter Counter & Direct Action CTA */}
-              <div className="pt-3 border-t border-cyan-500/25 flex flex-col sm:flex-row items-center justify-between gap-3">
+              <div className="pt-3 pb-8 sm:pb-1 border-t border-cyan-500/25 flex flex-col sm:flex-row items-center justify-between gap-3">
                 <div className="text-xs font-mono text-slate-400 flex items-center gap-2 whitespace-nowrap self-start sm:self-center">
                   <Sliders className="w-3.5 h-3.5 text-cyan-400 shrink-0" />
                   <span className="text-cyan-300 font-bold">
@@ -1125,21 +1125,23 @@ const [researchError, setResearchError] = useState<string | null>(null);
                             <button
                               type="button"
                               onClick={(e) => handleMarkPurchased(e, rawAgent)}
-                              className="p-1.5 rounded-lg text-slate-500 hover:text-cyan-600 dark:hover:text-cyan-400 hover:bg-cyan-50 dark:hover:bg-cyan-950/40 border border-transparent hover:border-cyan-500/30 transition-all cursor-pointer"
-                              title={locale === 'en' ? 'Mark as Purchased (Move to History & Support)' : 'Označit jako zakoupené (Přesunout do historie)'}
+                              className="flex items-center gap-1 px-2 py-1 rounded-lg text-slate-600 dark:text-slate-400 hover:text-emerald-700 dark:hover:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 border border-slate-200 dark:border-slate-800 hover:border-emerald-500/30 transition-all cursor-pointer text-[11px] font-mono"
+                              title={locale === 'en' ? 'Mark as Purchased (Move to History)' : 'Označit jako zakoupené (Přesunout do historie)'}
                               aria-label={`${locale === 'en' ? 'Mark as purchased' : 'Označit jako zakoupené'} ${agent.name}`}
                             >
-                              <Check className="w-3.5 h-3.5" />
+                              <Check className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
+                              <span>{locale === 'en' ? 'Purchased' : 'Koupeno'}</span>
                             </button>
                           ) : (
                             <button
                               type="button"
                               onClick={(e) => handleRestoreActive(e, rawAgent.id)}
-                              className="p-1.5 rounded-lg text-slate-500 hover:text-cyan-400 hover:bg-cyan-950/40 border border-transparent hover:border-cyan-500/30 transition-all cursor-pointer"
+                              className="flex items-center gap-1 px-2 py-1 rounded-lg text-slate-600 dark:text-slate-400 hover:text-cyan-600 dark:hover:text-cyan-400 hover:bg-cyan-50 dark:hover:bg-cyan-950/40 border border-slate-200 dark:border-slate-800 hover:border-cyan-500/30 transition-all cursor-pointer text-[11px] font-mono"
                               title={locale === 'en' ? 'Restore back to active missions' : 'Vrátit zpět mezi aktivní nákupy'}
                               aria-label={`${locale === 'en' ? 'Restore agent' : 'Obnovit agenta'} ${agent.name}`}
                             >
-                              <RotateCcw className="w-3.5 h-3.5" />
+                              <RotateCcw className="w-3.5 h-3.5 text-cyan-600 dark:text-cyan-400" />
+                              <span>{locale === 'en' ? 'Reopen' : 'Aktivovat'}</span>
                             </button>
                           )}
 

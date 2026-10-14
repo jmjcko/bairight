@@ -295,9 +295,9 @@ export const AIEngineSubscriptionModal: React.FC<AIEngineSubscriptionModalProps>
 
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-950/85 backdrop-blur-md animate-in fade-in duration-200 overflow-y-auto">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-2.5 sm:p-4 bg-slate-950/85 backdrop-blur-md animate-in fade-in duration-200 overflow-y-auto overflow-x-hidden">
       <div 
-        className="w-full max-w-3xl sm:max-w-4xl bg-white border border-slate-200 rounded-2xl shadow-2xl shadow-[0_20px_60px_rgba(0,0,0,0.8)] overflow-hidden flex flex-col relative text-left my-auto"
+        className="w-full max-w-[calc(100vw-20px)] sm:max-w-4xl bg-white border border-slate-200 rounded-2xl shadow-2xl shadow-[0_20px_60px_rgba(0,0,0,0.8)] overflow-hidden flex flex-col relative text-left my-auto mx-auto"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header with Monospace Tag */}
@@ -327,7 +327,7 @@ export const AIEngineSubscriptionModal: React.FC<AIEngineSubscriptionModalProps>
 
         {/* Zero-Knowledge Security Notice (Dedicated Fixed Section with Clean Divider) */}
         <div className="px-5 sm:px-6 py-3 bg-[#f8fafc] dark:bg-slate-900/60 border-b border-slate-200 dark:border-slate-800">
-          <div className="flex items-center justify-between mb-1">
+          <div className="flex flex-wrap items-center justify-between gap-1.5 mb-1">
             <span className="text-[10px] font-mono font-bold tracking-wider text-[#01579b] dark:text-cyan-400 uppercase bg-[#e1f5fe] dark:bg-cyan-950/60 px-2 py-0.5 rounded border border-[#b3e5fc] dark:border-cyan-500/30">
               {isEn ? 'ZERO-KNOWLEDGE SECURITY POLICY' : 'BEZPEČNOSTNÍ ZÁRUKA (ZERO-KNOWLEDGE VAULT)'}
             </span>
@@ -361,14 +361,14 @@ export const AIEngineSubscriptionModal: React.FC<AIEngineSubscriptionModalProps>
                     : "bg-white border-slate-200 hover:border-slate-300 hover:bg-[#f8fafc]"
                 }`}
               >
-                <div className="flex items-center justify-between mb-2">
-                  <div className="flex items-center gap-2.5">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-2">
+                  <div className="flex items-center gap-2.5 flex-wrap min-w-0">
                     <input
                       type="radio"
                       name="provider"
                       checked={isSelected}
                       onChange={() => setActiveId(provider.id)}
-                      className="w-4 h-4 text-cyan-500 bg-slate-900 border-slate-700 focus:ring-cyan-500 cursor-pointer"
+                      className="w-4 h-4 text-cyan-500 bg-slate-900 border-slate-700 focus:ring-cyan-500 cursor-pointer shrink-0"
                     />
                     <span className="font-extrabold text-sm text-[#263238]">
                       {provider.name}
@@ -378,7 +378,7 @@ export const AIEngineSubscriptionModal: React.FC<AIEngineSubscriptionModalProps>
                     </span>
                   </div>
 
-                  <div className="flex items-center gap-2 text-[10px] font-mono text-[#607d8b]">
+                  <div className="flex items-center gap-1.5 sm:gap-2 text-[10px] font-mono text-[#607d8b] flex-wrap">
                     <span>{isEn ? `Memory: ${provider.contextWindowEn}` : `Paměť: ${provider.contextWindow}`}</span>
                     {provider.requiresKey && (() => {
                       const test = testStatus[provider.id];
@@ -497,8 +497,8 @@ export const AIEngineSubscriptionModal: React.FC<AIEngineSubscriptionModalProps>
                       );
                     })()}
 
-                    <div className="flex items-center gap-2">
-                      <div className="relative flex-1 flex items-center">
+                    <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+                      <div className="relative flex-1 flex items-center min-w-0">
                         <input
                           type={showKey[provider.id] ? "text" : "password"}
                           value={apiKeys[provider.id] || ""}
@@ -515,25 +515,27 @@ export const AIEngineSubscriptionModal: React.FC<AIEngineSubscriptionModalProps>
                         </button>
                       </div>
 
-                      {apiKeys[provider.id] && (
+                      <div className="flex items-center gap-2 shrink-0">
+                        {apiKeys[provider.id] && (
+                          <button
+                            type="button"
+                            onClick={() => handleRemoveKey(provider.id)}
+                            title={isEn ? "Remove key from Vault" : "Odstranit klíč z Vaultu"}
+                            className="flex-1 sm:flex-initial px-3 py-2.5 rounded-xl text-xs font-semibold bg-rose-950/60 hover:bg-rose-900 border border-rose-500/40 text-rose-300 hover:text-[#263238] transition-all flex items-center justify-center gap-1 cursor-pointer font-mono"
+                          >
+                            <span>{isEn ? 'Delete' : 'Odstranit'}</span>
+                          </button>
+                        )}
+
                         <button
                           type="button"
-                          onClick={() => handleRemoveKey(provider.id)}
-                          title={isEn ? "Remove key from Vault" : "Odstranit klíč z Vaultu"}
-                          className="px-3 py-2.5 rounded-xl text-xs font-semibold bg-rose-950/60 hover:bg-rose-900 border border-rose-500/40 text-rose-300 hover:text-[#263238] transition-all flex items-center gap-1 shrink-0 cursor-pointer font-mono"
+                          onClick={() => handleTestKey(provider.id)}
+                          disabled={testStatus[provider.id]?.loading}
+                          className="flex-1 sm:flex-initial px-3.5 py-2.5 rounded-xl text-xs font-semibold bg-cyan-950/80 hover:bg-cyan-900 border border-cyan-500/40 text-cyan-300 hover:text-[#263238] transition-all flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-50 font-mono"
                         >
-                          <span>{isEn ? 'Delete' : 'Odstranit'}</span>
+                          <span>{testStatus[provider.id]?.loading ? (isEn ? 'Testing...' : 'Testuji...') : (isEn ? 'Test Key' : 'Test klíče')}</span>
                         </button>
-                      )}
-
-                      <button
-                        type="button"
-                        onClick={() => handleTestKey(provider.id)}
-                        disabled={testStatus[provider.id]?.loading}
-                        className="px-3.5 py-2.5 rounded-xl text-xs font-semibold bg-cyan-950/80 hover:bg-cyan-900 border border-cyan-500/40 text-cyan-300 hover:text-[#263238] transition-all flex items-center gap-1.5 shrink-0 cursor-pointer disabled:opacity-50 font-mono"
-                      >
-                        <span>{testStatus[provider.id]?.loading ? (isEn ? 'Testing...' : 'Testuji...') : (isEn ? 'Test Key' : 'Test klíče')}</span>
-                      </button>
+                      </div>
                     </div>
 
                     {provider.id === "anthropic_claude" && (

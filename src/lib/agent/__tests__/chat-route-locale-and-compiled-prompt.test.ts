@@ -212,4 +212,18 @@ describe('Chat Route: Locale & Compiled Prompt Integration', () => {
     expect(promptEN).not.toContain('Není důležité');
   });
 
+  it('11. forgeAgentPrompt enforces IMMEDIATE RECOMMENDATION DIRECTIVE with optional end refinement in both EN and CZ', () => {
+    const answers = { coffee_preference: 'espresso' };
+    const promptEN = forgeAgentPrompt(PRESET_COFFEE_AGENT, answers, [], 'en');
+    const promptCS = forgeAgentPrompt(PRESET_COFFEE_AGENT, answers, [], 'cs');
+
+    expect(promptEN).toContain('IMMEDIATE RECOMMENDATION DIRECTIVE');
+    expect(promptEN).toContain('PRIMARY MANDATE: You MUST output your top 3 specific product model recommendations IMMEDIATELY');
+    expect(promptEN).toContain('OPTIONAL REFINEMENT AT THE END');
+
+    expect(promptCS).toContain('PŘÍMÉ EXPERTNÍ DOPORUČENÍ (NEZDRŽOVAT ÚVODNÍM VYZVÍDÁNÍM)');
+    expect(promptCS).toContain('HLAVNÍ INSTRUKCE: V této první odpovědi MUSÍŠ ROVNOU vygenerovat kompletní doporučení s přesně 3 konkrétními produktovými modely');
+    expect(promptCS).toContain('VOLITELNÉ UPŘESNĚNÍ NA KONCI');
+  });
+
 });

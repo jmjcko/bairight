@@ -1826,10 +1826,10 @@ export default function Home() {
       />
 
       {/* 6. Floating Action Capsules Stack (Mathematically uniform gap across all screen sizes) */}
-      {activeTab !== 'chat' && (
+      {activeTab !== 'chat' && wizardMode !== 'active_agent' && (
         <div
           aria-label="Quick actions"
-          className="fixed bottom-4 sm:bottom-6 right-4 sm:right-6 z-40 flex flex-col items-end gap-2.5 sm:gap-3 !bg-transparent !border-0 !shadow-none pointer-events-none print:hidden select-none"
+          className="hidden sm:flex fixed bottom-6 right-6 z-40 flex-col items-end gap-3 !bg-transparent !border-0 !shadow-none pointer-events-none print:hidden select-none"
         >
           <HowItWorksFloatingButton
             onClick={() => setIsTourModalOpen(true)}
