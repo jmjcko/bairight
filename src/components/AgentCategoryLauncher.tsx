@@ -9,6 +9,7 @@ import {
 import { AgentStorageService } from '@/lib/agent/agent-storage-service';
 import { useAuth } from '@/lib/auth/AuthContext';
 import { BuyMeACoffeeModal } from './BuyMeACoffeeModal';
+import { ConfirmModal } from './ConfirmModal';
 import { getLocalizedAgent } from '@/lib/agent/agent-localization';
 import { 
   discoverDomainParameters, 
@@ -75,6 +76,8 @@ export const AgentCategoryLauncher: React.FC<AgentCategoryLauncherProps> = ({
   const [isGenerating, setIsGenerating] = useState(false);
   const [activeAgentsTab, setActiveAgentsTab] = useState<'active' | 'purchased'>(initialTab);
   const [bmcModalAgent, setBmcModalAgent] = useState<UniversalAgentDefinition | null>(null);
+  const [agentToDelete, setAgentToDelete] = useState<{ id: string; name: string } | null>(null);
+  const [isDeleteAllOpen, setIsDeleteAllOpen] = useState(false);
 
   useEffect(() => {
     if (initialTab) {
@@ -494,22 +497,32 @@ const [researchError, setResearchError] = useState<string | null>(null);
   };
 
 
-  const handleDeleteAgent = (e: React.MouseEvent, agentId: string) => {
+  const handleDeleteAgent = (e: React.MouseEvent, agentId: string, agentName?: string) => {
     e.stopPropagation();
-    if (confirm('Opravdu chcete smazat tohoto agenta z knihovny?')) {
-      AgentStorageService.deleteAgent(agentId, user?.id);
-      const updatedAll = AgentStorageService.getAllAgents();
-      setAgents(updatedAll);
-      onAgentsChange?.(updatedAll);
-    }
+    setAgentToDelete({
+      id: agentId,
+      name: agentName || (locale === 'en' ? 'Shopping Agent' : 'Nákupní agent'),
+    });
+  };
+
+  const confirmDeleteAgent = () => {
+    if (!agentToDelete) return;
+    AgentStorageService.deleteAgent(agentToDelete.id, user?.id);
+    const updatedAll = AgentStorageService.getAllAgents();
+    setAgents(updatedAll);
+    onAgentsChange?.(updatedAll);
+    setAgentToDelete(null);
   };
 
   const handleDeleteAllAgents = () => {
-    if (confirm(locale === 'en' ? 'Are you sure you want to delete all your agents?' : 'Opravdu chcete smazat všechny vaše agenty?')) {
-      AgentStorageService.deleteAllAgents(user?.id);
-      setAgents([]);
-      onAgentsChange?.([]);
-    }
+    setIsDeleteAllOpen(true);
+  };
+
+  const confirmDeleteAllAgents = () => {
+    AgentStorageService.deleteAllAgents(user?.id);
+    setAgents([]);
+    onAgentsChange?.([]);
+    setIsDeleteAllOpen(false);
   };
 
   const handleMarkPurchased = (e: React.MouseEvent, agent: UniversalAgentDefinition) => {
@@ -1132,7 +1145,7 @@ const [researchError, setResearchError] = useState<string | null>(null);
 
                           <button
                             type="button"
-                            onClick={(e) => handleDeleteAgent(e, rawAgent.id)}
+                            onClick={(e) => handleDeleteAgent(e, rawAgent.id, agent.name)}
                             className="p-1.5 rounded-lg text-slate-500 hover:text-rose-400 hover:bg-rose-950/40 border border-transparent hover:border-rose-500/30 transition-all cursor-pointer"
                             title={locale === 'en' ? 'Remove from library' : 'Smazat agenta z knihovny'}
                             aria-label={`${locale === 'en' ? 'Delete agent' : 'Smazat agenta'} ${agent.name}`}
@@ -1186,6 +1199,42 @@ const [researchError, setResearchError] = useState<string | null>(null);
         isOpen={Boolean(bmcModalAgent)}
         onClose={() => setBmcModalAgent(null)}
         agent={bmcModalAgent}
+        locale={locale}
+      />
+
+      {/* Delete Single Agent Confirm Modal */}
+      <ConfirmModal
+        isOpen={Boolean(agentToDelete)}
+        onClose={() => setAgentToDelete(null)}
+        onConfirm={confirmDeleteAgent}
+        badge={locale === 'en' ? 'LIBRARY • REMOVAL' : 'KNIHOVNA • ODEBRÁNÍ'}
+        title={locale === 'en' ? 'Delete Shopping Agent' : 'Smazat nákupního agenta'}
+        message={
+          locale === 'en'
+            ? `Are you sure you want to delete "${agentToDelete?.name}" from your library? This action cannot be undone.`
+            : `Opravdu chcete smazat agenta „${agentToDelete?.name}“ z knihovny? Tuto akci nelze vzít zpět.`
+        }
+        confirmLabel={locale === 'en' ? 'Delete agent' : 'Smazat agenta'}
+        cancelLabel={locale === 'en' ? 'Cancel' : 'Zrušit'}
+        isDestructive={true}
+        locale={locale}
+      />
+
+      {/* Delete All Agents Confirm Modal */}
+      <ConfirmModal
+        isOpen={isDeleteAllOpen}
+        onClose={() => setIsDeleteAllOpen(false)}
+        onConfirm={confirmDeleteAllAgents}
+        badge={locale === 'en' ? 'LIBRARY • RESET' : 'KNIHOVNA • RESET'}
+        title={locale === 'en' ? 'Delete All Shopping Agents' : 'Smazat všechny nákupní agenty'}
+        message={
+          locale === 'en'
+            ? 'Are you sure you want to delete all shopping agents from your library? All configured criteria and progress will be permanently removed.'
+            : 'Opravdu chcete smazat všechny nákupní agenty z knihovny? Veškerá nakonfigurovaná kritéria a historie budou trvale odstraněny.'
+        }
+        confirmLabel={locale === 'en' ? 'Delete all' : 'Smazat vše'}
+        cancelLabel={locale === 'en' ? 'Cancel' : 'Zrušit'}
+        isDestructive={true}
         locale={locale}
       />
       {toastMessage && (

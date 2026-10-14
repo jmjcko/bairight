@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import { PersistentMemoryFact, CompletedAssessmentRecord, formatValueDisplay } from "@/lib/agent/engine-config";
 import { PromptStorageService, CompletedPromptRecord } from "@/lib/agent/prompt-storage-service";
+import { ConfirmModal } from "./ConfirmModal";
 
 interface UserRAGMemoryModalProps {
   isOpen: boolean;
@@ -48,6 +49,7 @@ export const UserRAGMemoryModal: React.FC<UserRAGMemoryModalProps> = ({
   // Form for adding new manual fact
   const [isAdding, setIsAdding] = useState(false);
   const [newLabel, setNewLabel] = useState("");
+  const [isClearAllPromptsOpen, setIsClearAllPromptsOpen] = useState(false);
   const [newValue, setNewValue] = useState("");
   const [newCategory, setNewCategory] = useState<"biometrics" | "medical" | "preference" | "history">("medical");
 
@@ -88,13 +90,13 @@ export const UserRAGMemoryModal: React.FC<UserRAGMemoryModalProps> = ({
   };
 
   const handleClearAllPrompts = () => {
-    const confirmMsg = locale === "en" 
-      ? "Are you sure you want to delete all saved completed prompts?" 
-      : "Opravdu chcete smazat všechny uložené dokončené prompty?";
-    if (window.confirm(confirmMsg)) {
-      PromptStorageService.clearAll();
-      setCompletedPrompts([]);
-    }
+    setIsClearAllPromptsOpen(true);
+  };
+
+  const confirmClearAllPrompts = () => {
+    PromptStorageService.clearAll();
+    setCompletedPrompts([]);
+    setIsClearAllPromptsOpen(false);
   };
 
   const copyToClipboard = (text: string, id: string) => {
@@ -726,6 +728,23 @@ export const UserRAGMemoryModal: React.FC<UserRAGMemoryModalProps> = ({
           </button>
         </div>
       </div>
+
+      <ConfirmModal
+        isOpen={isClearAllPromptsOpen}
+        onClose={() => setIsClearAllPromptsOpen(false)}
+        onConfirm={confirmClearAllPrompts}
+        badge={locale === "en" ? "MEMORY • RESET" : "PAMĚŤ • RESET"}
+        title={locale === "en" ? "Clear Completed Prompts" : "Smazat uložené prompty"}
+        message={
+          locale === "en"
+            ? "Are you sure you want to delete all saved completed prompts? This action cannot be undone."
+            : "Opravdu chcete smazat všechny uložené dokončené prompty? Tuto akci nelze vzít zpět."
+        }
+        confirmLabel={locale === "en" ? "Delete all" : "Smazat vše"}
+        cancelLabel={locale === "en" ? "Cancel" : "Zrušit"}
+        isDestructive={true}
+        locale={locale as any}
+      />
     </div>
   );
 };

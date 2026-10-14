@@ -6,6 +6,7 @@ import { Logo } from "@/components/Logo";
 import { useAuth } from "@/lib/auth/AuthContext";
 import { isUserAdmin } from "@/lib/auth/admin-check";
 import { GoogleLoginModal } from "@/components/auth/GoogleLoginModal";
+import { ConfirmModal } from "@/components/ConfirmModal";
 
 interface ExtractedParam {
   id: string;
@@ -164,6 +165,7 @@ export default function LukeLabPage() {
   const [loadingMap, setLoadingMap] = useState<Record<string, boolean>>({});
   const [isBulkRunning, setIsBulkRunning] = useState(false);
   const [customProductInput, setCustomProductInput] = useState("");
+  const [isResetConfirmOpen, setIsResetConfirmOpen] = useState(false);
   const [errorMap, setErrorMap] = useState<Record<string, string>>({});
 
   // Initialize from LocalStorage or default product list
@@ -289,13 +291,16 @@ export default function LukeLabPage() {
   };
 
   const clearAllHistory = () => {
-    if (confirm("Opravdu chcete vyresetovat historii srovnávání pro všechny produkty?")) {
-      const reset: Record<string, ProductHistory> = {};
-      DEFAULT_PRODUCTS.forEach((p) => {
-        reset[p] = { name: p };
-      });
-      saveHistory(reset);
-    }
+    setIsResetConfirmOpen(true);
+  };
+
+  const confirmClearAllHistory = () => {
+    const reset: Record<string, ProductHistory> = {};
+    DEFAULT_PRODUCTS.forEach((p) => {
+      reset[p] = { name: p };
+    });
+    saveHistory(reset);
+    setIsResetConfirmOpen(false);
   };
 
   // Auth gate check: in test environment, allow direct view for lab tests unless tested with explicit mock
@@ -366,6 +371,18 @@ export default function LukeLabPage() {
           </footer>
 
           <GoogleLoginModal isOpen={isLoginModalOpen} onClose={() => setIsLoginModalOpen(false)} />
+      <ConfirmModal
+        isOpen={isResetConfirmOpen}
+        onClose={() => setIsResetConfirmOpen(false)}
+        onConfirm={confirmClearAllHistory}
+        badge="LAB • RESET"
+        title="Resetovat historii srovnávání"
+        message="Opravdu chcete vyresetovat historii srovnávání pro všechny produkty v labu? Všechna uložená baseline data budou smazána."
+        confirmLabel="Resetovat historii"
+        cancelLabel="Zrušit"
+        isDestructive={true}
+        locale="cs"
+      />
         </div>
       );
     }

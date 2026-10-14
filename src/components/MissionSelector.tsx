@@ -8,6 +8,7 @@ import { useI18n } from '@/lib/i18n/I18nContext';
 import { useAuth } from '@/lib/auth/AuthContext';
 import { ManagedAgentRegistryService } from '@/lib/agent/managed-agents-registry';
 import { getLocalizedAgent } from '@/lib/agent/agent-localization';
+import { ConfirmModal } from './ConfirmModal';
 
 interface MissionSelectorProps {
   currentAgent: UniversalAgentDefinition | null;
@@ -36,6 +37,7 @@ export const MissionSelector: React.FC<MissionSelectorProps> = ({
   const [managedAgents, setManagedAgents] = useState<UniversalAgentDefinition[]>([]);
   const [showTemplates, setShowTemplates] = useState(false);
   const [expandedHistoryAgentId, setExpandedHistoryAgentId] = useState<string | null>(null);
+  const [agentToDelete, setAgentToDelete] = useState<UniversalAgentDefinition | null>(null);
   const { t, locale } = useI18n();
   const { user } = useAuth();
   const userName = propUserName !== undefined ? propUserName : (user?.name || "");
@@ -222,11 +224,7 @@ export const MissionSelector: React.FC<MissionSelectorProps> = ({
                           type="button"
                           onClick={(e) => {
                             e.stopPropagation();
-                            if (confirm(t.missionSelector.deleteConfirm.replace('{name}', agent.name))) {
-                              AgentStorageService.deleteAgent(agent.id);
-                              if (onDeleteAgent) onDeleteAgent(agent.id);
-                              refreshAgents();
-                            }
+                            setAgentToDelete(agent);
                           }}
                           className="flex items-center gap-1 px-2 py-1 rounded-lg bg-slate-900 hover:bg-rose-950/60 text-slate-400 hover:text-rose-300 border border-slate-700 hover:border-rose-500/40 text-[10px] font-mono transition-colors cursor-pointer"
                           title={t.missionSelector.deleteTitle}
@@ -335,6 +333,30 @@ export const MissionSelector: React.FC<MissionSelectorProps> = ({
           )}
         </div>
       )}
+
+      <ConfirmModal
+        isOpen={Boolean(agentToDelete)}
+        onClose={() => setAgentToDelete(null)}
+        onConfirm={() => {
+          if (agentToDelete) {
+            AgentStorageService.deleteAgent(agentToDelete.id);
+            if (onDeleteAgent) onDeleteAgent(agentToDelete.id);
+            refreshAgents();
+            setAgentToDelete(null);
+          }
+        }}
+        badge={locale === 'en' ? 'LIBRARY • REMOVAL' : 'KNIHOVNA • ODEBRÁNÍ'}
+        title={locale === 'en' ? 'Delete Shopping Agent' : 'Smazat nákupního agenta'}
+        message={
+          locale === 'en'
+            ? `Are you sure you want to delete "${agentToDelete?.name}" from your account? This action cannot be undone.`
+            : `Opravdu chcete smazat agenta „${agentToDelete?.name}“ z vašeho účtu? Tuto akci nelze vzít zpět.`
+        }
+        confirmLabel={locale === 'en' ? 'Delete agent' : 'Smazat agenta'}
+        cancelLabel={locale === 'en' ? 'Cancel' : 'Zrušit'}
+        isDestructive={true}
+        locale={locale}
+      />
     </div>
   );
 };

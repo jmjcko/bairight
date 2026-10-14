@@ -204,9 +204,13 @@ describe('AgentCategoryLauncher Unit Test Suite (PRD v1)', () => {
     render(<AgentCategoryLauncher onSelectAgent={mockOnSelectAgent} />);
     expect(screen.getByText('Můj auto rádce')).toBeInTheDocument();
 
-    // Smazání agenta
+    // Smazání agenta otevře bAIright ConfirmModal
     const deleteBtn = screen.getByTitle(/Smazat agenta z knihovny/i);
     fireEvent.click(deleteBtn);
+
+    // Potvrzení smazání ve vlastním ConfirmModal
+    const confirmDeleteBtn = screen.getByRole("button", { name: /^Smazat agenta$/i });
+    fireEvent.click(confirmDeleteBtn);
     expect(screen.queryByText('Můj auto rádce')).not.toBeInTheDocument();
   });
 
