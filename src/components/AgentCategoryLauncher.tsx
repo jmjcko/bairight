@@ -633,41 +633,41 @@ const [researchError, setResearchError] = useState<string | null>(null);
         </form>
       </div>
 
-          {/* Researching Animation Progress Card — Luke Skywalker Green Lightsaber Protocol */}
+          {/* Researching Animation Progress Card — Luke Skywalker Green Lightsaber Protocol (Forest Emerald Light / Dark theme) */}
           {isResearching && (
-            <Card active className="p-6 text-center space-y-4 shadow-2xl border border-emerald-500/30 bg-slate-950/90 dark:bg-slate-950/95 relative overflow-hidden">
+            <Card className="p-6 text-center space-y-4 shadow-md border border-emerald-200/80 bg-white dark:bg-slate-950 dark:border-emerald-500/30 relative overflow-hidden">
               {/* Green ambient aura */}
-              <div className="absolute inset-0 bg-radial from-emerald-500/10 via-transparent to-transparent pointer-events-none" />
+              <div className="absolute inset-0 bg-radial from-emerald-500/5 dark:from-emerald-500/10 via-transparent to-transparent pointer-events-none" />
 
               <div className="relative z-10 space-y-3">
                 {/* Header Tag & Live Ticker */}
                 <div className="flex items-center justify-center gap-2">
-                  <span className="text-[10px] font-mono font-bold uppercase tracking-widest text-emerald-400 bg-emerald-950/80 border border-emerald-500/40 px-2.5 py-0.5 rounded shadow-xs">
+                  <span className="text-[10px] font-mono font-bold uppercase tracking-widest text-emerald-800 bg-emerald-50 border border-emerald-200 dark:text-emerald-300 dark:bg-emerald-950/80 dark:border-emerald-500/40 px-2.5 py-0.5 rounded-full shadow-xs">
                     AGENT LUKE
                   </span>
-                  <span className="text-[10px] font-mono font-bold text-emerald-300/90 bg-slate-900 border border-emerald-500/20 px-2 py-0.5 rounded">
+                  <span className="text-[10px] font-mono font-bold text-slate-600 bg-slate-100 border border-slate-200 dark:text-emerald-300/90 dark:bg-slate-900 dark:border-emerald-500/20 px-2 py-0.5 rounded-full">
                     {researchSeconds}s
                   </span>
                 </div>
 
                 {/* Target Query */}
-                <h4 className="text-sm font-bold text-white font-mono flex items-center justify-center gap-2">
+                <h4 className="text-sm font-bold text-[#263238] dark:text-white font-mono flex items-center justify-center gap-2">
                   <span>{locale === 'en' ? 'Deep market analysis for:' : 'Hloubkový průzkum trhu pro:'}</span>
-                  <span className="text-emerald-300 font-sans font-bold">„{query.trim()}“</span>
+                  <span className="text-emerald-700 dark:text-emerald-300 font-sans font-bold">„{query.trim()}“</span>
                 </h4>
 
                 {/* Compact Green Neon Spinner & Pulse Center */}
                 <div className="relative w-8 h-8 mx-auto flex items-center justify-center my-1.5">
-                  <div className="w-8 h-8 rounded-full border-2 border-emerald-400 border-t-transparent animate-spin shadow-[0_0_12px_rgba(34,197,94,0.35)]" />
-                  <div className="absolute w-2 h-2 rounded-full bg-emerald-400 animate-ping opacity-75" />
+                  <div className="w-8 h-8 rounded-full border-2 border-emerald-600 border-t-transparent dark:border-emerald-400 dark:border-t-transparent animate-spin shadow-xs" />
+                  <div className="absolute w-2 h-2 rounded-full bg-emerald-600 dark:bg-emerald-400 animate-ping opacity-75" />
                 </div>
 
                 {/* Dynamic Witty Luke Quote */}
-                <p className="text-xs font-semibold text-emerald-200/95 max-w-md mx-auto leading-relaxed animate-in fade-in duration-300">
+                <p className="text-xs font-semibold text-emerald-900 dark:text-emerald-100 max-w-md mx-auto leading-relaxed animate-in fade-in duration-300">
                   {getLukeJediMessage(researchSeconds, locale === "en")}
                 </p>
 
-                <p className="text-[11px] text-slate-400 max-w-lg mx-auto leading-relaxed font-sans">
+                <p className="text-[11px] text-slate-600 dark:text-slate-400 max-w-lg mx-auto leading-relaxed font-sans">
                   {locale === 'en'
                     ? 'Scanning expert teardowns, community discussions & technical specs to isolate genuine decision criteria...'
                     : 'Procházím odborné recenze, komunitní fóra a technické specifikace pro nalezení skutečných parametrů...'}

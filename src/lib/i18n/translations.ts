@@ -664,7 +664,7 @@ export const translations: Record<SupportedLocale, Translations> = {
       createInWizardBtn: 'Vytvořit agenta v průvodci',
     },
     launcher: {
-      badge: 'Intelligent Shopping Advisor & Explorer',
+      badge: 'Inteligentní nákupní rádce & průzkumník',
       heroTitle: 'Co si dnes přejete koupit?',
       heroSubtitle: 'Zadejte libovolný produkt a společně navrhneme nákupního agenta na míru.',
       searchPlaceholder: 'např. Kancelářská ergonomická židle, dětská koloběžka, kávovar, běžecké boty...',
