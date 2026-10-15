@@ -188,6 +188,25 @@ describe('Agent Luke: Prompt Governance & Contract Integrity Test Suite', () => 
       expect(systemPrompt).toContain("Technical & Technological Maturity");
     });
 
+    it("2.6 API route a buildLukeSystemPrompt obsahují pravidlo Nativního mechanického rozhraní (Native Interface Integrity)", () => {
+      const routeContent = fs.readFileSync(routeCodePath, "utf-8");
+      expect(routeContent).toContain("Native Interface & Mounting Standard Integrity");
+      expect(routeContent).toContain("Nativní mechanická a montážní rozhraní");
+
+      const systemPrompt = buildLukeSystemPrompt("cyklosvětlo garmin", "en");
+      expect(systemPrompt).toContain("Native Interface & Mounting Standard Integrity");
+    });
+
+    it("2.7 API route a buildLukeSystemPrompt obsahují pravidlo Ověření geografického původu značek (Tchaj-wan vs Čína)", () => {
+      const routeContent = fs.readFileSync(routeCodePath, "utf-8");
+      expect(routeContent).toContain("Brand Origin & Geography Verification Protocol");
+      expect(routeContent).toContain("Protokol ověření geografického původu značek");
+
+      const systemPrompt = buildLukeSystemPrompt("cyklosvětlo ravemen", "en");
+      expect(systemPrompt).toContain("Brand Origin & Geography Verification Protocol");
+      expect(systemPrompt).toContain("Taiwan (ROC)");
+    });
+
   // =========================================================================
   // 3. KONTROLA FUNKČNÍHO VÝSTUPU ENGINGU (Contract Compliance)
   // =========================================================================

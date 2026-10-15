@@ -64,28 +64,24 @@ export const ProductTourModal: React.FC<ProductTourModalProps> = ({
       pill: t.productTour.step1Pill,
       title: t.productTour.step1Title,
       desc: t.productTour.step1Desc,
-      featureBadge: "ZERO ADS • PURE LOGIC",
     },
     {
       step: 2,
       pill: t.productTour.step2Pill,
       title: t.productTour.step2Title,
       desc: t.productTour.step2Desc,
-      featureBadge: "DISCOVERY WIZARD • PROMPT SYNTHESIS",
     },
     {
       step: 3,
       pill: t.productTour.step3Pill,
       title: t.productTour.step3Title,
       desc: t.productTour.step3Desc,
-      featureBadge: "ATOMIC RAG • PERSISTENT CONTEXT",
     },
     {
       step: 4,
       pill: t.productTour.step4Pill,
       title: t.productTour.step4Title,
       desc: t.productTour.step4Desc,
-      featureBadge: "BYOK VAULT • CLIENT-SIDE SECURE",
     },
   ];
 
@@ -104,33 +100,26 @@ export const ProductTourModal: React.FC<ProductTourModalProps> = ({
         onClick={(e) => e.stopPropagation()}
       >
         {/* Modal Top Bar */}
-        <div className="px-6 pt-6 pb-4 border-b border-slate-200 dark:border-slate-800/80 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <span className="text-[11px] font-sans font-bold uppercase tracking-wider px-3 py-1 rounded-full border border-cyan-500/30 bg-cyan-50 dark:bg-cyan-950/60 text-cyan-700 dark:text-cyan-300">
-              {t.productTour.badge}
-            </span>
-            <span className="text-xs font-mono font-semibold text-slate-500 dark:text-slate-400">
-              {currentStep} / {totalSteps}
-            </span>
-          </div>
+        <div className="px-6 pt-5 pb-3 border-b border-slate-200 dark:border-slate-800/80 flex items-center justify-between">
+          <span className="text-xs font-mono font-semibold text-slate-500 dark:text-slate-400 tracking-wider">
+            {currentStep} / {totalSteps}
+          </span>
 
           <button
             onClick={handleFinishTour}
             aria-label={t.productTour.closeBtn}
-            className="text-xs font-sans font-medium text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white px-3 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+            title={t.productTour.closeBtn}
+            className="w-8 h-8 flex items-center justify-center rounded-lg text-slate-400 hover:text-slate-700 dark:text-slate-400 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer text-sm font-semibold"
           >
-            {t.productTour.closeBtn}
+            <span aria-hidden="true" className="text-base leading-none">✕</span>
           </button>
         </div>
 
         {/* Step Content */}
         <div className="px-6 py-7 flex flex-col gap-5">
-          <div className="flex flex-wrap items-center justify-between gap-2">
+          <div>
             <span className="text-xs font-sans font-bold tracking-wider text-cyan-600 dark:text-cyan-400 uppercase">
               {currentData.pill}
-            </span>
-            <span className="text-[10px] font-mono font-semibold text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700/80 px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800/50">
-              {currentData.featureBadge}
             </span>
           </div>
 

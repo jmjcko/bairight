@@ -224,6 +224,17 @@ Parameter generation rules:
 
 9. Technical & Technological Maturity: Always evaluate the engineering generation and technological tier of the product (e.g. electronic wireless shifting Di2/AXS vs mechanical cable on bikes, brushless vs brushed motors on tools, digital PID regulation & dual boiler vs bimetal thermostats on espresso machines, OLED/Mini-LED 144Hz vs 60Hz LED on displays, LiDAR vs bump navigation on robot vacuums, adaptive hybrid ANC on audio). Ensure buyers can explicitly choose between baseline technology and modern pro-grade technological maturity.
 
+10. Native Interface & Mounting Standard Integrity: When the category or query involves mechanical/physical mounting standards, docks, brackets, or ports (e.g. Garmin/Wahoo mount, MagSafe, VESA 100x100, ISOFIX, Thunderbolt, Arca-Swiss):
+   - Prioritize native chassis-integrated interfaces over external add-on brackets or stick-on adapters.
+   - Formulate options and parameters that clearly separate "Native integrated mount (direct out-of-the-box)" vs "Requires external adapter / conversion bracket".
+   - Strictly prohibit misleading buyers by conflating products requiring add-on adapters with natively integrated standard bodies.
+
+11. Brand Origin & Geography Verification Protocol: When managing brand preferences and evaluating manufacturer origin:
+   - Verify factual brand headquarters (HQ) and engineering origin before inclusion or exclusion.
+   - Distinguish Taiwan (ROC) from Mainland China (PRC) — brands with headquarters in Taiwan (e.g., Giant, Merida, TSMC, Asus, Ravemen) MUST NEVER be conflated with or classified as Mainland Chinese brands unless explicitly demanded by the user.
+   - Distinguish brand engineering origin from outsourced manufacturing assembly (e.g. Western/Taiwanese brands assembling in Asia under rigorous QA remain Western/Taiwanese brands).
+   - When users specify geographic exclusions (e.g. "no Chinese brands"), the directive targets uncertified, noname white-label marketplace goods without local warranty, NOT established global brands with international safety certifications.
+
 Output structure (generate valid JSON):
 Respond STRICTLY as a valid JSON object:
 {
@@ -277,6 +288,17 @@ Pravidla pro generování parametrů:
    - HLOUBKOVÝ ZOOM: Místo obecné typologie nebo duplicitního účelu jdi o úroveň hlouběji do specifických technických nuancí dané podkategorie (např. u endurance silničního kola: technologie tlumení vibrací rámu/sedlovky, průchodnost plášťů 30–38 mm, převodový rozsah na stoupání, ergonomie řídítek, úchyty na brašny). Obecné rozdělení účelu a typologie zařaď POUZE tehdy, pokud je zadání široké nebo nejednoznačné (např. obecné "kolo" nebo "kávovar").
 
 9. Technická & Technologická vyspělost: Vždy vyhodnoť inženýrskou generaci a úroveň technologické vyspělosti produktu (např. elektronické bezdrátové řazení Di2/AXS vs. mechanické lanko u kola; bezuhlíkový brushless motor vs. uhlíkový motor u nářadí; digitální PID regulace & duální bojler vs. bimetalový termostat u kávovaru; OLED/Mini-LED 144Hz vs. 60Hz LED u TV/monitorů; LiDAR laserová navigace vs. narážecí gyroskop u robotického vysavače; adaptivní hybridní ANC u sluchátek). Umožni kupujícímu explicitně zvolit mezi základní technologií a moderním špičkovým standardem.
+
+10. Nativní mechanická a montážní rozhraní (Native Interface Integrity): Pokud kategorie nebo zadání zahrnuje montážní standardy, doky, držáky, konektory či rozhraní (např. Garmin/Wahoo zámek, MagSafe, VESA 100×100, ISOFIX, Thunderbolt, Arca-Swiss):
+   - Prioritizuj nativní rozhraní integrované v těle/šasi před externími dokoupitelnými redukcemi či nalepovacími adaptéry.
+   - Formuluj parametry a doporučené hodnoty tak, aby zřetelně oddělovaly "Nativní integrovaný držák (přímo z výroby)" od "Vyžaduje externí adaptér / redukční mezikus".
+   - Je přísně zakázáno klamat kupujícího směšováním produktů vyžadujících adaptér s těly majícími nativně integrovaný standard.
+
+11. Protokol ověření geografického původu značek (Brand Origin Verification): Při správě preferencí a vyloučení značek:
+   - Před zařazením či vyřazením značky ověř její skutečnou centrálu (HQ) a zemi inženýrského původu.
+   - Rozlišuj Tchaj-wan (ROC) od pevninské Číny (PRC) — značky s centrálou na Tchaj-wanu (např. Giant, Merida, TSMC, Asus, Ravemen) NESMÍ být svévolně zaměňovány s pevninskou Čínou ani vyřazovány jako "čínské značky", ledaže to uživatel výslovně specifikoval.
+   - Rozlišuj zemi inženýrského původu značky od subdodavatelské montáže v asijských továrnách (mezinárodní značka montující v Asii zůstává mezinárodní značkou).
+   - Při obecném zákazu "čínských značek" se direktiva zaměřuje na necertifikované "noname / white-label" klony z online tržišť bez oficiálního západního servisu a záruky, NIKOLIV na renomované inženýrské značky s mezinárodní distribucí a bezpečnostními certifikacemi.
 
 Struktura výstupu (vygeneruj validní JSON):
 Odpověz STRIKTNĚ jako validní JSON objekt:

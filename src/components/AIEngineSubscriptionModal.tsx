@@ -40,8 +40,8 @@ interface ProviderGuide {
 
 const PROVIDER_GUIDES: Record<AIProviderId, ProviderGuide> = {
   google_gemini: {
-    pricingNotice: "100% ZDARMA bez platební karty (v Google AI Studio).",
-    pricingNoticeEn: "100% FREE with no credit card required (in Google AI Studio).",
+    pricingNotice: "100% ZDARMA bez platební karty (v Google AI Studio). Výchozí model: Gemini 2.5 Flash.",
+    pricingNoticeEn: "100% FREE with no credit card required (in Google AI Studio). Default model: Gemini 2.5 Flash.",
     isFree: true,
     steps: [
       {
@@ -67,8 +67,8 @@ const PROVIDER_GUIDES: Record<AIProviderId, ProviderGuide> = {
     ],
   },
   anthropic_claude: {
-    pricingNotice: "POZOR: Předplatné Claude Pro neplatí pro API, je vyžadován předplacený kredit (min. $5).",
-    pricingNoticeEn: "NOTE: Consumer Claude Pro does NOT apply to API. Prepaid credit (min. $5) is required.",
+    pricingNotice: "POZOR: Předplatné Claude Pro neplatí pro API, je vyžadován předplacený kredit (min. $5). Pro úsporu či nízký kredit systém automaticky využívá Claude 3.5 Haiku.",
+    pricingNoticeEn: "NOTE: Consumer Claude Pro does NOT apply to API. Prepaid credit (min. $5) is required. System automatically falls back to cost-effective Claude 3.5 Haiku on low balance.",
     isFree: false,
     steps: [
       {
@@ -99,8 +99,8 @@ const PROVIDER_GUIDES: Record<AIProviderId, ProviderGuide> = {
     ],
   },
   openai_gpt4o: {
-    pricingNotice: "POZOR: Spotřebitelské ChatGPT Plus ($20) neplatí pro API, na platformě je nutný kredit (min. $5).",
-    pricingNoticeEn: "NOTE: Consumer ChatGPT Plus ($20) does NOT apply to API access. Prepaid balance (min. $5) is required.",
+    pricingNotice: "POZOR: Spotřebitelské ChatGPT Plus ($20) neplatí pro API, na platformě je nutný kredit (min. $5). Pro bezplatné a zkušební účty systém automaticky využívá úsporný GPT-4o-mini.",
+    pricingNoticeEn: "NOTE: Consumer ChatGPT Plus ($20) does NOT apply to API access. Prepaid balance (min. $5) is required. System automatically falls back to cost-effective GPT-4o-mini for trial/free tiers.",
     isFree: false,
     steps: [
       {

@@ -82,7 +82,12 @@ export class AgentStorageService {
             .map((a) => ({
               ...a,
               icon: resolveAgentIcon(a.icon, `${a.name} ${a.category}`),
-            }));
+            }))
+            .sort((a, b) => {
+              const timeA = new Date(a.createdAt || a.updatedAt || 0).getTime();
+              const timeB = new Date(b.createdAt || b.updatedAt || 0).getTime();
+              return timeB - timeA;
+            });
         }
         return [];
       }
@@ -116,14 +121,15 @@ export class AgentStorageService {
       const nowIso = new Date().toISOString();
       const updatedAgent: UniversalAgentDefinition = {
         ...cleanAgent,
+        createdAt: cleanAgent.createdAt || nowIso,
         icon: resolveAgentIcon(agent.icon, `${agent.name} ${agent.category}`),
         isCustom: true,
         updatedAt: nowIso,
       };
 
       const updated = [
-        ...existing.filter((a) => a.id !== agent.id),
         updatedAgent,
+        ...existing.filter((a) => a.id !== agent.id),
       ];
       localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
 
@@ -257,8 +263,12 @@ export class AgentStorageService {
         })();
       }
 
-      // 4. Update local storage with merged collection
-      const mergedList = Array.from(agentMap.values());
+      // 4. Update local storage with merged collection (chronological descending: newest first)
+      const mergedList = Array.from(agentMap.values()).sort((a, b) => {
+        const timeA = new Date(a.createdAt || a.updatedAt || 0).getTime();
+        const timeB = new Date(b.createdAt || b.updatedAt || 0).getTime();
+        return timeB - timeA;
+      });
       localStorage.setItem(STORAGE_KEY, JSON.stringify(mergedList));
       return mergedList;
     } catch (err) {

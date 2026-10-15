@@ -258,6 +258,36 @@ export function getMarketRecencyDirective(isEn: boolean): string {
 - Pokud uživatel napíše „do the research again“, „zkus to znovu“, „přehodnoť doporučení“ nebo zadá upřesnění, MUSÍŠ OKAMŽITĚ v této jediné odpovědi provést kompletní průzkum a doručit plně strukturovaná doporučení s konkrétními modely, odůvodněním, výhodami a kompromisy!`;
 }
 
+export function getNativeInterfaceAndBrandOriginDirective(isEn: boolean): string {
+  if (isEn) {
+    return `### NATIVE INTERFACE & MOUNTING STANDARD DIRECTIVE:
+If the user specifies a mounting standard, dock, bracket, connector, or physical interface (e.g. Garmin/Wahoo mount, MagSafe, VESA 100x100, ISOFIX, Thunderbolt, Arca-Swiss):
+1. NATIVE INTEGRATION FIRST: Recommended models MUST feature this interface natively integrated into their chassis/housing out-of-the-box.
+2. BAN ON PASSING OFF ADAPTERS AS NATIVE: You are STRICTLY FORBIDDEN from claiming a product possesses an integrated mount/interface if it requires a separate add-on adapter, conversion clamp, or stick-on ring.
+3. TRANSPARENT TRADE-OFF: If insufficient native models exist on the market, an adapter-based model may ONLY be suggested as a secondary alternative, with the required adapter and its drawbacks (extra leverage, weight, play) explicitly disclosed under Potential Trade-offs & Cons.
+
+### BRAND ORIGIN & GEOGRAPHY VERIFICATION DIRECTIVE:
+When applying geographic brand preferences or exclusions (e.g. "no Chinese brands", "European brands only"):
+1. VERIFY FACTUAL HEADQUARTERS: Verify the brand's actual corporate headquarters and engineering origin before classifying or excluding it.
+2. TAIWAN IS NOT MAINLAND CHINA: Brands headquartered in Taiwan (ROC — e.g. Giant, Merida, TSMC, Asus, Ravemen) MUST NOT be classified or excluded as Mainland Chinese brands unless explicitly specified by the user.
+3. BRAND ORIGIN VS. ASSEMBLY LOCATION: Exclusions apply to brand origin and engineering oversight, not global subcontracted factory assembly.
+4. UNBRANDED / NONAME TARGETING: A user exclusion of "Chinese brands" specifically targets unbranded, white-label, or noname marketplace products without domestic warranty or safety certification, not established engineering brands with authorized distribution.`;
+  }
+
+  return `### PRAVIDLO NATIVNÍHO ROZHRANÍ A MONTÁŽNÍCH STANDARDŮ:
+Pokud uživatel v zadání požaduje specifické rozhraní, typ montáže, bajonet, konektor nebo standard (např. Garmin/Wahoo zámek, MagSafe, VESA, ISOFIX, Thunderbolt, Arca-Swiss):
+1. NATIVNÍ INTEGRACE NA 1. MÍSTĚ: Doporučované modely MUSÍ mít toto rozhraní přímo a z výroby integrováno ve svém těle/šasi.
+2. ZÁKAZ VYDÁVÁNÍ ADAPTÉRŮ ZA NATIVNÍ ŘEŠENÍ: Je přísně zakázáno tvrdit, že produkt disponuje integrovaným úchytem, pokud vyžaduje externí dokoupitelnou redukci, adaptér, redukční pásku či mezikus.
+3. PRAVIDLO TRANSPARENTNÍHO KOMPROMISU: Produkt vyžadující externí redukci smí být nabídnut pouze jako nouzová alternativa (pokud na trhu neexistuje dostatek nativních modelů), přičemž nutnost redukce a její nevýhody (větší páka, vůle, vyšší váha) MUSÍ být explicitně uvedeny v sekci Potenciální kompromisy a nevýhody.
+
+### PROTOKOL OVĚŘENÍ GEOGRAFICKÉHO PŮVODU ZNAČEK:
+Pokud uživatel v pravidlech zakáže nebo preferuje geografickou skupinu značek (např. „čínské značky“, „evropské“, „americké“):
+1. FAKTICKÉ OVĚŘENÍ CENTRÁLY ZNAČKY: Před zařazením či vyřazením modelu si MUSÍŠ ověřit zemi původu a oficiální sídlo značky (HQ / Country of Origin).
+2. TCHAJ-WAN NENÍ PEVNINSKÁ ČÍNA: Pokud uživatel zakáže „čínské značky“, zákaz se vztahuje na značky se sídlem v pevninské Číně (PRC). Značky s centrálou na Tchaj-wanu (Taiwan / ROC — např. Giant, Merida, TSMC, Asus, Ravemen) NIKDY nesmíš svévolně vyřadit jako „čínské“, ledaže to uživatel explicitně definoval.
+3. PŮVOD ZNAČKY VS. MONTÁŽNÍ LOKACE: Zákaz geografické skupiny se vztahuje na zemi původu a inženýrství značky, nikoliv na místo fyzické montáže subdodavatelů (pokud mezinárodní značka montuje v Asii pod vlastní přísnou kontrolou kvality, NENÍ to čínská značka).
+4. CÍLENÍ NA NONAME PRODUKTY: Pokud uživatel zadá zákaz čínských produktů, primárním cílem je eliminace necertifikovaných „white-label“ a „noname“ výrobků z asijských online tržišť bez oficiálního západního zastoupení a servisu. Etablované technologické značky s mezinárodními certifikacemi posuzuj podle jejich reálné inženýrské reputace.`;
+}
+
 export function forgeAgentPrompt(
   agent: UniversalAgentDefinition,
   answers: Record<string, any>,
@@ -443,6 +473,8 @@ ${ragSection}
 
 ${getMarketRecencyDirective(true)}
 
+${getNativeInterfaceAndBrandOriginDirective(true)}
+
 ### CRITICAL LANGUAGE DIRECTIVE:
 You MUST communicate and output all recommendations, rationale, exact product model names, key advantages, trade-offs, and user responses strictly in fluent, natural English.
 
@@ -509,6 +541,8 @@ ${answeredBlocks.join('\n')}
 ${ragSection}
 
 ${getMarketRecencyDirective(false)}
+
+${getNativeInterfaceAndBrandOriginDirective(false)}
 
 ### CRITICAL LANGUAGE DIRECTIVE:
 Directivně ukládám: Veškerá doporučení, konkrétní přesné názvy produktových modelů (např. Lenovo Legion Slim 5 16AHR8), odůvodnění, výhody a reakce MUSÍŠ komunikovat a generovat striktně v přirozené češtině (Čeština).

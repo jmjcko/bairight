@@ -99,4 +99,18 @@ describe('Universal Agent Schema & Markdown Parser (PRD v1)', () => {
     expect(matches).not.toBeNull();
     expect(matches?.length).toBe(1);
   });
+
+  it('7. forgeAgentPrompt enforces Native Interface and Brand Origin (Taiwan vs China) directives in EN and CS', () => {
+    const promptEn = forgeAgentPrompt(PRESET_ERGO_CHAIR_AGENT, {}, [], 'en');
+    expect(promptEn).toContain('NATIVE INTERFACE & MOUNTING STANDARD DIRECTIVE:');
+    expect(promptEn).toContain('BAN ON PASSING OFF ADAPTERS AS NATIVE');
+    expect(promptEn).toContain('BRAND ORIGIN & GEOGRAPHY VERIFICATION DIRECTIVE:');
+    expect(promptEn).toContain('TAIWAN IS NOT MAINLAND CHINA');
+
+    const promptCs = forgeAgentPrompt(PRESET_ERGO_CHAIR_AGENT, {}, [], 'cs');
+    expect(promptCs).toContain('PRAVIDLO NATIVNÍHO ROZHRANÍ A MONTÁŽNÍCH STANDARDŮ:');
+    expect(promptCs).toContain('ZÁKAZ VYDÁVÁNÍ ADAPTÉRŮ ZA NATIVNÍ ŘEŠENÍ');
+    expect(promptCs).toContain('PROTOKOL OVĚŘENÍ GEOGRAFICKÉHO PŮVODU ZNAČEK:');
+    expect(promptCs).toContain('TCHAJ-WAN NENÍ PEVNINSKÁ ČÍNA');
+  });
 });

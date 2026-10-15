@@ -176,8 +176,13 @@ export const HeaderEngineSwitcher: React.FC<HeaderEngineSwitcherProps> = ({
                       <div className={`font-bold truncate ${isSelected ? "text-[#01579b]" : "text-[#263238]"}`}>
                         {provider.name}
                       </div>
-                      <div className="text-[10px] text-[#607d8b] font-mono truncate">
-                        {provider.modelName}
+                      <div className="text-[10px] text-[#607d8b] font-mono truncate flex items-center gap-1.5 flex-wrap">
+                        <span>{provider.modelName}</span>
+                        {provider.freeTierModel && (
+                          <span className="text-[9px] px-1 py-0.2 rounded bg-slate-100 text-slate-500 border border-slate-200 font-sans">
+                            {locale === "en" ? (provider.freeTierModelEn || provider.freeTierModel) : provider.freeTierModel}
+                          </span>
+                        )}
                       </div>
                     </div>
                   </div>

@@ -144,8 +144,14 @@ describe('AgentCategoryLauncher Unit Test Suite (PRD v1)', () => {
     fireEvent.click(researchBtn);
 
     await waitFor(() => {
-      expect(screen.getByPlaceholderText(/Přidat vlastní parametr/i)).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /\+ Přidat další parametr/i })).toBeInTheDocument();
     });
+
+    // In-grid dlaždice rozbalí formulář s text fieldem
+    const addTileBtn = screen.getByRole('button', { name: /\+ Přidat další parametr/i });
+    fireEvent.click(addTileBtn);
+
+    expect(screen.getByPlaceholderText(/Přidat vlastní parametr/i)).toBeInTheDocument();
 
     const customInput = screen.getByPlaceholderText(/Přidat vlastní parametr/i);
     fireEvent.change(customInput, { target: { value: 'Digitální teploměr páky' } });
@@ -214,7 +220,7 @@ describe('AgentCategoryLauncher Unit Test Suite (PRD v1)', () => {
     expect(screen.queryByText('Můj auto rádce')).not.toBeInTheDocument();
   });
 
-  it('8. Zobrazuje možnost přidat vlastní parametr (in-grid dlaždice, studio panel)', async () => {
+  it('8. Zobrazuje možnost přidat vlastní parametr (in-grid dlaždice rozbalující formulář s textovým polem)', async () => {
     render(<AgentCategoryLauncher onSelectAgent={mockOnSelectAgent} />);
 
     const searchInput = screen.getByPlaceholderText(/Kancelářská ergonomická židle/i);
@@ -223,16 +229,26 @@ describe('AgentCategoryLauncher Unit Test Suite (PRD v1)', () => {
     const researchBtn = screen.getByRole('button', { name: /Začít/i });
     fireEvent.click(researchBtn);
 
+    // Počkáme na načtení parametrů - in-grid dlaždice je zobrazena, formulář je zpočátku sbalený
     await waitFor(() => {
-      expect(screen.getByPlaceholderText(/Přidat vlastní parametr/i)).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /\+ Přidat další parametr/i })).toBeInTheDocument();
     });
 
-    // 1. In-grid interaktivní dlaždice na konci seznamu
-    expect(screen.getByRole('button', { name: /\+ Přidat další parametr/i })).toBeInTheDocument();
+    // Formulář s text fieldem není ve výchozím stavu rozbalen
+    expect(screen.queryByPlaceholderText(/Přidat vlastní parametr/i)).not.toBeInTheDocument();
 
-    // 2. Dedikovaný studio panel pro přidání
-    expect(screen.getByText(/Chybí vám zde nějaké kritérium\? Přidejte si vlastní parametr/i)).toBeInTheDocument();
+    // Kliknutí na in-grid dlaždici rozbalí formulář s text fieldem a tlačítkem Přidat parametr
+    const addParamTile = screen.getByRole('button', { name: /\+ Přidat další parametr/i });
+    fireEvent.click(addParamTile);
+
+    expect(screen.getByPlaceholderText(/Přidat vlastní parametr/i)).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /Přidat parametr/i })).toBeInTheDocument();
+    expect(screen.getByLabelText(/Zavřít formulář pro přidání parametru/i)).toBeInTheDocument();
+
+    // Kliknutí na zavírací tlačítko ✕ formulář opět skryje
+    const closeBtn = screen.getByLabelText(/Zavřít formulář pro přidání parametru/i);
+    fireEvent.click(closeBtn);
+    expect(screen.queryByPlaceholderText(/Přidat vlastní parametr/i)).not.toBeInTheDocument();
   });
 
   it('9. Nezobrazuje duplicitní dropdown a spravuje agenty přímo v přehledné knihovně karet', async () => {
@@ -454,5 +470,69 @@ describe('AgentCategoryLauncher Unit Test Suite (PRD v1)', () => {
     // Parameter card is dismissed and input is cleared
     expect(screen.queryByRole("button", { name: /Zrušit rešerši/i })).not.toBeInTheDocument();
     expect(searchInput.value).toBe("");
+  });
+
+  it("17. Řadí agenty v knihovně chronologicky od naposledy vytvořeného (nejnovější jako první)", () => {
+    AgentStorageService.resetToDefaults();
+    
+    // Uložíme 3 agenty s různými daty vytvoření
+    AgentStorageService.saveAgent({
+      id: "agent_old",
+      name: "Starý agent (Leden)",
+      category: "Kategorie A",
+      description: "Vytvořen v lednu",
+      icon: "",
+      version: "1.0",
+      questions: [],
+      systemPrompt: "",
+      createdAt: "2026-01-10T10:00:00Z",
+      isCustom: true,
+    });
+
+    AgentStorageService.saveAgent({
+      id: "agent_newest",
+      name: "Nejnovější agent (Říjen)",
+      category: "Kategorie B",
+      description: "Vytvořen v říjnu",
+      icon: "",
+      version: "1.0",
+      questions: [],
+      systemPrompt: "",
+      createdAt: "2026-10-15T12:00:00Z",
+      isCustom: true,
+    });
+
+    AgentStorageService.saveAgent({
+      id: "agent_middle",
+      name: "Prostřední agent (Květen)",
+      category: "Kategorie C",
+      description: "Vytvořen v květnu",
+      icon: "",
+      version: "1.0",
+      questions: [],
+      systemPrompt: "",
+      createdAt: "2026-05-20T10:00:00Z",
+      isCustom: true,
+    });
+
+    render(<AgentCategoryLauncher onSelectAgent={mockOnSelectAgent} />);
+
+    // Ověříme, že AgentStorageService.getAllAgents() vrátí agenty sestupně podle createdAt
+    const all = AgentStorageService.getAllAgents();
+    expect(all[0].id).toBe("agent_newest");
+    expect(all[1].id).toBe("agent_middle");
+    expect(all[2].id).toBe("agent_old");
+
+    // Ověříme pořadí zobrazených karet v DOMu
+    const agentTitles = screen.getAllByRole("heading", { level: 3 }).map((h) => h.textContent);
+    const newestIndex = agentTitles.findIndex((t) => t?.includes("Nejnovější agent"));
+    const middleIndex = agentTitles.findIndex((t) => t?.includes("Prostřední agent"));
+    const oldIndex = agentTitles.findIndex((t) => t?.includes("Starý agent"));
+
+    expect(newestIndex).toBeGreaterThanOrEqual(0);
+    expect(middleIndex).toBeGreaterThanOrEqual(0);
+    expect(oldIndex).toBeGreaterThanOrEqual(0);
+    expect(newestIndex).toBeLessThan(middleIndex);
+    expect(middleIndex).toBeLessThan(oldIndex);
   });
 });

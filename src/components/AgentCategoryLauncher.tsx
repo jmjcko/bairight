@@ -103,12 +103,19 @@ export const AgentCategoryLauncher: React.FC<AgentCategoryLauncherProps> = ({
   const [suggestedPool, setSuggestedPool] = useState<ExtractedDomainParameter[]>([]);
   const [customParamInput, setCustomParamInput] = useState('');
   const [learnedNotice, setLearnedNotice] = useState<string | null>(null);
+  const [isCustomParamOpen, setIsCustomParamOpen] = useState(false);
 
-  const focusCustomParamInput = () => {
-    if (customInputRef.current) {
-      customInputRef.current.focus();
-      customInputRef.current.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-    }
+  const toggleCustomParamInput = () => {
+    setIsCustomParamOpen((prev) => {
+      const next = !prev;
+      if (next) {
+        setTimeout(() => {
+          customInputRef.current?.focus();
+          customInputRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }, 50);
+      }
+      return next;
+    });
   };
 
   // Researched Domain Analysis State (Explicitly driven by Parameter Research Agent)
@@ -334,6 +341,7 @@ const [researchError, setResearchError] = useState<string | null>(null);
     setSelectedParamIds(new Set());
     setSuggestedPool([]);
     setResearchError(null);
+    setIsCustomParamOpen(false);
   };
 
   const handleResetParameters = () => {
@@ -542,8 +550,20 @@ const [researchError, setResearchError] = useState<string | null>(null);
     onAgentsChange?.(updatedAll);
   };
 
-  const activeAgents = agents.filter((a) => !a.isPurchased);
-  const purchasedAgents = agents.filter((a) => Boolean(a.isPurchased));
+  // Chronological sorting: newest created/updated agents first
+  const sortNewestFirst = (list: UniversalAgentDefinition[]) =>
+    [...list].sort((a, b) => {
+      const timeA = new Date(a.createdAt || a.updatedAt || 0).getTime();
+      const timeB = new Date(b.createdAt || b.updatedAt || 0).getTime();
+      return timeB - timeA;
+    });
+
+  const activeAgents = sortNewestFirst(agents.filter((a) => !a.isPurchased));
+  const purchasedAgents = [...agents.filter((a) => Boolean(a.isPurchased))].sort((a, b) => {
+    const timeA = new Date(a.purchasedAt || a.updatedAt || a.createdAt || 0).getTime();
+    const timeB = new Date(b.purchasedAt || b.updatedAt || b.createdAt || 0).getTime();
+    return timeB - timeA;
+  });
   const displayedAgents = activeAgentsTab === 'active' ? activeAgents : purchasedAgents;
 
   return (
@@ -842,11 +862,20 @@ const [researchError, setResearchError] = useState<string | null>(null);
                   {/* Interactive Add Custom Parameter Tile in Grid (Material Design Light & Dark) */}
                   <button
                     type="button"
-                    onClick={focusCustomParamInput}
-                    className="group relative p-3 rounded-xl border-2 border-dashed border-[#0099cc]/40 hover:border-[#0099cc] bg-slate-50 dark:bg-slate-900/60 hover:bg-slate-100 dark:hover:bg-slate-800/80 transition-all flex items-center justify-center gap-3 text-[#0099cc] dark:text-cyan-400 cursor-pointer shadow-xs hover:shadow-md min-h-[62px]"
+                    onClick={toggleCustomParamInput}
+                    className={`group relative p-3 rounded-xl border-2 border-dashed transition-all flex items-center justify-center gap-3 cursor-pointer shadow-xs hover:shadow-md min-h-[62px] ${
+                      isCustomParamOpen
+                        ? 'border-[#0099cc] bg-cyan-50/70 dark:bg-slate-800 text-[#0099cc] dark:text-cyan-300 ring-2 ring-[#0099cc]/20'
+                        : 'border-[#0099cc]/40 hover:border-[#0099cc] bg-slate-50 dark:bg-slate-900/60 hover:bg-slate-100 dark:hover:bg-slate-800/80 text-[#0099cc] dark:text-cyan-400'
+                    }`}
                     title={locale === "en" ? "Click to add custom criterion" : "Klikněte pro přidání vlastního kritéria"}
+                    aria-expanded={isCustomParamOpen}
                   >
-                    <div className="w-7 h-7 rounded-lg bg-[#0099cc]/10 dark:bg-cyan-950/50 border border-[#0099cc]/30 group-hover:bg-[#0099cc] group-hover:text-white flex items-center justify-center text-[#0099cc] dark:text-cyan-400 transition-all shadow-xs shrink-0">
+                    <div className={`w-7 h-7 rounded-lg border flex items-center justify-center transition-all shadow-xs shrink-0 ${
+                      isCustomParamOpen
+                        ? 'bg-[#0099cc] text-white border-[#0099cc]'
+                        : 'bg-[#0099cc]/10 dark:bg-cyan-950/50 border-[#0099cc]/30 group-hover:bg-[#0099cc] group-hover:text-white text-[#0099cc] dark:text-cyan-400'
+                    }`}>
                       <Plus className="w-4 h-4 stroke-[3]" />
                     </div>
                     <div className="text-left min-w-0">
@@ -861,26 +890,29 @@ const [researchError, setResearchError] = useState<string | null>(null);
                 </div>
               )}
 
-              {/* Parameter Customizer Controls: Prominent Glowing Studio Card */}
-              <div id="custom-param-adder-section" className="p-5 sm:p-6 rounded-2xl bg-[#091121]/90 border border-cyan-500/25 shadow-xl space-y-4">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-cyan-500/25 pb-2.5">
-                  <div className="flex items-center gap-2.5">
-                    <div className="w-8 h-8 rounded-xl bg-cyan-950/40 border border-cyan-500/40 flex items-center justify-center text-cyan-300 shadow-[0_0_12px_rgba(59,91,169,0.3)] shrink-0">
-                      <Plus className="w-4 h-4 stroke-[3]" />
-                    </div>
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <h5 className="param-discovery-header-title text-xs sm:text-sm font-extrabold text-slate-900 dark:text-white tracking-tight">
-                          {locale === "en" ? "Missing a criterion here? Add your own parameter" : "Chybí vám zde nějaké kritérium? Přidejte si vlastní parametr"}
-                        </h5>
-                        
+              {/* Expandable Parameter Customizer: Only shown when opened from the in-grid tile */}
+              {isCustomParamOpen && (
+                <div id="custom-param-adder-section" className="p-4 sm:p-5 rounded-2xl bg-white dark:bg-[#091121]/95 border-2 border-[#0099cc]/40 dark:border-cyan-500/30 shadow-md space-y-3.5 animate-in fade-in duration-200">
+                  <div className="flex items-center justify-between border-b border-slate-200 dark:border-cyan-500/25 pb-2">
+                    <div className="flex items-center gap-2">
+                      <div className="w-6 h-6 rounded-lg bg-[#0099cc]/10 dark:bg-cyan-950/50 border border-[#0099cc]/30 flex items-center justify-center text-[#0099cc] dark:text-cyan-400 shrink-0">
+                        <Plus className="w-3.5 h-3.5 stroke-[3]" />
                       </div>
-                      <p className="param-discovery-header-subtitle text-[11px] text-slate-600 dark:text-slate-400">
-                        {locale === "en" ? "Type any parameter that is key for you, or click suggestions below." : "Napište libovolný parametr, který je pro vás klíčový, nebo klikněte na návrhy níže."}
-                      </p>
+                      <span className="text-xs sm:text-sm font-bold font-mono text-[#0099cc] dark:text-cyan-300">
+                        {locale === "en" ? "Add custom parameter" : "Přidat vlastní parametr"}
+                      </span>
                     </div>
+
+                    <button
+                      type="button"
+                      onClick={() => setIsCustomParamOpen(false)}
+                      className="w-7 h-7 flex items-center justify-center rounded-lg text-slate-400 hover:text-slate-700 dark:text-slate-400 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer text-xs font-semibold"
+                      title={locale === "en" ? "Close" : "Zavřít"}
+                      aria-label={locale === "en" ? "Close custom parameter form" : "Zavřít formulář pro přidání parametru"}
+                    >
+                      <span aria-hidden="true" className="text-base leading-none">✕</span>
+                    </button>
                   </div>
-                </div>
 
                 {/* Add Custom Parameter Input */}
                 <div className="flex flex-col sm:flex-row items-center gap-2">
@@ -962,7 +994,8 @@ const [researchError, setResearchError] = useState<string | null>(null);
                     </div>
                   </div>
                 )}
-              </div>
+                </div>
+              )}
 
               {/* Bottom Action Bar: Clean Parameter Counter & Direct Action CTA */}
               <div className="pt-3 pb-8 sm:pb-1 border-t border-cyan-500/25 flex flex-col sm:flex-row items-center justify-between gap-3">

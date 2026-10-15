@@ -349,9 +349,12 @@ export class ModelDiscoveryService {
       }
 
       // Known exceptionally stable models get an extra boost
-      if (name === 'gemini-2.5-flash' || name === 'gemini-flash-latest') score += 30;
-      if (name === 'gemini-2.5-flash-lite') score += 20;
-      if (name === 'gemini-2.0-flash') score += 10;
+      // gemini-2.5-flash is the premier proven Free Tier standard on Google AI Studio
+      if (name === 'gemini-2.5-flash') score += 60;
+      if (name === 'gemini-flash-latest') score += 15;
+      if (name === 'gemini-3.5-flash') score += 20;
+      if (name === 'gemini-2.5-flash-lite') score += 10;
+      if (name === 'gemini-2.0-flash') score += 5;
       if (name === 'gemini-1.5-flash') score += 5;
 
       candidates.push({

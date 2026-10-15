@@ -66,6 +66,15 @@ Rules for parameter generation:
 7. Cross-Category Continuity: If prior purchases or biometric/ergonomic history are provided, align parameter values and options so that transferable traits (e.g., shoe width, size, physical sensitivities) are respected.
 8. Zero Redundancy & Context Zooming: If the target product category already specifies a sub-category, purpose, or technology (e.g. "road endurance bike", "dual boiler espresso machine", "trail running shoes zero drop"), DO NOT re-ask or generate generic parameters for decisions already settled by the query (e.g. no "Purpose: racing vs endurance" or "Geometry: race vs endurance"). Instead, zoom directly into the deeper technical nuances of that specialized category (e.g. vibration dampening technology, tyre clearance, climbing gear range).
 9. Technical & Technological Maturity: Always evaluate the engineering generation and technological tier of the product (e.g. electronic wireless shifting Di2/AXS vs mechanical cable on bikes, brushless vs brushed motors on tools, digital PID regulation vs bimetal thermostats on espresso machines, OLED vs 60Hz LED on displays, hybrid adaptive ANC on audio). Ensure buyers can explicitly choose between baseline technology and modern pro-grade technological maturity.
+10. Native Interface & Mounting Standard Integrity: When the category or query involves mechanical/physical mounting standards, docks, brackets, or ports (e.g. Garmin/Wahoo mount, MagSafe, VESA 100x100, ISOFIX, Thunderbolt, Arca-Swiss):
+   - Prioritize native chassis-integrated interfaces over external add-on brackets or stick-on adapters.
+   - Formulate options and parameters that clearly separate "Native integrated mount (direct out-of-the-box)" vs "Requires external adapter / conversion bracket".
+   - Strictly prohibit misleading buyers by conflating products requiring add-on adapters with natively integrated standard bodies.
+11. Brand Origin & Geography Verification Protocol: When managing brand preferences and evaluating manufacturer origin:
+   - Verify factual brand headquarters (HQ) and engineering origin before inclusion or exclusion.
+   - Distinguish Taiwan (ROC) from Mainland China (PRC) — brands with headquarters in Taiwan (e.g., Giant, Merida, TSMC, Asus, Ravemen) MUST NEVER be conflated with or classified as Mainland Chinese brands unless explicitly demanded by the user.
+   - Distinguish brand engineering origin from outsourced manufacturing assembly (e.g. Western/Taiwanese brands assembling in Asia under rigorous QA remain Western/Taiwanese brands).
+   - When users specify geographic exclusions (e.g. "no Chinese brands"), the directive targets uncertified, noname white-label marketplace goods without local warranty, NOT established global brands with international safety certifications.
 
 Output Structure (Respond STRICTLY as valid JSON):
 {

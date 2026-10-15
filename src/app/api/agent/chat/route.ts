@@ -705,6 +705,17 @@ ${chatIntent === "conversational_dialogue" ? "3. KONVERZAČNÍ KONZULTANT: Pří
             const errData = await res.json().catch(() => ({}));
             const errMsg = errData?.error?.message || `HTTP ${res.status}`;
             if (errMsg.toLowerCase().includes('insufficient_quota') || errMsg.toLowerCase().includes('quota') || errMsg.toLowerCase().includes('billing')) {
+              // Attempt resilient failover to lightweight free/mini model before throwing credit exhausted error
+              if (model !== 'gpt-4o-mini') {
+                console.warn(`[OpenAI chat] Model "${model}" hit quota limit. Seamlessly attempting free/mini model (gpt-4o-mini)...`);
+                lastErrorDetail = `[${model}: Quota limit - attempting mini tier]`;
+                return {
+                  success: false,
+                  status: 429,
+                  errorBody: `Quota limit on ${model}, attempting gpt-4o-mini`,
+                  error: new Error(`OpenAI HTTP ${res.status}: ${errMsg}`),
+                };
+              }
               authOrBillingError = new Error(`OPENAI_CREDIT_EXHAUSTED: ${errMsg}`);
               throw authOrBillingError;
             }
@@ -817,6 +828,17 @@ ${message}`;
             const errData = await res.json().catch(() => ({}));
             const errMsg = errData?.error?.message || `HTTP ${res.status}`;
             if (errMsg.toLowerCase().includes('credit') || errMsg.toLowerCase().includes('balance') || errMsg.toLowerCase().includes('billing')) {
+              // Attempt resilient failover to lightweight Claude Haiku before throwing credit exhausted error
+              if (!model.includes('haiku')) {
+                console.warn(`[Anthropic chat] Model "${model}" hit credit limit. Seamlessly attempting lightweight Haiku tier...`);
+                lastErrorDetail = `[${model}: Balance limit - attempting Haiku tier]`;
+                return {
+                  success: false,
+                  status: 402,
+                  errorBody: `Balance limit on ${model}, attempting Haiku model`,
+                  error: new Error(`Claude HTTP ${res.status}: ${errMsg}`),
+                };
+              }
               authOrBillingError = new Error(`ANTHROPIC_CREDIT_EXHAUSTED: ${errMsg}`);
               throw authOrBillingError;
             }
@@ -952,14 +974,17 @@ ${message}`;
           body: buildGeminiBody(true),
         });
 
-        // Graceful failover: If a model rejects googleSearch tool with HTTP 400, retry without tools
-        if (!res.ok && res.status === 400) {
-          console.warn(`Gemini API ${model} rejected googleSearch tool with 400, retrying without tools...`);
-          res = await fetch(url, {
+        // Graceful failover: If googleSearch fails due to 400, or free tier rate limit/overload (429/503), retry without search tool immediately
+        if (!res.ok && (res.status === 400 || res.status === 429 || res.status === 503)) {
+          console.warn(`Gemini API ${model} search failed with HTTP ${res.status} (search quota/overload on free tier), retrying without googleSearch tool...`);
+          const noSearchRes = await fetch(url, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: buildGeminiBody(false),
           });
+          if (noSearchRes.ok) {
+            res = noSearchRes;
+          }
         }
 
         if (res.ok) {
