@@ -1114,7 +1114,19 @@ const [researchError, setResearchError] = useState<string | null>(null);
                 let isCompleted = false;
                 let currentStep = 0;
                 let hasProgress = false;
-                if (typeof window !== 'undefined') {
+
+                if (rawAgent.wizardState) {
+                  isCompleted = rawAgent.wizardState.isCompleted === true || Boolean(rawAgent.wizardState.result?.recommendations?.length > 0);
+                  currentStep = typeof rawAgent.wizardState.currentStepIndex === 'number' ? rawAgent.wizardState.currentStepIndex : 0;
+                  hasProgress = Boolean(currentStep > 0 || (rawAgent.wizardState.answers && Object.keys(rawAgent.wizardState.answers).length > 0));
+                } else if (rawAgent.targetValues && Object.keys(rawAgent.targetValues).length > 0) {
+                  hasProgress = true;
+                  if (rawAgent.systemPrompt && rawAgent.systemPrompt.trim().length > 0) {
+                    isCompleted = true;
+                  }
+                }
+
+                if (!isCompleted && typeof window !== 'undefined') {
                   try {
                     const stored = localStorage.getItem('bairight_agent_wizard_states');
                     if (stored) {
@@ -1122,8 +1134,8 @@ const [researchError, setResearchError] = useState<string | null>(null);
                       const st = parsed[rawAgent.id];
                       if (st) {
                         isCompleted = st.isCompleted === true || Boolean(st.result && Array.isArray(st.result.recommendations) && st.result.recommendations.length > 0);
-                        currentStep = typeof st.currentStepIndex === 'number' ? st.currentStepIndex : 0;
-                        hasProgress = Boolean(currentStep > 0 || (st.answers && Object.keys(st.answers).length > 0));
+                        currentStep = typeof st.currentStepIndex === 'number' ? st.currentStepIndex : currentStep;
+                        hasProgress = hasProgress || Boolean(currentStep > 0 || (st.answers && Object.keys(st.answers).length > 0));
                       }
                     }
                   } catch {}

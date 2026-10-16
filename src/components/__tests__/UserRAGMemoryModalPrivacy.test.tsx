@@ -6,6 +6,8 @@ import { AuthProvider } from "@/lib/auth/AuthContext";
 import { I18nProvider } from "@/lib/i18n/I18nContext";
 
 vi.mock("@/lib/supabase", () => ({
+  DEFAULT_SUPABASE_URL: "https://placeholder-domain-prefix.supabase.co",
+  DEFAULT_SUPABASE_ANON_KEY: "placeholder-anon-key",
   supabase: {
     auth: {
       getSession: vi.fn().mockResolvedValue({ data: { session: null } }),
@@ -13,6 +15,12 @@ vi.mock("@/lib/supabase", () => ({
       signInWithOAuth: vi.fn().mockResolvedValue({ error: null }),
       signOut: vi.fn().mockResolvedValue({ error: null }),
     },
+    from: vi.fn().mockReturnValue({
+      select: vi.fn().mockReturnValue({
+        eq: vi.fn().mockResolvedValue({ data: [], error: null }),
+      }),
+      upsert: vi.fn().mockResolvedValue({ error: null }),
+    }),
   },
 }));
 

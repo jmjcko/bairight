@@ -111,11 +111,25 @@ export const DynamicAgentWizard: React.FC<DynamicAgentWizardProps> = ({
       const stored = localStorage.getItem("bairight_agent_wizard_states");
       if (stored) {
         const parsed = JSON.parse(stored);
-        return parsed[agent.id] || null;
+        if (parsed[agent.id]) {
+          return parsed[agent.id];
+        }
       }
     } catch {}
+    if (agent.wizardState) {
+      return agent.wizardState;
+    }
+    if (agent.targetValues && Object.keys(agent.targetValues).length > 0) {
+      return {
+        answers: agent.targetValues,
+        currentStepIndex: agent.questions ? agent.questions.length : 0,
+        isCompleted: Boolean(agent.systemPrompt && agent.systemPrompt.trim().length > 0),
+        completedPrompt: agent.systemPrompt,
+        updatedAt: agent.updatedAt,
+      };
+    }
     return null;
-  }, [agent.id]);
+  }, [agent]);
 
   const cleanAgentTitle = useMemo(() => {
     if (!agent?.name) return '';
@@ -338,14 +352,24 @@ export const DynamicAgentWizard: React.FC<DynamicAgentWizardProps> = ({
       const targetAnswers = nextAnswers !== undefined ? nextAnswers : answers;
       const targetStep = stepIdx !== undefined ? stepIdx : currentStepIndex;
       const existing = parsed[agent.id] || {};
-      parsed[agent.id] = {
+      const updatedWizardState = {
         ...existing,
         answers: targetAnswers,
         currentStepIndex: targetStep,
         isCompleted: existing.isCompleted === true,
         updatedAt: new Date().toISOString(),
       };
+      parsed[agent.id] = updatedWizardState;
       localStorage.setItem("bairight_agent_wizard_states", JSON.stringify(parsed));
+
+      // Persist in-progress answers and wizardState to AgentStorageService / Supabase
+      AgentStorageService.saveAgent({
+        ...agent,
+        targetValues: targetAnswers,
+        wizardState: updatedWizardState,
+        updatedAt: updatedWizardState.updatedAt,
+      });
+
       if (onStepChange) {
         onStepChange(targetStep, targetAnswers);
       }
@@ -718,11 +742,22 @@ export const DynamicAgentWizard: React.FC<DynamicAgentWizardProps> = ({
       }
     }
 
+    const applyWizardState = {
+      answers: activeAnswers,
+      result: targetResult,
+      isCompleted: true,
+      currentStepIndex: currentStepIndex,
+      completedPrompt: finalCompletedPrompt,
+      updatedAt: new Date().toISOString(),
+    };
+
     // Persist updated agent definition in AgentStorageService
     AgentStorageService.saveAgent({
       ...agent,
       targetValues: activeAnswers,
       systemPrompt: finalCompletedPrompt,
+      wizardState: applyWizardState,
+      updatedAt: applyWizardState.updatedAt,
     });
 
     setResult(targetResult);
@@ -807,6 +842,16 @@ export const DynamicAgentWizard: React.FC<DynamicAgentWizardProps> = ({
 
       // Sestavíme a uložíme VÝHRADNĚ HOTOVÝ prompt po dokončení posledního kroku
       const finalCompletedPrompt = forgeAgentPrompt(agent, activeAnswers, enrichedFacts, locale, purchasedHistory);
+      const nowIso = new Date().toISOString();
+      const completedWizardState = {
+        answers: activeAnswers,
+        result: data,
+        isCompleted: true,
+        currentStepIndex: stepGroups.length,
+        completedPrompt: finalCompletedPrompt,
+        updatedAt: nowIso,
+      };
+
       PromptStorageService.saveCompletedPrompt({
         agentId: agent.id,
         agentName: agent.name,
@@ -816,6 +861,16 @@ export const DynamicAgentWizard: React.FC<DynamicAgentWizardProps> = ({
           .map(([k, v]) => `${k}: ${Array.isArray(v) ? v.join(', ') : v}`)
           .join(' • '),
         providerId,
+        timestamp: nowIso,
+      });
+
+      // Synchronize completed agent with answers, prompt, and wizardState to cloud
+      AgentStorageService.saveAgent({
+        ...agent,
+        targetValues: activeAnswers,
+        systemPrompt: finalCompletedPrompt,
+        wizardState: completedWizardState,
+        updatedAt: nowIso,
       });
 
       if (onAssessmentCompleted) {

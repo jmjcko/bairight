@@ -4,6 +4,7 @@ import "./globals.css";
 import { I18nProvider } from "@/lib/i18n/I18nContext";
 import { AuthProvider } from "@/lib/auth/AuthContext";
 import { ThemeProvider } from "@/lib/theme/ThemeContext";
+import { Analytics } from "@vercel/analytics/next";
 
 const spaceGrotesk = Space_Grotesk({
   subsets: ["latin", "latin-ext"],
@@ -165,6 +166,7 @@ export default function RootLayout({
             </ThemeProvider>
           </AuthProvider>
         </I18nProvider>
+        <Analytics />
       </body>
     </html>
   );

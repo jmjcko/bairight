@@ -41,6 +41,15 @@ export interface AgentVersionRecord {
   changelog: string[];
 }
 
+export interface AgentWizardState {
+  answers: Record<string, any>;
+  currentStepIndex: number;
+  isCompleted: boolean;
+  result?: any;
+  completedPrompt?: string;
+  updatedAt?: string;
+}
+
 export interface UniversalAgentDefinition {
   id: string;
   name: string;
@@ -62,6 +71,8 @@ export interface UniversalAgentDefinition {
   selectedParameters?: any[];
   /** Target values configured by the user in the wizard */
   targetValues?: Record<string, any>;
+  /** In-progress or completed wizard state synced across devices */
+  wizardState?: AgentWizardState;
   /** Indicates if the user marked this shopping mission as completed/purchased */
   isPurchased?: boolean;
   /** ISO timestamp when marked as purchased */

@@ -1,3 +1,4 @@
+import { PromptStorageService } from "./prompt-storage-service";
 /**
  * Agent Storage Service
  * Manages persistence of custom agents in localStorage and handles .agent.md downloads/imports.
@@ -203,6 +204,9 @@ export class AgentStorageService {
           id: r.agent_slug || def.id,
           name: r.name || def.name,
           category: r.category || def.category,
+          systemPrompt: def.systemPrompt || "",
+          targetValues: def.targetValues || undefined,
+          wizardState: def.wizardState || undefined,
           isPurchased,
           purchasedAt: r.purchased_at || def.purchasedAt,
           updatedAt,
@@ -270,6 +274,69 @@ export class AgentStorageService {
         return timeB - timeA;
       });
       localStorage.setItem(STORAGE_KEY, JSON.stringify(mergedList));
+
+      // 5. Hydrate local bairight_agent_wizard_states from merged agents (cross-device sync)
+      try {
+        const rawWizard = localStorage.getItem("bairight_agent_wizard_states");
+        const localWizardStates = rawWizard ? JSON.parse(rawWizard) : {};
+        let wizardChanged = false;
+
+        agentMap.forEach((a) => {
+          const currentLocal = localWizardStates[a.id];
+          if (a.wizardState) {
+            const remoteTime = a.wizardState.updatedAt ? new Date(a.wizardState.updatedAt).getTime() : 0;
+            const localTime = currentLocal?.updatedAt ? new Date(currentLocal.updatedAt).getTime() : 0;
+            if (!currentLocal || remoteTime >= localTime || a.wizardState.isCompleted) {
+              localWizardStates[a.id] = {
+                ...currentLocal,
+                ...a.wizardState,
+              };
+              wizardChanged = true;
+            }
+          } else if (a.targetValues && Object.keys(a.targetValues).length > 0) {
+            if (!currentLocal) {
+              localWizardStates[a.id] = {
+                answers: a.targetValues,
+                currentStepIndex: a.questions ? a.questions.length : 0,
+                isCompleted: Boolean(a.systemPrompt && a.systemPrompt.trim().length > 0),
+                completedPrompt: a.systemPrompt,
+                updatedAt: a.updatedAt,
+              };
+              wizardChanged = true;
+            }
+          }
+        });
+
+        if (wizardChanged) {
+          localStorage.setItem("bairight_agent_wizard_states", JSON.stringify(localWizardStates));
+        }
+      } catch (e) {
+        console.warn("Could not hydrate wizard states from cloud agents:", e);
+      }
+
+      // 6. Hydrate PromptStorageService with completed prompts from cloud agents
+      try {
+        agentMap.forEach((a) => {
+          const prompt =
+            a.wizardState?.completedPrompt ||
+            (a.wizardState?.isCompleted ? a.systemPrompt : undefined) ||
+            (a.systemPrompt && a.targetValues && Object.keys(a.targetValues).length > 0 ? a.systemPrompt : undefined);
+          if (prompt && prompt.trim().length > 0) {
+            PromptStorageService.saveCompletedPrompt({
+              agentId: a.id,
+              agentName: a.name,
+              category: a.category,
+              prompt: prompt.trim(),
+              answersSummary: a.targetValues ? JSON.stringify(a.targetValues) : undefined,
+              timestamp: a.updatedAt || a.createdAt,
+            });
+          }
+        });
+        void PromptStorageService.syncWithCloud(activeUserId);
+      } catch (e) {
+        console.warn("Could not hydrate completed prompts from cloud agents:", e);
+      }
+
       return mergedList;
     } catch (err) {
       console.warn('Exception during cloud sync, falling back to local agents:', err);

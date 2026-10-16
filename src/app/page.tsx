@@ -275,16 +275,21 @@ export default function Home() {
   const [isSidebarSwitchingAgent, setIsSidebarSwitchingAgent] = useState<boolean>(false);
 
   const initialWizardStepIndex = useMemo(() => {
-    if (!selectedAgent || typeof window === 'undefined') return 0;
-    try {
-      const stored = localStorage.getItem('bairight_agent_wizard_states');
-      if (stored) {
-        const parsed = JSON.parse(stored);
-        if (parsed[selectedAgent.id]) {
-          return parsed[selectedAgent.id].currentStepIndex || 0;
+    if (!selectedAgent) return 0;
+    if (selectedAgent.wizardState?.currentStepIndex !== undefined) {
+      return selectedAgent.wizardState.currentStepIndex;
+    }
+    if (typeof window !== 'undefined') {
+      try {
+        const stored = localStorage.getItem('bairight_agent_wizard_states');
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          if (parsed[selectedAgent.id] && typeof parsed[selectedAgent.id].currentStepIndex === 'number') {
+            return parsed[selectedAgent.id].currentStepIndex;
+          }
         }
-      }
-    } catch {}
+      } catch {}
+    }
     return 0;
   }, [selectedAgent]);
 
@@ -293,6 +298,10 @@ export default function Home() {
 
   const isAgentCompleted = (a: UniversalAgentDefinition | null): boolean => {
     if (!a) return false;
+    if (a.wizardState?.isCompleted === true) return true;
+    if (a.wizardState?.result && Array.isArray(a.wizardState.result.recommendations) && a.wizardState.result.recommendations.length > 0) return true;
+    if (a.systemPrompt && a.systemPrompt.trim().length > 0 && a.targetValues && Object.keys(a.targetValues).length > 0) return true;
+
     if (typeof window !== 'undefined') {
       try {
         const storedStates = localStorage.getItem('bairight_agent_wizard_states');
@@ -333,23 +342,29 @@ export default function Home() {
 
   // Sync sidebar answers with stored wizard state when selectedAgent changes
   useEffect(() => {
-    if (!selectedAgent || typeof window === 'undefined') {
+    if (!selectedAgent) {
       setSidebarAnswers({});
       return;
     }
-    try {
-      const stored = localStorage.getItem('bairight_agent_wizard_states');
-      if (stored) {
-        const parsed = JSON.parse(stored);
-        if (parsed[selectedAgent.id]?.answers) {
-          setSidebarAnswers(parsed[selectedAgent.id].answers);
-          return;
-        }
-      }
-    } catch {}
+    if (selectedAgent.wizardState?.answers && Object.keys(selectedAgent.wizardState.answers).length > 0) {
+      setSidebarAnswers(selectedAgent.wizardState.answers);
+      return;
+    }
     if (selectedAgent.targetValues && Object.keys(selectedAgent.targetValues).length > 0) {
       setSidebarAnswers(selectedAgent.targetValues);
       return;
+    }
+    if (typeof window !== 'undefined') {
+      try {
+        const stored = localStorage.getItem('bairight_agent_wizard_states');
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          if (parsed[selectedAgent.id]?.answers) {
+            setSidebarAnswers(parsed[selectedAgent.id].answers);
+            return;
+          }
+        }
+      } catch {}
     }
     setSidebarAnswers({});
   }, [selectedAgent]);

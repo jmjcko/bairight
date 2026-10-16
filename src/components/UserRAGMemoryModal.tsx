@@ -57,12 +57,17 @@ export const UserRAGMemoryModal: React.FC<UserRAGMemoryModalProps> = ({
   const [completedPrompts, setCompletedPrompts] = useState<CompletedPromptRecord[]>([]);
   const [copiedPromptId, setCopiedPromptId] = useState<string | null>(null);
 
-  // Load completed prompts from storage on open
+  // Load completed prompts from storage on open and sync with cloud
   useEffect(() => {
     if (isOpen) {
       setCompletedPrompts(PromptStorageService.getCompletedPrompts());
+      if (user?.id) {
+        void PromptStorageService.syncWithCloud(user.id).then((synced) => {
+          setCompletedPrompts(synced);
+        });
+      }
     }
-  }, [isOpen]);
+  }, [isOpen, user?.id]);
 
   // Extract active personal & biometric facts
   const personalBiometricFacts = useMemo(() => {

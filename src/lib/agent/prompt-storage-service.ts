@@ -1,3 +1,4 @@
+import { supabase } from "@/lib/supabase";
 /**
  * Prompt Storage Service
  * Ukládá VÝHRADNĚ HOTOVÉ prompty po dokončení posledního kroku dotazníku.
@@ -19,6 +20,129 @@ export interface CompletedPromptRecord {
 const STORAGE_KEY = 'bairight_completed_prompts_v1';
 
 export class PromptStorageService {
+  /**
+   * Checks if Supabase client is configured for cloud persistence
+   */
+  static isCloudSyncEnabled(): boolean {
+    if (!supabase || typeof (supabase as any).from !== "function") return false;
+    const url =
+      process.env.NEXT_PUBLIC_SUPABASE_URL ||
+      process.env.NEXT_SUPABASE_URL ||
+      process.env.SUPABASE_URL ||
+      "";
+    const key =
+      process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ||
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
+      process.env.NEXT_PUBLIC_PUBLISHABLE_KEY ||
+      process.env.NEXT_PUBLIC_ANON_KEY ||
+      process.env.SUPABASE_PUBLISHABLE_KEY ||
+      process.env.SUPABASE_ANON_KEY ||
+      "";
+    return Boolean(
+      url &&
+      !url.includes("placeholder") &&
+      key &&
+      !key.includes("placeholder")
+    );
+  }
+
+  /**
+   * Retrieves active user id from session storage
+   */
+  static getCurrentUserId(): string | undefined {
+    if (typeof window === "undefined") return undefined;
+    try {
+      const raw = localStorage.getItem("bairight_user_session");
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        return parsed?.id;
+      }
+    } catch {
+      return undefined;
+    }
+    return undefined;
+  }
+
+  /**
+   * Synchronizuje hotové prompty s cloudovou databází Supabase (tabulka user_prompts)
+   */
+  static async syncWithCloud(userId?: string): Promise<CompletedPromptRecord[]> {
+    const activeUserId = userId || this.getCurrentUserId();
+    if (!activeUserId || typeof window === "undefined") {
+      return this.getCompletedPrompts();
+    }
+    const local = this.getCompletedPrompts();
+    if (!this.isCloudSyncEnabled()) {
+      return local;
+    }
+
+    try {
+      const { data: remoteRows, error } = await supabase
+        .from("user_prompts")
+        .select("*")
+        .eq("user_id", activeUserId);
+
+      if (error || !remoteRows) {
+        return local;
+      }
+
+      const promptMap = new Map<string, CompletedPromptRecord>();
+      remoteRows.forEach((r: any) => {
+        const record: CompletedPromptRecord = {
+          id: r.id || `prompt-${r.agent_slug}`,
+          agentId: r.agent_slug,
+          agentName: r.agent_slug,
+          category: "",
+          dateFormatted: new Date(r.created_at || Date.now()).toLocaleDateString("cs-CZ"),
+          timestamp: r.created_at || new Date().toISOString(),
+          prompt: r.prompt_text,
+          answersSummary: r.answers_summary || undefined,
+          providerId: r.provider_id || undefined,
+        };
+        promptMap.set(record.agentId, record);
+      });
+
+      // Merge local prompts
+      local.forEach((lp) => {
+        const remote = promptMap.get(lp.agentId);
+        if (!remote) {
+          promptMap.set(lp.agentId, lp);
+          void supabase.from("user_prompts").upsert({
+            user_id: activeUserId,
+            agent_slug: lp.agentId,
+            prompt_text: lp.prompt,
+            answers_summary: lp.answersSummary || "",
+            provider_id: lp.providerId || "gemini",
+            created_at: lp.timestamp,
+          }, { onConflict: "user_id, agent_slug" });
+        } else {
+          const localTime = new Date(lp.timestamp).getTime();
+          const remoteTime = new Date(remote.timestamp).getTime();
+          if (localTime > remoteTime) {
+            promptMap.set(lp.agentId, lp);
+            void supabase.from("user_prompts").upsert({
+              user_id: activeUserId,
+              agent_slug: lp.agentId,
+              prompt_text: lp.prompt,
+              answers_summary: lp.answersSummary || "",
+              provider_id: lp.providerId || "gemini",
+              created_at: lp.timestamp,
+            }, { onConflict: "user_id, agent_slug" });
+          }
+        }
+      });
+
+      const merged = Array.from(promptMap.values()).sort(
+        (a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
+      );
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(merged));
+      return merged;
+    } catch (e) {
+      console.warn("Failed to sync prompts with cloud:", e);
+      return local;
+    }
+  }
+
   /**
    * Načte všechny dokončené prompty z localStorage (seřazeno od nejnovějšího)
    */
@@ -86,6 +210,24 @@ export class PromptStorageService {
         if (!isDuplicate) {
           const updated = [newRecord, ...existing];
           localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
+
+          const activeUserId = this.getCurrentUserId();
+          if (activeUserId && this.isCloudSyncEnabled()) {
+            void (async () => {
+              try {
+                await supabase.from("user_prompts").upsert({
+                  user_id: activeUserId,
+                  agent_slug: newRecord.agentId,
+                  prompt_text: newRecord.prompt,
+                  answers_summary: newRecord.answersSummary || "",
+                  provider_id: newRecord.providerId || "gemini",
+                  created_at: newRecord.timestamp,
+                }, { onConflict: "user_id, agent_slug" });
+              } catch (err) {
+                console.warn("Cloud prompt sync error in saveCompletedPrompt:", err);
+              }
+            })();
+          }
         }
       } catch (err) {
         console.error('Chyba při ukládání hotového promptu:', err);
