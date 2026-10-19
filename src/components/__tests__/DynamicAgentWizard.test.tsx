@@ -318,12 +318,14 @@ describe('DynamicAgentWizard Unit Test Suite (PRD v1)', () => {
     });
   });
 
-  it('11. Zobrazí BYOK modal při kliknutí na Spustit živý chat bez připojeného API klíče a umožní otevřít Vault', async () => {
+  it('11. Umožní otevřít chat přímo bez API klíče přes Free Tier a nabízí správu vlastních klíčů v Trezoru', async () => {
     const mockOpenSubscription = vi.fn();
+    const mockOpenChat = vi.fn();
     render(
       <DynamicAgentWizard
         agent={PRESET_ERGO_CHAIR_AGENT}
         currentApiKeys={{}}
+        onOpenChat={mockOpenChat}
         onOpenSubscriptionModal={mockOpenSubscription}
       />
     );
@@ -342,8 +344,13 @@ describe('DynamicAgentWizard Unit Test Suite (PRD v1)', () => {
       expect(screen.getByText(/Zkopírovat prompt do schránky/i)).toBeInTheDocument();
     });
 
-    // Clicking 'Připojit API klíč v Trezoru' triggers vault modal opening
-    const vaultBtn = screen.getByRole('button', { name: /Propojit vlastní AI/i });
+    // Chat is unblocked and directly accessible via Open Chat button
+    const chatBtn = screen.getByRole('button', { name: /Otevřít chat s agentem/i });
+    fireEvent.click(chatBtn);
+    expect(mockOpenChat).toHaveBeenCalledTimes(1);
+
+    // Power users can configure custom BYOK key via vault modal
+    const vaultBtn = screen.getByRole('button', { name: /Vlastní BYOK klíč/i });
     fireEvent.click(vaultBtn);
     expect(mockOpenSubscription).toHaveBeenCalledTimes(1);
   });

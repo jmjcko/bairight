@@ -38,6 +38,7 @@ import {
   ArrowRight,
   History
 } from 'lucide-react';
+import { ChatQuotaStatus } from '@/lib/agent/chat-quota-service';
 import { PromptStorageService } from '@/lib/agent/prompt-storage-service';
 import { SUPPORTED_AI_PROVIDERS } from '@/lib/agent/engine-config';
 import { useI18n } from '@/lib/i18n/I18nContext';
@@ -59,6 +60,7 @@ interface DynamicAgentWizardProps {
   onStepChange?: (stepIndex: number, currentAnswers: Record<string, any>) => void;
   onResetWizard?: () => void;
   onEditWizard?: () => void;
+  quotaStatus?: ChatQuotaStatus;
 }
 
 export const DynamicAgentWizard: React.FC<DynamicAgentWizardProps> = ({
@@ -77,6 +79,7 @@ export const DynamicAgentWizard: React.FC<DynamicAgentWizardProps> = ({
   onStepChange,
   onResetWizard,
   onEditWizard,
+  quotaStatus,
 }) => {
   const { t, locale } = useI18n();
 
@@ -1648,11 +1651,13 @@ export const DynamicAgentWizard: React.FC<DynamicAgentWizardProps> = ({
                     <span className={`text-[10px] font-mono px-2 py-0.5 rounded font-bold shrink-0 ${
                       hasApiKey 
                         ? 'bg-[#e1f5fe] text-[#01579b] border border-[#b3e5fc]' 
-                        : 'bg-slate-100 text-slate-600 border border-slate-200'
+                        : 'bg-emerald-50 text-emerald-800 border border-emerald-200'
                     }`}>
                       {hasApiKey
                         ? (locale === 'en' ? '✓ Model Connected' : '✓ Model připojen')
-                        : (locale === 'en' ? 'Requires AI Connection' : 'Vyžaduje propojení s AI')}
+                        : quotaStatus
+                        ? (locale === 'en' ? `Google Gemini • ${quotaStatus.remaining} queries left` : `Google Gemini • Zbývá ${quotaStatus.remaining} dotazů`)
+                        : (locale === 'en' ? 'Google Gemini • Free Tier' : 'Google Gemini • Bezplatná kvóta')}
                     </span>
                   </div>
 
@@ -1660,65 +1665,48 @@ export const DynamicAgentWizard: React.FC<DynamicAgentWizardProps> = ({
                     <h3 className="text-lg sm:text-xl font-black result-hub-option1-title">
                       {locale === 'en' ? 'Chat directly in bAIright' : 'Spustit chat přímo v bAIright'}
                     </h3>
-                    {hasApiKey ? (
-                      <p className="text-xs sm:text-sm result-hub-option1-desc mt-1.5 leading-relaxed">
-                        {locale === 'en'
-                          ? 'Direct interactive discussion in this window. The assistant is loaded with your criteria and is ready to recommend and compare models.'
-                          : 'Interaktivní diskuze přímo v tomto okně. Asistent má načtené vaše parametry a je připraven porovnávat konkrétní modely na trhu.'}
-                      </p>
-                    ) : (
-                      <div className="text-xs sm:text-sm result-hub-option1-desc mt-2 leading-relaxed space-y-2">
-                        <p>
-                          {locale === 'en'
-                            ? 'You can chat directly here in the app, which remembers all your entered preferences and requirements.'
-                            : 'Můžete chatovat přímo zde v aplikaci, která si o vás pamatuje všechny zadané odpovědi a požadavky.'}
-                        </p>
-                        <p>
-                          {locale === 'en'
-                            ? 'To enable this, simply connect your existing AI subscription or free account for Google Gemini, ChatGPT, or Claude. bAIright charges zero fees, the connection is fully secure, and your key is stored strictly inside your browser.'
-                            : 'K tomu je potřeba propojit vaše stávající AI předplatné nebo bezplatný účet Google Gemini, ChatGPT či Claude. bAIright vám nic neúčtuje, propojení je bezpečné a klíč zůstává uložený výhradně ve vašem prohlížeči.'}
-                        </p>
-                      </div>
-                    )}
+                    <p className="text-xs sm:text-sm result-hub-option1-desc mt-1.5 leading-relaxed">
+                      {locale === 'en'
+                        ? 'Direct interactive discussion in this window. The assistant is loaded with your criteria and is ready to recommend and compare models.'
+                        : 'Interaktivní diskuze přímo v tomto okně. Asistent má načtené vaše parametry a je připraven porovnávat konkrétní modely na trhu.'}
+                    </p>
                   </div>
 
                   {/* Action Button & single concise caption */}
                   <div className="pt-2 space-y-2">
-                    {hasApiKey ? (
-                      <button
-                        type="button"
-                        onClick={() => {
-                          if (onOpenChat) {
-                            onOpenChat(currentLivePrompt, result || previousResult, answers);
-                          }
-                        }}
-                        className="w-full flex items-center justify-center gap-2 py-3.5 px-4 rounded-xl bg-[#0099cc] hover:bg-[#0088b8] text-white font-bold text-xs sm:text-sm shadow-xs transition-colors cursor-pointer"
-                      >
-                        <span>{locale === 'en' ? 'Open Chat with Agent' : 'Otevřít chat s agentem'}</span>
-                        <span>→</span>
-                      </button>
-                    ) : (
-                      <button
-                        type="button"
-                        onClick={() => {
-                          if (onOpenSubscriptionModal) {
-                            onOpenSubscriptionModal();
-                          } else {
-                            setShowBYOKHintModal(true);
-                          }
-                        }}
-                        className="w-full flex items-center justify-center gap-2 py-3.5 px-4 rounded-xl bg-white hover:bg-slate-50 border border-slate-300 text-[#263238] font-bold text-xs sm:text-sm shadow-xs transition-colors cursor-pointer"
-                      >
-                        <span>{locale === 'en' ? 'Connect your AI (Free Google Gemini / ChatGPT / Claude)' : 'Propojit vlastní AI (Google Gemini zdarma / ChatGPT / Claude)'}</span>
-                        <span>→</span>
-                      </button>
-                    )}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (onOpenChat) {
+                          onOpenChat(currentLivePrompt, result || previousResult, answers);
+                        }
+                      }}
+                      className="w-full flex items-center justify-center gap-2 py-3.5 px-4 rounded-xl bg-[#0099cc] hover:bg-[#0088b8] text-white font-bold text-xs sm:text-sm shadow-xs transition-colors cursor-pointer"
+                    >
+                      <span>{locale === 'en' ? 'Open Chat with Agent' : 'Otevřít chat s agentem'}</span>
+                      <span>→</span>
+                    </button>
 
-                    <p className="text-[11px] font-mono text-center result-hub-option1-desc">
-                      {hasApiKey
-                        ? (locale === 'en' ? `✓ Model ${activeProviderName} is ready` : `✓ Model ${activeProviderName} je připraven`)
-                        : (locale === 'en' ? 'Google Gemini is 100% free • Zero data stored on external servers' : 'Google Gemini je 100% zdarma • Žádná data neukládáme na server')}
-                    </p>
+                    <div className="flex items-center justify-between text-[11px] font-mono result-hub-option1-desc pt-1">
+                      <span>
+                        {hasApiKey
+                          ? (locale === 'en' ? `✓ Model ${activeProviderName} is ready` : `✓ Model ${activeProviderName} je připraven`)
+                          : quotaStatus
+                          ? (locale === 'en' ? `Free tier: ${quotaStatus.remaining}/${quotaStatus.totalAllowed} queries left` : `Bezplatná kvóta: zbývá ${quotaStatus.remaining}/${quotaStatus.totalAllowed} dotazů`)
+                          : (locale === 'en' ? 'Free tier active (5–15 queries)' : 'Bezplatná kvóta aktivní (5–15 dotazů)')}
+                      </span>
+                      {onOpenSubscriptionModal && (
+                        <button
+                          type="button"
+                          onClick={onOpenSubscriptionModal}
+                          className="text-[#0099cc] hover:underline cursor-pointer"
+                        >
+                          {hasApiKey
+                            ? (locale === 'en' ? 'Manage Keys' : 'Spravovat klíče')
+                            : (locale === 'en' ? 'Custom BYOK Key →' : 'Vlastní BYOK klíč →')}
+                        </button>
+                      )}
+                    </div>
                   </div>
                 </div>
 
@@ -2331,7 +2319,7 @@ export const DynamicAgentWizard: React.FC<DynamicAgentWizardProps> = ({
           <div className="space-y-1">
             <div className="flex items-center gap-2">
               <span className="text-[10px] font-mono font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-slate-800 text-[#81d4fa] border border-slate-700">
-                {locale === 'en' ? 'Upcoming Integration' : 'Připravovaná integrace'}
+                {locale === 'en' ? 'Power Users & BYOK' : 'Pro náročné uživatele & BYOK'}
               </span>
               <h3 className="text-base sm:text-lg font-bold text-white">
                 {locale === 'en' ? 'Run directly in bAIright with your own model / subscription' : 'Spouštět přímo v bAIright přes vlastní model / předplatné'}
@@ -2339,8 +2327,8 @@ export const DynamicAgentWizard: React.FC<DynamicAgentWizardProps> = ({
             </div>
             <p className="text-xs text-slate-300 leading-relaxed max-w-2xl">
               {locale === 'en'
-                ? 'Don\'t want to switch to external windows and copy prompts? Connect your subscription (Claude Pro, ChatGPT Plus, Gemini Advanced) or API key to search with this agent directly with instant response and integrated memory.'
-                : 'Nechcete ručně přecházet do externích oken a kopírovat prompty? Propojte své předplatné (Claude Pro, ChatGPT Plus, Gemini Advanced) nebo API klíč a hledejte s tímto agentem rovnou v našem rozhraní s bleskovou odezvou a integrovanou pamětí.'}
+                ? 'Free chat includes a starter quota with Google Gemini. For unlimited messages or advanced models (Claude 3.5 Sonnet, GPT-4o, Local Ollama), connect your own API key in your secure local Vault.'
+                : 'Základní chat obsahuje bezplatnou kvótu s Google Gemini. Pro neomezený počet dotazů nebo pokročilé modely (Claude 3.5 Sonnet, GPT-4o, Lokální Ollama) si můžete v Trezoru propojit vlastní API klíč.'}
             </p>
           </div>
 
@@ -2351,7 +2339,7 @@ export const DynamicAgentWizard: React.FC<DynamicAgentWizardProps> = ({
                 onClick={onOpenSubscriptionModal}
                 className="flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold bg-[#0099cc] hover:bg-[#0088b8] text-white transition-all cursor-pointer shadow-xs"
               >
-                <span>{locale === 'en' ? 'Connect account / token (BYOK)' : 'Propojit účet / token (BYOK)'}</span>
+                <span>{locale === 'en' ? 'Manage Keys in Vault' : 'Spravovat klíče v Trezoru'}</span>
               </button>
             ) : (
               <div className="px-3 py-1.5 rounded-lg bg-slate-800 border border-slate-700 text-xs font-mono text-slate-300">

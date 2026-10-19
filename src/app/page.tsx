@@ -1,8 +1,9 @@
 'use client';
+import { ChatQuotaService, ChatQuotaStatus } from "@/lib/agent/chat-quota-service";
 import { AgentMessageRenderer } from '@/components/AgentMessageRenderer';
 
 
-import React, { useState, useEffect, useRef, useMemo } from 'react';
+import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { AgentChatMessage } from '@/lib/agent/types';
 import { RecommendedProductRankingItem, extractRecommendedProductsFromMessages } from '@/lib/agent/ranking-parser';
 import { ToolExecutionBadge } from '@/components/ToolExecutionBadge';
@@ -210,7 +211,7 @@ const getAgentQuickPrompts = (agent: UniversalAgentDefinition | null, isEn: bool
 
 export default function Home() {
   const { t, locale } = useI18n();
-  const { user } = useAuth();
+  const { user, loginWithGoogle } = useAuth();
   const isEn = locale === 'en';
   const [activeTab, setActiveTab] = useState<AppTab>('wizard');
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
@@ -400,12 +401,22 @@ export default function Home() {
       void ChatStorageService.saveMessages(selectedAgent.id, messages, user?.id, selectedAgent.name);
     }
   }, [messages, selectedAgent?.id, user?.id]);
-  const hasActiveSubscription = Boolean(
+  const hasCustomKey = Boolean(
     apiKeys['google_gemini']?.trim() ||
     apiKeys['openai_gpt4o']?.trim() ||
     apiKeys['anthropic_claude']?.trim() ||
     (apiKeys[activeProviderId]?.trim())
   );
+  const [quotaStatus, setQuotaStatus] = useState<ChatQuotaStatus>(() =>
+    ChatQuotaService.getQuotaStatus({ sessionId, userId: user?.id, hasCustomKey })
+  );
+
+  useEffect(() => {
+    setQuotaStatus(ChatQuotaService.getQuotaStatus({ sessionId, userId: user?.id, hasCustomKey }));
+  }, [sessionId, user?.id, hasCustomKey]);
+
+  const canChat = hasCustomKey || !quotaStatus.isExhausted;
+  const hasActiveSubscription = canChat;
 
   // Load persisted font preference, theme, assessments, BYOK keys, saved agents & facts from localStorage
   useEffect(() => {
@@ -548,11 +559,36 @@ export default function Home() {
     });
   };
 
+  const chatScrollContainerRef = useRef<HTMLDivElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
+  const scrollToBottom = useCallback((behavior: ScrollBehavior = 'smooth') => {
+    if (chatScrollContainerRef.current) {
+      if (typeof chatScrollContainerRef.current.scrollTo === 'function') {
+        chatScrollContainerRef.current.scrollTo({
+          top: chatScrollContainerRef.current.scrollHeight,
+          behavior,
+        });
+      } else {
+        chatScrollContainerRef.current.scrollTop = chatScrollContainerRef.current.scrollHeight;
+      }
+    }
+    messagesEndRef.current?.scrollIntoView?.({ behavior });
+  }, []);
+
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView?.({ behavior: 'smooth' });
-  }, [messages, isLoading]);
+    if (activeTab === 'chat' && messages.length > 0) {
+      // Immediate jump to bottom so user never starts at the top of an old conversation
+      scrollToBottom('auto');
+      // Pass after DOM layout reflow and markdown message rendering
+      const t1 = setTimeout(() => scrollToBottom('auto'), 50);
+      const t2 = setTimeout(() => scrollToBottom('smooth'), 200);
+      return () => {
+        clearTimeout(t1);
+        clearTimeout(t2);
+      };
+    }
+  }, [activeTab, selectedAgent?.id, messages, isLoading, scrollToBottom]);
 
   const handleAddSidebarParam = () => {
     if (!sidebarParamName.trim() || !sidebarParamValue.trim() || !selectedAgent) return;
@@ -713,6 +749,15 @@ export default function Home() {
       content: message,
       timestamp: new Date().toISOString(),
     };
+
+    if (!hasCustomKey) {
+      if (quotaStatus.isExhausted) {
+        setIsSubscriptionModalOpen(true);
+        return;
+      }
+      const updatedQuota = ChatQuotaService.consumeQuery({ sessionId, userId: user?.id, hasCustomKey });
+      setQuotaStatus(updatedQuota);
+    }
 
     setMessages((prev) => {
       const cleanPrev = isFreshStart
@@ -1229,6 +1274,7 @@ export default function Home() {
             <DynamicAgentWizard
               key={selectedAgent.id}
               agent={selectedAgent}
+              quotaStatus={quotaStatus}
               onBackToLauncher={() => setWizardMode('launcher')}
               onStepChange={(stepIdx, stepAnswers) => {
                 setSidebarAnswers(stepAnswers);
@@ -1418,83 +1464,61 @@ export default function Home() {
 
           {/* Right: Conversational Stream or Subscription Lock View */}
           <main className="flex-1 flex flex-col justify-between overflow-hidden bg-[#f4f6f8] text-[#263238]">
-            {!hasActiveSubscription ? (
-              /* Subscription Paywall Screen */
+            {!canChat ? (
+              /* Quota Exhausted Screen */
               <div className="flex-1 flex flex-col items-center justify-center p-6 text-center max-w-xl mx-auto space-y-6 animate-in fade-in zoom-in-95 duration-200 overflow-y-auto">
-
-
                 <div className="space-y-2">
-                  <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-cyan-950/80 border border-cyan-500/30 text-cyan-300 font-mono text-[11px] font-bold">
-                    <span>{isEn ? 'Agent Discussion • Requires BYOK Model' : 'Diskuse s agentem • Vyžaduje vlastní model (BYOK)'}</span>
+                  <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-50 border border-amber-300 text-amber-800 font-mono text-[11px] font-bold">
+                    <span>{t.chatTab.quotaExhaustedTitle}</span>
                   </div>
-                  <h2 className="text-xl sm:text-2xl font-extrabold text-white">
-                    {isEn ? 'Connect your AI subscription for live discussion' : 'Propojte své AI předplatné pro živou diskusi'}
+                  <h2 className="text-xl sm:text-2xl font-black text-[#0f172a]">
+                    {t.chatTab.quotaExhaustedTitle}
                   </h2>
-                  <p className="text-xs sm:text-sm text-slate-400 leading-relaxed max-w-md mx-auto">
-                    {isEn ? 'Live conversation and tuning runs directly through your own AI subscription (Google Gemini, OpenAI ChatGPT, Anthropic Claude). The agent utilizes your RAG memory and your data stays secure.' : 'Živá konverzace a ladění probíhá přímo přes vaše vlastní AI předplatné (Google Gemini, OpenAI ChatGPT, Anthropic Claude). Agent využije vaši RAG paměť a vaše data zůstanou v bezpečí.'}
+                  <p className="text-xs sm:text-sm text-[#334155] leading-relaxed max-w-md mx-auto">
+                    {quotaStatus.tier === "guest"
+                      ? t.chatTab.guestQuotaExhaustedDesc
+                      : t.chatTab.userQuotaExhaustedDesc}
                   </p>
                 </div>
 
                 {/* Current Agent Info Card */}
-                <div className="w-full p-4 rounded-2xl bg-slate-900/90 border border-slate-800 text-left flex items-center gap-3 shadow-md">
-
+                <div className="w-full p-4 rounded-xl bg-white border border-slate-200 text-left flex items-center gap-3 shadow-xs">
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between">
-                      <h4 className="text-sm font-bold text-white truncate">
-                        {selectedAgent?.name || 'Luke (Běžecká & zdravotní obuv)'}
+                      <h4 className="text-sm font-bold text-[#0f172a] truncate">
+                        {selectedAgent?.name || (isEn ? "Shopping Consultant" : "Nákupní poradce")}
                       </h4>
-                      <span className="text-[10px] font-mono text-cyan-400 font-bold px-2 py-0.5 rounded bg-cyan-950 border border-cyan-500/30">
-                        {selectedAgent?.category || 'Sport & Lifestyle'}
+                      <span className="text-[10px] font-mono text-[#01579b] font-bold px-2 py-0.5 rounded bg-[#e0f2fe] border border-[#bae6fd]">
+                        {selectedAgent?.category || (isEn ? "Consumer" : "Výběr")}
                       </span>
                     </div>
-                    <p className="text-xs text-slate-400 mt-0.5 line-clamp-1">
-                      {selectedAgent?.description || 'Biomechanický nákupčí obuvi a konzultant'}
+                    <p className="text-xs text-[#64748b] mt-0.5 line-clamp-1">
+                      {selectedAgent?.description}
                     </p>
-                  </div>
-                </div>
-
-                {/* Benefits Badges */}
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 w-full text-left">
-                  <div className="p-3 rounded-xl bg-slate-950/70 border border-slate-800">
-                    
-                    <span className="text-xs font-bold text-slate-200 block">{isEn ? 'Own Tokens' : 'Vlastní tokeny'}</span>
-                    <span className="text-[10px] text-slate-500 leading-tight">{isEn ? 'Unlimited discussion without token or credit limits.' : 'Neomezená diskuse bez kreditových stropů.'}</span>
-                  </div>
-                  <div className="p-3 rounded-xl bg-slate-950/70 border border-slate-800">
-                    
-                    <span className="text-xs font-bold text-slate-200 block">{isEn ? 'RAG Context' : 'RAG kontext'}</span>
-                    <span className="text-[10px] text-slate-500 leading-tight">{isEn ? 'Agent knows your stored biometric & preference facts.' : 'Agent zná vaše uložená biometrická fakta.'}</span>
-                  </div>
-                  <div className="p-3 rounded-xl bg-slate-950/70 border border-slate-800">
-                    
-                    <span className="text-xs font-bold text-slate-200 block">{isEn ? '100% Privacy' : '100% soukromí'}</span>
-                    <span className="text-[10px] text-slate-500 leading-tight">{isEn ? 'API keys are stored exclusively in your browser.' : 'Klíč se ukládá pouze ve vašem prohlížeči.'}</span>
                   </div>
                 </div>
 
                 {/* CTA Actions */}
                 <div className="flex flex-col sm:flex-row items-center gap-3 w-full pt-1">
+                  {!user && (
+                    <button
+                      onClick={() => loginWithGoogle && loginWithGoogle()}
+                      className="w-full sm:flex-1 py-3 px-5 rounded-xl bg-[#01579b] hover:bg-[#0284c7] text-white font-bold text-sm shadow-md transition-all cursor-pointer"
+                    >
+                      <span>{t.chatTab.signInForMore}</span>
+                    </button>
+                  )}
                   <button
                     onClick={() => setIsSubscriptionModalOpen(true)}
-                    className="w-full sm:flex-1 py-3 px-5 rounded-xl bg-gradient-to-r from-cyan-500 to-teal-500 hover:brightness-110 text-slate-950 font-bold text-sm shadow-lg shadow-cyan-950/60 flex items-center justify-center gap-2 transition-all cursor-pointer"
+                    className="w-full sm:flex-1 py-3 px-5 rounded-xl bg-white hover:bg-slate-50 border border-slate-300 text-[#0f172a] font-bold text-sm shadow-xs transition-all cursor-pointer"
                   >
-                    <span>{isEn ? 'Connect Account / BYOK' : 'Propojit vlastní model / předplatné'}</span>
-                  </button>
-
-                  <button
-                    onClick={() => {
-                      setWizardMode(selectedAgent ? 'active_agent' : 'launcher');
-                      setActiveTab('wizard');
-                    }}
-                    className="w-full sm:w-auto py-3 px-4 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-300 hover:text-white text-xs font-mono font-medium transition-all cursor-pointer"
-                  >
-                    {isEn ? 'Open Shopping Wizard' : 'Otevřít průvodce nákupem'}
+                    <span>{t.chatTab.enterApiKeyForUnlimited}</span>
                   </button>
                 </div>
               </div>
             ) : (
               /* Unlocked Chat Stream */
-              <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-6">
+              <div ref={chatScrollContainerRef} className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-6">
                 {/* Unified Material Header Bar */}
                 <div className="flex flex-wrap items-center justify-between gap-3 p-3.5 rounded-xl bg-white border border-slate-200 text-xs shadow-xs mb-2">
                   <div className="flex items-center gap-2.5 flex-wrap min-w-0">
@@ -1507,6 +1531,17 @@ export default function Home() {
                     </span>
                     <span className="text-[10px] font-mono px-2 py-0.5 rounded-md bg-slate-100 text-[#546e7a] border border-slate-200 shrink-0 font-semibold">
                       {activeProvider.name}
+                    </span>
+                    <span className={`text-[10px] font-mono px-2 py-0.5 rounded-md font-bold border shrink-0 ${
+                      hasCustomKey
+                        ? "bg-emerald-50 text-emerald-800 border-emerald-200"
+                        : quotaStatus.remaining <= 1
+                        ? "bg-amber-50 text-amber-800 border-amber-300"
+                        : "bg-[#e1f5fe] text-[#01579b] border-[#b3e5fc]"
+                    }`}>
+                      {hasCustomKey
+                        ? (isEn ? "Unlimited (Custom Key)" : "Neomezeně (Vlastní klíč)")
+                        : (isEn ? `Free: ${quotaStatus.remaining}/${quotaStatus.totalAllowed} left` : `Zbývá ${quotaStatus.remaining}/${quotaStatus.totalAllowed} dotazů`)}
                     </span>
                   </div>
                   <div className="flex items-center gap-3 shrink-0">
@@ -1649,21 +1684,58 @@ export default function Home() {
               </div>
             )}
 
-            {/* Quick Prompts & Chat Input Form or Locked Input Footer */}
-            {!hasActiveSubscription ? (
-              <div className="p-4 sm:p-5 border-t border-slate-800 bg-slate-950/90 backdrop-blur-md flex flex-col sm:flex-row items-center justify-between gap-3">
-                <div className="flex items-center gap-2 text-xs text-slate-400">
-                  <span>{isEn ? 'Connect your AI subscription to send messages to the agent.' : 'Pro odesílání zpráv do diskuse s agentem nejprve propojte své AI předplatné.'}</span>
+            {/* Quick Prompts & Chat Input Form */}
+            {!canChat ? (
+              <div className="p-4 sm:p-5 border-t border-slate-200 bg-white shadow-xs flex flex-col sm:flex-row items-center justify-between gap-3">
+                <div className="flex items-center gap-2 text-xs text-[#334155]">
+                  <span className="font-bold text-amber-700">•</span>
+                  <span>
+                    {quotaStatus.tier === "guest"
+                      ? t.chatTab.guestQuotaExhaustedDesc
+                      : t.chatTab.userQuotaExhaustedDesc}
+                  </span>
                 </div>
-                <button
-                  onClick={() => setIsSubscriptionModalOpen(true)}
-                  className="w-full sm:w-auto px-4 py-2 rounded-xl bg-cyan-950 border border-cyan-500/40 text-cyan-300 hover:text-white text-xs font-mono font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer"
-                >
-                  <span>{isEn ? 'Connect model' : 'Propojit model'}</span>
-                </button>
+                <div className="flex items-center gap-2 shrink-0">
+                  {!user && (
+                    <button
+                      onClick={() => loginWithGoogle && loginWithGoogle()}
+                      className="px-3.5 py-2 rounded-lg bg-[#01579b] text-white text-xs font-bold hover:bg-[#0284c7] transition-all cursor-pointer shadow-xs"
+                    >
+                      {t.chatTab.signInForMore}
+                    </button>
+                  )}
+                  <button
+                    onClick={() => setIsSubscriptionModalOpen(true)}
+                    className="px-3.5 py-2 rounded-lg bg-white border border-slate-300 text-[#0f172a] text-xs font-bold hover:bg-slate-50 transition-all cursor-pointer shadow-xs"
+                  >
+                    {t.chatTab.enterApiKeyForUnlimited}
+                  </button>
+                </div>
               </div>
             ) : (
               <div className="p-4 sm:p-5 border-t border-slate-200 bg-white shadow-xs">
+                {/* Free Quota / Subscription Status Indicator */}
+                <div className="flex items-center justify-between text-xs mb-2.5 px-1">
+                  <div className="flex items-center gap-1.5 font-mono text-[11px]">
+                    <span className={`w-2 h-2 rounded-full ${hasCustomKey ? "bg-emerald-500" : "bg-[#0284c7]"}`} />
+                    <span className="text-[#334155] font-bold">
+                      {hasCustomKey
+                        ? t.chatTab.unlimitedTier
+                        : quotaStatus.remaining === 1
+                        ? t.chatTab.freeTierRemainingSingle
+                        : t.chatTab.freeTierRemaining.replace("{count}", String(quotaStatus.remaining))}
+                    </span>
+                  </div>
+                  {!hasCustomKey && (
+                    <button
+                      type="button"
+                      onClick={() => setIsSubscriptionModalOpen(true)}
+                      className="text-[11px] font-mono font-bold text-[#01579b] hover:underline cursor-pointer"
+                    >
+                      {t.chatTab.enterApiKeyForUnlimited}
+                    </button>
+                  )}
+                </div>
                 {(() => {
                   const quickPrompts = getAgentQuickPrompts(selectedAgent, isEn);
                   if (quickPrompts.length === 0) return null;

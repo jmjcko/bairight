@@ -45,13 +45,17 @@ export async function POST(req: NextRequest) {
     };
     ProfileStorageManager.addMessage(sessionId, userMsg);
 
-    // 3. Resolve API key for Live LLM (BYOK or environment)
-    const effectiveKey = apiKey || (
-      providerId === 'google_gemini' ? process.env.GOOGLE_GEMINI_API_KEY :
+    // 3. Resolve API key for Live LLM (BYOK or platform default environment key)
+    const effectiveKey = apiKey || process.env.GOOGLE_GEMINI_API_KEY || (
       providerId === 'openai_gpt4o' ? process.env.OPENAI_API_KEY :
       providerId === 'anthropic_claude' ? process.env.ANTHROPIC_API_KEY :
-      process.env.GOOGLE_GEMINI_API_KEY || process.env.OPENAI_API_KEY
+      process.env.OPENAI_API_KEY
     );
+
+    // If using platform default key, guarantee provider is set to google_gemini
+    const effectiveProviderId = apiKey
+      ? (providerId || 'google_gemini')
+      : (effectiveKey === process.env.GOOGLE_GEMINI_API_KEY ? 'google_gemini' : (providerId || 'google_gemini'));
 
     let assistantContent = '';
 
@@ -64,7 +68,7 @@ export async function POST(req: NextRequest) {
           history,
           ragFacts,
           assessmentContext,
-          providerId,
+          providerId: effectiveProviderId,
           apiKey: effectiveKey,
           locale,
         });

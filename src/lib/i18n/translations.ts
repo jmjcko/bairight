@@ -347,6 +347,14 @@ export interface Translations {
     thinking: string;
     chatError: string;
     clearChat: string;
+    freeTierRemaining: string;
+    freeTierRemainingSingle: string;
+    unlimitedTier: string;
+    quotaExhaustedTitle: string;
+    guestQuotaExhaustedDesc: string;
+    userQuotaExhaustedDesc: string;
+    signInForMore: string;
+    enterApiKeyForUnlimited: string;
   };
   productTour: {
     navLink: string;
@@ -796,6 +804,14 @@ export const translations: Record<SupportedLocale, Translations> = {
       thinking: 'Agent přemýšlí...',
       chatError: 'Došlo k chybě při spojení s AI konzultantem.',
       clearChat: 'Vyčistit historii konverzace',
+      freeTierRemaining: 'Bezplatná verze: zbývá {count} dotazů',
+      freeTierRemainingSingle: 'Bezplatná verze: zbývá 1 dotaz',
+      unlimitedTier: 'Neomezený chat (vlastní klíč)',
+      quotaExhaustedTitle: 'Bezplatná kvóta dotazů byla vyčerpána',
+      guestQuotaExhaustedDesc: 'Vyčerpali jste 5 bezplatných dotazů pro tuto nákupní relaci. Přihlaste se přes Google a získejte 15 dotazů denně zdarma, nebo zadejte vlastní API klíč pro neomezený chat.',
+      userQuotaExhaustedDesc: 'Vyčerpali jste 15 bezplatných dotazů pro dnešní den. Kvóta se automaticky obnoví o půlnoci, nebo můžete zadat svůj vlastní API klíč pro neomezený chat.',
+      signInForMore: 'Přihlásit se přes Google (15 dotazů/den)',
+      enterApiKeyForUnlimited: 'Zadat vlastní klíč (Neomezeně)',
     },
     disclaimer: 'Veškerá doporučení a výpočty mají výhradně informativní a orientační charakter. Systém neprovádí lékařskou diagnostiku a nenahrazuje odborné vyšetření lékařem či ortopedem.',
     productTour: {
@@ -844,8 +860,8 @@ export const translations: Record<SupportedLocale, Translations> = {
       showcaseStep3Highlight: 'Srovnání s předchozím modelem • Přísné filtry značek • 100% strukturovaná data',
       showcaseStep4Tab: '04 Result Hub & Možnosti',
       showcaseStep4Title: 'Result Hub: Zvolte si, jak chcete nakalibrovaného agenta využít',
-      showcaseStep4Desc: 'Po dokončení diagnostiky vám Result Hub dává maximální svobodu: (1) Spustit živou konzultaci přímo v bAIright přes BYOK, (2) Jedním kliknutím zkopírovat vyladěný prompt pro bezplatný ChatGPT, Claude či Perplexity bez nutnosti API klíče, (3) Stáhnout otevřenou .agent.md konfiguraci pro Custom GPTs či lokální agenty, nebo (4) Kdykoliv upravit wizard a zpětně doladit parametry.',
-      showcaseStep4Highlight: 'Interaktivní BYOK chat • Kopírování promptu (bez API klíče) • Stažení .agent.md • Nástroje pro úpravu dotazníku',
+      showcaseStep4Desc: 'Po dokončení diagnostiky vám Result Hub dává maximální svobodu: (1) Spustit živou konzultaci přímo v bAIright (zdarma s Google Gemini nebo neomezeně přes vlastní BYOK klíč), (2) Jedním kliknutím zkopírovat vyladěný prompt pro bezplatný ChatGPT, Claude či Perplexity bez nutnosti API klíče, (3) Stáhnout otevřenou .agent.md konfiguraci pro Custom GPTs či lokální agenty, nebo (4) Kdykoliv upravit wizard a zpětně doladit parametry.',
+      showcaseStep4Highlight: 'Interaktivní chat zdarma • Vlastní BYOK klíče • Kopírování promptu • Stažení .agent.md • Úprava parametrů',
       comparisonTitle: 'Proč tradiční vyhledávače a srovnávače selhávají',
       comparisonSubtitle: 'Rozdíl mezi placeným zprostředkovatelem a vaším nezávislým nákupním zástupcem.',
       colFeature: 'Vlastnost / Přístup',
@@ -1243,6 +1259,14 @@ export const translations: Record<SupportedLocale, Translations> = {
       thinking: 'Agent is thinking...',
       chatError: 'An error occurred while connecting to the AI consultant.',
       clearChat: 'Clear Conversation History',
+      freeTierRemaining: 'Free tier: {count} queries left',
+      freeTierRemainingSingle: 'Free tier: 1 query left',
+      unlimitedTier: 'Unlimited chat (custom key)',
+      quotaExhaustedTitle: 'Free query quota reached',
+      guestQuotaExhaustedDesc: 'You have used all 5 free queries for this session. Sign in with Google to get 15 daily queries, or connect your own API key for unlimited chat.',
+      userQuotaExhaustedDesc: 'You have used all 15 free queries for today. Your quota resets at midnight, or connect your own API key for unlimited chat.',
+      signInForMore: 'Sign in with Google (15 queries/day)',
+      enterApiKeyForUnlimited: 'Enter API Key (Unlimited)',
     },
     disclaimer: 'All recommendations and calculations are strictly for informational and guidance purposes. The system does not provide medical diagnosis and does not replace specialist medical examination.',
     productTour: {
@@ -1291,8 +1315,8 @@ export const translations: Record<SupportedLocale, Translations> = {
       showcaseStep3Highlight: 'Baseline experience comparison • Strict brand filters • 100% structured criteria',
       showcaseStep4Tab: '04 Result Hub & AI Delivery',
       showcaseStep4Title: 'Result Hub: Choose how you want to deploy your calibrated agent',
-      showcaseStep4Desc: 'Once diagnostic intake is complete, the Result Hub puts you in total control: (1) Launch live interactive consultation directly in bAIright using BYOK, (2) Copy the calibrated prompt with one click to use in free ChatGPT, Claude, or Perplexity without needing any API key, (3) Download the portable .agent.md specification for Custom GPTs or local agents, or (4) Revisit and fine-tune your criteria anytime.',
-      showcaseStep4Highlight: 'Interactive BYOK Chat • One-click Prompt Copy (No API Key) • Portable .agent.md Download • Non-destructive Wizard Editing',
+      showcaseStep4Desc: 'Once diagnostic intake is complete, the Result Hub puts you in total control: (1) Launch live interactive consultation directly in bAIright (free with Google Gemini or unlimited with your own BYOK key), (2) Copy the calibrated prompt with one click to use in free ChatGPT, Claude, or Perplexity without needing any API key, (3) Download the portable .agent.md specification for Custom GPTs or local agents, or (4) Revisit and fine-tune your criteria anytime.',
+      showcaseStep4Highlight: 'Interactive Free Chat • Custom BYOK Keys • One-click Prompt Copy • Portable .agent.md Download • Non-destructive Wizard Editing',
       comparisonTitle: 'Why Traditional Comparison Sites Fail',
       comparisonSubtitle: 'The definitive difference between paid middlemen and your dedicated, independent shopping representative.',
       colFeature: 'Capability / Approach',
