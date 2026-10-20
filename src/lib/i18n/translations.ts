@@ -378,6 +378,11 @@ export interface Translations {
     startBtn: string;
     closeBtn: string;
     openLandingPageBtn: string;
+    videoTabLabel: string;
+    tourTabLabel: string;
+    videoCaption: string;
+    watchDemoBtn: string;
+    backToTourBtn: string;
   };
   productGuide: {
     badge: string;
@@ -388,6 +393,12 @@ export interface Translations {
     videoBadge: string;
     videoTitle: string;
     videoSubtitle: string;
+    liveVideoTab: string;
+    stepsTab: string;
+    watchLiveVideoBtn: string;
+    videoMockupTitle: string;
+    videoMockupDesc: string;
+    videoMockupHighlight: string;
     showcaseStep1Tab: string;
     showcaseStep1Title: string;
     showcaseStep1Desc: string;
@@ -836,6 +847,11 @@ export const translations: Record<SupportedLocale, Translations> = {
       startBtn: 'Spustit asistenta',
       closeBtn: 'Zavřít',
       openLandingPageBtn: 'Kompletní prezentace produktu',
+      videoTabLabel: 'Video ukázka',
+      tourTabLabel: 'Průvodce',
+      videoCaption: 'Kompletní ukázka: od zadání kategorie přes parametrický dotazník a kalibraci až po doporučení v chatu.',
+      watchDemoBtn: 'Přehrát video ukázku',
+      backToTourBtn: 'Zpět k průvodci',
     },
     productGuide: {
       badge: 'Prezentace & Produktový manifest',
@@ -846,6 +862,12 @@ export const translations: Record<SupportedLocale, Translations> = {
       videoBadge: 'Živá ukázka v akci',
       videoTitle: 'Podívejte se, jak bAIright funguje v praxi',
       videoSubtitle: 'Záznam reálného průchodu: od výběru kategorie a parametrické diagnostiky přes prompt inženýrství až po konzultaci.',
+      liveVideoTab: 'Živé video demo (celý průchod)',
+      stepsTab: 'Krok za krokem (01–04)',
+      watchLiveVideoBtn: 'Přehrát živou video ukázku',
+      videoMockupTitle: 'Kompletní záznam průchodu aplikací',
+      videoMockupDesc: 'Podívejte se na reálný záznam od vyhledání kategorie Road Running Shoes, přes 9krokový diagnostický dotazník a kalibraci shody modelů, až po živý chat se specializovaným nákupním agentem.',
+      videoMockupHighlight: 'Plný video záznam • Vyhledání ➔ Dotazník ➔ Kalibrace ➔ Chat',
       showcaseStep1Tab: '01 Zadání a kategorie',
       showcaseStep1Title: 'Napište, co přesně chcete koupit',
       showcaseStep1Desc: 'Zadejte své přání v přirozeném jazyce nebo zvolte z doporučených oblastí. Ať už hledáte silniční maratonské boty s širokou špičkou, ergonomickou židli nebo kávovar, bAIright okamžitě dekomponuje váš nákupní záměr.',
@@ -1291,6 +1313,11 @@ export const translations: Record<SupportedLocale, Translations> = {
       startBtn: 'Launch Consultant',
       closeBtn: 'Close',
       openLandingPageBtn: 'View Complete Product Showcase',
+      videoTabLabel: 'Video Demo',
+      tourTabLabel: 'Guide',
+      videoCaption: 'Complete walkthrough: from category search through the parametric assessment and calibration to expert chat recommendations.',
+      watchDemoBtn: 'Watch Live Demo',
+      backToTourBtn: 'Back to Guide',
     },
     productGuide: {
       badge: 'Product Showcase & Manifesto',
@@ -1301,6 +1328,12 @@ export const translations: Record<SupportedLocale, Translations> = {
       videoBadge: 'Live Action Showcase',
       videoTitle: 'See How bAIright Works in Real Action',
       videoSubtitle: 'Authentic walkthrough recording: from category discovery and parametric diagnostics to compiled prompts and consultation.',
+      liveVideoTab: 'Live Video Walkthrough',
+      stepsTab: 'Step-by-step (01–04)',
+      watchLiveVideoBtn: 'Watch Live Video Recording',
+      videoMockupTitle: 'Complete Live Journey Recording',
+      videoMockupDesc: 'Watch the authentic recording: from category search for Road Running Shoes, through the 9-step diagnostic questionnaire and compatibility calibration, to live specialist agent consultation.',
+      videoMockupHighlight: 'Full Screen Recording • Search ➔ Questionnaire ➔ Calibration ➔ Chat',
       showcaseStep1Tab: '01 Query & Category',
       showcaseStep1Title: 'Tell bAIright what you want to buy',
       showcaseStep1Desc: 'Enter any natural language query or choose from popular shopping domains. Whether it is marathon running shoes with a wide toe box, an ergonomic chair, or an espresso machine, bAIright instantly decomposes your purchase intent.',

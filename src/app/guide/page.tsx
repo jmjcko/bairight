@@ -11,7 +11,7 @@ import { APP_VERSION } from "@/lib/version";
 export default function GuidePage() {
   const { t } = useI18n();
   const pg = t.productGuide;
-  const [activeStep, setActiveStep] = React.useState<1 | 2 | 3 | 4>(1);
+  const [activeStep, setActiveStep] = React.useState<'video' | 1 | 2 | 3 | 4>(1);
 
   const showcaseSteps = [
     {
@@ -60,7 +60,20 @@ export default function GuidePage() {
     },
   ];
 
-  const currentStep = showcaseSteps.find((s) => s.id === activeStep) || showcaseSteps[0];
+  const isVideoMode = activeStep === 'video';
+  const currentStep = !isVideoMode
+    ? (showcaseSteps.find((s) => s.id === activeStep) || showcaseSteps[0])
+    : {
+        id: 'video' as const,
+        tab: pg.liveVideoTab,
+        badge: "LIVE DEMO",
+        urlPath: "bairight.pro • live demo: 9-step wizard ➔ calibration ➔ specialist chat",
+        image: "/videos/how-it-works-demo.webp",
+        alt: "bAIright Live Action Video Demo Walkthrough",
+        title: pg.videoMockupTitle,
+        desc: pg.videoMockupDesc,
+        highlight: pg.videoMockupHighlight,
+      };
 
   const comparisonRows = [
     {
@@ -184,9 +197,35 @@ export default function GuidePage() {
             </p>
           </div>
 
-          {/* Step Selector Tabs */}
+          {/* Step & Video Selector Tabs */}
           <div className="w-full flex items-center justify-center">
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-2 w-full max-w-3xl p-1.5 rounded-2xl bg-slate-100 dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800">
+            <div className="flex flex-wrap items-center justify-center gap-2 w-full max-w-4xl p-1.5 rounded-2xl bg-slate-100 dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800">
+              {/* Live Video Demo Tab with Glowing Radar Ping */}
+              <button
+                type="button"
+                onClick={() => setActiveStep("video")}
+                className={`px-4 py-2.5 rounded-xl text-xs font-bold transition-all text-center cursor-pointer flex items-center gap-2.5 shadow-xs ${
+                  activeStep === "video"
+                    ? "bg-[#0099cc] text-white shadow-md shadow-cyan-950/40 ring-2 ring-[#0099cc]/40"
+                    : "bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-800 dark:text-emerald-300 border border-emerald-500/30 dark:border-emerald-500/40"
+                }`}
+              >
+                {/* Glowing Radar Pulse Effect */}
+                <span className="relative flex h-2.5 w-2.5 shrink-0" aria-hidden="true">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+                  <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.9)]" />
+                </span>
+                <span className="tracking-tight font-bold">{pg.liveVideoTab}</span>
+                <span className={`text-[9px] font-mono px-1.5 py-0.5 rounded font-bold uppercase tracking-wider ${
+                  activeStep === "video"
+                    ? "bg-white/20 text-white"
+                    : "bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30"
+                }`}>
+                  PLAY
+                </span>
+              </button>
+
+              {/* Steps 1 - 4 */}
               {showcaseSteps.map((step) => {
                 const isActive = step.id === activeStep;
                 return (
@@ -194,7 +233,7 @@ export default function GuidePage() {
                     key={step.id}
                     type="button"
                     onClick={() => setActiveStep(step.id)}
-                    className={`px-3 py-2.5 rounded-xl text-xs font-bold transition-all text-center cursor-pointer ${
+                    className={`px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all text-center cursor-pointer ${
                       isActive
                         ? "bg-[#0099cc] text-white shadow-md shadow-cyan-950/40"
                         : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-white/60 dark:hover:bg-slate-800/60"
@@ -238,8 +277,8 @@ export default function GuidePage() {
             <div className="p-5 sm:p-6 bg-slate-50 dark:bg-slate-950/70 border-t border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
               <div className="flex flex-col gap-1.5 max-w-2xl">
                 <div className="flex items-center gap-2">
-                  <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded bg-cyan-500/15 text-cyan-700 dark:text-cyan-300 border border-cyan-500/30">
-                    STEP {currentStep.id} OF 4
+                  <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded bg-cyan-500/15 text-cyan-700 dark:text-cyan-300 border border-cyan-500/30 uppercase">
+                    {isVideoMode ? "LIVE DEMO" : `STEP ${currentStep.id} OF 4`}
                   </span>
                   <h3 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white">
                     {currentStep.title}
@@ -248,27 +287,51 @@ export default function GuidePage() {
                 <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300 leading-relaxed font-sans">
                   {currentStep.desc}
                 </p>
-                <span className="text-[11px] font-mono text-slate-500 dark:text-slate-400">
-                  {currentStep.highlight}
-                </span>
+                <div className="flex flex-wrap items-center gap-3 pt-0.5">
+                  <span className="text-[11px] font-mono text-slate-500 dark:text-slate-400">
+                    {currentStep.highlight}
+                  </span>
+                  {!isVideoMode && (
+                    <button
+                      type="button"
+                      onClick={() => setActiveStep("video")}
+                      className="text-xs font-sans font-semibold text-cyan-700 dark:text-cyan-300 hover:underline cursor-pointer flex items-center gap-1"
+                    >
+                      <span>▸</span>
+                      <span>{pg.watchLiveVideoBtn}</span>
+                    </button>
+                  )}
+                </div>
               </div>
 
-              {/* Prev / Next controls */}
+              {/* Controls */}
               <div className="flex items-center gap-2 shrink-0">
-                <button
-                  type="button"
-                  onClick={() => setActiveStep((prev) => (prev > 1 ? ((prev - 1) as 1 | 2 | 3 | 4) : 4))}
-                  className="px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-800 text-xs font-mono font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-800 transition-colors cursor-pointer"
-                >
-                  ← Prev
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setActiveStep((prev) => (prev < 4 ? ((prev + 1) as 1 | 2 | 3 | 4) : 1))}
-                  className="px-3 py-2 rounded-xl border border-cyan-500/30 bg-cyan-500/10 text-xs font-mono font-bold text-cyan-700 dark:text-cyan-300 hover:bg-cyan-500/20 transition-colors cursor-pointer"
-                >
-                  Next →
-                </button>
+                {isVideoMode ? (
+                  <button
+                    type="button"
+                    onClick={() => setActiveStep(1)}
+                    className="px-3.5 py-2 rounded-xl border border-cyan-500/30 bg-cyan-500/10 text-xs font-mono font-bold text-cyan-700 dark:text-cyan-300 hover:bg-cyan-500/20 transition-colors cursor-pointer"
+                  >
+                    {pg.showcaseStep1Tab} →
+                  </button>
+                ) : (
+                  <>
+                    <button
+                      type="button"
+                      onClick={() => setActiveStep((prev) => (prev === 'video' || prev === 1 ? 4 : ((prev - 1) as 1 | 2 | 3 | 4)))}
+                      className="px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-800 text-xs font-mono font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+                    >
+                      ← Prev
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setActiveStep((prev) => (prev === 'video' || prev === 4 ? 1 : ((prev + 1) as 1 | 2 | 3 | 4)))}
+                      className="px-3 py-2 rounded-xl border border-cyan-500/30 bg-cyan-500/10 text-xs font-mono font-bold text-cyan-700 dark:text-cyan-300 hover:bg-cyan-500/20 transition-colors cursor-pointer"
+                    >
+                      Next →
+                    </button>
+                  </>
+                )}
               </div>
             </div>
           </div>

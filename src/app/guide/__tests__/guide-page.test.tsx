@@ -79,4 +79,18 @@ describe("GuidePage Component", () => {
     activeImage = screen.getByRole("img", { name: /bAIright Step 1/ });
     expect(activeImage).toHaveAttribute("src", "/images/guide-steps/step1-query-selection.png");
   });
+
+  it("switches to live video demo walkthrough when clicking the video tab", () => {
+    renderGuide();
+
+    const videoTab = screen.getByRole("button", { name: /Živé video demo|Live Video Walkthrough/ });
+    expect(videoTab).toBeInTheDocument();
+
+    fireEvent.click(videoTab);
+
+    const videoImg = screen.getByRole("img", { name: /Live Action Video Demo/ });
+    expect(videoImg).toBeInTheDocument();
+    expect(videoImg).toHaveAttribute("src", "/videos/how-it-works-demo.webp");
+    expect(screen.getAllByText("LIVE DEMO").length).toBeGreaterThan(0);
+  });
 });

@@ -78,4 +78,25 @@ describe("ProductTourModal Component", () => {
     expect(onClose).toHaveBeenCalled();
     expect(onOpenGuidePage).toHaveBeenCalled();
   });
+
+  it("switches to video demo mode when clicking the video tab and allows switching back", () => {
+    const onClose = vi.fn();
+    renderComponent({ isOpen: true, onClose });
+
+    // Click the Video Demo tab button
+    const videoTab = screen.getByRole("button", { name: /Video ukázka|Video Demo/ });
+    fireEvent.click(videoTab);
+
+    // Verify video element and walkthrough text
+    const videoImg = screen.getByAltText(/Kompletní ukázka|Complete walkthrough/);
+    expect(videoImg).toBeInTheDocument();
+    expect(videoImg).toHaveAttribute("src", "/videos/how-it-works-demo.webp");
+
+    // Click back to guide
+    const backBtn = screen.getByRole("button", { name: /Zpět k průvodci|Back to Guide/ });
+    fireEvent.click(backBtn);
+
+    // Verify back to step 1
+    expect(screen.getByText("1 / 4")).toBeInTheDocument();
+  });
 });
